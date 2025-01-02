@@ -3,11 +3,13 @@
 The 128 grading management and migration website monorepo.
 
 # Setup TODO
-- Authorization & authentication things on backend
+- Authorization & authentication things on backend (auth provider https://goauthentik.io)
+    - get it set up with spring and the school azure
 - Setup proxy for local development
 - Docker compose things
+- OpenAPI stuff
 
-# Development Environments
+# Development Environment
 
 All development environments will have a Docker Compose which launches
 them, but to run them individually, read the next sections for directions.
@@ -16,7 +18,7 @@ To run the project all at once, run: `docker compose up -d`
 
 ## Frontend
 
-Install [Java JDK 23](https://www.oracle.com/java/technologies/downloads/#jdk23-mac) and [Docker Desktop](https://www.docker.com).
+Install [JDK 23](https://www.oracle.com/java/technologies/downloads/#jdk23-mac) and [Docker Desktop](https://www.docker.com).
 
 To run the backend on Linux/Mac, run: `./mvnw spring-boot:run`
 
