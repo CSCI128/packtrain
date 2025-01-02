@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: Grading Admin Service
+  datasource:
+    url: jdbc:postgresql://${DB_HOSTNAME:localhost}:${DB_PORT:5432}/${DB_NAME:agent_rodriguez}
+    username: ${DB_USERNAME:agent_rodriguez}
+    password: ${DB_PASSWORD:thisissecure}
+  web:
+    resources:
+      add-mappings: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_ISSUER:localhost:8090}
+  jpa:
+    hibernate:
+      ddl-auto: update
+server:
+  error:
+    whitelabel:
+      enabled: false
+  servlet:
+    context-path: /api
