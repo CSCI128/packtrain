@@ -2,9 +2,9 @@ spring:
   application:
     name: Grading Admin Service
   datasource:
-    url: jdbc:postgresql://${DB_HOSTNAME:localhost}:${DB_PORT:5432}/${DB_NAME:agent_rodriguez}
-    username: ${DB_USERNAME:agent_rodriguez}
-    password: ${DB_PASSWORD:thisissecure}
+    url: jdbc:postgresql://${DB_HOSTNAME:postgresql}:${DB_PORT:5432}/${PG_DB:gradingadmindb}
+    username: ${PG_USER:admin}
+    password: ${PG_PASS:?database password required}
   web:
     resources:
       add-mappings: false
@@ -12,7 +12,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${AUTH_ISSUER:localhost:8090}
+          issuer-uri: ${AUTH_ISSUER:http://localhost/application/o/gradingadmin/.well-known/openid-configuration}
   jpa:
     hibernate:
       ddl-auto: update
