@@ -4,10 +4,19 @@ services:
       context: .
       dockerfile: ./grading-admin-service/Dockerfile
     restart: unless-stopped
-    ports:
-      - "${SPRING_HTTP:-8080}:8080"
     env_file:
       - .env
+    volumes:
+      - ./certificates/certs/localhost-root/localhost-root.CA.pem:/certificates/localhost-root.CA.crt
+    depends_on:
+      postgresql:
+        condition: service_started
+      server:
+        condition: service_healthy
+      certificates:
+        condition: service_completed_successfully
+      localhost.dev:
+        condition: service_started
   postgresql:
     image: docker.io/library/postgres:16-alpine
     restart: unless-stopped
@@ -52,9 +61,6 @@ services:
       - ./custom-templates:/templates
     env_file:
       - .env
-    ports:
-      - "${COMPOSE_PORT_HTTP:-9000}:9000"
-      - "${COMPOSE_PORT_HTTPS:-9443}:9443"
     depends_on:
       postgresql:
         condition: service_healthy
@@ -89,13 +95,32 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+  certificates:
+    build:
+      context: certificates/
+      dockerfile: Dockerfile
+    environment:
+      DOMAIN: ${DOMAIN:-localhost.dev}
+      EMAIL: ${EMAIL:-gradingadmin@localhost}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    volumes:
+      - ./certificates/certs:/opt/certs:rw
+  localhost.dev:
+    image: 'nginx:alpine'
+    volumes:
+      - "./nginx/nginx.conf:/etc/nginx/nginx.conf"
+      - "./certificates/certs/localhost.dev/out:/etc/ssl/localhost.dev:ro"
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      server:
+        condition: service_healthy
+      certificates:
+        condition: service_completed_successfully
 
 volumes:
   database:
     driver: local
   redis:
     driver: local
-
-networks:
-  default:
-    driver: bridge

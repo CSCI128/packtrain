@@ -12,7 +12,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${AUTH_ISSUER:http://localhost/application/o/gradingadmin/.well-known/openid-configuration}
+          issuer-uri: ${AUTH_ISSUER:https://localhost.dev/auth/application/o/gradingadmin/}
   jpa:
     hibernate:
       ddl-auto: update
