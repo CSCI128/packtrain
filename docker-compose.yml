@@ -17,6 +17,14 @@ services:
         condition: service_completed_successfully
       localhost.dev:
         condition: service_started
+  frontend:
+    build: ./grading-admin-web
+    restart: always
+    env_file:
+      - .env
+    # depends_on:
+    #   backend:
+    #     condition: service_healthy
   postgresql:
     image: docker.io/library/postgres:16-alpine
     restart: unless-stopped
