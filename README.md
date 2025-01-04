@@ -2,19 +2,22 @@
 
 The 128 grading management and migration website monorepo.
 
-# Setup TODO
-- Authorization & authentication things on backend (auth provider https://goauthentik.io)
-    - get it set up with spring and the school azure
-- Setup proxy for local development
-- Docker compose things
-- OpenAPI stuff
-
 # Development Environment
 
 All development environments will have a Docker Compose which launches
 them, but to run them individually, read the next sections for directions.
 
-To run the project all at once, run: `docker compose up -d`
+Rename `.env.sample` to `.env` and set `PG_PASS` and `AUTHENTIK_SECRET_KEY` in `.env` as follows:
+```
+echo "PG_PASS=$(openssl rand -base64 36 | tr -d '\n')" >> .env
+echo "AUTHENTIK_SECRET_KEY=$(openssl rand -base64 60 | tr -d '\n')" >> .env
+```
+
+Generate certificates before running the full compose (only needs to be done once per setup): `docker compose up certificates`
+
+Build all services: `docker compose build`
+
+Run the compose: `docker compose up -d`
 
 ## Frontend
 
