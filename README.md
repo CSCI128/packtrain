@@ -29,3 +29,9 @@ To run the backend on Linux/Mac, run: `./mvnw spring-boot:run`
 Install [Node.js](https://nodejs.org/en) and navigate to the `grading-admin-web` directory.
 
 Run `vite` to launch the development server.
+
+### Authentik
+
+Setup authentik at this address: `https://localhost.dev/auth/if/flow/initial-setup/`
+
+If everything is working, `https://localhost.dev/auth/` should be the authentik login URL.
