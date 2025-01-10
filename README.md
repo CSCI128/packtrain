@@ -24,6 +24,9 @@ Build all services: `docker compose build`
 
 Run the compose: `docker compose up -d`
 
+Add `localhost.dev 127.0.0.1` to your hosts file.
+(the process varies for windows and macos, I would google how to edit the hosts file for your specific platform)
+
 ## Frontend
 
 Install [JDK 23](https://www.oracle.com/java/technologies/downloads/#jdk23-mac) and [Docker Desktop](https://www.docker.com).
