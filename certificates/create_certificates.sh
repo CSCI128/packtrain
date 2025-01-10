@@ -81,7 +81,7 @@ EOM
         openssl req -x509 -new -nodes \
             -key "$ca_name.CA.key" \
             -sha256 -days 365 -out "$ca_name.CA.pem" \
-            -subj "/C=US/ST=CO/L=Golden/O=TriHardStudios/OU=Agent Rodriguez/CN=Agent Rodriguez Localhost Root CA"
+            -subj "/C=US/ST=CO/L=Golden/O=Colorado School of Mines/OU=Grading System/CN=Grading System Localhost Root CA"
         popd > /dev/null
     fi
 
@@ -110,7 +110,7 @@ do
 
     openssl genrsa -out "./out/$domain.key" 2048 
     openssl req -new -key "./out/$domain.key" -out "$domain.csr" \
-        -subj "/C=US/ST=CO/L=Golden/O=TriHardStudios/OU=Agent Rodriguez/CN=$domain"
+        -subj "/C=US/ST=CO/L=Golden/O=Colorado School of Mines/OU=Grading System/CN=$domain"
 
     cat > "$domain.ext" << EOF
 authorityKeyIdentifier=keyid,issuer
