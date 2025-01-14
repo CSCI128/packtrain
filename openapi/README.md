@@ -2,7 +2,7 @@
 
 Install `redocly`:
 ```bash
-npm i -g redocly-cli
+npm i -g @redocly/cli@latest
 ```
 
 Run the preview:
