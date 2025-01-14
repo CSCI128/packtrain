@@ -3,13 +3,16 @@ services:
     build:
       context: .
       dockerfile: ./grading-admin-service/Dockerfile
-    restart: unless-stopped
+    environment:
+      DB_HOSTNAME: grading-admin-postgres
     env_file:
       - .env
     volumes:
       - ./certificates/certs/localhost-root/localhost-root.CA.pem:/certificates/localhost-root.CA.crt
     depends_on:
       authentik:
+        condition: service_healthy
+      grading-admin-postgres:
         condition: service_healthy
       certificates:
         condition: service_completed_successfully
@@ -23,6 +26,71 @@ services:
     # depends_on:
     #   backend:
     #     condition: service_healthy
+  authentik:
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.1}
+    restart: unless-stopped
+    command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik-postgres
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+#    healthcheck:
+#      test: [ 'CMD-SHELL', '/bin/bash -c "/opt/usr/healthcheck.sh"' ]
+#      start_period: 30s
+#      interval: 10s
+#      retries: 5
+#      timeout: 5s
+    volumes:
+      - ./authentik/media:/media
+      - ./authentik/custom-templates:/templates
+      - ./authentik/healthcheck.sh:/opt/usr/healthcheck.sh
+    env_file:
+      - .env
+    depends_on:
+      authentik-postgres:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+  authentik-worker:
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.1}
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik-postgres
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+    volumes:
+      - ./authentik/media:/media
+      - ./authentik/certs:/certs
+      - ./authentik/custom-templates:/templates
+    env_file:
+      - .env
+    depends_on:
+      authentik-postgres:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+  grading-admin-postgres:
+    image: docker.io/library/postgres:16-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    volumes:
+      - grading-admin-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASS:?database password required}
+      POSTGRES_USER: ${PG_USER:-gradingadmin}
+      POSTGRES_DB: ${PG_DB:-gradingadmindb}
+    env_file:
+      - .env
   authentik-postgres:
     image: docker.io/library/postgres:16-alpine
     restart: unless-stopped
@@ -52,47 +120,7 @@ services:
       timeout: 3s
     volumes:
       - authentik-redis-store:/data
-  authentik:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.1}
-    restart: unless-stopped
-    command: server
-    environment:
-      AUTHENTIK_REDIS__HOST: authentik-redis
-      AUTHENTIK_POSTGRESQL__HOST: authentik-postgres
-      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
-      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
-    volumes:
-      - ./authentik/media:/media
-      - ./authentik/custom-templates:/templates
-    env_file:
-      - .env
-    depends_on:
-      authentik-postgres:
-        condition: service_healthy
-      authentik-redis:
-        condition: service_healthy
-  authentik-worker:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.1}
-    restart: unless-stopped
-    command: worker
-    environment:
-      AUTHENTIK_REDIS__HOST: authentik-redis
-      AUTHENTIK_POSTGRESQL__HOST: authentik-postgres
-      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
-      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
-    volumes:
-      - ./authentik/media:/media
-      - ./authentik/certs:/certs
-      - ./authentik/custom-templates:/templates
-    env_file:
-      - .env
-    depends_on:
-      authentik-postgres:
-        condition: service_healthy
-      authentik-redis:
-        condition: service_healthy
+# UTILS
   certificates:
     build:
       context: certificates/
@@ -125,6 +153,8 @@ services:
 
 
 volumes:
+  grading-admin-db:
+    driver: local
   authentik-db:
     driver: local
   authentik-redis-store:

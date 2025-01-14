@@ -22,6 +22,11 @@ Generate certificates before running the full compose (only needs to be done onc
 
 Build all services: `docker compose build`
 
+(for now: greg is working on automating this part)
+Start the proxy service: `docker compose up localhost.dev`
+
+And configure Authentik by following the stuff under the authentik header
+
 Run the compose: `docker compose up -d`
 
 Add `localhost.dev 127.0.0.1` to your hosts file.
@@ -43,3 +48,14 @@ Run `vite` to launch the development server.
 Setup authentik at this address: `https://localhost.dev/auth/if/flow/initial-setup/`
 
 If everything is working, `https://localhost.dev/auth/` should be the authentik login URL.
+
+Create a new application, it can be any name, but it must have the slug `gradingadmin`.
+Create a new provider called `gradingadmin` with the following settings.
+
+Client type: `public`
+
+Redirect URIs: `regex`, `https://localhost.dev/.*`
+
+Finally, assign that provider to the application that you just created.
+
+
