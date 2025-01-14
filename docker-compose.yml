@@ -3,8 +3,6 @@ services:
     build:
       context: .
       dockerfile: ./grading-admin-service/Dockerfile
-    environment:
-      DB_HOSTNAME: grading-admin-postgres
     env_file:
       - .env
     volumes:
