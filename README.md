@@ -23,7 +23,7 @@ Generate certificates before running the full compose (only needs to be done onc
 Build all services: `docker compose build`
 
 (for now: greg is working on automating this part)
-Start the proxy service: `docker compose up localhost.dev`
+Start the proxy service: `docker compose up localhost.dev authentik-worker`
 
 And configure Authentik by following the stuff under the authentik header
 
@@ -55,6 +55,7 @@ Create a new provider called `gradingadmin` with the following settings.
 Client type: `public`
 
 Redirect URIs: `regex`, `https://localhost.dev/.*`
+`strict`, `https://oauth.pstmn.io/v1/callback`
 
 Finally, assign that provider to the application that you just created.
 
