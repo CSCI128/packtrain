@@ -1,0 +1,413 @@
+openapi: "3.0.0"
+servers:
+  - url: https://localhost.dev/api
+    description: Local Development
+
+info:
+  title: Grading Admin
+  description: |
+    This API defines the operations required manage grades for classes
+    that utilize multiple platforms while respecting custom late policies
+  version: 0.0.1
+  license:
+    name: MIT # We may need to license this differently
+
+security:
+  - openIDC: [ user:read ] # at a base level, all users must at least be a user to access anything
+
+tags:
+  - name: admin
+    description: Administration functions for the grading server
+
+paths:
+  /admin/course/new/{canvas_id}:
+    put:
+      tags:
+        - admin
+      operationId: new_course
+      summary: "Import course from Canvas"
+      description: |
+        Create a new course in system using a Canvas course as a template.
+        Replies with populated template values, but those values must be committed by updating the course.
+      security:
+        - openIDC: [ admin:write ]
+      parameters:
+        - name: canvas_id
+          required: true
+          description: "The Canvas course ID"
+          in: path
+          schema:
+            type: string
+            example: "123456"
+      responses:
+        201:
+          description: "A empty course has been created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+        404:
+          description: "Canvas course not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "Canvas Service"
+                error_message: "Error: course id '123456' not found"
+        401:
+          description: "An authentication error occurred"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "Canvas Service"
+                error_message: "Error: invalid token"
+
+  /admin/course/{course_id}:
+    put:
+      tags:
+        - admin
+      operationId: update_course
+      summary: Update existing course
+      description: |
+        Update an existing course by replacing all content in the course.
+        If any assignments have been graded, then this will fail.
+      security:
+        - openIDC: [ admin:write ]
+      parameters:
+        - name: "course_id"
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Course"
+      responses:
+        202:
+          description: "Course update request accepted"
+        404:
+          description: "Course does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "course_creation"
+                error_message: "Course '999-9999-9999-99' does not exist"
+        400:
+          description: "Refused to update course"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "course_creation"
+                error_message: "Refusing to update course. At least one assignment has been graded."
+    get:
+      tags:
+        - admin
+      operationId: get_course
+      summary: Get existing course
+      description: |
+        Gets a course
+      security:
+        - openIDC: [ admin:read ]
+      parameters:
+        - name: "course_id"
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: "include"
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - members
+                - assignments
+                - sections
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+
+  /admin/course/{course_id}/students:
+    put:
+      tags:
+        - admin
+      operationId: add_students
+      summary: "Add students to a course"
+      description: |
+        Add students to a course.
+        If any student already exist in the class (based off of the students CWID), 
+        their information will be updated.
+      security:
+        - openIDC: [ admin:write ]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/CourseMember"
+      responses:
+        201:
+          description: "Accepted"
+        404:
+          description: Course Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_course"
+                error_message: "Course '999-9999-9999-99' does not exist"
+    get:
+      tags:
+        - admin
+      operationId: get_students
+      security:
+        - openIDC: [ admin:read ]
+      summary: "Get all students for a course"
+      description: |
+        Get all information about the students in a course.
+        This is different from the other ones, as it returns all the metadata about a student.
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CourseMember"
+        404:
+          description: Course Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_course"
+                error_message: "Course '999-9999-9999-99' does not exist"
+
+  /admin/course/{course_id}/assignments:
+    put:
+      tags:
+        - admin
+      operationId: add_assignment
+      summary: "Add assignment to a course"
+      description: |
+        Add assignments to a course.
+        If any assignment already exist in the class (based off of the TODO), 
+        their information will be updated.
+      security:
+        - openIDC: [ admin:write ]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Assignment"
+      responses:
+        201:
+          description: "Accepted"
+        404:
+          description: Course Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_course"
+                error_message: "Course '999-9999-9999-99' does not exist"
+    get:
+      tags:
+        - admin
+      operationId: get_assignments
+      security:
+        - openIDC: [ admin:read ]
+      summary: "Get all assignments for a course"
+      description: |
+        Get all information about the assignments in a course.
+        This is different from the other ones, as it returns all the metadata about an assignments.
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Assignment"
+        404:
+          description: Course Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_course"
+                error_message: "Course '999-9999-9999-99' does not exist"
+components:
+  securitySchemes:
+    OpenIDC:
+      type: openIdConnect
+      openIdConnectUrl: https://localhost.dev/auth/application/o/gradingadmin/.well_known
+
+  schemas:
+    ErrorResponse:
+      description: "An error occurred while processing that query"
+      type: object
+      properties:
+        error_source:
+          type: string
+        error_message:
+          type: string
+
+    CourseMember:
+      description: "A user in a course"
+      type: object
+      required:
+        - cwid
+        - canvas_id
+        - course_role
+      properties:
+        cwid:
+          type: string
+          example: "99999999"
+        canvas_id:
+          type: string
+          example: "self"
+        course_role:
+          type: string
+          enum:
+            - student
+            - teacher
+            - ta
+            - owner
+          example: "owner"
+        section:
+          type: string
+          example: "fall.2020.excl.101.section.a"
+
+    Assignment:
+      description: "An assignment in a course"
+      type: object
+      required:
+        - points
+        - due_date
+        - unlock_date
+        - enabled
+        - category
+        - canvas_id
+      properties:
+        points:
+          type: number
+          format: double
+          example: 15.0
+        due_date:
+          type: string
+          format: date-time
+          example: "2020-01-15T12:00:00.000Z"
+        unlock_date:
+          type: string
+          format: date-time
+          example: "2020-01-01T12:00:00.000Z"
+        enabled:
+          type: boolean
+          example: true
+        category:
+          type: string
+          example: "Quiz"
+        canvas_id:
+          type: string
+          example: "12345678"
+    Course:
+      description: "A complete course"
+      type: object
+      required:
+        - term
+        - enabled
+        - name
+        - code
+        - canvas_id
+      properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
+        term:
+          type: string
+          example: "Fall 2020"
+        enabled:
+          type: boolean
+          example: true
+        name:
+          type: string
+          example: "EXCL101"
+        code:
+          type: string
+          example: "Fall.2020.EXCL.101"
+        canvas_id:
+          type: string
+          example: "123456"
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/CourseMember"
+        assignments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Assignment"
+        sections:
+          type: array
+          items:
+            type: string
+          example:
+            - "fall.2020.excl.101.section.a"
+
+

@@ -3,15 +3,14 @@ services:
     build:
       context: .
       dockerfile: ./grading-admin-service/Dockerfile
-    restart: unless-stopped
     env_file:
       - .env
     volumes:
       - ./certificates/certs/localhost-root/localhost-root.CA.pem:/certificates/localhost-root.CA.crt
     depends_on:
-      postgresql:
-        condition: service_started
-      server:
+      authentik:
+        condition: service_healthy
+      grading-admin-postgres:
         condition: service_healthy
       certificates:
         condition: service_completed_successfully
@@ -25,7 +24,55 @@ services:
     # depends_on:
     #   backend:
     #     condition: service_healthy
-  postgresql:
+  authentik:
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.1}
+    restart: unless-stopped
+    command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik-postgres
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+#    healthcheck:
+#      test: [ 'CMD-SHELL', '/bin/bash -c "/opt/usr/healthcheck.sh"' ]
+#      start_period: 30s
+#      interval: 10s
+#      retries: 5
+#      timeout: 5s
+    volumes:
+      - ./authentik/media:/media
+      - ./authentik/custom-templates:/templates
+      - ./authentik/healthcheck.sh:/opt/usr/healthcheck.sh
+    env_file:
+      - .env
+    depends_on:
+      authentik-postgres:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+  authentik-worker:
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.1}
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik-postgres
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+    volumes:
+      - ./authentik/media:/media
+      - ./authentik/certs:/certs
+      - ./authentik/custom-templates:/templates
+    env_file:
+      - .env
+    depends_on:
+      authentik-postgres:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+  grading-admin-postgres:
     image: docker.io/library/postgres:16-alpine
     restart: unless-stopped
     healthcheck:
@@ -35,14 +82,31 @@ services:
       retries: 5
       timeout: 5s
     volumes:
-      - database:/var/lib/postgresql/data
+      - grading-admin-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASS:?database password required}
+      POSTGRES_USER: ${PG_USER:-gradingadmin}
+      POSTGRES_DB: ${PG_DB:-gradingadmindb}
+    env_file:
+      - .env
+  authentik-postgres:
+    image: docker.io/library/postgres:16-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    volumes:
+      - authentik-db:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: ${PG_PASS:?database password required}
       POSTGRES_USER: ${PG_USER:-authentik}
       POSTGRES_DB: ${PG_DB:-gradingadmindb}
     env_file:
       - .env
-  redis:
+  authentik-redis:
     image: docker.io/library/redis:alpine
     command: --save 60 1 --loglevel warning
     restart: unless-stopped
@@ -53,56 +117,8 @@ services:
       retries: 5
       timeout: 3s
     volumes:
-      - redis:/data
-  server:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.1}
-    restart: unless-stopped
-    command: server
-    environment:
-      AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgresql
-      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
-      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
-    volumes:
-      - ./media:/media
-      - ./custom-templates:/templates
-    env_file:
-      - .env
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-  worker:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.1}
-    restart: unless-stopped
-    command: worker
-    environment:
-      AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgresql
-      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
-      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
-    # `user: root` and the docker socket volume are optional.
-    # See more for the docker socket integration here:
-    # https://goauthentik.io/docs/outposts/integrations/docker
-    # Removing `user: root` also prevents the worker from fixing the permissions
-    # on the mounted folders, so when removing this make sure the folders have the correct UID/GID
-    # (1000:1000 by default)
-    user: root
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./media:/media
-      - ./certs:/certs
-      - ./custom-templates:/templates
-    env_file:
-      - .env
-    depends_on:
-      postgresql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - authentik-redis-store:/data
+# UTILS
   certificates:
     build:
       context: certificates/
@@ -113,6 +129,10 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-development}
     volumes:
       - ./certificates/certs:/opt/certs:rw
+  openapi-docs:
+    build:
+      context: .
+      dockerfile: openapi/Dockerfile
   localhost.dev:
     image: 'nginx:alpine'
     volumes:
@@ -122,13 +142,18 @@ services:
       - "80:80"
       - "443:443"
     depends_on:
-      server:
+      authentik:
         condition: service_healthy
       certificates:
         condition: service_completed_successfully
+      openapi-docs:
+        condition: service_started
+
 
 volumes:
-  database:
+  grading-admin-db:
     driver: local
-  redis:
+  authentik-db:
+    driver: local
+  authentik-redis-store:
     driver: local

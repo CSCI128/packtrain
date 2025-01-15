@@ -2,7 +2,7 @@ spring:
   application:
     name: Grading Admin Service
   datasource:
-    url: jdbc:postgresql://${DB_HOSTNAME:postgresql}:${DB_PORT:5432}/${PG_DB:gradingadmindb}
+    url: jdbc:postgresql://${DB_HOSTNAME:localhost}:${DB_PORT:5432}/${PG_DB:gradingadmindb}
     username: ${PG_USER:admin}
     password: ${PG_PASS:?database password required}
   web:
