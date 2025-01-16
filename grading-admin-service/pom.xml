@@ -152,7 +152,7 @@
 							<configOptions>
 								<sourceFolder>src/gen/java/main</sourceFolder>
 								<delegatePattern>true</delegatePattern>
-								<strictSpec>false</strictSpec>
+								<strictSpec>true</strictSpec>
 								<validateSpec>false</validateSpec>
 								<!--This option is undocumented but is needed to work with spring boot 3-->
 								<useSpringBoot3>true</useSpringBoot3>

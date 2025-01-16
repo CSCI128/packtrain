@@ -16,6 +16,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+    open-in-view: false
+
 server:
   error:
     whitelabel:

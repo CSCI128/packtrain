@@ -73,7 +73,8 @@ class Authentik:
 
     def wait_for_service(self):
         attempt = 0
-        while not self._check_health() and attempt <= 10:
+        time.sleep(10)
+        while not self._check_health() and attempt <= 15:
             attempt += 1
             time.sleep(5)
 
@@ -111,7 +112,7 @@ class Authentik:
                 }
             ],
             "sub_mode": "user_email",
-            "issuer_mode": "global",
+            "issuer_mode": "per_provider",
             "jwt_federation_sources": [
             ],
             "jwt_federation_providers": [

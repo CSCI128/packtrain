@@ -8,7 +8,7 @@ TOKEN = os.environ['AUTHENTIK_BOOTSTRAP_TOKEN']
 if __name__ == "__main__":
     client = Authentik(ENDPOINT, TOKEN)
     if not client.wait_for_service():
-        exit(1)
+        raise Exception("Failed to connect to service")
 
     provider_id = client.create_new_provider(
         "default-provider-authorization-explicit-consent",

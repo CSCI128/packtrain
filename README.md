@@ -11,6 +11,8 @@ Rename `.env.sample` to `.env` and set `PG_PASS` and `AUTHENTIK_SECRET_KEY` in `
 ```
 echo "PG_PASS=$(openssl rand -base64 36 | tr -d '\n')" >> .env
 echo "AUTHENTIK_SECRET_KEY=$(openssl rand -base64 60 | tr -d '\n')" >> .env
+echo "AUTHENTIK_BOOTSTRAP_PASSWORD=$(openssl rand -base64 36 | tr -d '\n')" >> .env
+echo "AUTHENTIK_BOOTSTRAP_TOKEN=$(openssl rand -base64 36 | tr -d '\n')" >> .env
 ```
 Create a file called `passwords` in the `certificates/certs/` directory. Run the following commands to populate that file:
 ```
