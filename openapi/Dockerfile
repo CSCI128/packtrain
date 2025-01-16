@@ -1,6 +1,6 @@
 FROM node:lts-slim AS builder
 
-ADD openapi /openapi
+ADD . /openapi
 
 RUN npm i -g @redocly/cli@latest
 
