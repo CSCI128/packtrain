@@ -12,10 +12,12 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${AUTH_ISSUER:https://localhost.dev/auth/application/o/gradingadmin/}
+          issuer-uri: ${AUTH_ISSUER:https://localhost.dev/auth/application/o/grading-admin/}
   jpa:
     hibernate:
       ddl-auto: update
+    open-in-view: false
+
 server:
   error:
     whitelabel:

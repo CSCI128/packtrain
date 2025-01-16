@@ -8,8 +8,8 @@ services:
     volumes:
       - ./certificates/certs/localhost-root/localhost-root.CA.pem:/certificates/localhost-root.CA.crt
     depends_on:
-      authentik:
-        condition: service_healthy
+      authentik-sidecar:
+        condition: service_completed_successfully
       grading-admin-postgres:
         condition: service_healthy
       certificates:
@@ -51,6 +51,8 @@ services:
         condition: service_healthy
       authentik-redis:
         condition: service_healthy
+      authentik-worker:
+        condition: service_started
   authentik-worker:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.1}
     restart: unless-stopped
@@ -129,10 +131,22 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-development}
     volumes:
       - ./certificates/certs:/opt/certs:rw
+  authentik-sidecar:
+    build:
+      context: authentik-sidecar
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      authentik:
+          condition: service_healthy
   openapi-docs:
     build:
-      context: .
-      dockerfile: openapi/Dockerfile
+      context: openapi
+      dockerfile: Dockerfile
+
+
+# PROXY
   localhost.dev:
     image: 'nginx:alpine'
     volumes:
