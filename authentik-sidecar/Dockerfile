@@ -6,5 +6,5 @@ RUN pip install -r /app/requirements.txt --break-system-packages
 
 ADD src /app
 
-CMD ["python", "/app/main.py"]
+ENTRYPOINT ["python", "/app/main.py"]
 
