@@ -14,16 +14,16 @@ services:
         condition: service_healthy
       certificates:
         condition: service_completed_successfully
-      localhost.dev:
+      localhost.dev-int:
         condition: service_started
+
   frontend:
     build: ./grading-admin-web
-    restart: always
+    restart: unless-stopped
     env_file:
       - .env
-    # depends_on:
-    #   backend:
-    #     condition: service_healthy
+
+
   authentik:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.1}
     restart: unless-stopped
@@ -34,12 +34,6 @@ services:
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
       AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
-#    healthcheck:
-#      test: [ 'CMD-SHELL', '/bin/bash -c "/opt/usr/healthcheck.sh"' ]
-#      start_period: 30s
-#      interval: 10s
-#      retries: 5
-#      timeout: 5s
     volumes:
       - ./authentik/media:/media
       - ./authentik/custom-templates:/templates
@@ -53,6 +47,7 @@ services:
         condition: service_healthy
       authentik-worker:
         condition: service_started
+
   authentik-worker:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.1}
     restart: unless-stopped
@@ -140,16 +135,19 @@ services:
     depends_on:
       authentik:
           condition: service_healthy
+
   openapi-docs:
     build:
       context: openapi
       dockerfile: Dockerfile
 
-
 # PROXY
-  localhost.dev:
+  localhost.dev-int:
+    hostname: localhost.dev
     image: 'nginx:alpine'
     volumes:
+      - "./nginx/services/backend-integration.nginx.conf:/etc/nginx/services/backend.nginx.conf"
+      - "./nginx/services/frontend-integration.nginx.conf:/etc/nginx/services/frontend.nginx.conf"
       - "./nginx/nginx.conf:/etc/nginx/nginx.conf"
       - "./certificates/certs/localhost.dev/out:/etc/ssl/localhost.dev:ro"
     ports:
@@ -163,6 +161,30 @@ services:
       openapi-docs:
         condition: service_started
 
+  localhost.dev-local:
+    hostname: localhost.dev
+    image: 'nginx:alpine'
+    profiles:
+      - local
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "./nginx/services/backend-local.nginx.conf:/etc/nginx/services/backend.nginx.conf"
+      - "./nginx/services/frontend-local.nginx.conf:/etc/nginx/services/frontend.nginx.conf"
+      - "./nginx/nginx.conf:/etc/nginx/nginx.conf"
+      - "./certificates/certs/localhost.dev/out:/etc/ssl/localhost.dev:ro"
+    extra_hosts: # this is only needed on linux
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      authentik:
+        condition: service_healthy
+      authentik-sidecar:
+        condition: service_completed_successfully
+      certificates:
+        condition: service_completed_successfully
+      openapi-docs:
+        condition: service_started
 
 volumes:
   grading-admin-db:
