@@ -148,6 +148,7 @@ services:
     volumes:
       - "./nginx/services/backend-integration.nginx.conf:/etc/nginx/services/backend.nginx.conf"
       - "./nginx/services/frontend-integration.nginx.conf:/etc/nginx/services/frontend.nginx.conf"
+      - "./nginx/services/database-integration.nginx.conf:/etc/nginx/services/database.nginx.conf"
       - "./nginx/nginx.conf:/etc/nginx/nginx.conf"
       - "./certificates/certs/localhost.dev/out:/etc/ssl/localhost.dev:ro"
     ports:
@@ -169,15 +170,19 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "5432:5432"
     volumes:
       - "./nginx/services/backend-local.nginx.conf:/etc/nginx/services/backend.nginx.conf"
       - "./nginx/services/frontend-local.nginx.conf:/etc/nginx/services/frontend.nginx.conf"
+      - "./nginx/services/database-local.nginx.conf:/etc/nginx/services/database.nginx.conf"
       - "./nginx/nginx.conf:/etc/nginx/nginx.conf"
       - "./certificates/certs/localhost.dev/out:/etc/ssl/localhost.dev:ro"
-    extra_hosts: # this is only needed on linux
+    extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
       authentik:
+        condition: service_healthy
+      grading-admin-postgres:
         condition: service_healthy
       authentik-sidecar:
         condition: service_completed_successfully
