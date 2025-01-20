@@ -32,7 +32,7 @@ public class Assignment {
     private boolean enabled;
 
     @ManyToOne(fetch = FetchType.EAGER) // Need to add Target Entity once Course is defined
-    @JoinColumn(name = "canvas_id")
-    private String canvasId;
+    @JoinColumn(name = "course_id")
+    private String courseId;
 
 }
