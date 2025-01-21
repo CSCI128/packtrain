@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name="assignments")
+@Table(name="assignment")
 public class Assignment {
 
     @Id
@@ -31,7 +31,7 @@ public class Assignment {
     @Column(name = "enabled")
     private boolean enabled;
 
-    @ManyToOne(fetch = FetchType.EAGER) // Need to add Target Entity once Course is defined
+    @ManyToOne(targetEntity = Course.class, fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id")
     private String courseId;
 
