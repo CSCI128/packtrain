@@ -21,8 +21,7 @@ public class Crendential{
     // I assumed this is a boolean type, maybe it should be a string???
     private boolean is_private;
 
-    @ManyToOne(fetch=FetchType.EAGER)
+    @ManyToOne(targetEntity=User.class, fetch=FetchType.EAGER)
     @JoinColumn(name="user_id")
-    // how do we link the credential class to point to the user class
     private String userId;
 }

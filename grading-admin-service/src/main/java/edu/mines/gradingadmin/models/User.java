@@ -29,13 +29,13 @@ public class User{
     @Column(name="email")
     private String emial;
 
-    @OneToMany(fetch=FetchType.EAGER)
+    @OneToMany(targetEntity=Credential.class, fetch=FetchType.EAGER)
     @JoinColumn(name="credential_id")
     // how do we link the user class to point to the credential class
     private String credentialId;
 
     @ManyToMany(fetch=FetchType.EAGER)
     // not sure this relationship is correct
-    @JoinColumn(name="section_id")
+    @JoinTable(name="section_id", cou)
     private String sectionId;
 }
