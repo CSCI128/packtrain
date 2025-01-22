@@ -29,20 +29,23 @@ Run the compose: `docker compose up -d`
 Add `localhost.dev 127.0.0.1` to your hosts file.
 (the process varies for windows and macos, I would google how to edit the hosts file for your specific platform)
 
-## Frontend
+## Backend
 
 Install [JDK 23](https://www.oracle.com/java/technologies/downloads/#jdk23-mac) and [Docker Desktop](https://www.docker.com).
 
 To run the backend on Linux/Mac, run: `./mvnw spring-boot:run`
 
-## Backend
+## Frontend
 Install [Node.js](https://nodejs.org/en) and navigate to the `grading-admin-web` directory.
+
+Run `npm i` to install all the dependencies.
 
 Run `vite` to launch the development server.
 
+
 ### Authentik
 
-If authentik doesn't start correctly, follow this guide
+If authentik doesn't start correctly, follow this guide.
 
 You can sign in at `https://localhost.dev/auth/` with the username `akadmin` and the password that you set in the `.env` file.
 
@@ -57,6 +60,46 @@ Redirect URIs: `regex`, `https://localhost.dev/.*`
 `strict`, `https://oauth.pstmn.io/v1/callback`
 
 Finally, assign that provider to the application that you just created.
+
+## Running locally
+
+You can run locally from your IDE (so you can have debugging support) with all the services!
+
+To do this, make sure that you trust the `localhost.dev` certificate.
+
+This is done with 
+macOS:
+```bash
+keytool -import -alias grading-admin-ca -keystore $(/usr/libexec/java_home)/lib/security/cacerts -file certificates/certs/localhost-root/localhost-root.CA.pem
+```
+
+And then saying 'yes' to the prompt asking to trust that certificate.
+
+Windows is likely similar, but the path to the `cacerts` file will be different.
+You will need to adjust that path.
+
+Then make sure to define the `PG_PASS` env variable in your IDE's run config.
+(in Intellij it is under `Modify Options` -> `Environmental Varibles`. Then set `PG_PASS=<whatever the .env file says>`)
+
+
+Finally, start all the dependencies with
+```bash
+docker compose up localhost.dev-local -d
+```
+
+This starts all the local services and proxies them behind `https://localhost.dev`.
+
+Then you can start (and restart) the frontend and backend independently of the docker environment.
+
+## Regenerating Authentik
+
+If you run into issues with Authentik (or we change a config param that requires you to regenerate), 
+you can regenerate the Authentik config by running:
+
+```bash
+docker compose build authentik-sidecar
+docker compose run --rm authentik-sidecar --recreate
+```
 
 ### Postman
 
