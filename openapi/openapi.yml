@@ -293,6 +293,63 @@ paths:
               example:
                 error_source: "update_course"
                 error_message: "Course '999-9999-9999-99' does not exist"
+
+    /admin/course/{course_id}/enable:
+      put:
+        tags:
+          - admin
+        operationId: enable_course
+        summary: "Enable the specified course."
+        description: |
+          Enable the specified course.
+        security:
+          - openIDC: [ admin:write ]
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Assignment"
+        404:
+          description: Course Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_course"
+                error_message: "Course '999-9999-9999-99' does not exist"
+    /admin/course/{course_id}/disable:
+      put:
+        tags:
+          - admin
+        operationId: disable_course
+        summary: "Disable the specified course."
+        description: |
+          Disable the specified course.
+        security:
+          - openIDC: [ admin:write ]
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Assignment"
+        404:
+          description: Course Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_course"
+                error_message: "Course '999-9999-9999-99' does not exist"
 components:
   securitySchemes:
     OpenIDC:
