@@ -5,8 +5,8 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-@Entity
-@Table(name="credential")
+@Entity(name="credential")
+@Table(name="credentials")
 public class Crendential{
 
     @Id
@@ -14,14 +14,13 @@ public class Crendential{
     @Column(name="id")
     private UUID id;
 
-    @Column(name="api key")
+    @Column(name="api_key")
     private String apiKey;
 
     @Column(name="private")
-    // I assumed this is a boolean type, maybe it should be a string???
     private boolean is_private;
 
-    @ManyToOne(targetEntity=User.class, fetch=FetchType.EAGER)
-    @JoinColumn(name="user_id")
+    @ManyToOne(optional=false, fetch=FetchType.EAGER)
+    @JoinColumn(name="user_id", referencedColumnName="id")
     private String userId;
 }

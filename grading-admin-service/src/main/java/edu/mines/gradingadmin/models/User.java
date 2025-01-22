@@ -5,8 +5,8 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-@Entity
-@Table(name="user")
+@Entity(name="user")
+@Table(name="users")
 public class User{
 
     @Id
@@ -20,8 +20,8 @@ public class User{
     @Column(name"is_admin")
     private boolean isAdmin;
 
-    @Column(name="CWID")
-    private String CWID;
+    @Column(name="cwid")
+    private String cwid;
 
     @Column(name="name")
     private String name;
@@ -29,13 +29,12 @@ public class User{
     @Column(name="email")
     private String emial;
 
-    @OneToMany(targetEntity=Credential.class, fetch=FetchType.EAGER)
-    @JoinColumn(name="credential_id")
-    // how do we link the user class to point to the credential class
+    @OneToMany(optional=false, fetch=FetchType.EAGER)
+    @JoinColumn(name="credential_id", referencedColumnName="id")
     private String credentialId;
 
-    @ManyToMany(fetch=FetchType.EAGER)
-    // not sure this relationship is correct
-    @JoinTable(name="section_id", cou)
-    private String sectionId;
+    @ManyToOne(optional=false , fetch=FetchType.EAGER)
+    @JoinColumn(name="external_source_id", referencedColumnName="id")
+    private String externalSourceId;
+}
 }
