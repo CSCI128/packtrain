@@ -61,7 +61,6 @@ Redirect URIs: `regex`, `https://localhost.dev/.*`
 
 Finally, assign that provider to the application that you just created.
 
-
 ## Running locally
 
 You can run locally from your IDE (so you can have debugging support) with all the services!
@@ -101,6 +100,17 @@ you can regenerate the Authentik config by running:
 docker compose build authentik-sidecar
 docker compose run --rm authentik-sidecar --recreate
 ```
+
+### Postman
+
+1. Create a new collection (called anything, should do something like `API`).
+2. Click the **Auth** tab and change `Auth Type` to `OAuth 2.0`.
+3. Name the `Token Name` as anything.
+4. Toggle "Authorize using browser" under `Callback URL`.
+5. Set `Auth URL` to `https://localhost.dev/auth/application/o/authorize/`.
+6. Set `Access Token URL` to `https://localhost.dev/auth/application/o/token/`
+7. Set `Client ID` to `grading_admin_provider`.
+8. Leave everything else blank and hit **Get New Access Token** at the bottom of the page.
 
 ## Services
 
