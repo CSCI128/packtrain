@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@Entity
-@Table(name="assignment")
+@Entity(name = "assignment")
+@Table(name="assignments")
 public class Assignment {
 
     @Id
@@ -31,8 +31,8 @@ public class Assignment {
     @Column(name = "enabled")
     private boolean enabled;
 
-    @ManyToOne(targetEntity = Course.class, fetch = FetchType.EAGER)
-    @JoinColumn(name = "course_id")
-    private String courseId;
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "course_id", referencedColumnName = "id")
+    private Course course;
 
 }

@@ -5,8 +5,8 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-@Entity
-@Table(name = "external_source")
+@Entity(name = "externalSource")
+@Table(name = "external_sources")
 public class ExternalSource {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
