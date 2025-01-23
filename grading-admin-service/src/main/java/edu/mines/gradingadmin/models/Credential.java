@@ -7,7 +7,7 @@ import java.util.UUID;
 @Data
 @Entity(name="credential")
 @Table(name="credentials")
-public class Crendential{
+public class Credential {
 
     @Id
     @GeneratedValue(strategy=GenerationType.UUID)
@@ -22,5 +22,5 @@ public class Crendential{
 
     @ManyToOne(optional=false, fetch=FetchType.EAGER)
     @JoinColumn(name="user_id", referencedColumnName="id")
-    private Crendential credential;
+    private User credential;
 }

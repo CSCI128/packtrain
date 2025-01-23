@@ -304,6 +304,13 @@ paths:
         Enable the specified course.
       security:
         - openIDC: [ admin:write ]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
       responses:
         200:
           description: "OK"
@@ -326,6 +333,13 @@ paths:
         Disable the specified course.
       security:
         - openIDC: [ admin:write ]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
       responses:
         200:
           description: "OK"

@@ -32,9 +32,9 @@ public class Course {
     @Column(name = "pages")
     private String pages;
 
-    @OneToMany(mappedBy = "assignment")
+    @OneToMany(mappedBy = "course")
     private Set<Assignment> assignments;
 
-    @OneToMany(mappedBy = "section")
+    @OneToMany(mappedBy = "course")
     private Set<Section> sections;
 }

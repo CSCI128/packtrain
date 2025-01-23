@@ -20,8 +20,9 @@ public class Section {
     @Column(name = "code")
     private String code;
 
-    @OneToMany(mappedBy = "user")
-    private Set<User> users;
+    // i need to workshop this relation
+//    @OneToMany(mappedBy = "")
+//    private Set<User> users;
 
 //    @Enumerated(EnumType.STRING)
 //    @Column(name = "course_role", nullable = false)
