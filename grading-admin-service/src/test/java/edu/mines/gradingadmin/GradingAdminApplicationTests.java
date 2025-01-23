@@ -1,10 +1,11 @@
 package edu.mines.gradingadmin;
 
+import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
-@Import(TestcontainersConfiguration.class)
+@Import(PostgresTestContainer.class)
 @SpringBootTest
 class GradingAdminApplicationTests {
 

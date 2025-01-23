@@ -20,7 +20,14 @@ public class Credential {
     @Column(name="private")
     private boolean is_private;
 
+    @Column(name="active")
+    private boolean is_active;
+
     @ManyToOne(optional=false, fetch=FetchType.EAGER)
     @JoinColumn(name="user_id", referencedColumnName="id")
-    private User credential;
+    private User owningUser;
+
+    @ManyToOne(optional=false , fetch=FetchType.EAGER)
+    @JoinColumn(name="external_source_id", referencedColumnName="id")
+    private ExternalSource externalSource;
 }

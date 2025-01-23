@@ -13,6 +13,6 @@ public class ExternalSource {
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "endpoint")
+    @Column(name = "endpoint", unique = true)
     private String endpoint;
 }
