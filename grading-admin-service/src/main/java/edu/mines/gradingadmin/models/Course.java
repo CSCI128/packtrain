@@ -4,11 +4,12 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Data
-@Entity
-@Table(name = "course")
+@Entity(name = "course")
+@Table(name = "courses")
 public class Course {
 
     @Id
@@ -30,5 +31,8 @@ public class Course {
 
     @Column(name = "pages")
     private String pages;
+
+    @OneToMany(mappedBy = "assignment")
+    private Set<Assignment> assignments;
 
 }
