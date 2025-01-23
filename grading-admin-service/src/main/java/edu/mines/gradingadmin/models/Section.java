@@ -23,9 +23,9 @@ public class Section {
     @OneToMany(mappedBy = "user")
     private Set<User> users;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "course_role", nullable = false)
-    private CourseRole courseRole;
+//    @Enumerated(EnumType.STRING)
+//    @Column(name = "course_role", nullable = false)
+//    private CourseRole courseRole;
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id", referencedColumnName = "id")

@@ -35,4 +35,6 @@ public class Course {
     @OneToMany(mappedBy = "assignment")
     private Set<Assignment> assignments;
 
+    @OneToMany(mappedBy = "section")
+    private Set<Section> sections;
 }
