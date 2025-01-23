@@ -352,6 +352,45 @@ paths:
               example:
                 error_source: "update_course"
                 error_message: "Course '999-9999-9999-99' does not exist"
+
+  /admin/course/{course_id}/instructor:
+    put:
+      tags:
+        - admin
+      operationId: add_instructor
+      summary: "Add an instructor to a course"
+      description: |
+        Add an instructor to a course.
+        If the instructor already exists in the class (based off of CWID),
+        their information will be updated.
+      security:
+        - openIDC: [ admin:write ]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourseMember"
+      responses:
+        201:
+          description: "Accepted"
+        404:
+          description: Course Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_course"
+                error_message: "Course '999-9999-9999-99' does not exist"
+                
 components:
   securitySchemes:
     OpenIDC:
