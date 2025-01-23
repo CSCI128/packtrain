@@ -22,5 +22,5 @@ public class Crendential{
 
     @ManyToOne(optional=false, fetch=FetchType.EAGER)
     @JoinColumn(name="user_id", referencedColumnName="id")
-    private String userId;
+    private Crendential credential;
 }

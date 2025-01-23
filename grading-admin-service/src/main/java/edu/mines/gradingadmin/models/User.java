@@ -35,6 +35,6 @@ public class User{
 
     @ManyToOne(optional=false , fetch=FetchType.EAGER)
     @JoinColumn(name="external_source_id", referencedColumnName="id")
-    private String externalSourceId;
+    private ExternalSource externalSource;
 }
 }
