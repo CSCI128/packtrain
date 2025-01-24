@@ -14,14 +14,17 @@ public class Credential {
     @Column(name="id")
     private UUID id;
 
+    @Column(name="name")
+    private String name;
+
     @Column(name="api_key")
     private String apiKey;
 
     @Column(name="private")
-    private boolean is_private;
+    private boolean isPrivate;
 
     @Column(name="active")
-    private boolean is_active;
+    private boolean isActive;
 
     @ManyToOne(optional=false, fetch=FetchType.EAGER)
     @JoinColumn(name="user_id", referencedColumnName="id")

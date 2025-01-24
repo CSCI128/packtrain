@@ -23,7 +23,7 @@ public class CourseCredential {
     private Credential credential;
 
     @Column(name="active")
-    private boolean is_active;
+    private boolean isActive;
 
     // should probably add a "usable by roles" field
 }
