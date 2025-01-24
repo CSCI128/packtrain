@@ -38,11 +38,6 @@ class TestCredentialService implements PostgresTestContainer {
 
     }
 
-    @AfterAll
-    static void tearDownClass() {
-        postgres.stop();
-    }
-
     @AfterEach
     void tearDown(){
         credentialRepo.deleteAll();
@@ -57,9 +52,14 @@ class TestCredentialService implements PostgresTestContainer {
         User user = userSeeder.user1();
         ExternalSource externalSource = externalSourceSeeders.externalSource1();
 
+        List<Credential> credentials = credentialRepo.getByCwidAndEndpoint(user.getCwid(), externalSource.getEndpoint());
+
+        Assertions.assertEquals(0, credentials.size());
+
+
         credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource.getEndpoint());
 
-        List<Credential> credentials = credentialRepo.getByCwidAndEndpoint(user.getCwid(), externalSource.getEndpoint());
+        credentials = credentialRepo.getByCwidAndEndpoint(user.getCwid(), externalSource.getEndpoint());
 
         Assertions.assertEquals(1, credentials.size());
 
