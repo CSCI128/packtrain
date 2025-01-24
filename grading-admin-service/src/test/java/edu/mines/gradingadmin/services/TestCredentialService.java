@@ -12,13 +12,18 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
 
-// for some *fun* reason, spring refuses to load all the services requested unless this is added.
-// great job spring developers.
-// thanks for making your docs crystal clear
 @SpringBootTest
+@DirtiesContext
 class TestCredentialService implements PostgresTestContainer {
     @Autowired
     UserSeeders userSeeder;
