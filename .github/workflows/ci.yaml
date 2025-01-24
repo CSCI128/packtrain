@@ -22,6 +22,6 @@ jobs:
         working-directory: grading-admin-service
       - name: Run Java Tests
         run: |
-           mvn test
+           mvn test -Dspring.profiles.active=test
         working-directory: grading-admin-service
 

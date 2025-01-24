@@ -1,4 +1,7 @@
 spring:
+  main:
+    banner-mode: off
+
   application:
     name: Grading Admin Service - Test
   web:
