@@ -22,6 +22,7 @@ import { useEffect, useState } from 'react';
     useEffect(() => {
       const handleCallback = async () => {
         try {
+          // TODO this may or may not be necessary, we can probably just signinRedirectCallback();
           // Check if the URL contains an authorization response (e.g., ?code=)
           const url = new URL(window.location.href);
           if (url.searchParams.has('code') || url.searchParams.has('state')) {
@@ -31,8 +32,9 @@ import { useEffect, useState } from 'react';
           }
           const user = await userManager.getUser();
           setUser(user);
-          console.log(user);
+          // console.log(user);
         } catch (error) {
+          // TODO handle the error properly
           console.error('Error handling callback:', error);
         }
       };
