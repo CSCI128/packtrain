@@ -1,15 +1,53 @@
 import {
-    Box,
-    Burger,
-    Button,
-    Group
-  } from '@mantine/core';
-  import { useDisclosure } from '@mantine/hooks';
-  import classes from './Navbar.module.css';
+  Box,
+  Burger,
+  Button,
+  Group,
+  Menu
+} from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import classes from './Navbar.module.css';
+import { AUTH_CONFIG } from '../../config/auth.config';
+import { User, UserManager } from 'oidc-client-ts';
+import { useEffect, useState } from 'react';
   
+  const userManager = new UserManager(AUTH_CONFIG);
+
   export function Navbar() {
-    const [drawerOpened, { toggle: toggleDrawer }] = useDisclosure(false);
+    // TODO mobile responsiveness drawer
+    // const [drawerOpened, { toggle: toggleDrawer }] = useDisclosure(false);
+
+    const [user, setUser] = useState<User | null>(null);
     
+    useEffect(() => {
+      const handleCallback = async () => {
+        try {
+          // Check if the URL contains an authorization response (e.g., ?code=)
+          const url = new URL(window.location.href);
+          if (url.searchParams.has('code') || url.searchParams.has('state')) {
+            await userManager.signinRedirectCallback();
+            // Remove query parameters from the URL after processing
+            window.history.replaceState({}, document.title, url.pathname);
+          }
+          const user = await userManager.getUser();
+          setUser(user);
+          console.log(user);
+        } catch (error) {
+          console.error('Error handling callback:', error);
+        }
+      };
+
+      handleCallback();
+    }, []);
+
+    const handleLogin = async () => {
+      await userManager.signinRedirect();
+    };
+  
+    const handleLogout = async () => {
+      await userManager.signoutRedirect();
+    };
+
     return (
       <Box pb={120}>
         <header className={classes.header}>
@@ -24,14 +62,82 @@ import {
               </a>
             </Group>
   
-            <Group visibleFrom="sm">
-              <Button variant="default">Login</Button>
-              <Button>Sign Up</Button>
+            <Group>
+              {!user ? 
+                <Group visibleFrom="sm">
+                  <Button onClick={handleLogin} variant="default">Login</Button>
+                </Group>
+                :
+
+                <Menu shadow="md" width={200}>
+                  <Menu.Target>
+                    <p>{user.profile.sub}</p>
+                  </Menu.Target>
+
+                  <Menu.Dropdown>
+                    <Menu.Item >
+                      Profile
+                    </Menu.Item>
+
+                    <Menu.Divider />
+
+                    <Menu.Item
+                      color="red"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              }
+
+              {/* TODO class state here */}
+              <p>CSCI128</p>
             </Group>
-  
-            <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="sm" />
+
+            {/* <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="sm" /> */}
           </Group>
         </header>
+
+        {/* <Drawer
+        opened={drawerOpened}
+        onClose={closeDrawer}
+        size="100%"
+        padding="md"
+        title="Navigation"
+        hiddenFrom="sm"
+        zIndex={1000000}
+        >
+          <ScrollArea h="calc(100vh - 80px" mx="-md">
+            <Divider my="sm" />
+
+            <a href="#" className={classes.link}>
+              Home
+            </a>
+            <UnstyledButton className={classes.link} onClick={toggleLinks}>
+              <Center inline>
+                <Box component="span" mr={5}>
+                  Features
+                </Box>
+                <IconChevronDown size={16} color={theme.colors.blue[6]} />
+              </Center>
+            </UnstyledButton>
+            <Collapse in={linksOpened}>{links}</Collapse>
+            <a href="#" className={classes.link}>
+              Learn
+            </a>
+            <a href="#" className={classes.link}>
+              Academy
+            </a>
+
+            <Divider my="sm" />
+
+            <Group justify="center" grow pb="xl" px="md">
+              <Button variant="default">Log in</Button>
+              <Button>Sign up</Button>
+            </Group>
+          </ScrollArea>
+        </Drawer> */}
       </Box>
     );
   }

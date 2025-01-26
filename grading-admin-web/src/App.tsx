@@ -32,10 +32,10 @@ const router = createBrowserRouter([
 
 export default function App() {
   return (
-  <QueryClientProvider client={queryClient}>
-    <MantineProvider>
-      <RouterProvider router={router} />
-    </MantineProvider>
-  </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        <RouterProvider router={router} />
+      </MantineProvider>
+    </QueryClientProvider>
   );
 }
