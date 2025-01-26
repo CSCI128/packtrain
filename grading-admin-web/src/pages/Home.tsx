@@ -1,7 +1,7 @@
 import createFetchClient from "openapi-fetch";
 import createClient from "openapi-react-query";
 import type { paths } from "../lib/api/v1";
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { UserManager, User } from 'oidc-client-ts';
 import { AUTH_CONFIG } from "../config/auth.config";
 
@@ -28,6 +28,8 @@ const $api = createClient(fetchClient);
 
 //   return <div>{data.canvas_id}</div>;
 // };
+
+// set global state for classes
 
 export function HomePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -62,15 +64,17 @@ export function HomePage() {
   };
 
   return (
-    <div>
-      {user ? (
-        <div>
-          <p>Welcome, {user.profile.sub}!</p>
-          <button onClick={handleLogout}>Logout</button>
-        </div>
-      ) : (
-        <button onClick={handleLogin}>Login</button>
-      )}
-    </div>
+    <>
+      <div>
+        {user ? (
+          <div>
+            <p>Welcome, {user.profile.sub}!</p>
+            <button onClick={handleLogout}>Logout</button>
+          </div>
+        ) : (
+          <button onClick={handleLogin}>Login</button>
+        )}
+      </div>
+    </>
   );
 };
