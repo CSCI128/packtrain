@@ -104,6 +104,21 @@ This starts all the local services and proxies them behind `https://localhost.de
 
 Then you can start (and restart) the frontend and backend independently of the docker environment.
 
+### Issues
+
+If you run into issues relating to your DB password not working, 
+ensure that there are no other postgres instances running on your computer.
+
+You can check this on macOS by running
+```bash
+sudo lsof -i tcp:5432
+```
+
+Then you can kill those processes by running
+```bash
+sudo kill -9 <pid of process to kill>
+```
+
 ## Regenerating Authentik
 
 If you run into issues with Authentik (or we change a config param that requires you to regenerate), 
