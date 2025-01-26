@@ -26,6 +26,7 @@ if __name__ == "__main__":
         raise Exception("Failed to connect to service")
 
     provider_id = client.create_new_provider(
+        "default-authentication-flow",
         "default-provider-authorization-explicit-consent",
         "default-invalidation-flow",
         "grading_admin_provider",

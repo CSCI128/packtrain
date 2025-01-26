@@ -120,7 +120,7 @@ class Authentik:
             raise Exception(f"Failed to delete provider {provider_name} with id {provider_id}")
 
 
-    def create_new_provider(self, auth_flow_name, invalidation_flow_name,  provider_name, client_id):
+    def create_new_provider(self, authentication_flow_name, authorization_flow_name, invalidation_flow_name,  provider_name, client_id):
         if self.recreate:
             self.delete_provider_if_exists(provider_name)
 
@@ -128,15 +128,16 @@ class Authentik:
             print(f"Provider '{provider_name}' already exists! Skipping!")
             return provider_id
 
-        auth_flow_id = self._get_flow_id(auth_flow_name)
+        authentication_flow_id = self._get_flow_id(authentication_flow_name)
+        authorization_flow_id = self._get_flow_id(authorization_flow_name)
         invalidation_flow_id = self._get_flow_id(invalidation_flow_name)
 
         signing_key_id = self._get_private_key_pair()
 
         body = {
             "name": provider_name,
-            "authentication_flow": auth_flow_id,
-            "authorization_flow": auth_flow_id,
+            "authentication_flow": authentication_flow_id,
+            "authorization_flow": authorization_flow_id,
             "invalidation_flow": invalidation_flow_id,
             "client_type": "public",
             "client_id": client_id,
