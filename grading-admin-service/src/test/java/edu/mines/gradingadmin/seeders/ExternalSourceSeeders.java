@@ -18,7 +18,15 @@ public class ExternalSourceSeeders {
     public ExternalSource externalSource1(){
         ExternalSource externalSource = new ExternalSource();
 
-        externalSource.setEndpoint("https://test.com/");
+        externalSource.setEndpoint("https://test1.com/");
+
+        return repo.save(externalSource);
+    }
+
+    public ExternalSource externalSource2(){
+        ExternalSource externalSource = new ExternalSource();
+
+        externalSource.setEndpoint("https://test2.com/");
 
         return repo.save(externalSource);
     }

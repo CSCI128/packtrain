@@ -48,8 +48,16 @@ public class CredentialService {
         return Optional.of(availableCredentials.getFirst().getApiKey());
     }
 
-    public void createNewCredentialForService(String cwid, String name, String apiKey, String serviceEndpoint){
+    public Optional<Credential> createNewCredentialForService(String cwid, String name, String apiKey, String serviceEndpoint){
         // todo this needs error handling
+        if (credentialRepo.existsByCwidAndEndpoint(cwid, serviceEndpoint)){
+            return Optional.empty();
+        }
+
+        if (credentialRepo.existsByCwidAndName(cwid, name)){
+            return Optional.empty();
+        }
+
         Credential credential = new Credential();
 
         Optional<User> user = userService.getUserByCwid(cwid);
@@ -57,7 +65,7 @@ public class CredentialService {
 
         if (user.isEmpty() || externalSource.isEmpty()){
             // todo: need error handling via error advice handler
-            return;
+            return Optional.empty();
         }
 
         credential.setOwningUser(user.get());
@@ -67,24 +75,26 @@ public class CredentialService {
         credential.setActive(true);
         credential.setPrivate(true);
 
-        credentialRepo.save(credential);
+        return Optional.of(credentialRepo.save(credential));
     }
 
-    public void markCredentialAsPublic(String cwid, String serviceEndpoint){
-        List<Credential> credentials = credentialRepo.getByCwidAndEndpoint(cwid, serviceEndpoint);
+    public Optional<Credential> markCredentialAsPublic(UUID credentialId){
+        Optional<Credential> credential = credentialRepo.getById(credentialId);
 
-        if (credentials.isEmpty()){
+        if (credential.isEmpty()){
             // todo need error handling
-            return;
+            return Optional.empty();
         }
 
-        Credential credential = credentials.getFirst();
+        credential.get().setPrivate(false);
 
-        credential.setPrivate(false);
-
-        credentialRepo.save(credential);
-
+        return Optional.of(credentialRepo.save(credential.get()));
     }
+
+
+
+
+
 
 
 
