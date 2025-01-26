@@ -26,11 +26,11 @@ public class Credential {
     @Column(name="active")
     private boolean isActive;
 
-    @ManyToOne(optional=false, fetch=FetchType.EAGER)
+    @ManyToOne(optional=false)
     @JoinColumn(name="user_id", referencedColumnName="id")
     private User owningUser;
 
-    @ManyToOne(optional=false , fetch=FetchType.EAGER)
+    @ManyToOne(optional=false)
     @JoinColumn(name="external_source_id", referencedColumnName="id")
     private ExternalSource externalSource;
 }

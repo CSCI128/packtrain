@@ -8,23 +8,18 @@ import edu.mines.gradingadmin.repositories.CredentialRepo;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.ExternalSourceSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
-import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
 import java.util.Optional;
 
 @SpringBootTest
 @DirtiesContext
+@Transactional
 class TestCredentialService implements PostgresTestContainer {
     @Autowired
     UserSeeders userSeeder;
@@ -105,6 +100,79 @@ class TestCredentialService implements PostgresTestContainer {
 
         Assertions.assertEquals(1, credentials.size());
     }
+
+    @Test
+    void verifyCreateCredentialSameNameInactive(){
+        User user = userSeeder.user1();
+        ExternalSource externalSource1 = externalSourceSeeders.externalSource1();
+        ExternalSource externalSource2 = externalSourceSeeders.externalSource2();
+
+        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource1.getEndpoint());
+
+        Assertions.assertFalse(cred.isEmpty());
+
+        credentialService.markCredentialAsInactive(cred.get().getId());
+
+        cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource2.getEndpoint());
+
+        Assertions.assertFalse(cred.isEmpty());
+
+        List<Credential> credentials = credentialRepo.getByCwid(user.getCwid());
+
+        Assertions.assertEquals(1, credentials.size());
+    }
+
+    @Test
+    void verifyMarkCredentialAsPublic(){
+        User user = userSeeder.user1();
+        ExternalSource externalSource1 = externalSourceSeeders.externalSource1();
+
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource1.getEndpoint()).orElseThrow();
+
+        Credential newCred = credentialService.markCredentialAsPublic(cred.getId()).orElseThrow();
+
+        Assertions.assertEquals(cred.getId(), newCred.getId());
+
+        Assertions.assertFalse(newCred.isPrivate());
+    }
+
+    @Test
+    void verifyMarkCredentialAsPublicInactive(){
+        User user = userSeeder.user1();
+        ExternalSource externalSource1 = externalSourceSeeders.externalSource1();
+
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource1.getEndpoint()).orElseThrow();
+
+        credentialService.markCredentialAsInactive(cred.getId());
+
+        Optional<Credential> newCred = credentialService.markCredentialAsPublic(cred.getId());
+
+        Assertions.assertTrue(newCred.isEmpty());
+    }
+
+    @Test
+    void verifyDisableCredential(){
+        User user = userSeeder.user1();
+        ExternalSource externalSource1 = externalSourceSeeders.externalSource1();
+
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource1.getEndpoint()).orElseThrow();
+
+        Credential newCred = credentialService.markCredentialAsInactive(cred.getId()).orElseThrow();
+
+        Assertions.assertEquals(cred.getId(), newCred.getId());
+
+        Assertions.assertFalse(newCred.isActive());
+
+        Assertions.assertEquals(0, credentialRepo.getByCwid(user.getCwid()).size());
+        Assertions.assertEquals(1, credentialRepo.getAllByCwid(user.getCwid()).size());
+
+
+    }
+
+
+
+
+
 
 
 

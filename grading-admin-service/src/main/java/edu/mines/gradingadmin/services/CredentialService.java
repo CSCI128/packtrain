@@ -86,16 +86,26 @@ public class CredentialService {
             return Optional.empty();
         }
 
+        if (!credential.get().isActive()){
+            return Optional.empty();
+        }
+
         credential.get().setPrivate(false);
 
         return Optional.of(credentialRepo.save(credential.get()));
     }
 
+    public Optional<Credential> markCredentialAsInactive(UUID credentialId){
+        Optional<Credential> credential = credentialRepo.getById(credentialId);
 
+        if (credential.isEmpty()){
+            // todo need error handling
+            return Optional.empty();
+        }
 
+        credential.get().setActive(false);
 
-
-
-
+        return Optional.of(credentialRepo.save(credential.get()));
+    }
 
 }
