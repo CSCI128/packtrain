@@ -10,6 +10,7 @@ export function HomePage() {
       },
     }
   );
+
   // const { data, error, isLoading } = $api.useQuery(
   //   "put",
   //   "/admin/course/new/{canvas_id}",
@@ -22,7 +23,7 @@ export function HomePage() {
 
   if (isLoading || !data) return "Loading...";
 
-  if (error) return `An error occured: ${error.error_message}`;
+  if (error) return `An error occured: ${error}`;
 
   return (
     <>

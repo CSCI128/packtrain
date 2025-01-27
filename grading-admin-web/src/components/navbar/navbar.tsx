@@ -13,12 +13,9 @@ export function Navbar() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // TODO this may or may not be necessary, we can probably just signinRedirectCallback();
-        // Check if the URL contains an authorization response (e.g., ?code=)
         const url = new URL(window.location.href);
         if (url.searchParams.has("code") || url.searchParams.has("state")) {
           await userManager.signinRedirectCallback();
-          // Remove query parameters from the URL after processing
           window.history.replaceState({}, document.title, url.pathname);
         }
         const user = await userManager.getUser();
@@ -27,7 +24,6 @@ export function Navbar() {
         console.error("Error handling callback:", error);
       }
     };
-
     handleCallback();
   }, []);
 

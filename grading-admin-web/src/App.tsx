@@ -1,33 +1,37 @@
+import { MantineProvider } from "@mantine/core";
+import "@mantine/core/styles.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { AssignmentsPage } from "./pages/admin/assignments";
+import { Profile } from "./pages/admin/Profile";
+import { UsersPage } from "./pages/admin/users";
+import { HomePage } from "./pages/Home";
+import Root from "./templates/Root";
 
-import '@mantine/core/styles.css';
-import { MantineProvider } from '@mantine/core';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { HomePage } from './pages/Home';
-import { UsersPage } from './pages/admin/users';
-import { AssignmentsPage } from './pages/admin/assignments';
-import Root from './templates/Root';
-
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
   {
     element: <Root />,
     children: [
       {
-        path: '/',
+        path: "/",
         element: <HomePage />,
       },
       {
-        path: '/admin/assignments',
+        path: "/admin/assignments",
         element: <AssignmentsPage />,
       },
       {
-        path: '/admin/users',
+        path: "/admin/users",
         element: <UsersPage />,
       },
-    ]
-  }
+      {
+        path: "/profile",
+        element: <Profile />,
+      },
+    ],
+  },
 ]);
 
 export default function App() {
