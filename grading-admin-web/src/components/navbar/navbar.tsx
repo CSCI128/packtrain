@@ -23,12 +23,7 @@ export function Navbar() {
         }
         const user = await userManager.getUser();
         setUser(user);
-
-        // TODO grab bearer token from here and set for middleware/future requests
-
-        // console.log(user);
       } catch (error) {
-        // TODO handle the error properly
         console.error("Error handling callback:", error);
       }
     };
