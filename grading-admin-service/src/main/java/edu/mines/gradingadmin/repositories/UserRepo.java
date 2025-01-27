@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface UserRepo extends CrudRepository<User, UUID> {
     Optional<User> getByEmail(String name);
     Optional<User> getByCwid(String cwid);
+
+    Optional<User> getById(UUID uuid);
 }
