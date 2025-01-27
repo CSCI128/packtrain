@@ -50,6 +50,7 @@ Run `npm i` to install all the dependencies.
 
 Run `vite` to launch the development server.
 
+To rebuild TypeScript types from OpenAPI, run `npm run types`.
 
 ### Authentik
 
@@ -129,7 +130,7 @@ docker compose build authentik-sidecar
 docker compose run --rm authentik-sidecar --recreate
 ```
 
-### Postman
+## Postman
 
 1. Create a new collection (called anything, should do something like `API`).
 2. Click the **Auth** tab and change `Auth Type` to `OAuth 2.0`.
