@@ -1,19 +1,34 @@
-import { $api } from "../api";
+import { User } from "oidc-client-ts";
+import { useEffect, useState } from "react";
+import { $api, userManager } from "../api";
 
 export function HomePage() {
+  const [user, setUser] = useState<User | null>(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const result = await userManager.getUser();
+        console.log(result);
+        setUser(result);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
+
   const { data, error, isLoading } = $api.useQuery(
     "get",
     "/admin/course/{course_id}",
     {
       headers: {
-        // TODO grab this from user store
-        "Authorization": "Bearer " + "TOKEN"
+        Authorization: "Bearer " + user?.access_token,
       },
       params: {
-        path: { course_id: "5" }
+        path: { course_id: "5" },
       },
     }
-  )
+  );
   // const { data, error, isLoading } = $api.useQuery(
   //   "put",
   //   "/admin/course/new/{canvas_id}",
@@ -24,16 +39,13 @@ export function HomePage() {
   //   }
   // );
 
-
   if (isLoading || !data) return "Loading...";
 
   if (error) return `An error occured: ${error.error_message}`;
 
-  return <div>{data.canvas_id}</div>;
-
-  // return (
-  //   <>
-  //     <p>Hello world!</p>
-  //   </>
-  // );
-};
+  return (
+    <>
+      <div>{data.canvas_id}</div>
+    </>
+  );
+}
