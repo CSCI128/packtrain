@@ -1,4 +1,4 @@
-export function Course() {
+export function CoursePage() {
   return (
     <>
       <p>Hello course!</p>

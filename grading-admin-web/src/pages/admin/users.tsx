@@ -1,7 +1,7 @@
 export function UsersPage() {
-    return (
-        <>
-            <p>Hello users!</p>
-        </>
-    );
+  return (
+    <>
+      <p>Hello users!</p>
+    </>
+  );
 }

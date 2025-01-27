@@ -3,6 +3,7 @@ import "@mantine/core/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AssignmentsPage } from "./pages/admin/assignments";
+import { CoursePage } from "./pages/admin/course";
 import { Profile } from "./pages/admin/Profile";
 import { UsersPage } from "./pages/admin/users";
 import { HomePage } from "./pages/Home";
@@ -17,6 +18,10 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <HomePage />,
+      },
+      {
+        path: "/admin/home",
+        element: <CoursePage />,
       },
       {
         path: "/admin/assignments",

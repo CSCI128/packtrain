@@ -1,7 +1,7 @@
 export function AssignmentsPage() {
-    return (
-        <>
-            <p>Hello assignments!</p>
-        </>
-    );
+  return (
+    <>
+      <p>Hello assignments!</p>
+    </>
+  );
 }

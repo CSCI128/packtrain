@@ -1,4 +1,5 @@
-import { Box, Button, Group, Menu } from "@mantine/core";
+import { Box, Button, Group, Menu, Modal } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
 import { userManager } from "../../api";
@@ -9,6 +10,7 @@ export function Navbar() {
   // const [drawerOpened, { toggle: toggleDrawer }] = useDisclosure(false);
 
   const [user, setUser] = useState<User | null>(null);
+  const [opened, { open, close }] = useDisclosure(false);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -36,53 +38,71 @@ export function Navbar() {
   };
 
   return (
-    <Box pb={120}>
-      <header className={classes.header}>
-        <Group justify="space-between" h="100%">
-          <Group h="100%" gap={0} visibleFrom="sm">
-            <p>Grading Admin</p>
-            <a href="/admin/assignments" className={classes.link}>
-              Assignments
-            </a>
-            <a href="/admin/users" className={classes.link}>
-              Users
-            </a>
+    <>
+      <Modal opened={opened} onClose={close} title="Select Class">
+        {/* TODO get all courses and map */}
+        <Button>CSCI128</Button>
+        <br />
+        <Button>Create Class</Button>
+      </Modal>
+
+      <Box pb={120}>
+        <header className={classes.header}>
+          <Group justify="space-between" h="100%">
+            <Group h="100%" gap={0} visibleFrom="sm">
+              <p>Grading Admin</p>
+              <a href="/admin/home" className={classes.link}>
+                Course
+              </a>
+              <a href="/admin/assignments" className={classes.link}>
+                Assignments
+              </a>
+              <a href="/admin/users" className={classes.link}>
+                Users
+              </a>
+            </Group>
+
+            <Group>
+              {!user ? (
+                <Group visibleFrom="sm">
+                  <Button onClick={handleLogin} variant="default">
+                    Login
+                  </Button>
+                </Group>
+              ) : (
+                <Menu shadow="md" width={200}>
+                  <Menu.Target>
+                    <p>{user.profile.sub}</p>
+                  </Menu.Target>
+
+                  <Menu.Dropdown>
+                    <Menu.Item>
+                      {/* <a href="/profile" className={classes.link}> */}
+                      Profile
+                      {/* </a> */}
+                    </Menu.Item>
+
+                    <Menu.Divider />
+
+                    <Menu.Item color="red" onClick={handleLogout}>
+                      Logout
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              )}
+
+              {/* TODO class state here */}
+              {/* <p>CSCI128</p> */}
+              <Button variant="default" onClick={open}>
+                CSCI128
+              </Button>
+            </Group>
+
+            {/* <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="sm" /> */}
           </Group>
+        </header>
 
-          <Group>
-            {!user ? (
-              <Group visibleFrom="sm">
-                <Button onClick={handleLogin} variant="default">
-                  Login
-                </Button>
-              </Group>
-            ) : (
-              <Menu shadow="md" width={200}>
-                <Menu.Target>
-                  <p>{user.profile.sub}</p>
-                </Menu.Target>
-
-                <Menu.Dropdown>
-                  <Menu.Item>Profile</Menu.Item>
-
-                  <Menu.Divider />
-
-                  <Menu.Item color="red" onClick={handleLogout}>
-                    Logout
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            )}
-
-            {/* TODO class state here */}
-            <p>CSCI128</p>
-          </Group>
-
-          {/* <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="sm" /> */}
-        </Group>
-      </header>
-
-      {/* <Drawer
+        {/* <Drawer
         opened={drawerOpened}
         onClose={closeDrawer}
         size="100%"
@@ -121,6 +141,7 @@ export function Navbar() {
             </Group>
           </ScrollArea>
         </Drawer> */}
-    </Box>
+      </Box>
+    </>
   );
 }
