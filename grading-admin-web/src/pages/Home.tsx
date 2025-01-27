@@ -1,29 +1,10 @@
-import { User } from "oidc-client-ts";
-import { useEffect, useState } from "react";
-import { $api, userManager } from "../api";
+import { $api } from "../api";
 
 export function HomePage() {
-  const [user, setUser] = useState<User | null>(null);
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const result = await userManager.getUser();
-        console.log(result);
-        setUser(result);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-    fetchUser();
-  }, []);
-
   const { data, error, isLoading } = $api.useQuery(
     "get",
     "/admin/course/{course_id}",
     {
-      headers: {
-        Authorization: "Bearer " + user?.access_token,
-      },
       params: {
         path: { course_id: "5" },
       },
