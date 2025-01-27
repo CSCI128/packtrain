@@ -25,5 +25,5 @@ public class CourseCredential {
     @Column(name="active")
     private boolean isActive;
 
-    // should probably add a "usable by roles" field
+    // TODO: may need to add a usable_by field
 }
