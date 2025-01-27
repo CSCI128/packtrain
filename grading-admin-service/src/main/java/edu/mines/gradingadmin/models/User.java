@@ -16,26 +16,23 @@ public class User{
     @Column(name="id")
     private UUID id;
 
-    @Column(name="canvas_id")
+    @Column(name="canvas_id", unique = true)
     private String canvasId;
 
-    @Column(name = "is_admin")
-    private boolean isAdmin;
+    @Column(name = "is_admin", nullable = false)
+    private boolean isAdmin = false;
 
-    @Column(name="cwid")
+    @Column(name="cwid", unique = true, nullable = false)
     private String cwid;
 
     @Column(name="name")
     private String name;
 
-    @Column(name="email")
+    @Column(name="email", unique = true, nullable = false)
     private String email;
 
     @OneToMany(fetch=FetchType.EAGER)
     @JoinColumn(name="credential_id", referencedColumnName="id")
     private Set<Credential> credential;
 
-    @ManyToOne(optional=false , fetch=FetchType.EAGER)
-    @JoinColumn(name="external_source_id", referencedColumnName="id")
-    private ExternalSource externalSource;
 }

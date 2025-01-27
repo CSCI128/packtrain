@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    default: development
   application:
     name: Grading Admin Service
   datasource:

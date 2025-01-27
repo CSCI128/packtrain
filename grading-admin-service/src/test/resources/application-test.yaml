@@ -1,0 +1,18 @@
+spring:
+  main:
+    banner-mode: off
+
+  application:
+    name: Grading Admin Service - Test
+  web:
+    resources:
+      add-mappings: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+server:
+  error:
+    whitelabel:
+      enabled: false

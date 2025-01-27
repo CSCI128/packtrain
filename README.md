@@ -35,6 +35,14 @@ Install [JDK 23](https://www.oracle.com/java/technologies/downloads/#jdk23-mac) 
 
 To run the backend on Linux/Mac, run: `./mvnw spring-boot:run`
 
+If you run into an issue building on windows, make sure that your user has permission to create symlinks.
+[StackOverflow thread about this issue](https://stackoverflow.com/a/65504258).
+
+
+### Running Backend Tests
+
+`./mvnw test "-Dspring.profiles.active=test"`
+
 ## Frontend
 Install [Node.js](https://nodejs.org/en) and navigate to the `grading-admin-web` directory.
 
@@ -73,10 +81,15 @@ macOS:
 keytool -import -alias grading-admin-ca -keystore $(/usr/libexec/java_home)/lib/security/cacerts -file certificates/certs/localhost-root/localhost-root.CA.pem
 ```
 
+Windows:
+```powershell
+keytool -import -alias grading-admin-ca -keystore "C:\Program Files\Java\jdk-23/lib/security/cacerts" -file certificates/certs/localhost-root/localhost-root.CA.pem
+```
+(If you get an "access denied" error, run this in an admin PowerShell instance. 
+You also may need to adjust the path to your `cacerts` file)
+
 And then saying 'yes' to the prompt asking to trust that certificate.
 
-Windows is likely similar, but the path to the `cacerts` file will be different.
-You will need to adjust that path.
 
 Then make sure to define the `PG_PASS` env variable in your IDE's run config.
 (in Intellij it is under `Modify Options` -> `Environmental Varibles`. Then set `PG_PASS=<whatever the .env file says>`)
@@ -90,6 +103,21 @@ docker compose up localhost.dev-local -d
 This starts all the local services and proxies them behind `https://localhost.dev`.
 
 Then you can start (and restart) the frontend and backend independently of the docker environment.
+
+### Issues
+
+If you run into issues relating to your DB password not working, 
+ensure that there are no other postgres instances running on your computer.
+
+You can check this on macOS by running
+```bash
+sudo lsof -i tcp:5432
+```
+
+Then you can kill those processes by running
+```bash
+sudo kill -9 <pid of process to kill>
+```
 
 ## Regenerating Authentik
 
