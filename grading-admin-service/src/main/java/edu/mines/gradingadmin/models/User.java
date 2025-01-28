@@ -16,9 +16,6 @@ public class User{
     @Column(name="id")
     private UUID id;
 
-    @Column(name="canvas_id", unique = true)
-    private String canvasId;
-
     @Column(name = "is_admin", nullable = false)
     private boolean isAdmin = false;
 
@@ -31,8 +28,10 @@ public class User{
     @Column(name="email", unique = true, nullable = false)
     private String email;
 
-    @OneToMany(fetch=FetchType.EAGER)
-    @JoinColumn(name="credential_id", referencedColumnName="id")
+    @OneToMany(mappedBy = "owningUser")
     private Set<Credential> credential;
+
+    @OneToMany(mappedBy = "user")
+    private Set<CourseMember> courseMemberships;
 
 }

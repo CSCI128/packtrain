@@ -20,13 +20,15 @@ public class Section {
     @Column(name = "code")
     private String code;
 
-    // i need to workshop this relation
-//    @OneToMany(mappedBy = "")
-//    private Set<User> users;
+    @Column(name = "canvas_id")
+    private String canvasId;
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "course_role", nullable = false)
-//    private CourseRole courseRole;
+    @ManyToMany
+    @JoinTable(name="section_member",
+            joinColumns = @JoinColumn(name = "section_id", referencedColumnName = "id"),
+            inverseJoinColumns  = @JoinColumn(name="student_id", referencedColumnName = "id")
+    )
+    private Set<CourseMember> members;
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id", referencedColumnName = "id")
