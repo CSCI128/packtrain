@@ -1,4 +1,4 @@
-package edu.mines.gradingadmin.controller;
+package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.ApiDelegate;
 import org.springframework.http.ResponseEntity;
