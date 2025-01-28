@@ -16,6 +16,9 @@ public class Assignment {
     @Column(name = "id")
     private UUID id;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "points")
     private double points;
 
