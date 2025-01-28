@@ -16,12 +16,27 @@ security:
   - openIDC: [ user:read ] # at a base level, all users must at least be a user to access anything
 
 tags:
+  - name: health
+    description: Health checks for grading server
   - name: admin
     description: Administration functions for the grading server
+  - name: user
+    description: User management functions for the grading server
 
 paths:
+  /-/health:
+    get:
+      tags:
+        - health
+      operationId: check_health
+      summary: Checks the health of the server
+      responses:
+        200:
+          description: ok
+        500:
+          description: "Server is unhealthy"
   /admin/course/new/{canvas_id}:
-    put:
+    post:
       tags:
         - admin
       operationId: new_course
@@ -427,7 +442,95 @@ paths:
               example:
                 error_source: "update_course"
                 error_message: "Course '999-9999-9999-99' does not exist"
-                
+
+  /user/{user_id}/credential:
+    post:
+      tags:
+        - user
+      operationId: new_credential
+      summary: Create a new credential for the user
+      description: |
+        Create a new credential for a user.
+        
+        The credential must have a unique name for the user.
+        It must also be the only credential for a service.
+      security:
+        - openIDC: [ user:write ]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Credential"
+      responses:
+        202:
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Credential"
+        400:
+          description: "Failed to create new credential"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to create new credential for user"
+        404:
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "User '999-9999-9999-99' does not exist!"
+
+    get:
+      tags:
+        - user
+      operationId: get_credentials
+      summary: Get all credentials for a user
+      description: |
+        Gets all credentials for the signed in user.
+        A user can only view their own credentials (including admins)
+      security:
+        - openIDC: [ user:read ]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Credentials"
+        404:
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "User '999-9999-9999-99' does not exist!"
+
+
 components:
   securitySchemes:
     OpenIDC:
@@ -443,6 +546,67 @@ components:
           type: string
         error_message:
           type: string
+
+    Credential:
+      description: "A credential for external service"
+      type: object
+      required:
+        - endpoint
+        - owning_user
+      properties:
+        id:
+          type: string
+          example: "99-9999-9999-99"
+        name:
+          type: string
+          example: "Cred 1"
+        endpoint:
+          type: string
+          format: uri
+          example: "https://secure-service.com/"
+        api_key:
+          type: string
+          example: "a super secure key"
+        private:
+          type: boolean
+          example: true
+        active:
+          type: boolean
+          example: true
+        owning_user:
+          $ref: "#/components/schemas/User"
+
+    Credentials:
+      description: "A list of credentials"
+      type: array
+      items:
+        $ref: "#/components/schemas/Credential"
+
+    User:
+      description: "A server user"
+      type: object
+      required:
+        - email
+        - cwid
+        - name
+        - admin
+      properties:
+        id:
+          type: string
+          example: "9-9999-9999-99"
+        email:
+          type: string
+          format: email
+          example: "user@test.com"
+        cwid:
+          type: string
+          example: "99999999"
+        name:
+          type: string
+          example: "Test User"
+        admin:
+          type: boolean
+          example: false
 
     CourseMember:
       description: "A user in a course"

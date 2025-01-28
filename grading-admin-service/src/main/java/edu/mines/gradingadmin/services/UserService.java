@@ -5,6 +5,7 @@ import edu.mines.gradingadmin.repositories.UserRepo;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -16,5 +17,9 @@ public class UserService {
 
     public Optional<User> getUserByCwid(String cwid){
         return userRepo.getByCwid(cwid);
+    }
+
+    public Optional<User> getUserByID(String id){
+        return userRepo.getById(UUID.fromString(id));
     }
 }

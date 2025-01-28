@@ -1,4 +1,4 @@
-package edu.mines.gradingadmin.config;
+package edu.mines.gradingadmin;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

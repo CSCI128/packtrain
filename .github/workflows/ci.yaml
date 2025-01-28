@@ -16,12 +16,8 @@ jobs:
           cache: 'maven'
           cache-dependency-path: 'grading-admin-service/pom.xml'
 
-      - name: Build Project
-        run: |
-          mvn compile
-        working-directory: grading-admin-service
       - name: Run Java Tests
         run: |
-           mvn test -Dspring.profiles.active=test
+           mvn compile test -Dspring.profiles.active=test
         working-directory: grading-admin-service
 
