@@ -446,7 +446,7 @@ paths:
     post:
       tags:
         - admin
-      operationid: create_user
+      operationId: create_user
       summary: "Create a new user"
       description: |
         Creates a new user.
