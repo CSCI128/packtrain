@@ -181,8 +181,7 @@ paths:
         content:
           application/json:
             schema:
-              items:
-                $ref: "#/components/schemas/Course"
+              $ref: "#/components/schemas/Course"
       responses:
         201:
           description: "Accepted"
@@ -443,6 +442,35 @@ paths:
                 error_source: "update_course"
                 error_message: "Course '999-9999-9999-99' does not exist"
 
+  /admin/users/:
+    post:
+      tags:
+        - admin
+      operationid: create_user
+      summary: "Create a new user"
+      description: |
+        Creates a new user.
+      security:
+        - openIDC: [ admin:write ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        202:
+          description: "Created"
+        400:
+          description: "Failed to create new user"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "create_user"
+                error_message: "Failed to create new user"
+  
   /user/{user_id}/credential:
     post:
       tags:
