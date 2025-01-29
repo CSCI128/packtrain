@@ -1,3 +1,0 @@
-return {
-    "is_admin": request.user.attributes.get('admin',False)
-}
