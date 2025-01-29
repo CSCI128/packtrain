@@ -176,12 +176,6 @@ paths:
           schema:
             type: string
             example: "999-9999-9999-99"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Course"
       responses:
         201:
           description: "Accepted"
