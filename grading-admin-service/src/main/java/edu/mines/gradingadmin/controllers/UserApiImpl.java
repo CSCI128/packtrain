@@ -1,10 +1,12 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.UserApiDelegate;
+import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Credential;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
@@ -17,6 +19,9 @@ public class UserApiImpl implements UserApiDelegate {
     private final UserService userService;
     private final CredentialService credentialService;
 
+    @Autowired
+    private SecurityManager securityManager;
+
     public UserApiImpl(UserService userService, CredentialService credentialService) {
         this.userService = userService;
         this.credentialService = credentialService;
@@ -25,16 +30,10 @@ public class UserApiImpl implements UserApiDelegate {
     @Override
     public ResponseEntity<edu.mines.gradingadmin.data.Credential>
     newCredential(String userId, edu.mines.gradingadmin.data.Credential credential) {
-        //todo - this needs a user context
-        Optional<User> user = userService.getUserByID(userId);
-
-        if (user.isEmpty()) {
-            // need to do this with error controller
-            return ResponseEntity.notFound().build();
-        }
+        User user = securityManager.getUserFromRequest();
 
         Optional<Credential> newCredential = credentialService.createNewCredentialForService(
-                user.get().getCwid(), credential.getName(),
+                user.getCwid(), credential.getName(),
                 credential.getApiKey(), credential.getEndpoint().toString()
         );
 

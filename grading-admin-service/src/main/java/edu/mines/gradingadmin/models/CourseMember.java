@@ -24,7 +24,7 @@ public class CourseMember {
     private CourseRole role;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "cwid", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)

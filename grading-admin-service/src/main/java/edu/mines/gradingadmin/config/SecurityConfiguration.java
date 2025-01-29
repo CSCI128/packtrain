@@ -1,7 +1,9 @@
 package edu.mines.gradingadmin.config;
 
+import edu.mines.gradingadmin.filters.UserFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -32,4 +34,18 @@ public class SecurityConfiguration {
     public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties){
         return JwtDecoders.fromOidcIssuerLocation(properties.getJwt().getIssuerUri());
     }
+
+    @Bean
+    public FilterRegistrationBean<UserFilter> registerUserFilter(){
+        FilterRegistrationBean<UserFilter> filter = new FilterRegistrationBean<>();
+
+        filter.setFilter(new UserFilter());
+        filter.addUrlPatterns("/");
+        filter.setOrder(1);
+
+        return filter;
+
+    }
+
+
 }

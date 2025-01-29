@@ -8,9 +8,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UserRepo extends CrudRepository<User, UUID> {
+public interface UserRepo extends CrudRepository<User, String> {
     Optional<User> getByEmail(String name);
     Optional<User> getByCwid(String cwid);
 
-    Optional<User> getById(UUID uuid);
+    boolean existsByCwid(String cwid);
+
+    Optional<User> getByOauthId(UUID uuid);
 }

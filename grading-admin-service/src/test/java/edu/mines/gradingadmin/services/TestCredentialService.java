@@ -65,7 +65,7 @@ class TestCredentialService implements PostgresTestContainer {
 
         Assertions.assertEquals(1, credentials.size());
 
-        Assertions.assertEquals(user.getId(), credentials.getFirst().getOwningUser().getId());
+        Assertions.assertEquals(user.getCwid(), credentials.getFirst().getOwningUser().getCwid());
     }
 
     @Test
