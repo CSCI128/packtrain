@@ -19,7 +19,7 @@ public class UserSeeders {
         user.setName("User 1");
         user.setEmail("user1@test.com");
         user.setCwid("80000001");
-        user.setCanvasId("800001");
+        user.setUser(true);
 
         return repo.save(user);
     }
@@ -29,7 +29,8 @@ public class UserSeeders {
         user.setName("Admin 1");
         user.setEmail("admin1@test.com");
         user.setCwid("90000001");
-        user.setCanvasId("900001");
+        user.setUser(true);
+        user.setAdmin(true);
 
         return repo.save(user);
     }
