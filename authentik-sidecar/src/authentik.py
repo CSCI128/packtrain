@@ -221,7 +221,7 @@ class Authentik:
             "password": password
         }
 
-        self._post(f"core/users/{user_id}/set_password", body, has_body=False)
+        self._post(f"core/users/{user_id}/set_password/", body, has_body=False)
 
 
     def delete_scope_mapper_if_exists(self, scope_name):
