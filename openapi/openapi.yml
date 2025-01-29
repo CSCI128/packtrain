@@ -552,6 +552,168 @@ paths:
                 error_source: "update_user"
                 error_message: "User '999-9999-9999-99' does not exist!"
 
+  /user/{user_id}/credential/disable:
+    put:
+      tags:
+        - user
+      operationId: disable_credential
+      summary: Disables a credential for the user.
+      description: |
+        Disables a selected credential for the user.
+      security:
+        - openIDC: [ user:write ]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      # Do we want the selected credential to disable/private/public be given from the credential schema?
+      # My other idea looks something like this
+      # requestBody:
+      #  required: true
+      #  content:
+      #    application/json:
+      #      schema:
+      #        type: object
+      #        properties:
+      #          credential_id:
+      #            type: string
+      #            example: "cred-12345"
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Credential"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Credential"
+        400:
+          description: "Failed to disable credential"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to disable credential for user"
+        404:
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "User '999-9999-9999-99' does not exist!"
+
+  /user/{user_id}/credential/public:
+    put:
+      tags:
+        - user
+      operationId: public_credential
+      summary: Changes the visibility of the credential to public for the user.
+      description: |
+        Sets a credential's status to public for the user.
+      security:
+        - openIDC: [ user:write ]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      # Same comment as above
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Credential"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Credential"
+        400:
+          description: "Failed to set credential to public"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to set credential to public for user"
+        404:
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "User '999-9999-9999-99' does not exist!"
+
+  /user/{user_id}/credential/private:
+    put:
+      tags:
+        - user
+      operationId: private_credential
+      summary: Changes the visibility of the credential to private for the user.
+      description: |
+        Sets a credential's status to private for the user.
+      security:
+        - openIDC: [ user:write ]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      # Same comment as above
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Credential"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Credential"
+        400:
+          description: "Failed to set credential to private"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to set credential to private for user"
+        404:
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "User '999-9999-9999-99' does not exist!"
+
 
 components:
   securitySchemes:
