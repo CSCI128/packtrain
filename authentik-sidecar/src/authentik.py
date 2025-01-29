@@ -218,7 +218,7 @@ class Authentik:
 
     def set_user_password(self, user_id, password):
         body = {
-            "passwords": password
+            "password": password
         }
 
         self._post(f"core/users/{user_id}/set_password", body, has_body=False)
