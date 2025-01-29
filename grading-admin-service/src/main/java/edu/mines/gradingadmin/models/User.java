@@ -12,8 +12,8 @@ import java.util.UUID;
 public class User{
 
     @Id
-    @GeneratedValue(strategy=GenerationType.UUID)
     @Column(name="id")
+    // This is set from the Oauth token
     private UUID id;
 
     @Column(name = "is_admin", nullable = false)
@@ -22,7 +22,7 @@ public class User{
     @Column(name="cwid", unique = true, nullable = false)
     private String cwid;
 
-    @Column(name="name")
+    @Column(name="name", nullable = false)
     private String name;
 
     @Column(name="email", unique = true, nullable = false)

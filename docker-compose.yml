@@ -132,6 +132,8 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
+    volumes:
+      - "./authentik-sidecar/users:/app/users"
     depends_on:
       authentik:
           condition: service_healthy
