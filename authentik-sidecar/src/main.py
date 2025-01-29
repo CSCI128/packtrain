@@ -57,8 +57,6 @@ if __name__ == "__main__":
         for available_group in available_groups:
             if available_group["name"] in user_info["groups"]:
                 requested_groups.append(available_group["id"])
-        print(requested_groups)
-
 
         user_id = client.create_user(user_info["name"], user_info["email"], requested_groups, user_info["cwid"])
         client.set_user_password(user_id, user_info["password"])
