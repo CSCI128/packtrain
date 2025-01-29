@@ -1,7 +1,6 @@
 package edu.mines.gradingadmin.filters;
 
 import edu.mines.gradingadmin.managers.SecurityManager;
-import edu.mines.gradingadmin.models.User;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,20 +11,24 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+@WebFilter(urlPatterns = "**/admin/**")
+//@Order(1)
 @Component
-@WebFilter(urlPatterns = "/**")
-@Order(1)
-public class UserFilter implements Filter {
+public class AdminServicesFilter implements Filter {
     @Autowired
     private SecurityManager securityManager;
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        securityManager.setPrincipalFromRequest((HttpServletRequest) servletRequest);
-        securityManager.readUserFromRequest();
+        String path = ((HttpServletRequest) servletRequest).getRequestURI();
 
-        if (!securityManager.getIsUser()){
-            throw new AccessDeniedException("User is not authorized for this service");
+        if (!path.startsWith("/admin")){
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+
+        if (!securityManager.getIsAdmin()){
+            throw new AccessDeniedException("Not authorized");
         }
 
         filterChain.doFilter(servletRequest, servletResponse);

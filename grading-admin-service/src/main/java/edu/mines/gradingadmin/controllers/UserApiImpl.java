@@ -28,9 +28,22 @@ public class UserApiImpl implements UserApiDelegate {
     }
 
     @Override
+    public ResponseEntity<edu.mines.gradingadmin.data.User> getCurrentUser() {
+        User user = securityManager.getUser();
+        edu.mines.gradingadmin.data.User userRes = new edu.mines.gradingadmin.data.User();
+
+        userRes.setAdmin(user.isAdmin());
+        userRes.setCwid(user.getCwid());
+        userRes.setName(user.getName());
+        userRes.setEmail(user.getEmail());
+
+        return ResponseEntity.ok(userRes);
+    }
+
+    @Override
     public ResponseEntity<edu.mines.gradingadmin.data.Credential>
-    newCredential(String userId, edu.mines.gradingadmin.data.Credential credential) {
-        User user = securityManager.getUserFromRequest();
+    newCredential( edu.mines.gradingadmin.data.Credential credential) {
+        User user = securityManager.getUser();
 
         Optional<Credential> newCredential = credentialService.createNewCredentialForService(
                 user.getCwid(), credential.getName(),

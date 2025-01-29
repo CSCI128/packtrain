@@ -2,17 +2,15 @@ package edu.mines.gradingadmin.managers;
 
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.services.UserService;
-import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.RequestScope;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 @Service
@@ -21,6 +19,7 @@ import java.util.Optional;
 public class SecurityManager {
     private final UserService userService;
     private Optional<JwtAuthenticationToken> principal;
+    @Getter
     private User user;
 
 
@@ -36,9 +35,9 @@ public class SecurityManager {
 
     }
 
-    public User getUserFromRequest() throws AccessDeniedException {
+    public void readUserFromRequest() throws AccessDeniedException {
         if (user != null){
-            return user;
+            return;
         }
 
         if (principal.isEmpty()){
@@ -54,8 +53,6 @@ public class SecurityManager {
                 .or(() -> attemptToLinkExistingUser(cwid, oauthId))
                 .or(() -> attemptToCreateNewUser(token, oauthId, cwid))
                 .orElseThrow(() -> new AccessDeniedException("Failed to authorized user"));
-
-        return user;
     }
 
     private Optional<User> attemptToLinkExistingUser(String cwid, String oauthId){
@@ -84,6 +81,23 @@ public class SecurityManager {
         }
 
         return user.getCwid();
+    }
+
+    public boolean getIsUser(){
+        if (user == null){
+            throw new AccessDeniedException("No user context set.");
+        }
+
+        return user.isUser();
+    }
+
+    public boolean getIsAdmin(){
+        if (user == null){
+            throw new AccessDeniedException("No user context set.");
+        }
+
+        return user.isAdmin();
+
     }
 
 }
