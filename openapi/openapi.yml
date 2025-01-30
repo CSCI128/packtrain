@@ -552,7 +552,7 @@ paths:
                 error_source: "update_user"
                 error_message: "User '999-9999-9999-99' does not exist!"
 
-  /users/:
+  /user:
     get:
       tags:
         - user
@@ -578,7 +578,7 @@ paths:
         - openIDC: [ user:write ]
       summary: Updates a user's information
       description: |
-        Updates a user's infromation based on the User provided in body and provided JWT. 
+        Updates a user's information based on the User provided in body and provided JWT. 
       requestBody:
         required: true
         content:
