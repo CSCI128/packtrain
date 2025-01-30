@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-@WebFilter(urlPatterns = "**/admin/**")
-//@Order(1)
+@WebFilter(urlPatterns = "/api/admin/**")
 @Component
 public class AdminServicesFilter implements Filter {
     private final SecurityManager securityManager;
@@ -25,7 +24,7 @@ public class AdminServicesFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         String path = ((HttpServletRequest) servletRequest).getRequestURI();
 
-        if (!path.startsWith("/admin")){
+        if (!path.startsWith("/api/admin")){
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
