@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Optional;
 
 @SpringBootTest
-@DirtiesContext
 @Transactional
 class TestCredentialService implements PostgresTestContainer {
     @Autowired

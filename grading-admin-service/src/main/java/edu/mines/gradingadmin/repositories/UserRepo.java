@@ -1,9 +1,11 @@
 package edu.mines.gradingadmin.repositories;
 
 import edu.mines.gradingadmin.models.User;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,4 +17,7 @@ public interface UserRepo extends CrudRepository<User, String> {
     boolean existsByCwid(String cwid);
 
     Optional<User> getByOauthId(UUID uuid);
+
+    @Query("select u from user u")
+    List<User> getAll();
 }

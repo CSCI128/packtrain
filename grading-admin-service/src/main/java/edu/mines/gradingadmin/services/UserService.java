@@ -92,7 +92,6 @@ public class UserService {
         user.get().setUser(false);
 
         return Optional.of(userRepo.save(user.get()));
-
     }
 
     public Optional<User> enableUser(String cwidToDisable){
