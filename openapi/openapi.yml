@@ -552,6 +552,76 @@ paths:
                 error_source: "update_user"
                 error_message: "User '999-9999-9999-99' does not exist!"
 
+  /users/{user_id}:
+    get:
+      tags:
+        - user
+      operationId: get_user
+      security:
+        - openIDC: [ user:read ]
+      summary: Gets a user's information
+      description: |
+        Gets a user's information based on the user id which is given in the path.
+        A user id must be specified.      
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        404:
+          description: User Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "get_user"
+                error_message: "User= '999-9999-9999-99' does not exist"
+    put:
+      tags:
+        - user
+      operationId: update_user
+      security:
+        - openIDC: [ user:write ]
+      summary: Updates a user's information
+      description: |
+        Updates a user's infromation based on the user id given in the path as well as
+        a User model given in the body. 
+        If there is no user already it will not create one.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"     
+      responses:
+        201:
+          description: "Accepted"
+        404:
+          description: User Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "User '999-9999-9999-99' does not exist" 
 
 components:
   securitySchemes:
