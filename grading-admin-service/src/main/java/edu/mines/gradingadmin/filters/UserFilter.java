@@ -1,11 +1,9 @@
 package edu.mines.gradingadmin.filters;
 
 import edu.mines.gradingadmin.managers.SecurityManager;
-import edu.mines.gradingadmin.models.User;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
@@ -27,7 +25,7 @@ public class UserFilter implements Filter {
         securityManager.setPrincipalFromRequest((HttpServletRequest) servletRequest);
         securityManager.readUserFromRequest();
 
-        if (!securityManager.getIsUser()){
+        if (!securityManager.getUserEnabled()){
             throw new AccessDeniedException("User is not authorized for this service");
         }
 

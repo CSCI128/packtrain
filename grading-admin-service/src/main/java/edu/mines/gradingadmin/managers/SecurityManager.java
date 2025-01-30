@@ -129,12 +129,12 @@ public class SecurityManager {
         return user.getCwid();
     }
 
-    public boolean getIsUser() throws AccessDeniedException {
+    public boolean getUserEnabled() throws AccessDeniedException {
         if (user == null){
             throw new AccessDeniedException("No user context set.");
         }
 
-        return user.isUser();
+        return user.isEnabled();
     }
 
     public boolean getIsAdmin() throws AccessDeniedException {

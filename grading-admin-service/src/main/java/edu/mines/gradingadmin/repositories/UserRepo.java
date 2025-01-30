@@ -16,7 +16,8 @@ public interface UserRepo extends CrudRepository<User, String> {
 
     boolean existsByCwid(String cwid);
 
-    Optional<User> getByOauthId(UUID uuid);
+    @Query("select u from user u where u.oAuthId = ?1")
+    Optional<User> getByOAuthId(UUID uuid);
 
     @Query("select u from user u")
     List<User> getAll();

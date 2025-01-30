@@ -2,7 +2,6 @@ package edu.mines.gradingadmin.seeders;
 
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.UserRepo;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,7 +18,7 @@ public class UserSeeders {
         user.setName("User 1");
         user.setEmail("user1@test.com");
         user.setCwid("80000001");
-        user.setUser(true);
+        user.setEnabled(true);
 
         return repo.save(user);
     }
@@ -29,7 +28,7 @@ public class UserSeeders {
         user.setName("Admin 1");
         user.setEmail("admin1@test.com");
         user.setCwid("90000001");
-        user.setUser(true);
+        user.setEnabled(true);
         user.setAdmin(true);
 
         return repo.save(user);

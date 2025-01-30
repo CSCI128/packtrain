@@ -3,11 +3,8 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.UserRepo;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,11 +22,11 @@ public class UserService {
     }
 
     public Optional<User> getUserByOauthId(String id){
-        return userRepo.getByOauthId(UUID.fromString(id));
+        return userRepo.getByOAuthId(UUID.fromString(id));
     }
 
     public Optional<User> linkCwidToOauthId(User user, String id){
-        user.setOauthId(UUID.fromString(id));
+        user.setOAuthId(UUID.fromString(id));
 
         return Optional.of(userRepo.save(user));
     }
@@ -60,7 +57,7 @@ public class UserService {
         user.setName(name);
         user.setEmail(email);
         user.setAdmin(isAdmin);
-        user.setUser(true);
+        user.setEnabled(true);
 
         return Optional.of(userRepo.save(user));
     }
@@ -73,11 +70,11 @@ public class UserService {
         User user = new User();
 
         user.setCwid(cwid);
-        user.setOauthId(UUID.fromString(oauthId));
+        user.setOAuthId(UUID.fromString(oauthId));
         user.setName(name);
         user.setEmail(email);
         user.setAdmin(isAdmin);
-        user.setUser(true);
+        user.setEnabled(true);
 
         return Optional.of(userRepo.save(user));
     }
@@ -89,7 +86,7 @@ public class UserService {
             return Optional.empty();
         }
 
-        user.get().setUser(false);
+        user.get().setEnabled(false);
 
         return Optional.of(userRepo.save(user.get()));
     }
@@ -101,7 +98,7 @@ public class UserService {
             return Optional.empty();
         }
 
-        user.get().setUser(true);
+        user.get().setEnabled(true);
 
         return Optional.of(userRepo.save(user.get()));
     }

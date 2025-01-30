@@ -7,7 +7,6 @@ import edu.mines.gradingadmin.seeders.UserSeeders;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.List;
 import java.util.Optional;
@@ -64,7 +63,7 @@ public class TestUserService implements PostgresTestContainer {
 
         Assertions.assertEquals(1, users.size());
 
-        Assertions.assertEquals(id, users.getFirst().getOauthId().toString());
+        Assertions.assertEquals(id, users.getFirst().getOAuthId().toString());
     }
 
 

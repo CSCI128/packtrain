@@ -72,7 +72,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         User user = manager.getUser();
 
-        Assertions.assertEquals(sub, user.getOauthId().toString());
+        Assertions.assertEquals(sub, user.getOAuthId().toString());
         Assertions.assertEquals(cwid, user.getCwid());
 
         List<User> users = userRepo.getAll();
@@ -108,13 +108,13 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         manager.readUserFromRequest();
 
-        Assertions.assertEquals(sub, manager.getUser().getOauthId().toString());
+        Assertions.assertEquals(sub, manager.getUser().getOAuthId().toString());
         Assertions.assertEquals(cwid, manager.getUser().getCwid());
 
         List<User> users = userRepo.getAll();
 
         Assertions.assertEquals(1, users.size());
-        Assertions.assertEquals(sub, users.getFirst().getOauthId().toString());
+        Assertions.assertEquals(sub, users.getFirst().getOAuthId().toString());
     }
 
     @Test
@@ -123,7 +123,7 @@ public class TestSecurityManager implements PostgresTestContainer {
         String sub = UUID.randomUUID().toString();
 
         User user = new User();
-        user.setOauthId(UUID.fromString(sub));
+        user.setOAuthId(UUID.fromString(sub));
         user.setCwid(cwid);
         user.setEmail("test@test.com");
         user.setName("Test User");

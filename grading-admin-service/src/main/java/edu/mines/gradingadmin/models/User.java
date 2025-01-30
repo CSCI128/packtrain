@@ -15,13 +15,13 @@ public class User{
     private String cwid;
 
     @Column(name="oauth_id", unique = true)
-    private UUID oauthId;
+    private UUID oAuthId;
 
-    @Column(name = "is_admin", nullable = false)
-    private boolean isAdmin = false;
+    @Column(name = "admin", nullable = false)
+    private boolean admin = false;
 
-    @Column(name = "is_user", nullable = false)
-    private boolean isUser = false;
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
 
     @Column(name="name")
     private String name;
