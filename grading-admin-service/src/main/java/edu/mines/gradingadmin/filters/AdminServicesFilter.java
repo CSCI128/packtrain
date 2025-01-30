@@ -15,8 +15,11 @@ import java.io.IOException;
 //@Order(1)
 @Component
 public class AdminServicesFilter implements Filter {
-    @Autowired
-    private SecurityManager securityManager;
+    private final SecurityManager securityManager;
+
+    public AdminServicesFilter(SecurityManager securityManager) {
+        this.securityManager = securityManager;
+    }
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {

@@ -16,8 +16,11 @@ import java.io.IOException;
 @WebFilter(urlPatterns = "/**")
 @Order(1)
 public class UserFilter implements Filter {
-    @Autowired
-    private SecurityManager securityManager;
+    private final SecurityManager securityManager;
+
+    public UserFilter(SecurityManager securityManager) {
+        this.securityManager = securityManager;
+    }
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {

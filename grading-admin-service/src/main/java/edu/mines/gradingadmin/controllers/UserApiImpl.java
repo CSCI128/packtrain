@@ -19,12 +19,12 @@ public class UserApiImpl implements UserApiDelegate {
     private final UserService userService;
     private final CredentialService credentialService;
 
-    @Autowired
-    private SecurityManager securityManager;
+    private final SecurityManager securityManager;
 
-    public UserApiImpl(UserService userService, CredentialService credentialService) {
+    public UserApiImpl(UserService userService, CredentialService credentialService, SecurityManager securityManager) {
         this.userService = userService;
         this.credentialService = credentialService;
+        this.securityManager = securityManager;
     }
 
     @Override
