@@ -1,0 +1,3 @@
+return {
+    "is_admin": request.user.group_attributes().get('admin',False)
+}

@@ -27,7 +27,7 @@ public class Credential {
     private boolean isActive;
 
     @ManyToOne(optional=false)
-    @JoinColumn(name="user_id", referencedColumnName="id")
+    @JoinColumn(name="user_id", referencedColumnName="cwid")
     private User owningUser;
 
     @ManyToOne(optional=false)

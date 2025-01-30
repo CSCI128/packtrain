@@ -1,1 +1,3 @@
 .venv
+users/*
+!users/user.json.template

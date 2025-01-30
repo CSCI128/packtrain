@@ -8,7 +8,7 @@ class Authentik:
         self.recreate = recreate
 
 
-    def _post(self, endpoint, data):
+    def _post(self, endpoint, data, has_body=True):
         res = requests.post(
             url=f"{self.base}/api/v3/{endpoint}",
             json=data,
@@ -17,7 +17,7 @@ class Authentik:
             },
         )
 
-        return res.json()
+        return res.json() if has_body else {}
 
     def _get(self, endpoint, query=None):
         res = requests.get(
@@ -93,10 +93,45 @@ class Authentik:
 
         return True
 
+    def _scope_exists(self, scope_name):
+        res = self._get("propertymappings/provider/scope/", query={"scope_name": scope_name})
+
+        if len(res["results"]) == 0 or "pk" not in res["results"][0]:
+            return False
+
+        return res["results"][0]["pk"]
+
+    def _group_exists(self, group_name):
+        res = self._get("core/groups/", query={"name": group_name})
+
+        if len(res["results"]) == 0 or "pk" not in res["results"][0]:
+            return False
+
+        return res["results"][0]["pk"]
+
+    def _user_exists(self, user_email):
+        res = self._get("core/users/", query={"email": user_email})
+
+        if len(res["results"]) == 0 or "pk" not in res["results"][0]:
+            return False
+
+        return res["results"][0]["pk"]
+
+    def _get_scopes(self, requested_scopes):
+        res = self._get(f"propertymappings/provider/scope/")
+
+        scopes = []
+        for scope in res["results"]:
+            if scope["scope_name"] in requested_scopes:
+                scopes.append(scope["pk"])
+
+        if len(requested_scopes) != len(scopes):
+            return []
+
+        return scopes
+
     def wait_for_service(self):
         attempt = 0
-        # give authentik 10 secs to get ready
-        time.sleep(10)
         while not self._check_health() and attempt <= 15:
             print(f"Waiting for service. Attempt {attempt}/15")
             attempt += 1
@@ -110,6 +145,119 @@ class Authentik:
 
         return True
 
+    def delete_user_group_if_exists(self, name):
+        if not (group_id := self._group_exists(name)):
+            return
+
+        print(f"Deleting group '{name}' with id '{group_id}'")
+
+        if not self._delete(f"core/groups/{group_id}/"):
+            raise Exception(f"Failed to delete group {name} with id {group_id}")
+
+    def create_user_group(self, name, attributes):
+        if self.recreate:
+            self.delete_user_group_if_exists(name)
+
+        if group_id := self._group_exists(name):
+            print(f"Group '{name}' exists with id '{group_id}'! Skipping.")
+            return group_id
+
+        body = {
+            "name": name,
+            "is_superuser": False,
+            "attributes": attributes,
+        }
+
+        res = self._post("core/groups/", body)
+
+        if "pk" not in res:
+            raise Exception(f"Failed to create new group with name: {name}\n{res}")
+
+        print(f"Successfully created group with name '{name}'")
+
+        return res["pk"]
+
+    def delete_user_if_exists(self, email):
+        if not (user_id := self._user_exists(email)):
+            return
+
+        print(f"Deleting user '{email}' with id '{user_id}'")
+
+        if not self._delete(f"core/users/{user_id}/"):
+            raise Exception(f"Failed to delete user {email} with id {user_id}")
+
+    def create_user(self, name, email, groups, cwid):
+        if self.recreate:
+            self.delete_user_if_exists(email)
+
+        if user_id := self._user_exists(email):
+            print(f"User '{email}' exists with id '{user_id}'! Skipping.")
+            return user_id
+
+        body = {
+            "username": email.split("@")[0],
+            "name": name,
+            "attributes": {
+                "cwid": cwid,
+            },
+            "path": "users",
+            "email": email,
+            "groups": groups,
+            "type": "internal",
+        }
+
+        res = self._post("core/users/", body)
+
+        if "pk" not in res:
+            raise Exception(f"Failed to create new user with email: {name}\n{email}")
+
+        print(f"Successfully created user with email '{email}'")
+
+        return res["pk"]
+
+
+    def set_user_password(self, user_id, password):
+        body = {
+            "password": password
+        }
+
+        self._post(f"core/users/{user_id}/set_password/", body, has_body=False)
+
+
+    def delete_scope_mapper_if_exists(self, scope_name):
+        if not (scope_id := self._scope_exists(scope_name)):
+            return
+
+        print(f"Deleting scope '{scope_name}' with id '{scope_id}'...")
+
+        if not self._delete(f"propertymappings/provider/scope/{scope_id}/"):
+            raise Exception(f"Failed to delete scope {scope_name} with id {scope_id}")
+
+    def create_scope_mapper(self, name, scope_name, description, expression):
+        if self.recreate:
+            self.delete_scope_mapper_if_exists(scope_name)
+
+        if scope_id := self._scope_exists(scope_name):
+            print(f"Scope '{scope_name}' exists with id '{scope_id}'! Skipping.")
+            return scope_id
+
+        body = {
+            "name": name,
+            "scope_name": scope_name,
+            "description": description,
+            "expression": expression,
+        }
+
+        res = self._post("propertymappings/provider/scope/", body)
+
+        if "pk" not in res:
+            raise Exception(f"Failed to create new scope with name: {scope_name}\n{res}")
+
+        print(f"Successfully created scope with name '{scope_name}'")
+
+        return res["pk"]
+
+
     def delete_provider_if_exists(self, provider_name):
         if not (provider_id := self._provider_exists(provider_name)):
             return
@@ -120,7 +268,7 @@ class Authentik:
             raise Exception(f"Failed to delete provider {provider_name} with id {provider_id}")
 
 
-    def create_new_provider(self, authentication_flow_name, authorization_flow_name, invalidation_flow_name,  provider_name, client_id):
+    def create_new_provider(self, authentication_flow_name, authorization_flow_name, invalidation_flow_name,  provider_name, client_id, scope_names):
         if self.recreate:
             self.delete_provider_if_exists(provider_name)
 
@@ -133,6 +281,11 @@ class Authentik:
         invalidation_flow_id = self._get_flow_id(invalidation_flow_name)
 
         signing_key_id = self._get_private_key_pair()
+
+        scopes = self._get_scopes(scope_names)
+
+        if not scopes:
+            raise Exception("Failed to get required scopes!")
 
         body = {
             "name": provider_name,
@@ -157,7 +310,8 @@ class Authentik:
                     "url": "https://oauth.pstmn.io/v1/callback"
                 }
             ],
-            "sub_mode": "user_email",
+            "property_mappings": scopes,
+            "sub_mode": "user_uuid",  # going to use these UUIDs the user id in the users table
             "issuer_mode": "per_provider",
             "jwt_federation_sources": [
             ],

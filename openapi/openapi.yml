@@ -464,8 +464,9 @@ paths:
               example:
                 error_source: "create_user"
                 error_message: "Failed to create new user"
-  
-  /user/{user_id}/credential:
+
+
+  /user/credential:
     post:
       tags:
         - user
@@ -478,13 +479,6 @@ paths:
         It must also be the only credential for a service.
       security:
         - openIDC: [ user:write ]
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
       requestBody:
         required: true
         content:
@@ -527,14 +521,6 @@ paths:
         A user can only view their own credentials (including admins)
       security:
         - openIDC: [ user:read ]
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-
       responses:
         200:
           description: "OK"
@@ -653,9 +639,6 @@ components:
         - name
         - admin
       properties:
-        id:
-          type: string
-          example: "9-9999-9999-99"
         email:
           type: string
           format: email

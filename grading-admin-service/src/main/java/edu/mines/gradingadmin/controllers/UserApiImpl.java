@@ -1,6 +1,7 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.UserApiDelegate;
+import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Credential;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.services.CredentialService;
@@ -17,24 +18,34 @@ public class UserApiImpl implements UserApiDelegate {
     private final UserService userService;
     private final CredentialService credentialService;
 
-    public UserApiImpl(UserService userService, CredentialService credentialService) {
+    private final SecurityManager securityManager;
+
+    public UserApiImpl(UserService userService, CredentialService credentialService, SecurityManager securityManager) {
         this.userService = userService;
         this.credentialService = credentialService;
+        this.securityManager = securityManager;
+    }
+
+    @Override
+    public ResponseEntity<edu.mines.gradingadmin.data.User> getUser() {
+        User user = securityManager.getUser();
+        edu.mines.gradingadmin.data.User userRes = new edu.mines.gradingadmin.data.User();
+
+        userRes.setAdmin(user.isAdmin());
+        userRes.setCwid(user.getCwid());
+        userRes.setName(user.getName());
+        userRes.setEmail(user.getEmail());
+
+        return ResponseEntity.ok(userRes);
     }
 
     @Override
     public ResponseEntity<edu.mines.gradingadmin.data.Credential>
-    newCredential(String userId, edu.mines.gradingadmin.data.Credential credential) {
-        //todo - this needs a user context
-        Optional<User> user = userService.getUserByID(userId);
-
-        if (user.isEmpty()) {
-            // need to do this with error controller
-            return ResponseEntity.notFound().build();
-        }
+    newCredential( edu.mines.gradingadmin.data.Credential credential) {
+        User user = securityManager.getUser();
 
         Optional<Credential> newCredential = credentialService.createNewCredentialForService(
-                user.get().getCwid(), credential.getName(),
+                user.getCwid(), credential.getName(),
                 credential.getApiKey(), credential.getEndpoint().toString()
         );
 

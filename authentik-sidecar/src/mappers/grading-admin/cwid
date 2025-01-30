@@ -1,0 +1,3 @@
+return {
+    'cwid': request.user.attributes.get('cwid','')
+}

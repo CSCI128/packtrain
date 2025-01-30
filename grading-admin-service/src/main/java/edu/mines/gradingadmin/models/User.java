@@ -8,22 +8,20 @@ import java.util.UUID;
 
 @Data
 @Entity(name="user")
-@Table(name="users")
+@Table(name="users", indexes = {@Index(columnList = "oauth_id"), @Index(columnList = "cwid")})
 public class User{
-
     @Id
-    @GeneratedValue(strategy=GenerationType.UUID)
-    @Column(name="id")
-    private UUID id;
-
-    @Column(name="canvas_id", unique = true)
-    private String canvasId;
-
-    @Column(name = "is_admin", nullable = false)
-    private boolean isAdmin = false;
-
     @Column(name="cwid", unique = true, nullable = false)
     private String cwid;
+
+    @Column(name="oauth_id", unique = true)
+    private UUID oAuthId;
+
+    @Column(name = "admin", nullable = false)
+    private boolean admin = false;
+
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = false;
 
     @Column(name="name")
     private String name;
@@ -31,8 +29,10 @@ public class User{
     @Column(name="email", unique = true, nullable = false)
     private String email;
 
-    @OneToMany(fetch=FetchType.EAGER)
-    @JoinColumn(name="credential_id", referencedColumnName="id")
+    @OneToMany(mappedBy = "owningUser")
     private Set<Credential> credential;
+
+    @OneToMany(mappedBy = "user")
+    private Set<CourseMember> courseMemberships;
 
 }
