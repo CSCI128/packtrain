@@ -94,8 +94,8 @@ public class UserService {
         return Optional.of(userRepo.save(user.get()));
     }
 
-    public Optional<User> enableUser(String cwidToDisable){
-        Optional<User> user = getUserByCwid(cwidToDisable);
+    public Optional<User> enableUser(String cwidToEnable){
+        Optional<User> user = getUserByCwid(cwidToEnable);
 
         if (user.isEmpty()){
             return Optional.empty();
