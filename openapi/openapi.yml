@@ -552,6 +552,46 @@ paths:
                 error_source: "update_user"
                 error_message: "User '999-9999-9999-99' does not exist!"
 
+  /user:
+    get:
+      tags:
+        - user
+      operationId: get_user
+      security:
+        - openIDC: [ user:read ]
+      summary: Gets a user's information
+      description: |
+        Gets a user's information based on the provided JWT.
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+    put:
+      tags:
+        - user
+      operationId: update_user
+      security:
+        - openIDC: [ user:write ]
+      summary: Updates a user's information
+      description: |
+        Updates a user's information based on the User provided in body and provided JWT. 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"     
+      responses:
+        202:
+          description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
 
 components:
   securitySchemes:
