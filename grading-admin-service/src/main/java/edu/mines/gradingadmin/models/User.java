@@ -21,7 +21,7 @@ public class User{
     private boolean admin = false;
 
     @Column(name = "enabled", nullable = false)
-    private boolean enabled = true;
+    private boolean enabled = false;
 
     @Column(name="name")
     private String name;
