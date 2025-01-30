@@ -25,7 +25,7 @@ public class UserFilter implements Filter {
         securityManager.setPrincipalFromRequest((HttpServletRequest) servletRequest);
         securityManager.readUserFromRequest();
 
-        if (!securityManager.getUserEnabled()){
+        if (!securityManager.getIsEnabled()){
             throw new AccessDeniedException("User is not authorized for this service");
         }
 
