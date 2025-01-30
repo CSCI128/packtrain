@@ -583,14 +583,14 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to disable credential for user"
         404:
-          description: "User not found"
+          description: "Credential not found"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 error_source: "update_user"
-                error_message: "User '999-9999-9999-99' does not exist!"
+                error_message: "Credential '99-9999-9999-99' does not exist!"
 
   /user/{credential_id}/public:
     put:
@@ -622,14 +622,14 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to set credential to public for user"
         404:
-          description: "User not found"
+          description: "Credential not found"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 error_source: "update_user"
-                error_message: "User '999-9999-9999-99' does not exist!"
+                error_message: "Credential '99-9999-9999-99' does not exist!"
 
   /user/{credential_id}/private:
     put:
@@ -661,14 +661,14 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to set credential to private for user"
         404:
-          description: "User not found"
+          description: "Credential not found"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 error_source: "update_user"
-                error_message: "User '999-9999-9999-99' does not exist!"
+                error_message: "Credential '99-9999-9999-99' does not exist!"
 
 components:
   securitySchemes:
