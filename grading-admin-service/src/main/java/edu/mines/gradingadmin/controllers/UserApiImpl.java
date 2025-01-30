@@ -27,7 +27,7 @@ public class UserApiImpl implements UserApiDelegate {
     }
 
     @Override
-    public ResponseEntity<edu.mines.gradingadmin.data.User> getCurrentUser() {
+    public ResponseEntity<edu.mines.gradingadmin.data.User> getUser() {
         User user = securityManager.getUser();
         edu.mines.gradingadmin.data.User userRes = new edu.mines.gradingadmin.data.User();
 
