@@ -578,6 +578,123 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+  /user/{credential_id}/disable:
+    put:
+      tags:
+        - user
+      operationId: disable_credential
+      summary: Disables a credential for the user.
+      description: |
+        Disables a selected credential for the user.
+      security:
+        - openIDC: [ user:write ]
+      parameters:
+        - name: credential_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+
+      responses:
+        202:
+          description: "Accepted"
+        400:
+          description: "Failed to disable credential"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to disable credential for user"
+        404:
+          description: "Credential not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Credential '99-9999-9999-99' does not exist!"
+
+  /user/{credential_id}/public:
+    put:
+      tags:
+        - user
+      operationId: mark_credential_as_public
+      summary: Changes the visibility of the credential to public for the user.
+      description: |
+        Sets a credential's status to public for the user.
+      security:
+        - openIDC: [ user:write ]
+      parameters:
+        - name: credential_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+      responses:
+        202:
+          description: "Accepted"
+        400:
+          description: "Failed to set credential to public"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to set credential to public for user"
+        404:
+          description: "Credential not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Credential '99-9999-9999-99' does not exist!"
+
+  /user/{credential_id}/private:
+    put:
+      tags:
+        - user
+      operationId: mark_credential_as_private
+      summary: Changes the visibility of the credential to private for the user.
+      description: |
+        Sets a credential's status to private for the user.
+      security:
+        - openIDC: [ user:write ]
+      parameters:
+        - name: credential_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+      responses:
+        202:
+          description: "Accepted"
+        400:
+          description: "Failed to set credential to private"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to set credential to private for user"
+        404:
+          description: "Credential not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Credential '99-9999-9999-99' does not exist!"
 
 components:
   securitySchemes:
