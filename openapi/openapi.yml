@@ -465,23 +465,6 @@ paths:
                 error_source: "create_user"
                 error_message: "Failed to create new user"
 
-  /user:
-    get:
-      tags:
-        - user
-      operationId: get_current_user
-      summary: Get the current signed in user
-      description: |
-        Gets the available information about the currently signed in user
-      security:
-        - openIDC: [ user:read ]
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
 
   /user/credential:
     post:
