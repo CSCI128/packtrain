@@ -552,7 +552,7 @@ paths:
                 error_source: "update_user"
                 error_message: "User '999-9999-9999-99' does not exist!"
 
-  /user/{user_id}/credential/disable:
+  /user/{credential_id}/disable:
     put:
       tags:
         - user
@@ -563,38 +563,16 @@ paths:
       security:
         - openIDC: [ user:write ]
       parameters:
-        - name: user_id
+        - name: credential_id
           in: path
           required: true
           schema:
             type: string
-            example: "999-9999-9999-99"
-      # Do we want the selected credential to disable/private/public be given from the credential schema?
-      # My other idea looks something like this
-      # requestBody:
-      #  required: true
-      #  content:
-      #    application/json:
-      #      schema:
-      #        type: object
-      #        properties:
-      #          credential_id:
-      #            type: string
-      #            example: "cred-12345"
+            example: "99-9999-9999-99"
 
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Credential"
       responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Credential"
+        202:
+          description: "Accepted"
         400:
           description: "Failed to disable credential"
           content:
@@ -614,37 +592,26 @@ paths:
                 error_source: "update_user"
                 error_message: "User '999-9999-9999-99' does not exist!"
 
-  /user/{user_id}/credential/public:
+  /user/{credential_id}/public:
     put:
       tags:
         - user
-      operationId: public_credential
+      operationId: mark_credential_as_public
       summary: Changes the visibility of the credential to public for the user.
       description: |
         Sets a credential's status to public for the user.
       security:
         - openIDC: [ user:write ]
       parameters:
-        - name: user_id
+        - name: credential_id
           in: path
           required: true
           schema:
             type: string
-            example: "999-9999-9999-99"
-      # Same comment as above
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Credential"
+            example: "99-9999-9999-99"
       responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Credential"
+        202:
+          description: "Accepted"
         400:
           description: "Failed to set credential to public"
           content:
@@ -664,37 +631,26 @@ paths:
                 error_source: "update_user"
                 error_message: "User '999-9999-9999-99' does not exist!"
 
-  /user/{user_id}/credential/private:
+  /user/{credential_id}/private:
     put:
       tags:
         - user
-      operationId: private_credential
+      operationId: mark_credential_as_private
       summary: Changes the visibility of the credential to private for the user.
       description: |
         Sets a credential's status to private for the user.
       security:
         - openIDC: [ user:write ]
       parameters:
-        - name: user_id
+        - name: credential_id
           in: path
           required: true
           schema:
             type: string
-            example: "999-9999-9999-99"
-      # Same comment as above
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Credential"
+            example: "99-9999-9999-99"
       responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Credential"
+        202:
+          description: "Accepted"
         400:
           description: "Failed to set credential to private"
           content:
@@ -713,7 +669,6 @@ paths:
               example:
                 error_source: "update_user"
                 error_message: "User '999-9999-9999-99' does not exist!"
-
 
 components:
   securitySchemes:
