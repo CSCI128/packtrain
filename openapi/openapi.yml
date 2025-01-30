@@ -552,7 +552,7 @@ paths:
                 error_source: "update_user"
                 error_message: "User '999-9999-9999-99' does not exist!"
 
-  /users/{user_id}:
+  /users/:
     get:
       tags:
         - user
@@ -561,15 +561,7 @@ paths:
         - openIDC: [ user:read ]
       summary: Gets a user's information
       description: |
-        Gets a user's information based on the user id which is given in the path.
-        A user id must be specified.      
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        Gets a user's information based on the provided JWT.
       responses:
         200:
           description: "OK"
@@ -577,15 +569,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
-        404:
-          description: User Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "get_user"
-                error_message: "User= '999-9999-9999-99' does not exist"
+
     put:
       tags:
         - user
@@ -594,16 +578,7 @@ paths:
         - openIDC: [ user:write ]
       summary: Updates a user's information
       description: |
-        Updates a user's infromation based on the user id given in the path as well as
-        a User model given in the body. 
-        If there is no user already it will not create one.
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        Updates a user's infromation based on the User provided in body and provided JWT. 
       requestBody:
         required: true
         content:
@@ -611,17 +586,12 @@ paths:
             schema:
               $ref: "#/components/schemas/User"     
       responses:
-        201:
+        202:
           description: "Accepted"
-        404:
-          description: User Not Found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_user"
-                error_message: "User '999-9999-9999-99' does not exist" 
+                $ref: "#/components/schemas/User"
 
 components:
   securitySchemes:
