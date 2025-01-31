@@ -13,6 +13,13 @@ public class ExternalSource {
     @Column(name = "id")
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private ExternalSourceType type;
+
+    @Column(name = "active")
+    private boolean active = false;
+
     @Column(name = "endpoint", unique = true)
     private String endpoint;
 }

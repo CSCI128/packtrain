@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.managers;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.UserRepo;
+import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -28,6 +29,9 @@ public class TestSecurityManager implements PostgresTestContainer {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CredentialService credentialService;
 
     @BeforeAll
     static void setupClass() {
@@ -64,7 +68,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         HttpServletRequest request = requestFactory(token);
 
-        SecurityManager manager = new SecurityManager(userService);
+        SecurityManager manager = new SecurityManager(userService, credentialService);
 
         manager.setPrincipalFromRequest(request);
 
@@ -102,7 +106,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         HttpServletRequest request = requestFactory(token);
 
-        SecurityManager manager = new SecurityManager(userService);
+        SecurityManager manager = new SecurityManager(userService, credentialService);
 
         manager.setPrincipalFromRequest(request);
 
@@ -139,7 +143,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         HttpServletRequest request = requestFactory(token);
 
-        SecurityManager manager = new SecurityManager(userService);
+        SecurityManager manager = new SecurityManager(userService, credentialService);
 
         manager.setPrincipalFromRequest(request);
 
@@ -164,7 +168,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         HttpServletRequest request = requestFactory(token);
 
-        SecurityManager manager = new SecurityManager(userService);
+        SecurityManager manager = new SecurityManager(userService, credentialService);
 
         manager.setPrincipalFromRequest(request);
 
@@ -190,7 +194,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         HttpServletRequest request = requestFactory(token);
 
-        SecurityManager manager = new SecurityManager(userService);
+        SecurityManager manager = new SecurityManager(userService, credentialService);
 
         manager.setPrincipalFromRequest(request);
 

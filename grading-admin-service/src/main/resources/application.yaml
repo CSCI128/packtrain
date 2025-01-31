@@ -24,3 +24,7 @@ server:
   error:
     whitelabel:
       enabled: false
+
+grading-admin:
+  endpoints:
+    canvas: https://elearning.mines.edu/

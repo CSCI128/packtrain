@@ -1,6 +1,7 @@
 package edu.mines.gradingadmin.managers;
 
 import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
@@ -12,20 +13,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.RequestScope;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequestScope
 @Slf4j
 public class SecurityManager {
     private final UserService userService;
+    private final CredentialService credentialService;
     private Optional<JwtAuthenticationToken> principal;
 
     @Getter
     private User user;
 
 
-    public SecurityManager(UserService userService) {
+    public SecurityManager(UserService userService, CredentialService credentialService) {
         this.userService = userService;
+        this.credentialService = credentialService;
         principal = Optional.empty();
 
         user = null;
@@ -143,6 +147,16 @@ public class SecurityManager {
         }
 
         return user.isAdmin();
+    }
+
+    public String getCredential(String endpoint, UUID course){
+        if (user == null){
+            throw new AccessDeniedException("No user context set.");
+        }
+
+        return credentialService.getCredentialByService(user.getCwid(), endpoint)
+                .or(() -> credentialService.getCredentialByService(course, endpoint))
+                .orElseThrow(() -> new AccessDeniedException("No valid credentials found!"));
 
     }
 
