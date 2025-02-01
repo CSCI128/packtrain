@@ -1,9 +1,17 @@
+import { observable } from "@legendapp/state";
 import { Box, Button, Group, Menu, Modal } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
 import { userManager } from "../../api";
 import classes from "./Navbar.module.scss";
+
+interface Course {
+  id: string;
+  name: string;
+}
+
+const store$ = observable<Course>();
 
 export function Navbar() {
   // TODO mobile responsiveness drawer
@@ -37,11 +45,16 @@ export function Navbar() {
     await userManager.signoutRedirect();
   };
 
+  const setActiveCourse = () => {
+    store$.name.set("CSCI128");
+    close();
+  };
+
   return (
     <>
       <Modal opened={opened} onClose={close} title="Select Class">
         {/* TODO get all courses and map */}
-        <Button>CSCI128</Button>
+        <Button onClick={setActiveCourse}>CSCI128</Button>
         <br />
         <Button>Create Class</Button>
       </Modal>
@@ -97,7 +110,8 @@ export function Navbar() {
               {/* TODO class state here */}
               {/* <p>CSCI128</p> */}
               <Button variant="default" onClick={open}>
-                CSCI128
+                {/* CSCI128 */}
+                {store$.name.get()}
               </Button>
             </Group>
 

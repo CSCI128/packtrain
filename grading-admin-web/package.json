@@ -11,6 +11,7 @@
     "types": "npx openapi-typescript ../openapi/openapi.yml -o ./src/lib/api/v1.d.ts"
   },
   "dependencies": {
+    "@legendapp/state": "^2.1.15",
     "@mantine/core": "^7.15.3",
     "@mantine/form": "^7.16.2",
     "@mantine/hooks": "^7.15.3",
