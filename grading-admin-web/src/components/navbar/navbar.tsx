@@ -3,7 +3,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
 import { userManager } from "../../api";
-import classes from "./Navbar.module.css";
+import classes from "./Navbar.module.scss";
 
 export function Navbar() {
   // TODO mobile responsiveness drawer
@@ -46,11 +46,14 @@ export function Navbar() {
         <Button>Create Class</Button>
       </Modal>
 
-      <Box pb={120}>
+      <Box mb={20}>
         <header className={classes.header}>
           <Group justify="space-between" h="100%">
             <Group h="100%" gap={0} visibleFrom="sm">
               <p>Grading Admin</p>
+              <a href="/admin/migrate" className={classes.link}>
+                Migrate
+              </a>
               <a href="/admin/home" className={classes.link}>
                 Course
               </a>
@@ -77,9 +80,9 @@ export function Navbar() {
 
                   <Menu.Dropdown>
                     <Menu.Item>
-                      {/* <a href="/profile" className={classes.link}> */}
-                      Profile
-                      {/* </a> */}
+                      <a href="/profile" className={classes.link}>
+                        Profile
+                      </a>
                     </Menu.Item>
 
                     <Menu.Divider />
