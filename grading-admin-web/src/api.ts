@@ -15,7 +15,7 @@ const middleware: Middleware = {
 };
 
 const fetchClient = createFetchClient<paths>({
-  baseUrl: "https://localhost.dev/api/",
+  baseUrl: import.meta.env.VITE_API_URL || "https://localhost.dev/api/",
 });
 fetchClient.use(middleware);
 

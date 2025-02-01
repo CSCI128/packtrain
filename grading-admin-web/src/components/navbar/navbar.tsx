@@ -88,6 +88,7 @@ export function Navbar() {
               ) : (
                 <Menu shadow="md" width={200}>
                   <Menu.Target>
+                    {/* TODO update this once scopes work */}
                     <p>{user.profile.sub}</p>
                   </Menu.Target>
 
