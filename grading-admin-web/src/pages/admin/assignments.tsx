@@ -1,7 +1,11 @@
+import { Container } from "@mantine/core";
+
 export function AssignmentsPage() {
   return (
     <>
-      <p>Hello assignments!</p>
+      <Container size="md">
+        <p>Assignments</p>
+      </Container>
     </>
   );
 }

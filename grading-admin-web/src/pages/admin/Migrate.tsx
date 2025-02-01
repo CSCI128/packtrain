@@ -1,10 +1,10 @@
 import { Container } from "@mantine/core";
 
-export function Profile() {
+export function MigratePage() {
   return (
     <>
       <Container size="md">
-        <p>Profile</p>
+        <p>Migrations</p>
       </Container>
     </>
   );
