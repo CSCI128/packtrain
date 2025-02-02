@@ -98,8 +98,7 @@ export function Navbar() {
               ) : (
                 <Menu shadow="md" width={200}>
                   <Menu.Target>
-                    {/* TODO update this once scopes work */}
-                    <p>{user.profile.sub}</p>
+                    <p>{user.profile.email}</p>
                   </Menu.Target>
 
                   <Menu.Dropdown>
