@@ -35,8 +35,8 @@ export function CoursePage() {
       <Container size="md">
         <Text size="xl" fw={700}>
           {data.name} ({data.code}) - {data.term}
-          <p>Course Overview</p>
         </Text>
+        <p>Course Overview</p>
 
         <Divider my="md" />
 
