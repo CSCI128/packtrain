@@ -1,4 +1,6 @@
 import { observable } from "@legendapp/state";
+import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/local-storage";
+import { syncObservable } from "@legendapp/state/sync";
 import { Box, Button, Group, Menu, Modal } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { User } from "oidc-client-ts";
@@ -12,6 +14,14 @@ interface Course {
 }
 
 const store$ = observable<Course>();
+
+// TODO remove on logout + maybe add expiry date
+syncObservable(store$, {
+  persist: {
+    name: "activeCourse",
+    plugin: ObservablePersistLocalStorage,
+  },
+});
 
 export function Navbar() {
   // TODO mobile responsiveness drawer
