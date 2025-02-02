@@ -5,11 +5,13 @@ import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.services.CourseService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Controller
 public class AdminApiImpl implements AdminApiDelegate {
 
     private final CourseService courseService;

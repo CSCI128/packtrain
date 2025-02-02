@@ -53,6 +53,7 @@ paths:
           schema:
             type: boolean
             example: true
+            default: true
       responses:
         200:
           description: "OK"
