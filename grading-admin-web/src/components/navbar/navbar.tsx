@@ -74,7 +74,7 @@ export function Navbar() {
           <Group justify="space-between" h="100%">
             <Group h="100%" gap={0} visibleFrom="sm">
               <p>Grading Admin</p>
-              <a href="/admin/migrate" className={classes.link}>
+              <a href="/instructor/migrate" className={classes.link}>
                 Migrate
               </a>
               <a href="/admin/home" className={classes.link}>
