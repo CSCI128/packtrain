@@ -42,12 +42,15 @@ paths:
       operationId: get_courses
       summary: "Get all courses"
       description: |
-        Get all courses in the system, optionally
-        querying only active courses.
+        Get all courses, returning
+        only active courses by default, and
+        inactive courses if specified. Will
+        return an empty list if there are no
+        courses.
       security:
         - openIDC: [admin:read]
       parameters:
-        - name: active
+        - name: onlyActive
           in: query
           required: false
           schema:
@@ -63,15 +66,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Course"
-        404:
-          description: No courses found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "get_courses"
-                error_message: "No courses were found"
   /admin/course/new/{canvas_id}:
     post:
       tags:
