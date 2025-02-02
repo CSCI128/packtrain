@@ -44,6 +44,8 @@ paths:
       description: |
         Get all courses in the system, optionally
         querying only active courses.
+      security:
+        - openIDC: [admin:read]
       parameters:
         - name: active
           in: query
