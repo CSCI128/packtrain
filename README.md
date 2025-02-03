@@ -8,13 +8,16 @@ All development environments will have a Docker Compose which launches
 them, but to run them individually, read the next sections for directions.
 
 Rename `.env.sample` to `.env` and set `PG_PASS` and `AUTHENTIK_SECRET_KEY` in `.env` as follows:
+
 ```
 echo "PG_PASS=$(openssl rand -base64 36 | tr -d '\n')" >> .env
 echo "AUTHENTIK_SECRET_KEY=$(openssl rand -base64 60 | tr -d '\n')" >> .env
 echo "AUTHENTIK_BOOTSTRAP_PASSWORD=$(openssl rand -base64 36 | tr -d '\n')" >> .env
 echo "AUTHENTIK_BOOTSTRAP_TOKEN=$(openssl rand -base64 36 | tr -d '\n')" >> .env
 ```
+
 Create a file called `passwords` in the `certificates/certs/` directory. Run the following commands to populate that file:
+
 ```
 echo "CA_PASS=$(openssl rand -base64 36 | tr -d '\n')" >> certificates/certs/passwords
 echo "KEY_PASS=$(openssl rand -base64 36 | tr -d '\n')" >> certificates/certs/passwords
@@ -38,20 +41,21 @@ To run the backend on Linux/Mac, run: `./mvnw spring-boot:run`
 If you run into an issue building on windows, make sure that your user has permission to create symlinks.
 [StackOverflow thread about this issue](https://stackoverflow.com/a/65504258).
 
-
 ### Running Backend Tests
 
 `./mvnw test "-Dspring.profiles.active=test"`
 
 ## Frontend
+
 Install [Node.js](https://nodejs.org/en) and navigate to the `grading-admin-web` directory.
 
 Run `npm i` to install all the dependencies.
 
-Run `vite` to launch the development server.
+Run `npm run dev` to launch the development server.
 
+To rebuild TypeScript types from OpenAPI, run `npm run types`.
 
-### Authentik
+## Authentik
 
 If authentik doesn't start correctly, follow this guide.
 
@@ -75,27 +79,29 @@ You can run locally from your IDE (so you can have debugging support) with all t
 
 To do this, make sure that you trust the `localhost.dev` certificate.
 
-This is done with 
+This is done with
 macOS:
+
 ```bash
 keytool -import -alias grading-admin-ca -keystore $(/usr/libexec/java_home)/lib/security/cacerts -file certificates/certs/localhost-root/localhost-root.CA.pem
 ```
 
 Windows:
+
 ```powershell
 keytool -import -alias grading-admin-ca -keystore "C:\Program Files\Java\jdk-23/lib/security/cacerts" -file certificates/certs/localhost-root/localhost-root.CA.pem
 ```
-(If you get an "access denied" error, run this in an admin PowerShell instance. 
+
+(If you get an "access denied" error, run this in an admin PowerShell instance.
 You also may need to adjust the path to your `cacerts` file)
 
 And then saying 'yes' to the prompt asking to trust that certificate.
 
-
 Then make sure to define the `PG_PASS` env variable in your IDE's run config.
 (in Intellij it is under `Modify Options` -> `Environmental Varibles`. Then set `PG_PASS=<whatever the .env file says>`)
 
-
 Finally, start all the dependencies with
+
 ```bash
 docker compose up localhost.dev-local -d
 ```
@@ -106,22 +112,24 @@ Then you can start (and restart) the frontend and backend independently of the d
 
 ### Issues
 
-If you run into issues relating to your DB password not working, 
+If you run into issues relating to your DB password not working,
 ensure that there are no other postgres instances running on your computer.
 
 You can check this on macOS by running
+
 ```bash
 sudo lsof -i tcp:5432
 ```
 
 Then you can kill those processes by running
+
 ```bash
 sudo kill -9 <pid of process to kill>
 ```
 
 ## Regenerating Authentik
 
-If you run into issues with Authentik (or we change a config param that requires you to regenerate), 
+If you run into issues with Authentik (or we change a config param that requires you to regenerate),
 you can regenerate the Authentik config by running:
 
 ```bash
@@ -129,7 +137,7 @@ docker compose build authentik-sidecar
 docker compose run --rm authentik-sidecar --recreate
 ```
 
-### Postman
+## Postman
 
 1. Create a new collection (called anything, should do something like `API`).
 2. Click the **Auth** tab and change `Auth Type` to `OAuth 2.0`.
@@ -162,7 +170,7 @@ It gets an access key from Authentik via OAuth, then makes authenticated request
 
 #### Authentik
 
-This is the Authentication server / identity broker that manages the integration between all identity providers 
+This is the Authentication server / identity broker that manages the integration between all identity providers
 (like Canvas / Azure).
 It also is the issuer for all tokens and manages what scopes users have access to.
 
@@ -181,4 +189,3 @@ In the future, this will also pre-seed it with users with varying scopes.
 This is a simple bash script that creates a self-signed certificate chain for the application.
 
 If it detects that certs have already been generated, then it takes no action.
-

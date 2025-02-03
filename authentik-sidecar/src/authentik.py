@@ -209,7 +209,7 @@ class Authentik:
         res = self._post("core/users/", body)
 
         if "pk" not in res:
-            raise Exception(f"Failed to create new user with email: {name}\n{email}")
+            raise Exception(f"Failed to create new user: {name}: {email}\n {res}")
 
         print(f"Successfully created user with email '{email}'")
 

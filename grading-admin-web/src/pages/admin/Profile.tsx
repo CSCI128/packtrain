@@ -1,10 +1,10 @@
 import { Container } from "@mantine/core";
 
-export function AssignmentsPage() {
+export function Profile() {
   return (
     <>
       <Container size="md">
-        <p>Assignments</p>
+        <p>Profile</p>
       </Container>
     </>
   );
