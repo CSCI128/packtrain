@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.managers;
 
+import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
@@ -149,13 +150,13 @@ public class SecurityManager {
         return user.isAdmin();
     }
 
-    public String getCredential(String endpoint, UUID course){
+    public String getCredential(CredentialType type, UUID course){
         if (user == null){
             throw new AccessDeniedException("No user context set.");
         }
 
-        return credentialService.getCredentialByService(user.getCwid(), endpoint)
-                .or(() -> credentialService.getCredentialByService(course, endpoint))
+        return credentialService.getCredentialByService(user.getCwid(), type)
+                .or(() -> credentialService.getCredentialByService(course, type))
                 .orElseThrow(() -> new AccessDeniedException("No valid credentials found!"));
 
     }

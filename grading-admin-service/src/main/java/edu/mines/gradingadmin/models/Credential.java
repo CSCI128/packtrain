@@ -30,7 +30,7 @@ public class Credential {
     @JoinColumn(name="user_id", referencedColumnName="cwid")
     private User owningUser;
 
-    @ManyToOne(optional=false)
-    @JoinColumn(name="external_source_id", referencedColumnName="id")
-    private ExternalSource externalSource;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "credential_type")
+    private CredentialType type;
 }

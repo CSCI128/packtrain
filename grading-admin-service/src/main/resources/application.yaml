@@ -26,5 +26,6 @@ server:
       enabled: false
 
 grading-admin:
-  endpoints:
-    canvas: https://elearning.mines.edu/
+  external-services:
+    canvas:
+      endpoint: https://elearning.mines.edu/

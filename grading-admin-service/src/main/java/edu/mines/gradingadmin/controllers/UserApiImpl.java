@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.controllers;
 import edu.mines.gradingadmin.api.UserApiDelegate;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Credential;
+import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
@@ -46,7 +47,7 @@ public class UserApiImpl implements UserApiDelegate {
 
         Optional<Credential> newCredential = credentialService.createNewCredentialForService(
                 user.getCwid(), credential.getName(),
-                credential.getApiKey(), credential.getEndpoint().toString()
+                credential.getApiKey(), CredentialType.valueOf(credential.getService().getValue())
         );
 
         if (newCredential.isEmpty()) {
@@ -54,16 +55,11 @@ public class UserApiImpl implements UserApiDelegate {
             return ResponseEntity.badRequest().build();
         }
         edu.mines.gradingadmin.data.Credential credentialRes = new edu.mines.gradingadmin.data.Credential();
-
-        try {
-            credentialRes.setId(newCredential.get().getId().toString());
-            credentialRes.setName(newCredential.get().getName());
-            credentialRes.setEndpoint(new URI(newCredential.get().getExternalSource().getEndpoint()));
-            credentialRes.setActive(newCredential.get().isActive());
-            credentialRes.setPrivate(newCredential.get().isPrivate());
-        } catch (URISyntaxException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        credentialRes.setId(newCredential.get().getId().toString());
+        credentialRes.setName(newCredential.get().getName());
+        credentialRes.setService(edu.mines.gradingadmin.data.Credential.ServiceEnum.valueOf(newCredential.get().getType().toString()));
+        credentialRes.setActive(newCredential.get().isActive());
+        credentialRes.setPrivate(newCredential.get().isPrivate());
 
         return ResponseEntity.ok(credentialRes);
     }

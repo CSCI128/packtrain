@@ -1,13 +1,10 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.models.Credential;
-import edu.mines.gradingadmin.models.ExternalSource;
+import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.CredentialRepo;
-import edu.mines.gradingadmin.repositories.ExternalSourceRepo;
 import org.springframework.stereotype.Service;
-
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,18 +12,16 @@ import java.util.UUID;
 @Service
 public class CredentialService {
     private final CredentialRepo credentialRepo;
-    private final ExternalSourceRepo externalSourceRepo;
     private final UserService userService;
 
-    public CredentialService(CredentialRepo credentialRepo, ExternalSourceRepo externalSourceRepo, UserService userService) {
+    public CredentialService(CredentialRepo credentialRepo, UserService userService) {
         this.credentialRepo = credentialRepo;
-        this.externalSourceRepo = externalSourceRepo;
         this.userService = userService;
     }
 
 
-    public Optional<String> getCredentialByService(String cwid, String serviceEndpoint){
-        List<Credential> availableCredentials = credentialRepo.getByCwidAndEndpoint(cwid, serviceEndpoint);
+    public Optional<String> getCredentialByService(String cwid, CredentialType type){
+        List<Credential> availableCredentials = credentialRepo.getByCwidAndEndpoint(cwid, type);
 
         if (availableCredentials.isEmpty()){
             return Optional.empty();
@@ -37,8 +32,8 @@ public class CredentialService {
         return Optional.of(availableCredentials.getFirst().getApiKey());
     }
 
-    public Optional<String> getCredentialByService(UUID courseId, String serviceEndpoint){
-        List<Credential> availableCredentials = credentialRepo.getByCourseAndEndpoint(courseId, serviceEndpoint);
+    public Optional<String> getCredentialByService(UUID courseId, CredentialType type){
+        List<Credential> availableCredentials = credentialRepo.getByCourseAndEndpoint(courseId, type);
 
         if (availableCredentials.isEmpty()){
             return Optional.empty();
@@ -49,9 +44,9 @@ public class CredentialService {
         return Optional.of(availableCredentials.getFirst().getApiKey());
     }
 
-    public Optional<Credential> createNewCredentialForService(String cwid, String name, String apiKey, String serviceEndpoint){
+    public Optional<Credential> createNewCredentialForService(String cwid, String name, String apiKey, CredentialType type){
         // todo this needs error handling
-        if (credentialRepo.existsByCwidAndEndpoint(cwid, serviceEndpoint)){
+        if (credentialRepo.existsByCwidAndEndpoint(cwid, type)){
             return Optional.empty();
         }
 
@@ -62,15 +57,14 @@ public class CredentialService {
         Credential credential = new Credential();
 
         Optional<User> user = userService.getUserByCwid(cwid);
-        Optional<ExternalSource> externalSource = externalSourceRepo.getByEndpoint(serviceEndpoint);
 
-        if (user.isEmpty() || externalSource.isEmpty()){
+        if (user.isEmpty()){
             // todo: need error handling via error advice handler
             return Optional.empty();
         }
 
         credential.setOwningUser(user.get());
-        credential.setExternalSource(externalSource.get());
+        credential.setType(type);
         credential.setName(name);
         credential.setApiKey(apiKey);
         credential.setActive(true);
