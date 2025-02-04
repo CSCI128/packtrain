@@ -13,7 +13,7 @@ info:
     name: MIT # We may need to license this differently
 
 security:
-  - openIDC: [ user:read ] # at a base level, all users must at least be a user to access anything
+  - openIDC: [user:read] # at a base level, all users must at least be a user to access anything
 
 tags:
   - name: health
@@ -35,6 +35,37 @@ paths:
           description: ok
         500:
           description: "Server is unhealthy"
+  /admin/courses:
+    get:
+      tags:
+        - admin
+      operationId: get_courses
+      summary: "Get all courses"
+      description: |
+        Get all courses, returning
+        only active courses by default, and
+        inactive courses if specified. Will
+        return an empty list if there are no
+        courses.
+      security:
+        - openIDC: [admin:read]
+      parameters:
+        - name: onlyActive
+          in: query
+          required: false
+          schema:
+            type: boolean
+            example: true
+            default: true
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
   /admin/course/new/{canvas_id}:
     post:
       tags:
@@ -45,7 +76,7 @@ paths:
         Create a new course in system using a Canvas course as a template.
         Replies with populated template values, but those values must be committed by updating the course.
       security:
-        - openIDC: [ admin:write ]
+        - openIDC: [admin:write]
       parameters:
         - name: canvas_id
           required: true
@@ -90,7 +121,7 @@ paths:
         Update an existing course by replacing all content in the course.
         If any assignments have been graded, then this will fail.
       security:
-        - openIDC: [ admin:write ]
+        - openIDC: [admin:write]
       parameters:
         - name: "course_id"
           in: path
@@ -132,7 +163,7 @@ paths:
       description: |
         Gets a course
       security:
-        - openIDC: [ admin:read ]
+        - openIDC: [admin:read]
       parameters:
         - name: "course_id"
           in: path
@@ -168,7 +199,7 @@ paths:
       description: |
         Syncs with a course in the controller.
       security:
-        - openIDC: [ admin:write ]
+        - openIDC: [admin:write]
       parameters:
         - name: course_id
           in: path
@@ -200,7 +231,7 @@ paths:
         If any student already exist in the class (based off of the students CWID), 
         their information will be updated.
       security:
-        - openIDC: [ admin:write ]
+        - openIDC: [admin:write]
       parameters:
         - name: course_id
           in: path
@@ -233,7 +264,7 @@ paths:
         - admin
       operationId: get_students
       security:
-        - openIDC: [ admin:read ]
+        - openIDC: [admin:read]
       summary: "Get all students for a course"
       description: |
         Get all information about the students in a course.
@@ -275,7 +306,7 @@ paths:
         If any assignment already exist in the class (based off of the TODO), 
         their information will be updated.
       security:
-        - openIDC: [ admin:write ]
+        - openIDC: [admin:write]
       parameters:
         - name: course_id
           in: path
@@ -308,7 +339,7 @@ paths:
         - admin
       operationId: get_assignments
       security:
-        - openIDC: [ admin:read ]
+        - openIDC: [admin:read]
       summary: "Get all assignments for a course"
       description: |
         Get all information about the assignments in a course.
@@ -348,7 +379,7 @@ paths:
       description: |
         Enable the specified course.
       security:
-        - openIDC: [ admin:write ]
+        - openIDC: [admin:write]
       parameters:
         - name: course_id
           in: path
@@ -377,7 +408,7 @@ paths:
       description: |
         Disable the specified course.
       security:
-        - openIDC: [ admin:write ]
+        - openIDC: [admin:write]
       parameters:
         - name: course_id
           in: path
@@ -406,7 +437,7 @@ paths:
       description: |
         Disable the specified assignment.
       security:
-        - openIDC: [ admin:write ]
+        - openIDC: [admin:write]
       parameters:
         - name: course_id
           in: path
@@ -442,7 +473,7 @@ paths:
       description: |
         Enable the specified assignment.
       security:
-        - openIDC: [ admin:write ]
+        - openIDC: [admin:write]
       parameters:
         - name: course_id
           in: path
@@ -479,7 +510,7 @@ paths:
         If the instructor already exists in the class (based off of CWID),
         their information will be updated.
       security:
-        - openIDC: [ admin:write ]
+        - openIDC: [admin:write]
       parameters:
         - name: course_id
           in: path
@@ -515,7 +546,7 @@ paths:
       description: |
         Creates a new user.
       security:
-        - openIDC: [ admin:write ]
+        - openIDC: [admin:write]
       requestBody:
         required: true
         content:
@@ -535,7 +566,6 @@ paths:
                 error_source: "create_user"
                 error_message: "Failed to create new user"
 
-
   /user/credential:
     post:
       tags:
@@ -544,11 +574,11 @@ paths:
       summary: Create a new credential for the user
       description: |
         Create a new credential for a user.
-        
+
         The credential must have a unique name for the user.
         It must also be the only credential for a service.
       security:
-        - openIDC: [ user:write ]
+        - openIDC: [user:write]
       requestBody:
         required: true
         content:
@@ -590,7 +620,7 @@ paths:
         Gets all credentials for the signed in user.
         A user can only view their own credentials (including admins)
       security:
-        - openIDC: [ user:read ]
+        - openIDC: [user:read]
       responses:
         200:
           description: "OK"
@@ -614,7 +644,7 @@ paths:
         - user
       operationId: get_user
       security:
-        - openIDC: [ user:read ]
+        - openIDC: [user:read]
       summary: Gets a user's information
       description: |
         Gets a user's information based on the provided JWT.
@@ -631,7 +661,7 @@ paths:
         - user
       operationId: update_user
       security:
-        - openIDC: [ user:write ]
+        - openIDC: [user:write]
       summary: Updates a user's information
       description: |
         Updates a user's information based on the User provided in body and provided JWT.
@@ -657,7 +687,7 @@ paths:
       description: |
         Disables a selected credential for the user.
       security:
-        - openIDC: [ user:write ]
+        - openIDC: [user:write]
       parameters:
         - name: credential_id
           in: path
@@ -697,7 +727,7 @@ paths:
       description: |
         Sets a credential's status to public for the user.
       security:
-        - openIDC: [ user:write ]
+        - openIDC: [user:write]
       parameters:
         - name: credential_id
           in: path
@@ -736,7 +766,7 @@ paths:
       description: |
         Sets a credential's status to private for the user.
       security:
-        - openIDC: [ user:write ]
+        - openIDC: [user:write]
       parameters:
         - name: credential_id
           in: path
@@ -939,8 +969,3 @@ components:
             type: string
           example:
             - "fall.2020.excl.101.section.a"
-
-
-
-
-
