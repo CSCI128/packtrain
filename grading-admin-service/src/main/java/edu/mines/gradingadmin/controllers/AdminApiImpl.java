@@ -24,15 +24,14 @@ public class AdminApiImpl implements AdminApiDelegate {
     public ResponseEntity<List<edu.mines.gradingadmin.data.Course>> getCourses(Boolean onlyActive) {
         List<Course> courses = courseService.getCourses(onlyActive);
 
-        List<edu.mines.gradingadmin.data.Course> coursesResponse = courses.stream().map(course -> {
-            edu.mines.gradingadmin.data.Course courseDto = new edu.mines.gradingadmin.data.Course();
-            courseDto.setId(course.getId().toString());
-            courseDto.setTerm(course.getTerm());
-            courseDto.setEnabled(course.isEnabled());
-            courseDto.setName(course.getName());
-            courseDto.setCode(course.getCode());
-            return courseDto;
-        }).toList();
+        List<edu.mines.gradingadmin.data.Course> coursesResponse = courses.stream().map(course ->
+            new edu.mines.gradingadmin.data.Course()
+                .id(course.getId().toString())
+                .term(course.getTerm())
+                .enabled(course.isEnabled())
+                .name(course.getName())
+                .code(course.getCode())
+        ).toList();
 
         return ResponseEntity.ok(coursesResponse);
     }

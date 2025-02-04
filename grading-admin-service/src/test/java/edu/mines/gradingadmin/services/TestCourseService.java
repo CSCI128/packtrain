@@ -4,7 +4,6 @@ import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.repositories.CourseRepo;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
-import edu.mines.gradingadmin.seeders.UserSeeders;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -20,8 +19,6 @@ import java.util.List;
 public class TestCourseService implements PostgresTestContainer {
 
     @Autowired
-    UserSeeders userSeeder;
-    @Autowired
     CourseSeeders courseSeeders;
     @Autowired
     CourseRepo courseRepo;
@@ -36,8 +33,6 @@ public class TestCourseService implements PostgresTestContainer {
     @AfterEach
     void tearDown() {
         courseRepo.deleteAll();
-        userSeeder.clearAll();
-        courseSeeders.clearAll();
     }
 
     @Test
