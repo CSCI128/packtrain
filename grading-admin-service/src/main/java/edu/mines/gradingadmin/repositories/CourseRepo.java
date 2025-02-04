@@ -13,4 +13,7 @@ public interface CourseRepo extends CrudRepository<Course, UUID> {
 
     @Query("select c from course c")
     List<Course> getAll();
+
+    @Query("select c from course c where c.enabled=?1")
+    List<Course> getAll(boolean enabled);
 }

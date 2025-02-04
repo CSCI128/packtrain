@@ -15,9 +15,9 @@ public class CourseService {
         this.courseRepo = courseRepo;
     }
 
-    public List<Course> getCourses(boolean onlyActive) {
-        if(onlyActive) {
-            return courseRepo.getAll().stream().filter(Course::isEnabled).toList();
+    public List<Course> getCourses(boolean enabled) {
+        if(enabled) {
+            return courseRepo.getAll(enabled);
         }
         return courseRepo.getAll();
     }
