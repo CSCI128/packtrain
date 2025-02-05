@@ -58,7 +58,7 @@ public class TestCourseService implements PostgresTestContainer {
         Assertions.assertTrue(courses.contains(activeCourse));
         Assertions.assertTrue(courses.contains(inactiveCourse));
     }
-    
+
     @Test
     void verifyCourseDoesNotExist(){
         Optional<UUID> courseID = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
@@ -67,4 +67,37 @@ public class TestCourseService implements PostgresTestContainer {
         Assertions.assertTrue(testCourse.isPresent());
         Assertions.assertEquals(courseID.get(), testCourse.get().getId());
     }
+    
+    @Test
+    void verifyNewCourseHasName(){
+        Optional<UUID> courseID = courseService.createNewCourse("Another Test Course 1", "Spring 2025", "spring.2025.atc.1");
+        Assertions.assertTrue(courseID.isPresent());
+        Optional<Course> testCourse = courseRepo.getById(courseID.get());
+        Assertions.assertEquals(courseID.get().getName(), testCourse.get().getName());
+    }
+
+    @Test
+    void verifyNewCourseHasTerm(){
+        Optional<UUID> courseID = courseService.createNewCourse("Another Test Course 1", "Spring 2025", "spring.2025.atc.1");
+        Assertions.assertTrue(courseID.isPresent());
+        Optional<Course> testCourse = courseRepo.getById(courseID.get());
+        Assertions.assertEquals(courseID.get().getTerm(), testCourse.get().getName());
+    }
+
+    @Test
+    void verifyNewCourseHasCode(){
+        Optional<UUID> courseID = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
+        Assertions.assertTrue(courseID.isPresent());
+        Optional<Course> testCourse = courseRepo.getById(courseID.get());
+        Assertions.assertEquals(courseID.get().getTerm(), testCourse.get().getTerm());
+    }
+
+    @Test
+    void verifyNewCourseEnabled(){
+        Optional<UUID> courseID = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
+        Assertions.assertTrue(courseID.isPresent());
+        Optional<Course> testCourse = courseRepo.getById(courseID.get());
+        Assertions.assertEquals(courseID.get().getEnabled(), testCourse.get().getEnabled());
+    }
+
 }
