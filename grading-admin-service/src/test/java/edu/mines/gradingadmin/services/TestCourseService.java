@@ -5,6 +5,7 @@ import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.CourseRepo;
+import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.repositories.SectionRepo;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
@@ -17,8 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Optional;
-import java.util.UUID;
 
 @SpringBootTest
 @Transactional
@@ -58,6 +57,15 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
 
         courseService = new CourseService(securityManager, courseRepo, canvasService, new SectionService(sectionRepo, canvasService), userService, courseMemberRepo);
 
+
+    }
+
+    @BeforeEach
+    void setup(){
+        applyMocks(canvasService);
+
+        courseService = new CourseService(securityManager, courseRepo, canvasService, new SectionService(sectionRepo, canvasService), userService, courseMemberRepo);
+
     }
 
     @AfterEach
@@ -85,6 +93,15 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
         Assertions.assertEquals(2, courses.size());
         Assertions.assertTrue(courses.contains(activeCourse));
         Assertions.assertTrue(courses.contains(inactiveCourse));
+    }
+
+    @Test
+    void verifyImportCourseFromCanvas(){
+        // I am aware that this is hot garbage,
+        // I need to take a step back from this and do another refactoring pass on it.
+        Optional<Course> importedCourse = courseService.importCourseFromCanvas(String.valueOf(course1Id));
+
+        Assertions.assertTrue(importedCourse.isPresent());
     }
 
     @Test

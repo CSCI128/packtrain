@@ -40,6 +40,29 @@ public class AdminApiImpl implements AdminApiDelegate {
                 .name(course.get().getName())
                 .sections(course.get().getSections().stream()
                         .map(Section::getName)
+                        .toList());
+
+
+        return ResponseEntity.ok(courseRes);
+
+    }
+
+    @Override
+    public ResponseEntity<edu.mines.gradingadmin.data.Course> newCourse(String canvasId) {
+        Optional<Course> course = courseService.importCourseFromCanvas(canvasId);
+
+        if (course.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        var courseRes = new edu.mines.gradingadmin.data.Course()
+                .id(course.get().getId().toString())
+                .canvasId(course.get().getCanvasId())
+                .code(course.get().getCode())
+                .enabled(course.get().isEnabled())
+                .name(course.get().getName())
+                .sections(course.get().getSections().stream()
+                        .map(Section::getName)
                         .toList())
                 .members(course.get().getMembers().stream()
                         .map(m -> new CourseMember()
