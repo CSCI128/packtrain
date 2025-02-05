@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.Optional;
 
 @SpringBootTest
 @Transactional
@@ -55,6 +57,15 @@ public class TestCourseService implements PostgresTestContainer {
         Assertions.assertEquals(2, courses.size());
         Assertions.assertTrue(courses.contains(activeCourse));
         Assertions.assertTrue(courses.contains(inactiveCourse));
+    }
+
+    @Test
+    void verifyCourseDoesNotExist(){
+        Optional<UUID> courseID = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
+        Assertions.assertTrue(courseID.isPresent());
+        Optional<Course> testCourse = courseRepo.getById(courseID.get());
+        Assertions.assertTrue(testCourse.isPresent());
+        Assertions.assertEquals(courseID.get(), testCourse.get().getId());
     }
 
     @Test
