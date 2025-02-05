@@ -17,8 +17,8 @@ public class Section {
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "code")
-    private String code;
+    @Column(name = "name")
+    private String name;
 
     @Column(name = "canvas_id")
     private String canvasId;

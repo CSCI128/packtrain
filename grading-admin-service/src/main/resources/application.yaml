@@ -17,7 +17,7 @@ spring:
           issuer-uri: ${AUTH_ISSUER:https://localhost.dev/auth/application/o/grading-admin/}
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     open-in-view: false
 
 server:

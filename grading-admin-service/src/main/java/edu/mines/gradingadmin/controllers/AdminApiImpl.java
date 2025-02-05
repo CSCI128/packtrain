@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.controllers;
 import edu.mines.gradingadmin.api.AdminApiDelegate;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.Section;
 import edu.mines.gradingadmin.services.CourseService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -30,11 +31,15 @@ public class AdminApiImpl implements AdminApiDelegate {
         }
 
         var courseRes = new edu.mines.gradingadmin.data.Course()
-                .id(course.get().getCanvasId())
+                .id(course.get().getId().toString())
                 .canvasId(course.get().getCanvasId())
                 .code(course.get().getCode())
                 .enabled(course.get().isEnabled())
-                .name(course.get().getName());
+                .name(course.get().getName())
+                .sections(course.get().getSections().stream()
+                        .map(Section::getName)
+                        .toList());
+
 
         return ResponseEntity.ok(courseRes);
 
