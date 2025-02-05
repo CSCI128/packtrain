@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -19,7 +21,7 @@ public class SectionService {
         this.canvasService = canvasService;
     }
 
-    public List<Section> createSectionsForCourse(Course course){
+    public Map<String, Section> createSectionsFromCanvas(Course course){
         List<edu.ksu.canvas.model.Section> canvasSections = canvasService.getCourseSections(course.getCanvasId());
 
         return canvasSections.stream().map(section -> {
@@ -28,8 +30,6 @@ public class SectionService {
             newSection.setName(section.getName());
             newSection.setCourse(course);
             return sectionRepo.save(newSection);
-        }).toList();
-
-
+        }).collect(Collectors.toMap(Section::getCanvasId, section -> section));
     }
 }

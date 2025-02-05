@@ -40,4 +40,7 @@ public class Course {
 
     @OneToMany(mappedBy = "course")
     private Set<Section> sections;
+
+    @OneToMany(mappedBy = "course")
+    private Set<CourseMember> members;
 }
