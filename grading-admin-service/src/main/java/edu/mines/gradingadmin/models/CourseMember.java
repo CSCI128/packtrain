@@ -17,7 +17,7 @@ public class CourseMember {
     @Column(name="id")
     private UUID id;
 
-    @Column(name="canvas_id", unique = true, nullable = false)
+    @Column(name="canvas_id", nullable = false)
     private String canvasId;
 
     @Enumerated(EnumType.STRING)

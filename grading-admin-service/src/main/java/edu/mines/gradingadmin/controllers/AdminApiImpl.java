@@ -26,7 +26,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<edu.mines.gradingadmin.data.Course> newCourse(String canvasId) {
-        Optional<Course> course = courseService.createNewCourse(canvasId);
+        Optional<Course> course = courseService.importCourseFromCanvas(canvasId);
 
         if (course.isEmpty()){
             return ResponseEntity.notFound().build();

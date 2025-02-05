@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface CourseRepo extends CrudRepository<Course, UUID> {
+    boolean existsByCanvasId(String id);
 
     @Query("select c from course c")
     List<Course> getAll();
