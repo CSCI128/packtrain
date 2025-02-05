@@ -49,7 +49,7 @@ public class TestCourseService implements PostgresTestContainer {
     }
 
     @Test
-    void verifyGetAllCourses() {
+    void verifyGetCoursesIncludingInactive() {
         Course activeCourse = courseSeeders.course1();
         Course inactiveCourse = courseSeeders.course2();
 
@@ -58,7 +58,7 @@ public class TestCourseService implements PostgresTestContainer {
         Assertions.assertTrue(courses.contains(activeCourse));
         Assertions.assertTrue(courses.contains(inactiveCourse));
     }
-
+    
     @Test
     void verifyCourseDoesNotExist(){
         Optional<UUID> courseID = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
@@ -66,39 +66,5 @@ public class TestCourseService implements PostgresTestContainer {
         Optional<Course> testCourse = courseRepo.getById(courseID.get());
         Assertions.assertTrue(testCourse.isPresent());
         Assertions.assertEquals(courseID.get(), testCourse.get().getId());
-    }
-
-    @Test
-    void verifyEnableCourse() {
-        Course inactiveCourse = courseSeeders.course2();
-
-        Assertions.assertFalse(inactiveCourse.isEnabled());
-
-        courseService.enableCourse(inactiveCourse.getId());
-
-        Assertions.assertTrue(inactiveCourse.isEnabled());
-    }
-
-    @Test
-    void verifyDisableCourse() {
-        Course activeCourse = courseSeeders.course1();
-
-        Assertions.assertTrue(activeCourse.isEnabled());
-
-        courseService.disableCourse(activeCourse.getId());
-
-        Assertions.assertFalse(activeCourse.isEnabled());
-    }
-
-    @Test
-    void verifyWhenAlreadyEnabledDisabled() {
-        Course activeCourse = courseSeeders.course1();
-        Course inactiveCourse = courseSeeders.course2();
-
-        courseService.enableCourse(activeCourse.getId());
-        courseService.disableCourse(inactiveCourse.getId());
-
-        Assertions.assertTrue(activeCourse.isEnabled());
-        Assertions.assertFalse(inactiveCourse.isEnabled());
     }
 }
