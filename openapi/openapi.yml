@@ -824,10 +824,12 @@ components:
         name:
           type: string
           example: "Cred 1"
-        endpoint:
+        service:
           type: string
-          format: uri
-          example: "https://secure-service.com/"
+          enum:
+            - canvas
+            - gradescope
+          example: canvas
         api_key:
           type: string
           example: "a super secure key"
