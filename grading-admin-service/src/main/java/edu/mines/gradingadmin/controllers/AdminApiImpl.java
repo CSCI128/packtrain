@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 public class AdminApiImpl implements AdminApiDelegate {
@@ -18,6 +19,25 @@ public class AdminApiImpl implements AdminApiDelegate {
     public AdminApiImpl(CourseService courseService, SecurityManager securityManager) {
         this.courseService = courseService;
         this.securityManager = securityManager;
+    }
+
+    @Override
+    public ResponseEntity<edu.mines.gradingadmin.data.Course> newCourse(String canvasId) {
+        Optional<Course> course = courseService.createNewCourse(canvasId);
+
+        if (course.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        var courseRes = new edu.mines.gradingadmin.data.Course()
+                .id(course.get().getCanvasId())
+                .canvasId(course.get().getCanvasId())
+                .code(course.get().getCode())
+                .enabled(course.get().isEnabled())
+                .name(course.get().getName());
+
+        return ResponseEntity.ok(courseRes);
+
     }
 
     @Override

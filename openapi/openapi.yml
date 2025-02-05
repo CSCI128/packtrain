@@ -815,7 +815,7 @@ components:
       description: "A credential for external service"
       type: object
       required:
-        - endpoint
+        - service
         - owning_user
       properties:
         id:
