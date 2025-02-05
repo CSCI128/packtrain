@@ -6,6 +6,7 @@ import edu.ksu.canvas.interfaces.CourseReader;
 import edu.ksu.canvas.interfaces.SectionReader;
 import edu.ksu.canvas.interfaces.UserReader;
 import edu.ksu.canvas.model.Course;
+import edu.ksu.canvas.model.Enrollment;
 import edu.ksu.canvas.model.Section;
 import edu.ksu.canvas.model.User;
 import edu.ksu.canvas.oauth.NonRefreshableOauthToken;
@@ -15,14 +16,14 @@ import edu.ksu.canvas.requestOptions.GetUsersInCourseOptions;
 import edu.ksu.canvas.requestOptions.ListCurrentUserCoursesOptions;
 import edu.mines.gradingadmin.config.EndpointConfig;
 import edu.mines.gradingadmin.managers.SecurityManager;
+import edu.mines.gradingadmin.models.CourseRole;
 import edu.mines.gradingadmin.models.CredentialType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -74,12 +75,12 @@ public class CanvasService {
         return course;
     }
 
-    public List<User> getCourseMembers(String id){
+    public Map<String, User> getCourseMembers(String id){
         OauthToken canvasToken = new NonRefreshableOauthToken(manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
 
         UserReader reader = canvasApiFactory.getReader(UserReader.class, canvasToken);
 
-        List<User> users = List.of();
+        Map<String, User> users = Map.of();
 
         GetUsersInCourseOptions params = new GetUsersInCourseOptions(id)
                 .enrollmentState(List.of(GetUsersInCourseOptions.EnrollmentState.ACTIVE))
@@ -89,7 +90,7 @@ public class CanvasService {
         try {
             // omg i love you KSU.
             // automatic handling of result pages <3
-            users = reader.getUsersInCourse(params);
+            users = reader.getUsersInCourse(params).stream().collect(Collectors.toMap(User::getSisUserId, user -> user));
         } catch (IOException e){
             log.error("Failed to get users from in course from Canvas");
         }
@@ -113,6 +114,27 @@ public class CanvasService {
         }
 
         return sections;
+    }
+
+    public Optional<CourseRole> mapEnrollmentToRole(Enrollment enrollment){
+        // for some reason, java pattern matching does not like non-constant strings
+        // while I could hard code the enrollment names, Canvas has already changed it a few times in the past few years
+        // so, I don't want to.
+        // Also, Mines is allowed to override these names if they want to
+
+        if (enrollment.getType().equals(config.getTeacherEnrollment())){
+            return Optional.of(CourseRole.TEACHER);
+        }
+        else if (enrollment.getType().equals(config.getStudentEnrollment())) {
+            return Optional.of(CourseRole.STUDENT);
+        }
+        else if (enrollment.getType().equals(config.getTaEnrollment())){
+            return Optional.of(CourseRole.TA);
+        }
+
+        log.error("Unsupported enrollment type '{}'", enrollment);
+
+        return Optional.empty();
     }
 
 }

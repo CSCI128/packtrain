@@ -2,14 +2,15 @@ package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.UserRepo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Cacheable("users")
+@Slf4j
 public class UserService {
     private final UserRepo userRepo;
 
@@ -44,6 +45,30 @@ public class UserService {
 
 
         return Optional.of(userRepo.save(user.get()));
+    }
+
+    public List<User> createUsersFromCanvas(Map<String, edu.ksu.canvas.model.User> canvasUsers){
+        List<User> users = new LinkedList<>();
+
+        for (var user : canvasUsers.values()){
+            Optional<User> newUser = getUserByCwid(user.getSisUserId())
+                    .or(() -> createNewUser(user.getSisUserId(), false, user.getName(), user.getEmail()));
+
+            if (newUser.isEmpty()){
+                log.warn("Failed to look up or create user {}!", user.getEmail());
+                continue;
+            }
+
+            users.add(newUser.get());
+        }
+
+        if (users.size() != canvasUsers.size()){
+            log.warn("Not all users were created successfully! Expected {} users. Only {} users were created successfully", canvasUsers.size(), users.size());
+        }
+
+        log.info("Created {} users", users.size());
+
+        return users;
     }
 
     public Optional<User> createNewUser(String cwid, boolean isAdmin, String name, String email){

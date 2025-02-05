@@ -17,16 +17,22 @@ public class EndpointConfig {
     @Getter
     public static class CanvasConfig{
         private URI endpoint;
+        private String teacherEnrollment;
+        private String studentEnrollment;
+        private String taEnrollment;
     }
 
     @Bean
     public CanvasConfig configureCanvas(
-            @Value("${grading-admin.external-services.canvas.endpoint}") URI endpoint
+            @Value("${grading-admin.external-services.canvas.endpoint}") URI endpoint,
+            @Value("${grading-admin.external-services.canvas.teacher-enrollment-name}") String teacherEnrollment,
+            @Value("${grading-admin.external-services.canvas.student-enrollment-name}") String studentEnrollment,
+            @Value("${grading-admin.external-services.canvas.ta-enrollment-name}") String taEnrollment
     ) throws InvalidPropertiesFormatException {
         if (endpoint == null){
             throw new InvalidPropertiesFormatException("Canvas endpoint not defined");
         }
-        return new CanvasConfig(endpoint);
+        return new CanvasConfig(endpoint, teacherEnrollment, studentEnrollment, taEnrollment);
     }
 
 }
