@@ -1,14 +1,15 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.repositories.CourseRepo;
+import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -18,18 +19,32 @@ import java.util.UUID;
 
 @SpringBootTest
 @Transactional
-public class TestCourseService implements PostgresTestContainer {
+public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
 
     @Autowired
-    CourseSeeders courseSeeders;
+    private CourseSeeders courseSeeders;
     @Autowired
-    CourseRepo courseRepo;
+    private CourseRepo courseRepo;
     @Autowired
-    CourseService courseService;
+    private CourseService courseService;
+
+    @Mock
+    private CanvasService canvasService;
+
+    @Mock
+    private SecurityManager securityManager;
+
+
 
     @BeforeAll
     static void setupClass() {
         postgres.start();
+
+    }
+
+    @BeforeEach
+    void setup(){
+        applyMocks(canvasService);
     }
 
     @AfterEach
@@ -57,6 +72,11 @@ public class TestCourseService implements PostgresTestContainer {
         Assertions.assertEquals(2, courses.size());
         Assertions.assertTrue(courses.contains(activeCourse));
         Assertions.assertTrue(courses.contains(inactiveCourse));
+    }
+
+    @Test
+    void verifyAddMembersToCourse(){
+
     }
 
     @Test

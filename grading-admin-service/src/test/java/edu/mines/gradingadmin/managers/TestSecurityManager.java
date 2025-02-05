@@ -201,6 +201,18 @@ public class TestSecurityManager implements PostgresTestContainer {
         Assertions.assertThrows(AccessDeniedException.class, manager::readUserFromRequest);
     }
 
+    @Test
+    void verifyGetCredentialsExists(){
+
+
+    }
+
+    @Test
+    void verifyGetCredentialsDNE(){
+
+
+    }
+
 
 
 
