@@ -22,8 +22,8 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<edu.mines.gradingadmin.data.Course>> getCourses(Boolean enabled) {
-        List<Course> courses = courseService.getCourses(enabled);
+    public ResponseEntity<List<edu.mines.gradingadmin.data.Course>> getCourses(Boolean onlyActive) {
+        List<Course> courses = courseService.getCourses(onlyActive);
 
         List<edu.mines.gradingadmin.data.Course> coursesResponse = courses.stream().map(course ->
             new edu.mines.gradingadmin.data.Course()

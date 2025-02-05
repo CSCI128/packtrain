@@ -17,9 +17,9 @@ public class CourseService {
         this.courseRepo = courseRepo;
     }
 
-    public List<Course> getCourses(boolean enabled) {
-        if(enabled) {
-            return courseRepo.getAll(enabled);
+    public List<Course> getCourses(boolean onlyActive) {
+        if(onlyActive) {
+            return courseRepo.getAll(true);
         }
         return courseRepo.getAll();
     }

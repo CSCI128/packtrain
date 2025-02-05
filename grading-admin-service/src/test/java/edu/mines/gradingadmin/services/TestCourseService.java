@@ -47,7 +47,7 @@ public class TestCourseService implements PostgresTestContainer {
     }
 
     @Test
-    void verifyGetCoursesIncludingInactive() {
+    void verifyGetAllCourses() {
         Course activeCourse = courseSeeders.course1();
         Course inactiveCourse = courseSeeders.course2();
 
