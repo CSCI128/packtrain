@@ -1,12 +1,15 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.Section;
 import edu.mines.gradingadmin.repositories.CourseRepo;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class CourseService {
@@ -15,9 +18,12 @@ public class CourseService {
 
     private final CanvasService canvasService;
 
-    public CourseService(CourseRepo courseRepo, CanvasService canvasService) {
+    private final SectionService sectionService;
+
+    public CourseService(CourseRepo courseRepo, CanvasService canvasService, SectionService sectionService) {
         this.courseRepo = courseRepo;
         this.canvasService = canvasService;
+        this.sectionService = sectionService;
     }
 
     public List<Course> getCourses(boolean enabled) {
@@ -77,7 +83,13 @@ public class CourseService {
         newCourse.setName(canvasCourse.getName());
         newCourse.setTerm(canvasCourse.getTermId());
         newCourse.setEnabled(true);
+        newCourse = courseRepo.save(newCourse);
 
-        return Optional.of(courseRepo.save(newCourse));
+        List<Section> sections = sectionService.createSectionsForCourse(newCourse);
+        newCourse.setSections(new HashSet<>(sections));
+
+
+        return Optional.of(newCourse);
     }
+
 }
