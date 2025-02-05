@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 public class AdminApiImpl implements AdminApiDelegate {
@@ -34,5 +35,17 @@ public class AdminApiImpl implements AdminApiDelegate {
         ).toList();
 
         return ResponseEntity.ok(coursesResponse);
+    }
+
+    @Override
+    public ResponseEntity<Void> enableCourse(String courseId) {
+        courseService.enableCourse(UUID.fromString(courseId));
+        return ResponseEntity.accepted().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> disableCourse(String courseId) {
+        courseService.disableCourse(UUID.fromString(courseId));
+        return ResponseEntity.accepted().build();
     }
 }

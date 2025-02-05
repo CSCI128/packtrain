@@ -5,6 +5,8 @@ import edu.mines.gradingadmin.repositories.CourseRepo;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CourseService {
@@ -20,5 +22,21 @@ public class CourseService {
             return courseRepo.getAll(enabled);
         }
         return courseRepo.getAll();
+    }
+
+    public void enableCourse(UUID courseId) {
+        Optional<Course> course = courseRepo.findById(courseId);
+        if(course.isPresent()) {
+            course.get().setEnabled(true);
+            courseRepo.save(course.get());
+        }
+    }
+
+    public void disableCourse(UUID courseId) {
+        Optional<Course> course = courseRepo.findById(courseId);
+        if(course.isPresent()) {
+            course.get().setEnabled(false);
+            courseRepo.save(course.get());
+        }
     }
 }
