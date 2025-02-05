@@ -10,8 +10,6 @@ import edu.mines.gradingadmin.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Optional;
 
 @Controller
@@ -47,7 +45,7 @@ public class UserApiImpl implements UserApiDelegate {
 
         Optional<Credential> newCredential = credentialService.createNewCredentialForService(
                 user.getCwid(), credential.getName(),
-                credential.getApiKey(), CredentialType.valueOf(credential.getService().getValue())
+                credential.getApiKey(), CredentialType.fromString(credential.getService().toString())
         );
 
         if (newCredential.isEmpty()) {
