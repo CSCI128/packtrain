@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.CourseRepo;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class CourseService {
+    private final SecurityManager securityManager;
 
     private final CourseRepo courseRepo;
     private final CourseMemberRepo courseMemberRepo;
@@ -23,7 +25,8 @@ public class CourseService {
     private final SectionService sectionService;
     private final UserService userService;
 
-    public CourseService(CourseRepo courseRepo, CanvasService canvasService, SectionService sectionService, UserService userService, CourseMemberRepo courseMemberRepo) {
+    public CourseService(SecurityManager securityManager, CourseRepo courseRepo, CanvasService canvasService, SectionService sectionService, UserService userService, CourseMemberRepo courseMemberRepo) {
+        this.securityManager = securityManager;
         this.courseRepo = courseRepo;
         this.canvasService = canvasService;
         this.sectionService = sectionService;
@@ -38,7 +41,12 @@ public class CourseService {
         return courseRepo.getAll();
     }
 
-    public Optional<Course> createNewCourse(String canvasId){
+    public Optional<Course> importCourseFromCanvas(String canvasId){
+        if (courseRepo.existsByCanvasId(canvasId)){
+            log.warn("Course '{}' has already been created!", canvasId);
+            return Optional.empty();
+        }
+
         List<edu.ksu.canvas.model.Course> availableCourses =
                 canvasService.getAllAvailableCourses()
                     .stream()
@@ -103,11 +111,15 @@ public class CourseService {
 
             Optional<CourseRole> role = canvasService.mapEnrollmentToRole(canvasUser.getEnrollments().getFirst());
 
+            // acting user should be made the owner of the class
+            if (user.equals(securityManager.getUser())){
+                role = Optional.of(CourseRole.OWNER);
+            }
+
             if (role.isEmpty()){
                 log.warn("Missing role for user '{}'", user.getEmail());
                 continue;
             }
-
 
             CourseMember newMembership = new CourseMember();
             newMembership.setCanvasId(String.valueOf(canvasUser.getId()));
@@ -128,7 +140,6 @@ public class CourseService {
 
         // have to look up the members again
         return courseMemberRepo.getAllByCourse(course);
-
     }
 
 }

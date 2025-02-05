@@ -19,6 +19,7 @@ import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.CourseRole;
 import edu.mines.gradingadmin.models.CredentialType;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -42,17 +43,22 @@ public class CanvasService {
     public List<Course> getAllAvailableCourses(){
         OauthToken canvasToken = new NonRefreshableOauthToken(manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
 
+        log.info("Retrieving available courses for user '{}'.", manager.getUser().getEmail());
+
         CourseReader reader = canvasApiFactory.getReader(CourseReader.class, canvasToken);
 
         ListCurrentUserCoursesOptions params = new ListCurrentUserCoursesOptions()
                 .withEnrollmentType(ListCurrentUserCoursesOptions.EnrollmentType.TEACHER);
 
         List<Course> courses = List.of();
+
         try {
             courses = reader.listCurrentUserCourses(params);
         } catch (IOException e) {
             log.error("Failed to get courses from Canvas");
         }
+
+        log.info("Retrieved {} courses for user '{}'.", courses.size(), manager.getUser().getEmail());
 
         return courses;
     }
@@ -75,8 +81,12 @@ public class CanvasService {
         return course;
     }
 
+    @Cacheable("canvas_users")
     public Map<String, User> getCourseMembers(String id){
         OauthToken canvasToken = new NonRefreshableOauthToken(manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+
+        log.info("Retrieving users for course '{}'. Note: this may take a while depending on enrollment size of course.", id);
+
 
         UserReader reader = canvasApiFactory.getReader(UserReader.class, canvasToken);
 
@@ -92,26 +102,29 @@ public class CanvasService {
             // automatic handling of result pages <3
             users = reader.getUsersInCourse(params).stream().collect(Collectors.toMap(User::getSisUserId, user -> user));
         } catch (IOException e){
-            log.error("Failed to get users from in course from Canvas");
+            log.error("Failed to get users from in course from Canvas.");
         }
+
+        log.info("Retrieved {} users for course '{}'.", users.size(), id);
 
         return users;
     }
 
     public List<Section> getCourseSections(String id){
         OauthToken canvasToken = new NonRefreshableOauthToken(manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+        log.info("Retrieving sections for course '{}'.", id);
 
         SectionReader reader = canvasApiFactory.getReader(SectionReader.class, canvasToken);
 
         List<Section> sections = List.of();
 
         try {
-            // omg i love you KSU.
-            // automatic handling of result pages <3
             sections = reader.listCourseSections(id, List.of());
         } catch (IOException e){
             log.error("Failed to get sections for course from Canvas");
         }
+
+        log.info("Retrieved {} sections for course '{}'", sections.size(), id);
 
         return sections;
     }

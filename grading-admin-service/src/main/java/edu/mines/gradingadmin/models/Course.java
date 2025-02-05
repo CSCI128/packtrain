@@ -18,7 +18,7 @@ public class Course {
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "canvas_id")
+    @Column(name = "canvas_id", unique = true)
     private String canvasId;
 
     @Column(name = "term")
