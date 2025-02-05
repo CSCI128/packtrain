@@ -21,7 +21,7 @@ public class EndpointConfig {
 
     @Bean
     public CanvasConfig configureCanvas(
-            @Value("${grading-admin.external-service.canvas.endpoint}") URI endpoint
+            @Value("${grading-admin.external-services.canvas.endpoint}") URI endpoint
     ) throws InvalidPropertiesFormatException {
         if (endpoint == null){
             throw new InvalidPropertiesFormatException("Canvas endpoint not defined");
