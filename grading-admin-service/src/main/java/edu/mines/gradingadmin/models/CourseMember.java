@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Set;
 import java.util.UUID;
@@ -25,13 +26,16 @@ public class CourseMember {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "cwid", nullable = false)
+    @EqualsAndHashCode.Exclude
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", referencedColumnName = "id")
+    @EqualsAndHashCode.Exclude
     private Course course;
 
-    @ManyToMany(mappedBy = "members", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany(mappedBy = "members", cascade = {CascadeType.MERGE})
+    @EqualsAndHashCode.Exclude
     private Set<Section> sections;
 
 }

@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Set;
 import java.util.UUID;
@@ -30,9 +31,11 @@ public class User{
     private String email;
 
     @OneToMany(mappedBy = "owningUser")
+    @EqualsAndHashCode.Exclude
     private Set<Credential> credential;
 
     @OneToMany(mappedBy = "user")
+    @EqualsAndHashCode.Exclude
     private Set<CourseMember> courseMemberships;
 
 }

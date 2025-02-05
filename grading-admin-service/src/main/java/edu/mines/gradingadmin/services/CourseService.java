@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.CourseRepo;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Transactional
 public class CourseService {
 
     private final CourseRepo courseRepo;
@@ -74,8 +76,6 @@ public class CourseService {
 
 
     public Set<CourseMember> addMembersToCourse(Course course, Map<String, edu.ksu.canvas.model.User> canvasUsers, Map<String, Section> sections){
-        // this is going to be super slow, I'm not really sure how to do this in better than o(n^2)
-
         List<User> users = userService.createUsersFromCanvas(canvasUsers);
 
         Set<CourseMember> members = new HashSet<>();
@@ -113,6 +113,7 @@ public class CourseService {
             newMembership.setCanvasId(String.valueOf(canvasUser.getId()));
             newMembership.setCourse(course);
             newMembership.setSections(enrolledSections);
+            newMembership.setUser(user);
             newMembership.setRole(role.get());
 
 
