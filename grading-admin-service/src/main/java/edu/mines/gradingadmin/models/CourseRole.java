@@ -1,5 +1,7 @@
 package edu.mines.gradingadmin.models;
 
+import lombok.Getter;
+
 import java.util.stream.Stream;
 
 public enum CourseRole {
@@ -8,6 +10,7 @@ public enum CourseRole {
     TEACHER("teacher"),
     OWNER("owner");
 
+    @Getter
     private final String role;
 
     CourseRole(String role){

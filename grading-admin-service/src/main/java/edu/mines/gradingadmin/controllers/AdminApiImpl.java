@@ -1,6 +1,7 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.AdminApiDelegate;
+import edu.mines.gradingadmin.data.CourseMember;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.Section;
@@ -39,7 +40,14 @@ public class AdminApiImpl implements AdminApiDelegate {
                 .name(course.get().getName())
                 .sections(course.get().getSections().stream()
                         .map(Section::getName)
-                        .toList());
+                        .toList())
+                .members(course.get().getMembers().stream()
+                        .map(m -> new CourseMember()
+                                .canvasId(m.getCanvasId())
+                                .cwid(m.getUser().getCwid())
+                                .sections(m.getSections().stream().map(Section::getName).toList())
+                                .courseRole(CourseMember.CourseRoleEnum.fromValue(m.getRole().getRole()))
+                        ).toList());
 
 
         return ResponseEntity.ok(courseRes);

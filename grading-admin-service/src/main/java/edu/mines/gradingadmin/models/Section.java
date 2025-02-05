@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 
 import java.util.Set;
@@ -28,10 +29,12 @@ public class Section {
             joinColumns = @JoinColumn(name = "section_id", referencedColumnName = "id"),
             inverseJoinColumns  = @JoinColumn(name="student_id", referencedColumnName = "id")
     )
+    @EqualsAndHashCode.Exclude
     private Set<CourseMember> members;
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id", referencedColumnName = "id")
+    @EqualsAndHashCode.Exclude
     private Course course;
 
 }

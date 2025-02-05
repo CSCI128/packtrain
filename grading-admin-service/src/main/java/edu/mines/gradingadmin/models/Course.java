@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 
 import java.util.Set;
@@ -36,11 +37,14 @@ public class Course {
     private String pages;
 
     @OneToMany(mappedBy = "course")
+    @EqualsAndHashCode.Exclude
     private Set<Assignment> assignments;
 
     @OneToMany(mappedBy = "course")
+    @EqualsAndHashCode.Exclude
     private Set<Section> sections;
 
     @OneToMany(mappedBy = "course")
+    @EqualsAndHashCode.Exclude
     private Set<CourseMember> members;
 }

@@ -893,9 +893,11 @@ components:
             - ta
             - owner
           example: "owner"
-        section:
-          type: string
-          example: "fall.2020.excl.101.section.a"
+        sections:
+          type: array
+          items:
+            type: string
+            example: "fall.2020.excl.101.section.a"
 
     Assignment:
       description: "An assignment in a course"
