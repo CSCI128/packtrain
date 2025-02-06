@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 public class AdminApiImpl implements AdminApiDelegate {
@@ -21,8 +22,8 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<edu.mines.gradingadmin.data.Course>> getCourses(Boolean enabled) {
-        List<Course> courses = courseService.getCourses(enabled);
+    public ResponseEntity<List<edu.mines.gradingadmin.data.Course>> getCourses(Boolean onlyActive) {
+        List<Course> courses = courseService.getCourses(onlyActive);
 
         List<edu.mines.gradingadmin.data.Course> coursesResponse = courses.stream().map(course ->
             new edu.mines.gradingadmin.data.Course()
@@ -34,5 +35,17 @@ public class AdminApiImpl implements AdminApiDelegate {
         ).toList();
 
         return ResponseEntity.ok(coursesResponse);
+    }
+
+    @Override
+    public ResponseEntity<Void> enableCourse(String courseId) {
+        courseService.enableCourse(UUID.fromString(courseId));
+        return ResponseEntity.accepted().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> disableCourse(String courseId) {
+        courseService.disableCourse(UUID.fromString(courseId));
+        return ResponseEntity.accepted().build();
     }
 }
