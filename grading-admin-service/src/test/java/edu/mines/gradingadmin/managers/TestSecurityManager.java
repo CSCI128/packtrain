@@ -1,8 +1,11 @@
 package edu.mines.gradingadmin.managers;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.repositories.CredentialRepo;
 import edu.mines.gradingadmin.repositories.UserRepo;
+import edu.mines.gradingadmin.seeders.UserSeeders;
 import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +35,9 @@ public class TestSecurityManager implements PostgresTestContainer {
 
     @Autowired
     private CredentialService credentialService;
+    @Autowired
+    private CredentialRepo credentialRepo;
+
 
     @BeforeAll
     static void setupClass() {
@@ -40,6 +46,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
     @AfterEach
     void tearDown(){
+        credentialRepo.deleteAll();
         userRepo.deleteAll();
     }
 
@@ -203,17 +210,68 @@ public class TestSecurityManager implements PostgresTestContainer {
 
     @Test
     void verifyGetCredentialsExists(){
+        String cwid = "99999999";
+        String sub = UUID.randomUUID().toString();
 
+        User user = new User();
+        user.setOAuthId(UUID.fromString(sub));
+        user.setCwid(cwid);
+        user.setEmail("test@test.com");
+        user.setName("Test User");
+        userRepo.save(user);
 
+        Jwt token = new Jwt("token", null, null, Map.of("alg", "none"), Map.of(
+                "sub", sub,
+                "cwid", cwid,
+                "email", "test@test.com",
+                "is_admin", false,
+                "name", "Test User"
+        ));
+
+        String credential = "supersecure";
+
+        credentialService.createNewCredentialForService(cwid, "canvas", credential, CredentialType.CANVAS);
+
+        HttpServletRequest request = requestFactory(token);
+
+        SecurityManager manager = new SecurityManager(userService, credentialService);
+
+        manager.setPrincipalFromRequest(request);
+        manager.readUserFromRequest();
+
+        String actual = manager.getCredential(CredentialType.CANVAS, UUID.randomUUID());
+
+        Assertions.assertEquals(credential, actual);
     }
 
     @Test
     void verifyGetCredentialsDNE(){
+        String cwid = "99999999";
+        String sub = UUID.randomUUID().toString();
+
+        User user = new User();
+        user.setOAuthId(UUID.fromString(sub));
+        user.setCwid(cwid);
+        user.setEmail("test@test.com");
+        user.setName("Test User");
+        userRepo.save(user);
+
+        Jwt token = new Jwt("token", null, null, Map.of("alg", "none"), Map.of(
+                "sub", sub,
+                "cwid", cwid,
+                "email", "test@test.com",
+                "is_admin", false,
+                "name", "Test User"
+        ));
 
 
+        HttpServletRequest request = requestFactory(token);
+
+        SecurityManager manager = new SecurityManager(userService, credentialService);
+
+        manager.setPrincipalFromRequest(request);
+        manager.readUserFromRequest();
+
+        Assertions.assertThrows(AccessDeniedException.class, () -> manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
     }
-
-
-
-
 }

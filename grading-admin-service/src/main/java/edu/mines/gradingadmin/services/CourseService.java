@@ -29,7 +29,9 @@ public class CourseService {
     private final SectionService sectionService;
     private final UserService userService;
 
-    public CourseService(SecurityManager securityManager, CourseRepo courseRepo, CanvasService canvasService, SectionService sectionService, UserService userService, CourseMemberRepo courseMemberRepo) {
+    public CourseService(SecurityManager securityManager, CourseRepo courseRepo,
+                         CanvasService canvasService, SectionService sectionService,
+                         UserService userService, CourseMemberRepo courseMemberRepo) {
         this.securityManager = securityManager;
         this.courseRepo = courseRepo;
         this.canvasService = canvasService;
