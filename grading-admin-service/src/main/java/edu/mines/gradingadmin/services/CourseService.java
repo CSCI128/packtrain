@@ -49,9 +49,5 @@ public class CourseService {
         newCourse = courseRepo.save(newCourse);
         return Optional.of(newCourse.getId());
     }
-
-    public List<Course> searchByName(String name){
-        return courseRepo.searchByName(name);
-    }
-
+    
 }

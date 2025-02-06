@@ -26,12 +26,12 @@ public class AdminApiImpl implements AdminApiDelegate {
         List<Course> courses = courseService.getCourses(onlyActive);
 
         List<edu.mines.gradingadmin.data.Course> coursesResponse = courses.stream().map(course ->
-            new edu.mines.gradingadmin.data.Course()
-                .id(course.getId().toString())
-                .term(course.getTerm())
-                .enabled(course.isEnabled())
-                .name(course.getName())
-                .code(course.getCode())
+                new edu.mines.gradingadmin.data.Course()
+                        .id(course.getId().toString())
+                        .term(course.getTerm())
+                        .enabled(course.isEnabled())
+                        .name(course.getName())
+                        .code(course.getCode())
         ).toList();
 
         return ResponseEntity.ok(coursesResponse);

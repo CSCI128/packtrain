@@ -21,7 +21,7 @@ public interface CourseRepo extends CrudRepository<Course, UUID> {
     @Query("select c from course c where c.id = ?1")
     Optional<Course> getById(UUID id);
 
-    @Query("select c.name from course c where c.name like ?1")
+    @Query("select c.name from course c where c.name like concat('%',?1,'%')")
     List<Course> searchByName(String name);
 
     @Query("select c.term from course c where c.term like ?1")
@@ -29,9 +29,6 @@ public interface CourseRepo extends CrudRepository<Course, UUID> {
 
     @Query("select c.code from course c where c.code like ?1")
     List<Course> searchByCode(String code);
-
-    @Query("select c.enabled from course c where c.enabled like ?!")
-    List<Course> searchByEnabled();
 
 
     List<Course> getAll(boolean onlyActive);
