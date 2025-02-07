@@ -24,6 +24,16 @@ syncObservable(store$, {
 });
 
 export function Navbar() {
+  // export the class selection modal component elsewhere.
+
+  // const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
+
+  // if (isLoading || !data) return "Loading...";
+
+  // if (error) return `An error occured: ${error}`;
+
+  // console.log(data);
+
   // TODO mobile responsiveness drawer
   // const [drawerOpened, { toggle: toggleDrawer }] = useDisclosure(false);
 
@@ -117,11 +127,8 @@ export function Navbar() {
                 </Menu>
               )}
 
-              {/* TODO class state here */}
-              {/* <p>CSCI128</p> */}
               <Button variant="default" onClick={open}>
-                {/* CSCI128 */}
-                {store$.name.get()}
+                {store$.name.get() || "Select Class"}
               </Button>
             </Group>
 

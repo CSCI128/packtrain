@@ -1,4 +1,4 @@
-import { Button, Container, Divider, Text } from "@mantine/core";
+import { Button, Container, Divider, Group, Text } from "@mantine/core";
 import { BsBoxArrowUpRight } from "react-icons/bs";
 import { Link } from "react-router-dom";
 
@@ -36,26 +36,30 @@ export function CoursePage() {
         <Text size="xl" fw={700}>
           {data.name} ({data.code}) - {data.term}
         </Text>
-        <p>Course Overview</p>
+        <Text>Course Overview</Text>
 
         <Divider my="md" />
 
-        <p>
+        <Text size="md">
           <b>652</b> active students
-        </p>
-        <p>
-          <b>12</b> sections <BsBoxArrowUpRight />
-        </p>
-        <p>
-          <b>102</b> assignments <BsBoxArrowUpRight />
-        </p>
+        </Text>
 
-        <Button component={Link} to="/admin/edit" variant="filled">
-          Edit
-        </Button>
-        <Button onClick={syncAssignments} variant="filled">
-          Sync assignments
-        </Button>
+        <Text size="md">
+          <b>12</b> sections <BsBoxArrowUpRight />
+        </Text>
+
+        <Text size="md">
+          <b>102</b> assignments <BsBoxArrowUpRight />
+        </Text>
+
+        <Group mt={15} gap="xs">
+          <Button component={Link} to="/admin/edit" variant="filled">
+            Edit
+          </Button>
+          <Button onClick={syncAssignments} variant="filled">
+            Sync assignments
+          </Button>
+        </Group>
       </Container>
       <Container size="md" mt={20}>
         <Text size="xl" fw={700}>

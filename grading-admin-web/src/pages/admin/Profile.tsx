@@ -29,6 +29,14 @@ export function Profile() {
         <p>{data.cwid}</p>
 
         <Button variant="filled">Edit</Button>
+
+        <Text size="xl" fw={700}>
+          Credentials
+        </Text>
+        {credentialData.map((credential) => (
+          <p>{credential.name}</p>
+        ))}
+        <Button variant="filled">Add Credential</Button>
       </Container>
     </>
   );

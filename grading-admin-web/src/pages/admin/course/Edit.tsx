@@ -18,6 +18,7 @@ export function EditCourse() {
     },
 
     validate: {
+      // TODO validate things
       email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
     },
   });
@@ -55,7 +56,7 @@ export function EditCourse() {
 
           <TextInput
             label="Canvas ID"
-            placeholder="xxxx-xxxx-xxxx-xxxx"
+            placeholder="xxxxxxxx"
             key={form.key("canvasId")}
           />
 
