@@ -1,6 +1,5 @@
 import {
   Button,
-  Checkbox,
   Chip,
   Container,
   Divider,
@@ -34,30 +33,42 @@ export function EditCourse() {
 
         <form onSubmit={form.onSubmit((values) => console.log(values))}>
           <TextInput
-            withAsterisk
-            label="Email"
-            placeholder="your@email.com"
-            key={form.key("email")}
-            {...form.getInputProps("email")}
+            pb={8}
+            label="Course Name"
+            placeholder="Computer Science For STEM"
+            key={form.key("courseName")}
           />
 
-          <Checkbox
-            mt="md"
-            label="I agree to sell my privacy"
-            key={form.key("termsOfService")}
-            {...form.getInputProps("termsOfService", { type: "checkbox" })}
+          <TextInput
+            pb={8}
+            label="Course Code"
+            placeholder="CSCI128"
+            key={form.key("courseCode")}
+          />
+
+          <TextInput
+            pb={8}
+            label="Term"
+            placeholder="Fall 2024"
+            key={form.key("courseTerm")}
+          />
+
+          <TextInput
+            label="Canvas ID"
+            placeholder="xxxx-xxxx-xxxx-xxxx"
+            key={form.key("canvasId")}
           />
 
           <Group justify="flex-end" mt="md">
-            <Button type="submit">Submit</Button>
+            <Button type="submit">Save</Button>
           </Group>
         </form>
 
         <Divider my="md" />
 
-        <p>Add External Service</p>
+        <p>Add External Services</p>
         <Chip.Group multiple>
-          <Group justify="center" mt="md">
+          <Group mt="md">
             <Chip value="1">Gradescope</Chip>
             <Chip value="2">Runestone</Chip>
             <Chip value="3">PrairieLearn</Chip>
