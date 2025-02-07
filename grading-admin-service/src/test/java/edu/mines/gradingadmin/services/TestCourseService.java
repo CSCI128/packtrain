@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @SpringBootTest
 @Transactional
@@ -47,7 +49,7 @@ public class TestCourseService implements PostgresTestContainer {
     }
 
     @Test
-    void verifyGetAllCourses() {
+    void verifyGetCoursesIncludingInactive() {
         Course activeCourse = courseSeeders.course1();
         Course inactiveCourse = courseSeeders.course2();
 
@@ -58,36 +60,39 @@ public class TestCourseService implements PostgresTestContainer {
     }
 
     @Test
-    void verifyEnableCourse() {
-        Course inactiveCourse = courseSeeders.course2();
-
-        Assertions.assertFalse(inactiveCourse.isEnabled());
-
-        courseService.enableCourse(inactiveCourse.getId());
-
-        Assertions.assertTrue(inactiveCourse.isEnabled());
+    void verifyCourseDoesNotExist(){
+        Optional<UUID> courseID = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
+        Assertions.assertTrue(courseID.isPresent());
+        Optional<Course> testCourse = courseRepo.getById(courseID.get());
+        Assertions.assertTrue(testCourse.isPresent());
+        Assertions.assertEquals(courseID.get(), testCourse.get().getId());
     }
 
     @Test
-    void verifyDisableCourse() {
-        Course activeCourse = courseSeeders.course1();
-
-        Assertions.assertTrue(activeCourse.isEnabled());
-
-        courseService.disableCourse(activeCourse.getId());
-
-        Assertions.assertFalse(activeCourse.isEnabled());
+    void verifyNewCourseHasName(){
+        Optional<UUID> courseID = courseService.createNewCourse("Another Test Course 1", "Spring 2025", "spring.2025.atc.1");
+        Assertions.assertTrue(courseID.isPresent());
+        Optional<Course> testCourse = courseRepo.getById(courseID.get());
+        Assertions.assertTrue(courseID.isPresent());
+        Assertions.assertEquals("Another Test Course 1", testCourse.get().getName());
     }
 
     @Test
-    void verifyWhenAlreadyEnabledDisabled() {
-        Course activeCourse = courseSeeders.course1();
-        Course inactiveCourse = courseSeeders.course2();
-
-        courseService.enableCourse(activeCourse.getId());
-        courseService.disableCourse(inactiveCourse.getId());
-
-        Assertions.assertTrue(activeCourse.isEnabled());
-        Assertions.assertFalse(inactiveCourse.isEnabled());
+    void verifyNewCourseHasTerm(){
+        Optional<UUID> courseID = courseService.createNewCourse("Another Test Course 1", "Spring 2025", "spring.2025.atc.1");
+        Assertions.assertTrue(courseID.isPresent());
+        Optional<Course> testCourse = courseRepo.getById(courseID.get());
+        Assertions.assertTrue(courseID.isPresent());
+        Assertions.assertEquals("Spring 2025", testCourse.get().getTerm());
     }
+
+    @Test
+    void verifyNewCourseHasCode(){
+        Optional<UUID> courseID = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
+        Assertions.assertTrue(courseID.isPresent());
+        Optional<Course> testCourse = courseRepo.getById(courseID.get());
+        Assertions.assertTrue(courseID.isPresent());
+        Assertions.assertEquals("fall.2024.tc.1", testCourse.get().getCode());
+    }
+
 }

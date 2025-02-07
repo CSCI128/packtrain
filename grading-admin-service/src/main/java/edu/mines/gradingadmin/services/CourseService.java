@@ -17,9 +17,9 @@ public class CourseService {
         this.courseRepo = courseRepo;
     }
 
-    public List<Course> getCourses(boolean onlyActive) {
-        if(onlyActive) {
-            return courseRepo.getAll(true);
+    public List<Course> getCourses(boolean enabled) {
+        if(enabled) {
+            return courseRepo.getAll(enabled);
         }
         return courseRepo.getAll();
     }
@@ -39,4 +39,15 @@ public class CourseService {
             courseRepo.save(course.get());
         }
     }
+
+    public Optional<UUID> createNewCourse(String name, String term, String courseCode){
+        Course newCourse = new Course();
+        newCourse.setName(name);
+        newCourse.setCode(courseCode);
+        newCourse.setTerm(term);
+        newCourse.setEnabled(true);
+        newCourse = courseRepo.save(newCourse);
+        return Optional.of(newCourse.getId());
+    }
+    
 }
