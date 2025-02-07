@@ -8,10 +8,12 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Data
-public abstract class ScheduledTask {
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public abstract class ScheduledTaskDef {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    protected UUID id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    protected long id;
 
     @ManyToOne()
     @JoinColumn(name = "user_id", referencedColumnName = "cwid")
@@ -19,12 +21,16 @@ public abstract class ScheduledTask {
     protected User createdByUser;
 
     @Column(name = "submitted_time")
-    protected Instant submittedTime;
+    protected Instant submittedTime = Instant.now();
 
     @Column(name = "completed_time")
     protected Instant completedTime;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    protected ScheduleStatus status;
+    protected ScheduleStatus status = ScheduleStatus.CREATED;
+
+
+    @Column(name = "status_text")
+    protected String statusText;
 }
