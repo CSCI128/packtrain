@@ -10,11 +10,12 @@ import {
 import { useForm } from "@mantine/form";
 
 export function EditCourse() {
+  // TODO make edit course query
+
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
       email: "",
-      termsOfService: false,
     },
 
     validate: {

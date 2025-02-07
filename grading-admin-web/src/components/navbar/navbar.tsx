@@ -108,14 +108,12 @@ export function Navbar() {
               ) : (
                 <Menu shadow="md" width={200}>
                   <Menu.Target>
-                    <p>{user.profile.email}</p>
+                    <p>{user.profile.name}</p>
                   </Menu.Target>
 
                   <Menu.Dropdown>
                     <Menu.Item>
-                      <a href="/profile" className={classes.link}>
-                        Profile
-                      </a>
+                      <a href="/profile">Profile</a>
                     </Menu.Item>
 
                     <Menu.Divider />

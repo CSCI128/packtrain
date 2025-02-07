@@ -1,6 +1,6 @@
 import { Container } from "@mantine/core";
 
-export function CoursePage() {
+export function ImportPage() {
   //   const { data, error, isLoading } = $api.useQuery(
   //     "put",
   //     "/admin/course/new/{canvas_id}",

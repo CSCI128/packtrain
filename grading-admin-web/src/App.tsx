@@ -6,6 +6,7 @@ import "./index.css";
 import { AssignmentsPage } from "./pages/admin/Assignments";
 import { CoursePage } from "./pages/admin/course/Course";
 import { EditCourse } from "./pages/admin/course/Edit";
+import { ImportPage } from "./pages/admin/course/Import";
 import { MigratePage } from "./pages/admin/Migrate";
 import { Profile } from "./pages/admin/Profile";
 import { UsersPage } from "./pages/admin/Users";
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
       {
         path: "/instructor/migrate",
         element: <MigratePage />,
+      },
+      {
+        path: "/admin/import",
+        element: <ImportPage />,
       },
       {
         path: "/admin/assignments",

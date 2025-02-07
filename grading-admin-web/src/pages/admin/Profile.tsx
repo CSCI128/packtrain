@@ -23,9 +23,10 @@ export function Profile() {
           Profile
         </Text>
 
-        <p>{data.name}</p>
+        <p>
+          {data.name} {data.admin ? "(Admin)" : ""}
+        </p>
         <p>{data.email}</p>
-        <p>{data.admin ? "true" : "false"}</p>
         <p>{data.cwid}</p>
 
         <Button variant="filled">Edit</Button>
