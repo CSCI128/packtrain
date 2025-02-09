@@ -8,6 +8,11 @@ import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
 import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
+import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.repositories.CourseMemberRepo;
+import edu.mines.gradingadmin.repositories.CourseRepo;
+import edu.mines.gradingadmin.repositories.SectionRepo;
+import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
 import jakarta.transaction.Transactional;
@@ -18,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,9 +37,10 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @Autowired
     private CourseRepo courseRepo;
+    @Autowired
+    private CourseMemberRepo courseMemberRepo;
 
     private CourseService courseService;
-
     @Mock
     private CanvasService canvasService;
 
@@ -49,7 +57,6 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @Autowired
     private ScheduledTaskRepo<CourseImportTaskDef> scheduledTaskRepo;
-
 
     @BeforeAll
     static void setupClass() {
@@ -95,42 +102,110 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @Test
     void verifyGetCourseIncludeMembers() {
+        User user = userSeeders.user1();
         Course course1 = courseSeeders.course1();
+
+        // seed section
+        Section section = new Section();
+        section.setName("Section A");
+        section.setCourse(course1);
+
+        // seed member
+        CourseMember member = new CourseMember();
+        member.setUser(user);
+        member.setRole(CourseRole.STUDENT);
+        member.setSections(Set.of(section));
+        member.setCourse(course1);
+        member.setCanvasId("x");
+        courseMemberRepo.save(member);
+
+        course1.setMembers(Set.of(member));
+
         Optional<Course> course = courseService.getCourse(course1.getId());
 
         Assertions.assertTrue(course.isPresent());
-
-//        TODO test for including members
+        Assertions.assertEquals(1, course.get().getMembers().size());
+        Assertions.assertTrue(course.get().getMembers().contains(member));
     }
 
     @Test
     void verifyGetCourseIncludeAssignments() {
         Course course1 = courseSeeders.course1();
-        Optional<Course> course = courseService.getCourse(course1.getId(), Collections.emptyList());
+
+        Assignment assignment = new Assignment();
+        assignment.setCourse(course1);
+        assignment.setName("Test Assignment");
+        assignment.setCategory("Assessments");
+        assignment.setPoints(25.0);
+        assignment.setDueDate(LocalDateTime.now());
+        assignment.setUnlockDate(LocalDateTime.now());
+
+        course1.setAssignments(Set.of(assignment));
+
+        Optional<Course> course = courseService.getCourse(course1.getId());
 
         Assertions.assertTrue(course.isPresent());
-
-//        TODO test for including assignments
+        Assertions.assertEquals(1, course.get().getAssignments().size());
+        Assertions.assertTrue(course.get().getAssignments().contains(assignment));
     }
 
     @Test
     void verifyGetCourseIncludeSections() {
         Course course1 = courseSeeders.course1();
-        Optional<Course> course = courseService.getCourse(course1.getId(), Collections.emptyList());
+        Optional<Course> course = courseService.getCourse(course1.getId());
+
+        // seed section
+        Section section = new Section();
+        section.setName("Section A");
+        section.setCourse(course1);
+
+        course1.setSections(Set.of(section));
 
         Assertions.assertTrue(course.isPresent());
-
-//        TODO test for including sections
+        Assertions.assertEquals(1, course.get().getSections().size());
+        Assertions.assertTrue(course.get().getSections().contains(section));
     }
 
     @Test
     void verifyGetCourseIncludeAll() {
+        User user = userSeeders.user1();
         Course course1 = courseSeeders.course1();
-        Optional<Course> course = courseService.getCourse(course1.getId(), Collections.emptyList());
+        Optional<Course> course = courseService.getCourse(course1.getId());
+
+        // seed section
+        Section section = new Section();
+        section.setName("Section A");
+        section.setCourse(course1);
+        course1.setSections(Set.of(section));
+
+        // seed member
+        CourseMember member = new CourseMember();
+        member.setUser(user);
+        member.setRole(CourseRole.STUDENT);
+        member.setSections(Set.of(section));
+        member.setCourse(course1);
+        member.setCanvasId("x");
+        courseMemberRepo.save(member);
+
+        course1.setMembers(Set.of(member));
+
+        Assignment assignment = new Assignment();
+        assignment.setCourse(course1);
+        assignment.setName("Test Assignment");
+        assignment.setCategory("Assessments");
+        assignment.setPoints(25.0);
+        assignment.setDueDate(LocalDateTime.now());
+        assignment.setUnlockDate(LocalDateTime.now());
+
+        course1.setAssignments(Set.of(assignment));
 
         Assertions.assertTrue(course.isPresent());
-
-//        TODO test for including all data: members, assignments, sections
+        Assertions.assertEquals(1, course.get().getMembers().size());
+        Assertions.assertEquals(1, course.get().getAssignments().size());
+        Assertions.assertEquals(1, course.get().getSections().size());
+        Assertions.assertTrue(course.get().getMembers().contains(member));
+        Assertions.assertTrue(course.get().getAssignments().contains(assignment));
+        Assertions.assertTrue(course.get().getSections().contains(section));
     }
 
     @Test
