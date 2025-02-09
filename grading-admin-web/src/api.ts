@@ -14,6 +14,11 @@ const middleware: Middleware = {
   },
 };
 
+export const isAdmin = async () => {
+  const user = await userManager.getUser();
+  return user && user.profile.is_admin;
+};
+
 const fetchClient = createFetchClient<paths>({
   baseUrl: import.meta.env.VITE_API_URL || "https://localhost.dev/api/",
 });

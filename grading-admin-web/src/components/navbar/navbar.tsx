@@ -5,7 +5,8 @@ import { Box, Button, Center, Group, Menu, Modal } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
-import { $api, userManager } from "../../api";
+import { Link } from "react-router-dom";
+import { $api, isAdmin, userManager } from "../../api";
 import classes from "./Navbar.module.scss";
 
 interface Course {
@@ -38,6 +39,8 @@ export function Navbar() {
 
   // TODO mobile responsiveness drawer
   // const [drawerOpened, { toggle: toggleDrawer }] = useDisclosure(false);
+
+  // const [] = useState<>();
 
   const [user, setUser] = useState<User | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
@@ -72,22 +75,28 @@ export function Navbar() {
     close();
   };
 
-  const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
+  const fetchData = async () => {
+    if (await isAdmin()) {
+      // TODO make "middleware" for a user being authenticated as admin + instructor
+      const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
 
-  if (isLoading || !data) return "Loading...";
+      if (isLoading || !data) return "Loading...";
 
-  if (error) return `An error occured: ${error}`;
+      if (error) return `An error occured: ${error}`;
 
-  console.log(data);
+      console.log(data);
+      return data;
+    }
+  };
 
   return (
     <>
       <Modal opened={opened} onClose={close} title="Select Class">
         {/* TODO get all courses and map */}
         <Center>
-          {data.map((course) => (
+          {/* {data.map((course) => (
             <p>{course.name}</p>
-          ))}
+          ))} */}
         </Center>
 
         {/* PUT /admin/course/{course_id} */}
@@ -96,7 +105,9 @@ export function Navbar() {
 
         <br />
 
-        <Button>Create Class</Button>
+        <Button component={Link} to="/admin/import" onClick={close}>
+          Create Class
+        </Button>
       </Modal>
 
       <Box mb={20}>

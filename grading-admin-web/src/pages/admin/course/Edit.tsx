@@ -8,6 +8,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { Link } from "react-router-dom";
 
 export function EditCourse() {
   // TODO make edit course query
@@ -62,7 +63,10 @@ export function EditCourse() {
           />
 
           <Group justify="flex-end" mt="md">
-            <Button type="submit">Save</Button>
+            {/* TODO maybe make this another button once external services are added */}
+            <Button component={Link} to="/admin/home" type="submit">
+              Save
+            </Button>
           </Group>
         </form>
 
