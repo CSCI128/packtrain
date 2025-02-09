@@ -108,7 +108,6 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         // seed section
         Section section = new Section();
         section.setName("Section A");
-        section.setCourse(course1);
 
         // seed member
         CourseMember member = new CourseMember();
@@ -157,7 +156,6 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         // seed section
         Section section = new Section();
         section.setName("Section A");
-        section.setCourse(course1);
 
         course1.setSections(Set.of(section));
 
@@ -175,7 +173,6 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         // seed section
         Section section = new Section();
         section.setName("Section A");
-        section.setCourse(course1);
         course1.setSections(Set.of(section));
 
         // seed member
