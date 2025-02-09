@@ -1,11 +1,11 @@
 import { observable } from "@legendapp/state";
 import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/local-storage";
 import { syncObservable } from "@legendapp/state/sync";
-import { Box, Button, Group, Menu, Modal } from "@mantine/core";
+import { Box, Button, Center, Group, Menu, Modal } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
-import { userManager } from "../../api";
+import { $api, userManager } from "../../api";
 import classes from "./Navbar.module.scss";
 
 interface Course {
@@ -33,6 +33,8 @@ export function Navbar() {
   // if (error) return `An error occured: ${error}`;
 
   // console.log(data);
+
+  // export the class selection modal component elsewhere.
 
   // TODO mobile responsiveness drawer
   // const [drawerOpened, { toggle: toggleDrawer }] = useDisclosure(false);
@@ -70,12 +72,30 @@ export function Navbar() {
     close();
   };
 
+  const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
+
+  if (isLoading || !data) return "Loading...";
+
+  if (error) return `An error occured: ${error}`;
+
+  console.log(data);
+
   return (
     <>
       <Modal opened={opened} onClose={close} title="Select Class">
         {/* TODO get all courses and map */}
-        <Button onClick={setActiveCourse}>CSCI128</Button>
+        <Center>
+          {data.map((course) => (
+            <p>{course.name}</p>
+          ))}
+        </Center>
+
+        {/* PUT /admin/course/{course_id} */}
+
+        {/* <Button onClick={setActiveCourse}>CSCI128</Button> */}
+
         <br />
+
         <Button>Create Class</Button>
       </Modal>
 
