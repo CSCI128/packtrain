@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.Optional;
 
 @Repository
 public interface CourseRepo extends CrudRepository<Course, UUID> {

@@ -1,9 +1,7 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.AdminApiDelegate;
-import edu.mines.gradingadmin.data.CourseDTO;
-import edu.mines.gradingadmin.data.CourseSyncTaskDTO;
-import edu.mines.gradingadmin.data.TaskDTO;
+import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.Section;
@@ -102,6 +100,51 @@ public class AdminApiImpl implements AdminApiDelegate {
         ).toList();
 
         return ResponseEntity.ok(coursesResponse);
+    }
+
+    @Override
+    public ResponseEntity<CourseDTO> getCourse(String id, List<String> include) {
+        Optional<Course> course = courseService.getCourse(UUID.fromString(id), include);
+
+        if(course.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        CourseDTO courseDto = new CourseDTO();
+
+        courseDto.name(course.get().getName())
+                .id(course.get().getId().toString())
+                .enabled(course.get().isEnabled())
+                .term(course.get().getTerm())
+                .code(course.get().getCode());
+
+        if (include.contains("members")) {
+            courseDto.setMembers(course.get().getMembers().stream().map(member ->
+                    new CourseMemberDTO()
+                            .canvasId(member.getCanvasId())
+                            .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(member.getRole().name()))
+                            .cwid(member.getUser().getCwid())
+                            .sections(member.getSections().stream().map(Section::getName).toList())
+            ).toList());
+        }
+
+        if (include.contains("assignments")) {
+            courseDto.setAssignments(course.get().getAssignments().stream().map(assignment ->
+                    new AssignmentDTO()
+                            .category(assignment.getCategory())
+                            .dueDate(assignment.getDueDate())
+                            .unlockDate(assignment.getUnlockDate())
+                            .enabled(assignment.isEnabled())
+                            .points(assignment.getPoints())
+            ).toList());
+        }
+
+        if (include.contains("sections")) {
+            courseDto.setSections(course.get().getSections().stream().map(Section::getName).toList());
+        }
+
+        return ResponseEntity.ok(courseDto);
     }
 
     @Override
