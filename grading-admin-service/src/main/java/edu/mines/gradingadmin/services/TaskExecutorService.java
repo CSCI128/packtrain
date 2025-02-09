@@ -25,13 +25,22 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
     }
 
     public static <T extends ScheduledTaskDef> void runTask(NewTaskEvent.TaskData<T> taskData) {
-        int curAttempts = 0;
-        boolean errorFlag = false;
-        String errorText="";
-
         ScheduledTaskRepo<T> taskRepo = taskData.getRepo();
 
         taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.QUEUED);
+
+        if (!waitToStart(taskData, taskRepo)) return;
+
+        if(!runJobs(taskData, taskRepo)) return;
+
+        taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.COMPLETED);
+        taskRepo.setCompletedTime(taskData.getTaskId(), Instant.now());
+    }
+
+    public static <T extends ScheduledTaskDef> boolean waitToStart(NewTaskEvent.TaskData<T> taskData, ScheduledTaskRepo<T> taskRepo) {
+        int curAttempts = 0;
+        boolean errorFlag = false;
+        String errorText="";
 
         do {
             List<ScheduleStatus> dependsOnStatus = taskData.getDependsOn().stream().map(id -> taskRepo.getStatus(id).orElse(ScheduleStatus.MISSING)).toList();
@@ -61,10 +70,14 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
 
         if (errorFlag){
             taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED, errorText);
-            return;
+            return false;
         }
+        return true;
+    }
 
-
+    public static <T extends ScheduledTaskDef> boolean runJobs(NewTaskEvent.TaskData<T> taskData, ScheduledTaskRepo<T> taskRepo) {
+        boolean errorFlag = false;
+        String errorText = "";
         taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.STARTED);
 
         T data = taskRepo.getById(taskData.getTaskId()).orElseThrow(RuntimeException::new);
@@ -78,7 +91,7 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
 
         if (errorFlag){
             taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED, errorText);
-            return;
+            return false;
         }
 
         try{
@@ -90,7 +103,7 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
 
         if (errorFlag){
             taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED, errorText);
-            return;
+            return false;
         }
 
         try{
@@ -102,11 +115,10 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
 
         if (errorFlag){
             taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED, errorText);
-            return;
+            return false;
         }
 
-        taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.COMPLETED);
-        taskRepo.setCompletedTime(taskData.getTaskId(), Instant.now());
+        return true;
     }
 
 
