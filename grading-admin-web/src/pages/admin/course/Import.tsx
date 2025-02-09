@@ -1,8 +1,11 @@
 import { Button, Container, Group, Text, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { $api } from "../../../api";
 
 export function ImportPage() {
+  const [imported, setImported] = useState(false);
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -15,25 +18,23 @@ export function ImportPage() {
     },
   });
 
-  //   const { data, error, isLoading } = $api.useQuery(
-  //     "put",
-  //     "/admin/course/new/{canvas_id}",
-  //     {
-  //       params: {
-  //         path: { canvas_id: "5" },
-  //       },
-  //     }
-  //   );
+  const { data, error, isLoading } = $api.useQuery(
+    "post",
+    "/admin/course/new/{canvas_id}",
+    {
+      params: {
+        path: { canvas_id: "5" },
+      },
+    }
+  );
 
-  //   if (isLoading || !data) return "Loading...";
+  const importCourse = (values: any) => {
+    console.log(values);
+  };
 
-  //   if (error) return `An error occured: ${error}`;
+  if (isLoading || !data) return "Loading...";
 
-  //   return (
-  //     <>
-  //       <div>{data.name}</div>
-  //     </>
-  //   );
+  if (error) return `An error occured: ${error}`;
 
   return (
     <>
@@ -41,7 +42,7 @@ export function ImportPage() {
         <Text size="xl" fw={700}>
           Link Canvas Course
         </Text>
-        <form onSubmit={form.onSubmit((values) => console.log(values))}>
+        <form onSubmit={form.onSubmit((values) => importCourse(values))}>
           <TextInput
             label="Canvas API Key"
             placeholder="xxxxxxxx"
