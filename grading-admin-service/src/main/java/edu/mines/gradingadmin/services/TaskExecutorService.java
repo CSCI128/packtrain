@@ -43,82 +43,65 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
 
     public static <T extends ScheduledTaskDef> boolean waitToStart(NewTaskEvent.TaskData<T> taskData, ScheduledTaskRepo<T> taskRepo) {
         int curAttempts = 0;
-        boolean errorFlag = false;
-        String errorText="";
 
         do {
             List<ScheduleStatus> dependsOnStatus = taskData.getDependsOn().stream().map(id -> taskRepo.getStatus(id).orElse(ScheduleStatus.MISSING)).toList();
 
             if (dependsOnStatus.stream().anyMatch(t -> t == ScheduleStatus.FAILED)){
-                errorFlag = true;
-                errorText = "Dependent task failed.";
-                break;
+                taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED, "Dependent task failed.");
+                return false;
             }
 
             if (dependsOnStatus.stream().allMatch(t -> t == ScheduleStatus.COMPLETED)) {
                 break;
             }
+
             curAttempts++;
 
             try {
                 TimeUnit.SECONDS.sleep(2);
             } catch (InterruptedException e){
-
+                taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED,
+                        String.format("An exception occurred when waiting for dependent task to complete:\n%s", e.getMessage()));
+                return false;
             }
         } while (curAttempts < MAX_ATTEMPTS);
 
         if (curAttempts == MAX_ATTEMPTS){
-            errorFlag = true;
-            errorText = "Too many attempts waiting for dependent tasks to complete.";
-        }
-
-        if (errorFlag){
-            taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED, errorText);
+            taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED,
+                    "Too many attempts waiting for dependent tasks to complete.");
             return false;
         }
+
         return true;
     }
 
     public static <T extends ScheduledTaskDef> boolean runJobs(NewTaskEvent.TaskData<T> taskData, ScheduledTaskRepo<T> taskRepo) {
-        boolean errorFlag = false;
-        String errorText = "";
         taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.STARTED);
 
         T data = taskRepo.getById(taskData.getTaskId()).orElseThrow(RuntimeException::new);
 
         try{
             taskData.getOnJobStart().ifPresent(start -> start.accept(data));
-        } catch (Exception e){
-            errorFlag = true;
-            errorText = String.format("Failed to run 'onJobStart' for task '%s':\n%s", taskData.getTaskId(), e.getMessage());
-        }
-
-        if (errorFlag){
-            taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED, errorText);
+        } catch (Exception e) {
+            taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED,
+                    String.format("Failed to run 'onJobStart' for task '%s':\n%s", taskData.getTaskId(), e.getMessage()));
             return false;
         }
 
         try{
             taskData.getJob().accept(data);
         } catch (Exception e){
-            errorFlag = true;
-            errorText = String.format("Failed to run 'job' for task '%s':\n%s", taskData.getTaskId(), e.getMessage());
-        }
-
-        if (errorFlag){
-            taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED, errorText);
+            taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED,
+                    String.format("Failed to run 'job' for task '%s':\n%s", taskData.getTaskId(), e.getMessage()));
             return false;
         }
 
         try{
             taskData.getOnJobComplete().ifPresent(start -> start.accept(data));
         } catch (Exception e){
-            errorFlag = true;
-            errorText = String.format("Failed to run 'onJobComplete' for task '%s':\n%s", taskData.getTaskId(), e.getMessage());
-        }
-
-        if (errorFlag){
-            taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED, errorText);
+            taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED,
+                    String.format("Failed to run 'onJobComplete' for task '%s':\n%s", taskData.getTaskId(), e.getMessage()));
             return false;
         }
 
