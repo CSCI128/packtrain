@@ -22,6 +22,8 @@ tags:
     description: Administration functions for the grading server
   - name: user
     description: User management functions for the grading server
+  - name: Tasks
+    description: Async task service for the grading server
 
 paths:
   /-/health:
@@ -627,7 +629,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Credentials"
+                type: array
+                items:
+                  $ref: "#/components/schemas/Credentials"
         404:
           description: "User not found"
           content:
@@ -795,6 +799,61 @@ paths:
               example:
                 error_source: "update_user"
                 error_message: "Credential '99-9999-9999-99' does not exist!"
+
+  /tasks:
+    get:
+      tags:
+        - tasks
+      operationId: get_all_tasks_for_user
+      summary: Get all tasks for current user
+      description: |
+        This endpoint gets all the tasks for the currently signed in user
+      security:
+        - openIDC: [user:read]
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+  /tasks/{task_id}:
+    get:
+      tags:
+        - tasks
+      operationId: get_task
+      summary: Get task by id
+      description: |
+        This endpoint returns the requested task if the user has access to it.
+      security:
+        - openIDC: [user:read]
+      parameters:
+        - name: task_id
+          required: true
+          in: path
+          schema:
+            type: integer
+            format: int64
+            example: 219
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        404:
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "get_task"
+                error_message: "Requested task was not found"
+
 components:
   securitySchemes:
     OpenIDC:
@@ -810,6 +869,33 @@ components:
           type: string
         error_message:
           type: string
+
+    Task:
+      description: "An async task on the server"
+      type: object
+      required:
+        - id
+        - submitted_time
+        - status
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 291
+        submitted_time:
+          type: string
+          format: date-time
+          example: "2020-01-01T12:00:00.000Z"
+        completed_time:
+          type: string
+          format: date-time
+          example: "2020-01-01T12:00:00.000Z"
+        status:
+          type: string
+          example: "COMPLETED"
+        message:
+          type: string
+          example: "A message about the status of the task"
 
     Credential:
       description: "A credential for external service"

@@ -9,6 +9,8 @@ import edu.mines.gradingadmin.seeders.UserSeeders;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.transaction.Transactional;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,10 +19,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Entity(name = "test_task")
 @Table(name = "test_tasks")
+@EqualsAndHashCode(callSuper = true)
+@Data
 class TestTaskDef extends ScheduledTaskDef {
 }
 
@@ -167,5 +173,69 @@ public class TestTaskExecutorService implements PostgresTestContainer {
         Assertions.assertTrue(task.getStatusText().contains(expected));
     }
 
+    @Test
+    void verifyOnlyGetTasksForUser(){
+        var user1 = userSeeders.user1();
+        var user2 = userSeeders.user2();
+
+        var taskForUser1 = new TestTaskDef();
+
+        taskForUser1.setCreatedByUser(user1);
+
+        taskForUser1 = testTaskRepo.save(taskForUser1);
+
+        var taskForUser2 = new TestTaskDef();
+
+        taskForUser2.setCreatedByUser(user2);
+
+        taskForUser2 = testTaskRepo.save(taskForUser2);
+
+        List<ScheduledTaskDef> tasks = executorService.getScheduledTasks(user1);
+
+        Assertions.assertEquals(1, tasks.size());
+        Assertions.assertEquals(taskForUser1.getId(), tasks.getFirst().getId());
+    }
+
+    @Test
+    void verifyRefuseToGetTaskForOtherUser(){
+        var user1 = userSeeders.user1();
+        var user2 = userSeeders.user2();
+
+        var taskForUser1 = new TestTaskDef();
+
+        taskForUser1.setCreatedByUser(user1);
+
+        taskForUser1 = testTaskRepo.save(taskForUser1);
+
+        var taskForUser2 = new TestTaskDef();
+
+        taskForUser2.setCreatedByUser(user2);
+
+        taskForUser2 = testTaskRepo.save(taskForUser2);
+
+        Optional<ScheduledTaskDef> actualTasks = executorService.getScheduledTask(user1, taskForUser2.getId());
+        Assertions.assertTrue(actualTasks.isEmpty());
+    }
+
+    @Test
+    void verifyGetTaskForUser(){
+        var user1 = userSeeders.user1();
+        var user2 = userSeeders.user2();
+
+        var taskForUser1 = new TestTaskDef();
+
+        taskForUser1.setCreatedByUser(user1);
+
+        taskForUser1 = testTaskRepo.save(taskForUser1);
+
+        var taskForUser2 = new TestTaskDef();
+
+        taskForUser2.setCreatedByUser(user2);
+
+        taskForUser2 = testTaskRepo.save(taskForUser2);
+
+        Optional<ScheduledTaskDef> actualTasks = executorService.getScheduledTask(user1, taskForUser1.getId());
+        Assertions.assertTrue(actualTasks.isPresent());
+    }
 
 }

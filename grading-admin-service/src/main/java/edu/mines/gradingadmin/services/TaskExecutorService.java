@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.models.ScheduleStatus;
 import edu.mines.gradingadmin.models.ScheduledTaskDef;
+import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -19,8 +21,10 @@ import java.util.concurrent.TimeUnit;
 public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
     private static final int MAX_ATTEMPTS = 10;
     private final ExecutorService executorService;
+    private final ScheduledTaskRepo<? extends ScheduledTaskDef> scheduledTaskRepo;
 
-    public TaskExecutorService() {
+    public TaskExecutorService(ScheduledTaskRepo<? extends ScheduledTaskDef> scheduledTaskRepo) {
+        this.scheduledTaskRepo = scheduledTaskRepo;
         this.executorService = Executors.newFixedThreadPool(10);
     }
 
@@ -126,4 +130,20 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
     public void onApplicationEvent(NewTaskEvent event) {
         executorService.submit(() -> runTask(event.getData()));
     }
+
+    public List<ScheduledTaskDef> getScheduledTasks(User currentUser) {
+        return scheduledTaskRepo.getTasksForUser(currentUser).stream().map(t -> (ScheduledTaskDef) t).toList();
+    }
+
+    public Optional<ScheduledTaskDef> getScheduledTask(User currentUser, long taskId) {
+        Optional<ScheduledTaskDef> task = scheduledTaskRepo.getById(taskId).map(t -> (ScheduledTaskDef) t);
+
+        if (task.isEmpty() || !task.get().getCreatedByUser().equals(currentUser)){
+            return Optional.empty();
+        }
+
+        return task;
+    }
+
+
 }

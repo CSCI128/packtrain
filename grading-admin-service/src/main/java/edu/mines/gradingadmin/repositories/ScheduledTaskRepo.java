@@ -4,16 +4,18 @@ import edu.mines.gradingadmin.models.ScheduleStatus;
 import edu.mines.gradingadmin.models.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.User;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-@NoRepositoryBean
+@Repository
 public interface ScheduledTaskRepo<T extends ScheduledTaskDef> extends CrudRepository<T, Long> {
     @Query("select e from #{#entityName} e where e.id = ?1")
     Optional<T> getById(long id);
