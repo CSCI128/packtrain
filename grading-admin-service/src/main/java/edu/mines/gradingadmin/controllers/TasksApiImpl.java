@@ -1,18 +1,18 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.TasksApi;
+import edu.mines.gradingadmin.api.TasksApiDelegate;
 import edu.mines.gradingadmin.data.Task;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.services.TaskExecutorService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 
 @Controller
-public class TasksApiImpl implements TasksApi {
+public class TasksApiImpl implements TasksApiDelegate {
 
     private final SecurityManager securityManager;
     private final TaskExecutorService taskExecutorService;
