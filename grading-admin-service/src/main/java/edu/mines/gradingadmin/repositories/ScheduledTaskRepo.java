@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.repositories;
 import edu.mines.gradingadmin.models.ScheduleStatus;
 import edu.mines.gradingadmin.models.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.User;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -24,14 +25,17 @@ public interface ScheduledTaskRepo<T extends ScheduledTaskDef> extends CrudRepos
     Optional<ScheduleStatus> getStatus(long id);
 
     @Modifying
+    @Transactional
     @Query("update #{#entityName} e set e.status = ?2, e.statusText = ?3 where e.id = ?1")
     void setStatus(long id, ScheduleStatus status, String statusText);
 
     @Modifying
+    @Transactional
     @Query("update #{#entityName} e set e.status = ?2 where e.id = ?1")
     void setStatus(long id, ScheduleStatus status);
 
     @Modifying
+    @Transactional
     @Query("update #{#entityName} e set e.completedTime = ?2 where e.id = ?1")
     void setCompletedTime(long id, Instant completedTime);
 

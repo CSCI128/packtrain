@@ -86,7 +86,7 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
             taskData.getOnJobStart().ifPresent(start -> start.accept(data));
         } catch (Exception e){
             errorFlag = true;
-            errorText = String.format("Failed to run 'onJobStart' for task '{}'", taskData.getTaskId());
+            errorText = String.format("Failed to run 'onJobStart' for task '%s':\n%s", taskData.getTaskId(), e.getMessage());
         }
 
         if (errorFlag){
@@ -98,7 +98,7 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
             taskData.getJob().accept(data);
         } catch (Exception e){
             errorFlag = true;
-            errorText = String.format("Failed to run 'job' for task '{}'", taskData.getTaskId());
+            errorText = String.format("Failed to run 'job' for task '%s':\n%s", taskData.getTaskId(), e.getMessage());
         }
 
         if (errorFlag){
@@ -110,7 +110,7 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
             taskData.getOnJobComplete().ifPresent(start -> start.accept(data));
         } catch (Exception e){
             errorFlag = true;
-            errorText = String.format("Failed to run 'onJobComplete' for task '{}'", taskData.getTaskId());
+            errorText = String.format("Failed to run 'onJobComplete' for task '%s':\n%s", taskData.getTaskId(), e.getMessage());
         }
 
         if (errorFlag){

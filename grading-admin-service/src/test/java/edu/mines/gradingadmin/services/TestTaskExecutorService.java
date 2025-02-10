@@ -1,24 +1,32 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.events.NewTaskEvent;
+import edu.mines.gradingadmin.models.ScheduleStatus;
 import edu.mines.gradingadmin.models.ScheduledTaskDef;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.seeders.UserSeeders;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.stereotype.Repository;
 
+import java.util.Set;
+
 @Entity(name = "test_task")
 @Table(name = "test_tasks")
-class TestTaskDef extends ScheduledTaskDef{ }
+class TestTaskDef extends ScheduledTaskDef {
+}
 
 @Repository
-interface TestTaskRepo extends ScheduledTaskRepo<TestTaskDef>{}
+interface TestTaskRepo extends ScheduledTaskRepo<TestTaskDef> {
+}
 
 @SpringBootTest
 public class TestTaskExecutorService implements PostgresTestContainer {
@@ -32,18 +40,18 @@ public class TestTaskExecutorService implements PostgresTestContainer {
     private UserSeeders userSeeders;
 
     @BeforeAll
-    static void setupClass(){
+    static void setupClass() {
         postgres.start();
     }
 
     @AfterEach
-    void tearDown(){
+    void tearDown() {
         testTaskRepo.deleteAll();
         userSeeders.clearAll();
     }
 
     @Test
-    void verifyTaskExecutesWhenEventEmitted(){
+    void verifyRepoStatusUpdate(){
         var admin = userSeeders.admin1();
         var task = new TestTaskDef();
 
@@ -51,8 +59,112 @@ public class TestTaskExecutorService implements PostgresTestContainer {
 
         task = testTaskRepo.save(task);
 
+        testTaskRepo.setStatus(task.getId(), ScheduleStatus.COMPLETED);
+
+        task = testTaskRepo.getById(task.getId()).orElseThrow(AssertionError::new);
+
+        Assertions.assertEquals(ScheduleStatus.COMPLETED, task.getStatus());
+    }
+
+    @Test
+    void verifyTaskRuns() {
+        var admin = userSeeders.admin1();
+        var task = new TestTaskDef();
+
+        task.setCreatedByUser(admin);
+
+        task = testTaskRepo.save(task);
+
+        Assertions.assertEquals(ScheduleStatus.CREATED, task.getStatus());
+
+        var data = new NewTaskEvent.TaskData<>(testTaskRepo, task.getId(), _ -> {});
+
+        TaskExecutorService.runTask(data);
+
+        task = testTaskRepo.getById(task.getId()).orElseThrow(AssertionError::new);
 
 
+        Assertions.assertEquals(ScheduleStatus.COMPLETED, task.getStatus());
+        Assertions.assertNotNull(task.getCompletedTime());
+    }
+
+    @Test
+    void verifyTaskRunsIfDepPass(){
+        var admin = userSeeders.admin1();
+        var depTask = new TestTaskDef();
+        depTask.setCreatedByUser(admin);
+        depTask.setStatus(ScheduleStatus.COMPLETED);
+
+        depTask = testTaskRepo.save(depTask);
+
+        var task = new TestTaskDef();
+
+        task.setCreatedByUser(admin);
+
+        task = testTaskRepo.save(task);
+
+        var data = new NewTaskEvent.TaskData<>(testTaskRepo, task.getId(), _ -> {});
+        data.setDependsOn(Set.of(depTask.getId()));
+
+        TaskExecutorService.runTask(data);
+
+        task = testTaskRepo.getById(task.getId()).orElseThrow(AssertionError::new);
+
+
+        Assertions.assertEquals(ScheduleStatus.COMPLETED, task.getStatus());
+    }
+
+    @Test
+    void verifyTaskFailsIfDepFails(){
+        var admin = userSeeders.admin1();
+        var failedTask = new TestTaskDef();
+        failedTask.setCreatedByUser(admin);
+        failedTask.setStatus(ScheduleStatus.FAILED);
+
+        failedTask = testTaskRepo.save(failedTask);
+
+        var task = new TestTaskDef();
+
+        task.setCreatedByUser(admin);
+
+        task = testTaskRepo.save(task);
+
+        var data = new NewTaskEvent.TaskData<>(testTaskRepo, task.getId(), _ -> {});
+        data.setDependsOn(Set.of(failedTask.getId()));
+
+        TaskExecutorService.runTask(data);
+
+        task = testTaskRepo.getById(task.getId()).orElseThrow(AssertionError::new);
+
+
+        Assertions.assertEquals(ScheduleStatus.FAILED, task.getStatus());
+        Assertions.assertNull(task.getCompletedTime());
+    }
+
+    @Test
+    void verifyTaskFailsIfException(){
+        var admin = userSeeders.admin1();
+        var task = new TestTaskDef();
+
+        task.setCreatedByUser(admin);
+
+        task = testTaskRepo.save(task);
+
+        Assertions.assertEquals(ScheduleStatus.CREATED, task.getStatus());
+
+        var expected = "huzzah";
+
+        var data = new NewTaskEvent.TaskData<>(testTaskRepo, task.getId(), _ -> {
+            throw new RuntimeException(expected);
+        });
+
+        TaskExecutorService.runTask(data);
+
+        task = testTaskRepo.getById(task.getId()).orElseThrow(AssertionError::new);
+
+
+        Assertions.assertEquals(ScheduleStatus.FAILED, task.getStatus());
+        Assertions.assertTrue(task.getStatusText().contains(expected));
     }
 
 
