@@ -1,15 +1,16 @@
 package edu.mines.gradingadmin.controllers;
 
-import edu.mines.gradingadmin.api.TasksApi;
 import edu.mines.gradingadmin.api.TasksApiDelegate;
-import edu.mines.gradingadmin.data.Task;
+import edu.mines.gradingadmin.data.TaskDTO;
 import edu.mines.gradingadmin.managers.SecurityManager;
+import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.services.TaskExecutorService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 public class TasksApiImpl implements TasksApiDelegate {
@@ -23,9 +24,9 @@ public class TasksApiImpl implements TasksApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<Task>> getAllTasksForUser() {
+    public ResponseEntity<List<TaskDTO>> getAllTasksForUser() {
         return ResponseEntity.ok(taskExecutorService.getScheduledTasks(securityManager.getUser()).stream()
-                .map(t -> new Task()
+                .map(t -> new TaskDTO()
                         .id(t.getId())
                         .submittedTime(OffsetDateTime.from(t.getSubmittedTime()))
                         .completedTime(t.getCompletedTime() == null ? null : OffsetDateTime.from(t.getCompletedTime()))
@@ -35,14 +36,14 @@ public class TasksApiImpl implements TasksApiDelegate {
     }
 
     @Override
-    public ResponseEntity<Task> getTask(Long taskId) {
-        var task = taskExecutorService.getScheduledTask(securityManager.getUser(), taskId);
+    public ResponseEntity<TaskDTO> getTask(Long taskId) {
+        Optional<ScheduledTaskDef> task = taskExecutorService.getScheduledTask(securityManager.getUser(), taskId);
 
         if (task.isEmpty()){
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(task.map(t -> new Task()
+        return ResponseEntity.ok(task.map(t -> new TaskDTO()
                 .id(t.getId())
                 .submittedTime(OffsetDateTime.from(t.getSubmittedTime()))
                 .completedTime(t.getCompletedTime() == null ? null : OffsetDateTime.from(t.getCompletedTime()))

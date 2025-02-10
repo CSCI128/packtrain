@@ -1,11 +1,11 @@
-package edu.mines.gradingadmin.models;
+package edu.mines.gradingadmin.models.tasks;
 
+import edu.mines.gradingadmin.models.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Data
 @Entity

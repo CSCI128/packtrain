@@ -160,11 +160,13 @@
 							<supportingFilesToGenerate>
 								ApiUtil.java
 							</supportingFilesToGenerate>
+							<!--this helps resolve package-name conflict -->
+							<modelNameSuffix>DTO</modelNameSuffix>
 							<configOptions>
 								<sourceFolder>src/gen/java/main</sourceFolder>
 								<delegatePattern>true</delegatePattern>
 								<strictSpec>true</strictSpec>
-								<validateSpec>false</validateSpec>
+								<validateSpec>true</validateSpec>
 								<!--This option is undocumented but is needed to work with spring boot 3-->
 								<useSpringBoot3>true</useSpringBoot3>
 							</configOptions>

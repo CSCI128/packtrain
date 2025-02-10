@@ -1,8 +1,8 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.events.NewTaskEvent;
-import edu.mines.gradingadmin.models.ScheduleStatus;
-import edu.mines.gradingadmin.models.ScheduledTaskDef;
+import edu.mines.gradingadmin.models.tasks.ScheduleStatus;
+import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import lombok.extern.slf4j.Slf4j;

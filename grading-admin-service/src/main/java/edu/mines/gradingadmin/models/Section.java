@@ -21,8 +21,8 @@ public class Section {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "canvas_id")
-    private String canvasId;
+    @Column(name = "canvas_id", unique = true)
+    private long canvasId;
 
     @ManyToMany
     @JoinTable(name="section_member",

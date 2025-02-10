@@ -82,7 +82,7 @@ public class CanvasService {
     }
 
     @Cacheable("canvas_users")
-    public Map<String, User> getCourseMembers(String id){
+    public Map<String, User> getCourseMembers(long id){
         OauthToken canvasToken = new NonRefreshableOauthToken(manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
 
         log.info("Retrieving users for course '{}'. Note: this may take a while depending on enrollment size of course.", id);
@@ -92,7 +92,7 @@ public class CanvasService {
 
         Map<String, User> users = Map.of();
 
-        GetUsersInCourseOptions params = new GetUsersInCourseOptions(id)
+        GetUsersInCourseOptions params = new GetUsersInCourseOptions(String.valueOf(id))
                 .enrollmentState(List.of(GetUsersInCourseOptions.EnrollmentState.ACTIVE))
                 .enrollmentType(List.of(GetUsersInCourseOptions.EnrollmentType.TEACHER, GetUsersInCourseOptions.EnrollmentType.STUDENT))
                 .include(List.of(GetUsersInCourseOptions.Include.ENROLLMENTS));
@@ -110,7 +110,7 @@ public class CanvasService {
         return users;
     }
 
-    public List<Section> getCourseSections(String id){
+    public List<Section> getCourseSections(long id){
         OauthToken canvasToken = new NonRefreshableOauthToken(manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
         log.info("Retrieving sections for course '{}'.", id);
 
@@ -119,7 +119,7 @@ public class CanvasService {
         List<Section> sections = List.of();
 
         try {
-            sections = reader.listCourseSections(id, List.of());
+            sections = reader.listCourseSections(String.valueOf(id), List.of());
         } catch (IOException e){
             log.error("Failed to get sections for course from Canvas");
         }
