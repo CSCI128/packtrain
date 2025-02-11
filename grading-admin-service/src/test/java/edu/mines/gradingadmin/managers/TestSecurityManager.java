@@ -256,63 +256,6 @@ public class TestSecurityManager implements PostgresTestContainer {
         user.setName("Test User");
         userRepo.save(user);
 
-        Jwt token = new Jwt("token", null, null, Map.of("alg", "none"), Map.of(
-                "sub", sub,
-                "cwid", cwid,
-                "email", "test@test.com",
-                "is_admin", false,
-                "name", "Test User"
-        ));
-
-    @Test
-    void verifyGetCredentialsExists(){
-        String cwid = "99999999";
-        String sub = UUID.randomUUID().toString();
-
-        User user = new User();
-        user.setOAuthId(UUID.fromString(sub));
-        user.setCwid(cwid);
-        user.setEmail("test@test.com");
-        user.setName("Test User");
-        userRepo.save(user);
-
-        Jwt token = new Jwt("token", null, null, Map.of("alg", "none"), Map.of(
-                "sub", sub,
-                "cwid", cwid,
-                "email", "test@test.com",
-                "is_admin", false,
-                "name", "Test User"
-        ));
-
-        String credential = "supersecure";
-
-        credentialService.createNewCredentialForService(cwid, "canvas", credential, CredentialType.CANVAS);
-
-        HttpServletRequest request = requestFactory(token);
-
-        SecurityManager manager = new SecurityManager(userService, credentialService);
-
-        manager.setPrincipalFromRequest(request);
-        manager.readUserFromRequest();
-
-        String actual = manager.getCredential(CredentialType.CANVAS, UUID.randomUUID());
-
-        Assertions.assertEquals(credential, actual);
-    }
-
-    @Test
-    void verifyGetCredentialsDNE(){
-        String cwid = "99999999";
-        String sub = UUID.randomUUID().toString();
-
-        HttpServletRequest request = requestFactory(token);
-        User user = new User();
-        user.setOAuthId(UUID.fromString(sub));
-        user.setCwid(cwid);
-        user.setEmail("test@test.com");
-        user.setName("Test User");
-        userRepo.save(user);
-
         SecurityManager manager = new SecurityManager(userService, credentialService);
         Jwt token = new Jwt("token", null, null, Map.of("alg", "none"), Map.of(
                 "sub", sub,
@@ -321,6 +264,8 @@ public class TestSecurityManager implements PostgresTestContainer {
                 "is_admin", false,
                 "name", "Test User"
         ));
+
+        HttpServletRequest request = requestFactory(token);
 
         manager.setPrincipalFromRequest(request);
         manager.readUserFromRequest();
@@ -328,13 +273,4 @@ public class TestSecurityManager implements PostgresTestContainer {
         Assertions.assertThrows(AccessDeniedException.class, () -> manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
     }
 
-        HttpServletRequest request = requestFactory(token);
-
-        SecurityManager manager = new SecurityManager(userService, credentialService);
-
-        manager.setPrincipalFromRequest(request);
-        manager.readUserFromRequest();
-
-        Assertions.assertThrows(AccessDeniedException.class, () -> manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
-    }
 }
