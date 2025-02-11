@@ -73,8 +73,6 @@ public class CourseService {
         return Optional.of(newCourse.getId());
     }
 
-
-    public Optional<Course> createNewCourse(String canvasId){
     public Optional<Course> importCourseFromCanvas(String canvasId){
         if (courseRepo.existsByCanvasId(canvasId)){
             log.warn("Course '{}' has already been created!", canvasId);
