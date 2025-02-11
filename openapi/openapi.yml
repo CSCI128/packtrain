@@ -795,6 +795,66 @@ paths:
               example:
                 error_source: "update_user"
                 error_message: "Credential '99-9999-9999-99' does not exist!"
+
+  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}:
+    post:
+      tags:
+        - instructor
+      operationId: new_extension
+      summary: "Create Extension request"
+      description: |
+        Create a new extension request for an assignment.
+        Replies with an extension request for a user and assignment.
+      security:
+        - openIDC: [ instructor:write ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: assignment_id
+          required: true
+          description: "The assignment ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: user_id
+          required: true
+          description: "The user ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        201:
+          description: "An extension request has been created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+        401:
+          description: "An authentication error occurred"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
 components:
   securitySchemes:
     OpenIDC:
