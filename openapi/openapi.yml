@@ -795,6 +795,111 @@ paths:
               example:
                 error_source: "update_user"
                 error_message: "Credential '99-9999-9999-99' does not exist!"
+
+  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/approve:
+    put:
+      tags:
+        - instructor
+      operationId: approve_extension
+      summary: Approves an extension for an assignment for the user.
+      description: |
+        Approves an extension for an assignment for the user.
+      security:
+        - openIDC: [ instructor:write ]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: assignment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+
+      responses:
+        202:
+          description: "Accepted"
+        400:
+          description: "Failed to approve extension"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to approve extension for user"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to approve extension for user"
+
+  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/deny:
+    put:
+      tags:
+        - instructor
+      operationId: deny_extension
+      summary: Denies an extension for an assignment for the user.
+      description: |
+        Denies an extension for an assignment for the user.
+      security:
+        - openIDC: [ instructor:write ]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: assignment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+
+      responses:
+        202:
+          description: "Accepted"
+        400:
+          description: "Failed to deny extension"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to deny extension for user"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to deny extension for user"
+
 components:
   securitySchemes:
     OpenIDC:
