@@ -55,11 +55,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
 
     @BeforeEach
     void setup(){
-        applyMocks(canvasService);
-
-//        courseService = new CourseService(securityManager, courseRepo, canvasService, new SectionService(sectionRepo, canvasService), userService, courseMemberRepo);
-
-
+//        applyMocks(canvasService);
     }
 
 
