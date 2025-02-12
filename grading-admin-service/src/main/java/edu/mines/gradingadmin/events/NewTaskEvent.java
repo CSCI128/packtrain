@@ -1,8 +1,7 @@
 package edu.mines.gradingadmin.events;
 
-import edu.mines.gradingadmin.models.ScheduledTaskDef;
+import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -12,6 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
+@Getter
 public class NewTaskEvent extends ApplicationEvent {
     @RequiredArgsConstructor
     @Setter
@@ -28,7 +28,6 @@ public class NewTaskEvent extends ApplicationEvent {
         private Optional<Consumer<T>> onJobComplete = Optional.empty();
     }
 
-    @Getter
     final private TaskData<?> data;
 
     public NewTaskEvent(Object source, TaskData<?> data) {

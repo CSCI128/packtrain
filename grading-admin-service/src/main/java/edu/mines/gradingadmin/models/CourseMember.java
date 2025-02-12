@@ -34,7 +34,11 @@ public class CourseMember {
     @EqualsAndHashCode.Exclude
     private Course course;
 
-    @ManyToMany(mappedBy = "members", cascade = {CascadeType.MERGE})
+    @ManyToMany
+    @JoinTable(name="member_section",
+            joinColumns = @JoinColumn(name = "member_id", referencedColumnName = "id"),
+            inverseJoinColumns  = @JoinColumn(name="section_id", referencedColumnName = "id")
+    )
     @EqualsAndHashCode.Exclude
     private Set<Section> sections;
 

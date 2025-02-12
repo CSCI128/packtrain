@@ -1,8 +1,8 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.events.NewTaskEvent;
-import edu.mines.gradingadmin.models.ScheduleStatus;
-import edu.mines.gradingadmin.models.ScheduledTaskDef;
+import edu.mines.gradingadmin.models.tasks.ScheduleStatus;
+import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +29,16 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
     }
 
     public static <T extends ScheduledTaskDef> void runTask(NewTaskEvent.TaskData<T> taskData) {
+        log.debug("Queuing task id '{}'", taskData.getTaskId());
         ScheduledTaskRepo<T> taskRepo = taskData.getRepo();
 
         taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.QUEUED);
 
         if (!waitToStart(taskData, taskRepo)) return;
 
+        log.debug("Starting task id '{}'", taskData.getTaskId());
+
+        taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.STARTED);
         if(!runJobs(taskData, taskRepo)) return;
 
         taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.COMPLETED);
@@ -48,6 +52,7 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
             List<ScheduleStatus> dependsOnStatus = taskData.getDependsOn().stream().map(id -> taskRepo.getStatus(id).orElse(ScheduleStatus.MISSING)).toList();
 
             if (dependsOnStatus.stream().anyMatch(t -> t == ScheduleStatus.FAILED)){
+                log.error("A dependent task failed for job '{}'.", taskData.getTaskId());
                 taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED, "Dependent task failed.");
                 return false;
             }
@@ -68,6 +73,7 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
         } while (curAttempts < MAX_ATTEMPTS);
 
         if (curAttempts == MAX_ATTEMPTS){
+            log.error("Exceeded max attempts waiting for dependent tasks to complete for job '{}'.", taskData.getTaskId());
             taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED,
                     "Too many attempts waiting for dependent tasks to complete.");
             return false;
@@ -77,13 +83,14 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
     }
 
     public static <T extends ScheduledTaskDef> boolean runJobs(NewTaskEvent.TaskData<T> taskData, ScheduledTaskRepo<T> taskRepo) {
-        taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.STARTED);
 
         T data = taskRepo.getById(taskData.getTaskId()).orElseThrow(RuntimeException::new);
 
         try{
             taskData.getOnJobStart().ifPresent(start -> start.accept(data));
         } catch (Exception e) {
+            log.error("Failed to run 'onJobStart' for task '{}'", taskData.getTaskId());
+            log.error(e.getMessage());
             taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED,
                     String.format("Failed to run 'onJobStart' for task '%s':\n%s", taskData.getTaskId(), e.getMessage()));
             return false;
@@ -92,6 +99,8 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
         try{
             taskData.getJob().accept(data);
         } catch (Exception e){
+            log.error("Failed to run 'job' for task '{}'", taskData.getTaskId());
+            log.error(e.getMessage());
             taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED,
                     String.format("Failed to run 'job' for task '%s':\n%s", taskData.getTaskId(), e.getMessage()));
             return false;
@@ -100,6 +109,8 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
         try{
             taskData.getOnJobComplete().ifPresent(start -> start.accept(data));
         } catch (Exception e){
+            log.error("Failed to run 'onJobComplete' for task '{}'", taskData.getTaskId());
+            log.error(e.getMessage());
             taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED,
                     String.format("Failed to run 'onJobComplete' for task '%s':\n%s", taskData.getTaskId(), e.getMessage()));
             return false;
@@ -111,6 +122,7 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
 
     @Override
     public void onApplicationEvent(NewTaskEvent event) {
+        log.debug("New task received from '{}'", event.getSource().getClass().getName());
         executorService.submit(() -> runTask(event.getData()));
     }
 

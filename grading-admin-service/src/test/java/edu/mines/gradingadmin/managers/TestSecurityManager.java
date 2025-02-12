@@ -256,6 +256,7 @@ public class TestSecurityManager implements PostgresTestContainer {
         user.setName("Test User");
         userRepo.save(user);
 
+        SecurityManager manager = new SecurityManager(userService, credentialService);
         Jwt token = new Jwt("token", null, null, Map.of("alg", "none"), Map.of(
                 "sub", sub,
                 "cwid", cwid,
@@ -264,14 +265,12 @@ public class TestSecurityManager implements PostgresTestContainer {
                 "name", "Test User"
         ));
 
-
         HttpServletRequest request = requestFactory(token);
-
-        SecurityManager manager = new SecurityManager(userService, credentialService);
 
         manager.setPrincipalFromRequest(request);
         manager.readUserFromRequest();
 
         Assertions.assertThrows(AccessDeniedException.class, () -> manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
     }
+
 }

@@ -15,10 +15,12 @@ import edu.ksu.canvas.requestOptions.GetSingleCourseOptions;
 import edu.ksu.canvas.requestOptions.GetUsersInCourseOptions;
 import edu.ksu.canvas.requestOptions.ListCurrentUserCoursesOptions;
 import edu.mines.gradingadmin.config.EndpointConfig;
+import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.CourseRole;
 import edu.mines.gradingadmin.models.CredentialType;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -33,100 +35,122 @@ public class CanvasService {
     private final EndpointConfig.CanvasConfig config;
     private final CanvasApiFactory canvasApiFactory;
 
-    public CanvasService(SecurityManager manager, EndpointConfig.CanvasConfig config) {
+    public static class CanvasServiceWithAuth {
+        private final CanvasApiFactory canvasApiFactory;
+        private final IdentityProvider identityProvider;
+
+        protected CanvasServiceWithAuth(CanvasApiFactory canvasApiFactory, IdentityProvider identityProvider) {
+            this.canvasApiFactory = canvasApiFactory;
+            this.identityProvider = identityProvider;
+        }
+
+        public List<Course> getAllAvailableCourses(){
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+
+            log.info("Retrieving available courses for user '{}'.", identityProvider.getUser().getEmail());
+
+            CourseReader reader = canvasApiFactory.getReader(CourseReader.class, canvasToken);
+
+            ListCurrentUserCoursesOptions params = new ListCurrentUserCoursesOptions()
+                    .withEnrollmentType(ListCurrentUserCoursesOptions.EnrollmentType.TEACHER);
+
+            List<Course> courses = List.of();
+
+            try {
+                courses = reader.listCurrentUserCourses(params);
+            } catch (IOException e) {
+                log.error("Failed to get courses from Canvas");
+            }
+
+            log.info("Retrieved {} courses for user '{}'.", courses.size(), identityProvider.getUser().getEmail());
+
+            return courses;
+        }
+
+        public Optional<Course> getCourse(String id){
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+
+            CourseReader reader = canvasApiFactory.getReader(CourseReader.class, canvasToken);
+
+            Optional<Course> course = Optional.empty();
+
+            GetSingleCourseOptions params = new GetSingleCourseOptions(id);
+
+            try {
+                course = reader.getSingleCourse(params);
+            } catch (IOException e) {
+                log.error("Failed to get course from Canvas");
+            }
+
+            return course;
+        }
+
+        @Cacheable("canvas_users")
+        public Map<String, User> getCourseMembers(long id){
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+
+            log.info("Retrieving users for course '{}'. Note: this may take a while depending on enrollment size of course.", id);
+
+
+            UserReader reader = canvasApiFactory.getReader(UserReader.class, canvasToken);
+
+            Map<String, User> users = Map.of();
+
+            GetUsersInCourseOptions params = new GetUsersInCourseOptions(String.valueOf(id))
+                    .enrollmentState(List.of(GetUsersInCourseOptions.EnrollmentState.ACTIVE))
+                    .enrollmentType(List.of(GetUsersInCourseOptions.EnrollmentType.TEACHER, GetUsersInCourseOptions.EnrollmentType.STUDENT))
+                    .include(List.of(GetUsersInCourseOptions.Include.ENROLLMENTS));
+
+            try {
+                // omg i love you KSU.
+                // automatic handling of result pages <3
+                users = reader.getUsersInCourse(params).stream().collect(Collectors.toMap(User::getSisUserId, user -> user));
+            } catch (IOException e){
+                log.error("Failed to get users from in course from Canvas.");
+            }
+
+            log.info("Retrieved {} users for course '{}'.", users.size(), id);
+
+            return users;
+        }
+
+        public List<Section> getCourseSections(long id){
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+            log.info("Retrieving sections for course '{}'.", id);
+
+            SectionReader reader = canvasApiFactory.getReader(SectionReader.class, canvasToken);
+
+            List<Section> sections = List.of();
+
+            try {
+                sections = reader.listCourseSections(String.valueOf(id), List.of());
+            } catch (IOException e){
+                log.error("Failed to get sections for course from Canvas");
+            }
+
+            log.info("Retrieved {} sections for course '{}'", sections.size(), id);
+
+            return sections;
+        }
+
+    }
+
+    public CanvasService(@Autowired(required = false) SecurityManager manager, EndpointConfig.CanvasConfig config) {
         this.manager = manager;
         this.config = config;
 
         canvasApiFactory = new CanvasApiFactory(this.config.getEndpoint().toString());
     }
 
-    public List<Course> getAllAvailableCourses(){
-        OauthToken canvasToken = new NonRefreshableOauthToken(manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
-
-        log.info("Retrieving available courses for user '{}'.", manager.getUser().getEmail());
-
-        CourseReader reader = canvasApiFactory.getReader(CourseReader.class, canvasToken);
-
-        ListCurrentUserCoursesOptions params = new ListCurrentUserCoursesOptions()
-                .withEnrollmentType(ListCurrentUserCoursesOptions.EnrollmentType.TEACHER);
-
-        List<Course> courses = List.of();
-
-        try {
-            courses = reader.listCurrentUserCourses(params);
-        } catch (IOException e) {
-            log.error("Failed to get courses from Canvas");
+    public CanvasServiceWithAuth withRequestIdentity(){
+        if (manager == null){
+            throw new RuntimeException("No request in scope");
         }
-
-        log.info("Retrieved {} courses for user '{}'.", courses.size(), manager.getUser().getEmail());
-
-        return courses;
+        return new CanvasServiceWithAuth(canvasApiFactory, manager);
     }
 
-    public Optional<Course> getCourse(String id){
-        OauthToken canvasToken = new NonRefreshableOauthToken(manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
-
-        CourseReader reader = canvasApiFactory.getReader(CourseReader.class, canvasToken);
-
-        Optional<Course> course = Optional.empty();
-
-        GetSingleCourseOptions params = new GetSingleCourseOptions(id);
-
-        try {
-            course = reader.getSingleCourse(params);
-        } catch (IOException e) {
-            log.error("Failed to get course from Canvas");
-        }
-
-        return course;
-    }
-
-    @Cacheable("canvas_users")
-    public Map<String, User> getCourseMembers(String id){
-        OauthToken canvasToken = new NonRefreshableOauthToken(manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
-
-        log.info("Retrieving users for course '{}'. Note: this may take a while depending on enrollment size of course.", id);
-
-
-        UserReader reader = canvasApiFactory.getReader(UserReader.class, canvasToken);
-
-        Map<String, User> users = Map.of();
-
-        GetUsersInCourseOptions params = new GetUsersInCourseOptions(id)
-                .enrollmentState(List.of(GetUsersInCourseOptions.EnrollmentState.ACTIVE))
-                .enrollmentType(List.of(GetUsersInCourseOptions.EnrollmentType.TEACHER, GetUsersInCourseOptions.EnrollmentType.STUDENT))
-                .include(List.of(GetUsersInCourseOptions.Include.ENROLLMENTS));
-
-        try {
-            // omg i love you KSU.
-            // automatic handling of result pages <3
-            users = reader.getUsersInCourse(params).stream().collect(Collectors.toMap(User::getSisUserId, user -> user));
-        } catch (IOException e){
-            log.error("Failed to get users from in course from Canvas.");
-        }
-
-        log.info("Retrieved {} users for course '{}'.", users.size(), id);
-
-        return users;
-    }
-
-    public List<Section> getCourseSections(String id){
-        OauthToken canvasToken = new NonRefreshableOauthToken(manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
-        log.info("Retrieving sections for course '{}'.", id);
-
-        SectionReader reader = canvasApiFactory.getReader(SectionReader.class, canvasToken);
-
-        List<Section> sections = List.of();
-
-        try {
-            sections = reader.listCourseSections(id, List.of());
-        } catch (IOException e){
-            log.error("Failed to get sections for course from Canvas");
-        }
-
-        log.info("Retrieved {} sections for course '{}'", sections.size(), id);
-
-        return sections;
+    public CanvasServiceWithAuth asUser(IdentityProvider identityProvider){
+        return new CanvasServiceWithAuth(canvasApiFactory, identityProvider);
     }
 
     public Optional<CourseRole> mapEnrollmentToRole(Enrollment enrollment){

@@ -6,16 +6,19 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.Optional;
 
 @Repository
 public interface CourseRepo extends CrudRepository<Course, UUID> {
-    boolean existsByCanvasId(String id);
+    boolean existsByCanvasId(long id);
 
     @Query("select c from course c")
     List<Course> getAll();
 
+    @Query("select c from course c where c.enabled=?1")
+    List<Course> getAll(boolean enabled);
 
     @Query("select c from course c where c.id = ?1")
     Optional<Course> getById(UUID id);
@@ -28,7 +31,4 @@ public interface CourseRepo extends CrudRepository<Course, UUID> {
 
     @Query("select c.code from course c where c.code like ?1")
     List<Course> searchByCode(String code);
-
-    @Query("select c from course c where c.enabled =?1")
-    List<Course> getAll(boolean onlyActive);
 }

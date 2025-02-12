@@ -1,4 +1,4 @@
-package edu.mines.gradingadmin.models;
+package edu.mines.gradingadmin.models.tasks;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -15,7 +15,7 @@ public class CourseImportTaskDef extends ScheduledTaskDef {
     private UUID courseToImport;
 
     @Column(name = "canvas_id")
-    private String canvasId;
+    private long canvasId;
 
     @Column(name = "overwrite_name")
     private boolean overwriteName = false;

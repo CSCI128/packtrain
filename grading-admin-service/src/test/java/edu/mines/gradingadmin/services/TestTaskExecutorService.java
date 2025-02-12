@@ -2,13 +2,12 @@ package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.events.NewTaskEvent;
-import edu.mines.gradingadmin.models.ScheduleStatus;
-import edu.mines.gradingadmin.models.ScheduledTaskDef;
+import edu.mines.gradingadmin.models.tasks.ScheduleStatus;
+import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.seeders.UserSeeders;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import jakarta.transaction.Transactional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.junit.jupiter.api.AfterEach;

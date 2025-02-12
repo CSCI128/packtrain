@@ -1,4 +1,4 @@
-package edu.mines.gradingadmin.models;
+package edu.mines.gradingadmin.models.tasks;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -14,10 +14,6 @@ import java.util.UUID;
 public class UserImportTaskDef extends ScheduledTaskDef {
     @Column(name = "course_id")
     private UUID courseToImport;
-
-    @ElementCollection
-    @CollectionTable(joinColumns = @JoinColumn(name = "id"))
-    private Set<UUID> sections;
 
     @Column(name = "assign_users_to_course")
     private boolean assignUsersToCourse = false;

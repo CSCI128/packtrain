@@ -1,14 +1,23 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.AdminApiDelegate;
-import edu.mines.gradingadmin.data.CourseMember;
+import edu.mines.gradingadmin.data.CourseDTO;
+import edu.mines.gradingadmin.data.CourseSyncTaskDTO;
+import edu.mines.gradingadmin.data.TaskDTO;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.Section;
+import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
+import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
+import edu.mines.gradingadmin.services.SectionService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
+import javax.swing.text.html.Option;
+import java.time.OffsetDateTime;
+import java.util.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,54 +26,79 @@ import java.util.UUID;
 public class AdminApiImpl implements AdminApiDelegate {
 
     private final CourseService courseService;
+    private final SectionService sectionService;
+    private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
 
-    public AdminApiImpl(CourseService courseService, SecurityManager securityManager) {
+    public AdminApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, SecurityManager securityManager) {
         this.courseService = courseService;
+        this.sectionService = sectionService;
+        this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
     }
 
     @Override
-    public ResponseEntity<edu.mines.gradingadmin.data.Course> newCourse(String canvasId) {
-        Optional<Course> course = courseService.importCourseFromCanvas(canvasId);
+    public ResponseEntity<List<TaskDTO>> importCourse(String courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+        List<TaskDTO> tasks = new LinkedList<>();
+        UUID courseUUID = UUID.fromString(courseId);
 
-        if (course.isEmpty()){
-            return ResponseEntity.notFound().build();
+        Optional<ScheduledTaskDef> courseTask = courseService.importCourseFromCanvas(
+                securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId(),
+                courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
+
+        if (courseTask.isEmpty()){
+            return ResponseEntity.badRequest().build();
         }
 
-        var courseRes = new edu.mines.gradingadmin.data.Course()
-                .id(course.get().getId().toString())
-                .canvasId(course.get().getCanvasId())
-                .code(course.get().getCode())
-                .enabled(course.get().isEnabled())
-                .name(course.get().getName())
-                .sections(course.get().getSections().stream()
-                        .map(Section::getName)
-                        .toList())
-                .members(course.get().getMembers().stream()
-                        .map(m -> new CourseMember()
-                                .canvasId(m.getCanvasId())
-                                .cwid(m.getUser().getCwid())
-                                .sections(m.getSections().stream().map(Section::getName).toList())
-                                .courseRole(CourseMember.CourseRoleEnum.fromValue(m.getRole().getRole()))
-                        ).toList());
+        tasks.add(courseTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+
+        Optional<ScheduledTaskDef> sectionTask = sectionService.createSectionsFromCanvas(
+                securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
 
 
-        return ResponseEntity.ok(courseRes);
+        if (sectionTask.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
 
+        tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+
+        if (courseSyncTaskDTO.getImportUsers()){
+            Optional<ScheduledTaskDef> importUsersTask = courseMemberService.addMembersToCourse(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID);
+
+            if (importUsersTask.isEmpty()){
+                return ResponseEntity.badRequest().build();
+            }
+
+            tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        }
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(tasks);
     }
 
     @Override
-    public ResponseEntity<List<edu.mines.gradingadmin.data.Course>> getCourses(Boolean onlyActive) {
-        List<Course> courses = courseService.getCourses(onlyActive);
+    public ResponseEntity<CourseDTO> newCourse(CourseDTO courseDTO) {
+        Optional<Course> course = courseService.createNewCourse(courseDTO.getName(), courseDTO.getTerm(), courseDTO.getCode());
+        if (course.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(course
+                .map(c -> new CourseDTO()
+                        .id(c.getId().toString())
+                        .name(c.getName())
+                        .code(c.getCode())).get());
+    }
 
-        List<edu.mines.gradingadmin.data.Course> coursesResponse = courses.stream().map(course ->
-                new edu.mines.gradingadmin.data.Course()
-                        .id(course.getId().toString())
-                        .term(course.getTerm())
-                        .enabled(course.isEnabled())
-                        .name(course.getName())
-                        .code(course.getCode())
+    @Override
+    public ResponseEntity<List<CourseDTO>> getCourses(Boolean enabled) {
+        List<Course> courses = courseService.getCourses(enabled);
+
+        List<CourseDTO> coursesResponse = courses.stream().map(course ->
+            new CourseDTO()
+                .id(course.getId().toString())
+                .term(course.getTerm())
+                .enabled(course.isEnabled())
+                .name(course.getName())
+                .code(course.getCode())
         ).toList();
 
         return ResponseEntity.ok(coursesResponse);

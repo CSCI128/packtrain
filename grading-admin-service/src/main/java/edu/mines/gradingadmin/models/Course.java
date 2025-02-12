@@ -19,7 +19,7 @@ public class Course {
     private UUID id;
 
     @Column(name = "canvas_id", unique = true)
-    private String canvasId;
+    private long canvasId;
 
     @Column(name = "term")
     private String term;

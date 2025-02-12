@@ -47,7 +47,7 @@ public class UserService {
         return Optional.of(userRepo.save(user.get()));
     }
 
-    public List<User> createUsersFromCanvas(Map<String, edu.ksu.canvas.model.User> canvasUsers){
+    public List<User> getOrCreateUsersFromCanvas(Map<String, edu.ksu.canvas.model.User> canvasUsers){
         List<User> users = new LinkedList<>();
 
         for (var user : canvasUsers.values()){
@@ -84,6 +84,8 @@ public class UserService {
         user.setAdmin(isAdmin);
         user.setEnabled(true);
 
+        log.debug("Created new user: {}", user);
+
         return Optional.of(userRepo.save(user));
     }
 
@@ -100,6 +102,8 @@ public class UserService {
         user.setEmail(email);
         user.setAdmin(isAdmin);
         user.setEnabled(true);
+
+        log.debug("Created new user with oauth id: {}", user);
 
         return Optional.of(userRepo.save(user));
     }
