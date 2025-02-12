@@ -13,9 +13,13 @@ public class CourseSeeders {
     }
 
     public Course course1() {
+        return course1(234989);
+    }
+
+    public Course course1(long id) {
         Course course = new Course();
         course.setTerm("FALL 2001");
-        course.setCanvasId(234989);
+        course.setCanvasId(id);
         course.setEnabled(true);
         course.setName("Test Course 1");
         course.setCode("fall.2001.tc.1");

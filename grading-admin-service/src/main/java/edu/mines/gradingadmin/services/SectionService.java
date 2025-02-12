@@ -40,8 +40,7 @@ public class SectionService {
 
     public void syncSectionTask(SectionImportTaskDef task){
         IdentityProvider user = impersonationManager.impersonateUser(task.getCreatedByUser());
-        List<edu.ksu.canvas.model.Section> canvasSections = canvasService.asUser(user).getCourseSections(task.getCanvasId())
-                .stream().filter(section -> !sectionRepo.existsByCanvasId(section.getId())).toList();
+        List<edu.ksu.canvas.model.Section> canvasSections = canvasService.asUser(user).getCourseSections(task.getCanvasId());
 
         Optional<Course> course = courseService.getCourse(task.getCourseToImport());
 
@@ -50,17 +49,32 @@ public class SectionService {
             return;
         }
 
-        log.info("Adding {} new sections for course '{}'", canvasSections.size(), course.get().getCode());
+        log.debug("Processing {} sections for course '{}'", canvasSections.size(), course.get().getCode());
 
-        List<Section> sections = canvasSections.stream().map(section -> {
-            var newSection = new Section();
-            newSection.setCanvasId(section.getId());
-            newSection.setName(section.getName());
-            newSection.setCourse(course.get());
-            return newSection;
-        }).toList();
+        List<Section> sections = canvasSections.stream()
+                .map(s -> createSection(s.getId(), s.getName(), course.get()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+        .toList();
 
-        sectionRepo.saveAll(sections);
+        log.info("Added {} new sections for course '{}'", sections.size(), course.get().getCode());
+    }
+
+    public Optional<Section> createSection(long canvasId, String name, Course course){
+        if (sectionRepo.existsByCanvasId(canvasId)){
+            return Optional.empty();
+        }
+
+        Section newSection = new Section();
+        newSection.setCanvasId(canvasId);
+        newSection.setName(name);
+        newSection.setCourse(course);
+
+        return Optional.of(sectionRepo.save(newSection));
+    }
+
+    public Optional<Section> getSection(UUID uuid){
+        return sectionRepo.getById(uuid);
     }
 
     public Optional<ScheduledTaskDef> createSectionsFromCanvas(User actingUser, UUID courseId, long canvasId){

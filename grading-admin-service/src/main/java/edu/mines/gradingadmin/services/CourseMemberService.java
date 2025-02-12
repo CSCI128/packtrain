@@ -63,6 +63,7 @@ public class CourseMemberService {
         Set<CourseMember> members = new HashSet<>();
 
         for(var user : users){
+            log.trace("Processing user: {}", user);
             if (!canvasUsersForCourse.containsKey(user.getCwid())){
                 log.warn("Requested user '{}' is not a member of requested class {}", user.getEmail(), course.get().getCode());
                 continue;
@@ -90,7 +91,7 @@ public class CourseMemberService {
             }
 
             if (role.isEmpty()) {
-                log.warn("Missing role for user '{}'", user.getEmail());
+                log.warn("Missing role '{}' for user '{}'", canvasUser.getEnrollments().getFirst().getType(), user.getEmail());
                 continue;
             }
 
