@@ -11,6 +11,7 @@ import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
 import edu.mines.gradingadmin.services.SectionService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
@@ -71,7 +72,20 @@ public class AdminApiImpl implements AdminApiDelegate {
             tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(OffsetDateTime.from(t.getSubmittedTime()))).get());
         }
 
-        return ResponseEntity.ok(tasks);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(tasks);
+    }
+
+    @Override
+    public ResponseEntity<CourseDTO> newCourse(CourseDTO courseDTO) {
+        Optional<Course> course = courseService.createNewCourse(courseDTO.getName(), courseDTO.getTerm(), courseDTO.getCode());
+        if (course.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(course
+                .map(c -> new CourseDTO()
+                        .id(c.getId().toString())
+                        .name(c.getName())
+                        .code(c.getCode())).get());
     }
 
     @Override

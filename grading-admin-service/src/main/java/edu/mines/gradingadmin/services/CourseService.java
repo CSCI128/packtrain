@@ -1,21 +1,17 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.events.NewTaskEvent;
-import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
-import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.CourseRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -125,13 +121,13 @@ public class CourseService {
         }
     }
 
-    public Optional<UUID> createNewCourse(String name, String term, String courseCode){
+    public Optional<Course> createNewCourse(String name, String term, String courseCode){
         Course newCourse = new Course();
         newCourse.setName(name);
         newCourse.setCode(courseCode);
         newCourse.setTerm(term);
         newCourse.setEnabled(true);
         newCourse = courseRepo.save(newCourse);
-        return Optional.of(newCourse.getId());
+        return Optional.of(newCourse);
     }
 }
