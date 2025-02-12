@@ -24,11 +24,7 @@ public class Section {
     @Column(name = "canvas_id", unique = true)
     private long canvasId;
 
-    @ManyToMany
-    @JoinTable(name="section_member",
-            joinColumns = @JoinColumn(name = "section_id", referencedColumnName = "id"),
-            inverseJoinColumns  = @JoinColumn(name="student_id", referencedColumnName = "id")
-    )
+    @ManyToMany(mappedBy = "sections")
     @EqualsAndHashCode.Exclude
     private Set<CourseMember> members;
 
