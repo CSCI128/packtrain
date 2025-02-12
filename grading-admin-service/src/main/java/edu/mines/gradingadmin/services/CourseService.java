@@ -1,6 +1,8 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.events.NewTaskEvent;
+import edu.mines.gradingadmin.managers.IdentityProvider;
+import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
@@ -22,12 +24,14 @@ public class CourseService {
     private final ScheduledTaskRepo<CourseImportTaskDef> taskRepo;
 
     private final ApplicationEventPublisher eventPublisher;
+    private final ImpersonationManager impersonationManager;
     private final CanvasService canvasService;
 
     public CourseService(CourseRepo courseRepo, ScheduledTaskRepo<CourseImportTaskDef> taskRepo,
-                         ApplicationEventPublisher eventPublisher, CanvasService canvasService) {
+                         ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, CanvasService canvasService) {
         this.courseRepo = courseRepo;
         this.taskRepo = taskRepo;
+        this.impersonationManager = impersonationManager;
         this.canvasService = canvasService;
         this.eventPublisher = eventPublisher;
     }
@@ -44,8 +48,9 @@ public class CourseService {
     }
 
     private void syncCourseTask(CourseImportTaskDef task){
+        IdentityProvider user = impersonationManager.impersonateUser(task.getCreatedByUser());
         List<edu.ksu.canvas.model.Course> availableCourses =
-                canvasService.getAllAvailableCourses()
+                canvasService.asUser(user).getAllAvailableCourses()
                         .stream()
                         .filter(course -> course.getId() == task.getCanvasId())
                         .toList();

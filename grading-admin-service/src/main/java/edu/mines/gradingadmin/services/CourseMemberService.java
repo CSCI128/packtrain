@@ -1,6 +1,8 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.events.NewTaskEvent;
+import edu.mines.gradingadmin.managers.IdentityProvider;
+import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.tasks.UserImportTaskDef;
@@ -25,8 +27,9 @@ public class CourseMemberService {
     private final CanvasService canvasService;
 
     private final ApplicationEventPublisher eventPublisher;
+    private final ImpersonationManager impersonationManager;
 
-    public CourseMemberService(CourseMemberRepo courseMemberRepo, ScheduledTaskRepo<UserImportTaskDef> taskRepo, UserService userService, SectionService sectionService, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher) {
+    public CourseMemberService(CourseMemberRepo courseMemberRepo, ScheduledTaskRepo<UserImportTaskDef> taskRepo, UserService userService, SectionService sectionService, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager) {
         this.courseMemberRepo = courseMemberRepo;
         this.taskRepo = taskRepo;
         this.userService = userService;
@@ -34,6 +37,7 @@ public class CourseMemberService {
         this.courseService = courseService;
         this.canvasService = canvasService;
         this.eventPublisher = eventPublisher;
+        this.impersonationManager = impersonationManager;
     }
 
     public void syncCourseMembersTask(UserImportTaskDef task){
@@ -50,7 +54,9 @@ public class CourseMemberService {
             return;
         }
 
-        Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse = canvasService.getCourseMembers(course.get().getCanvasId());
+        IdentityProvider impersonatedUser = impersonationManager.impersonateUser(task.getCreatedByUser());
+
+        Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse = canvasService.asUser(impersonatedUser).getCourseMembers(course.get().getCanvasId());
 
         List<User> users = userService.getOrCreateUsersFromCanvas(canvasUsersForCourse);
 

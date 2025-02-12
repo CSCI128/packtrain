@@ -27,7 +27,7 @@ public class ImpersonationManager {
         User user;
 
         protected ImpersonatedUserProvider(User user, CredentialService credentialService){
-
+            this.user = user;
             this.credentialService = credentialService;
         }
 

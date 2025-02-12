@@ -13,8 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 
 public interface CanvasSeeder {
     long course1Id = 123456L;
@@ -196,16 +195,16 @@ public interface CanvasSeeder {
      * @param service the canvas service to mock
      */
     default void applyMocks(CanvasService service){
-        Mockito.when(service.getAllAvailableCourses()).thenReturn(List.of(course1.get(), course2.get()));
-        Mockito.when(service.getCourse(anyString())).thenReturn(Optional.empty());
-        Mockito.when(service.getCourse(String.valueOf(course1Id))).thenReturn(Optional.of(course1.get()));
-        Mockito.when(service.getCourse(String.valueOf(course2Id))).thenReturn(Optional.of(course2.get()));
-        Mockito.when(service.getCourseMembers(anyLong())).thenReturn(Map.of());
-        Mockito.when(service.getCourseMembers(course1Id)).thenReturn(course1Users.get());
-        Mockito.when(service.getCourseMembers(course2Id)).thenReturn(course2Users.get());
-        Mockito.when(service.getCourseSections(anyLong())).thenReturn(List.of());
-        Mockito.when(service.getCourseSections(course1Id)).thenReturn(course1Sections.get());
-        Mockito.when(service.getCourseSections(course2Id)).thenReturn(course2Sections.get());
+        Mockito.when(service.asUser(any()).getAllAvailableCourses()).thenReturn(List.of(course1.get(), course2.get()));
+        Mockito.when(service.asUser(any()).getCourse(anyString())).thenReturn(Optional.empty());
+        Mockito.when(service.asUser(any()).getCourse(String.valueOf(course1Id))).thenReturn(Optional.of(course1.get()));
+        Mockito.when(service.asUser(any()).getCourse(String.valueOf(course2Id))).thenReturn(Optional.of(course2.get()));
+        Mockito.when(service.asUser(any()).getCourseMembers(anyLong())).thenReturn(Map.of());
+        Mockito.when(service.asUser(any()).getCourseMembers(course1Id)).thenReturn(course1Users.get());
+        Mockito.when(service.asUser(any()).getCourseMembers(course2Id)).thenReturn(course2Users.get());
+        Mockito.when(service.asUser(any()).getCourseSections(anyLong())).thenReturn(List.of());
+        Mockito.when(service.asUser(any()).getCourseSections(course1Id)).thenReturn(course1Sections.get());
+        Mockito.when(service.asUser(any()).getCourseSections(course2Id)).thenReturn(course2Sections.get());
 
     }
 
