@@ -66,7 +66,9 @@ public class SectionService {
 
         task = taskRepo.save(task);
 
-        eventPublisher.publishEvent(new NewTaskEvent.TaskData<SectionImportTaskDef>(taskRepo, task.getId(), this::syncSectionTask));
+        NewTaskEvent.TaskData<SectionImportTaskDef> taskDef = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncSectionTask);
+
+        eventPublisher.publishEvent(new NewTaskEvent(this, taskDef));
 
         return Optional.of(task);
     }

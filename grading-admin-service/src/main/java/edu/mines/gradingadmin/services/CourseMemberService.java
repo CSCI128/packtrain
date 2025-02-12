@@ -113,7 +113,7 @@ public class CourseMemberService {
         NewTaskEvent.TaskData<UserImportTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseMembersTask);
         taskDefinition.setDependsOn(dependencies);
 
-        eventPublisher.publishEvent(taskDefinition);
+        eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 
         return Optional.of(task);
     }

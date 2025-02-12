@@ -4,6 +4,7 @@ import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
+import edu.mines.gradingadmin.models.tasks.SectionImportTaskDef;
 import edu.mines.gradingadmin.repositories.CourseRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import lombok.extern.slf4j.Slf4j;
@@ -98,7 +99,9 @@ public class CourseService {
 
         task = taskRepo.save(task);
 
-        eventPublisher.publishEvent(new NewTaskEvent.TaskData<CourseImportTaskDef>(taskRepo, task.getId(), this::syncCourseTask));
+        NewTaskEvent.TaskData<CourseImportTaskDef> taskDef = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseTask);
+
+        eventPublisher.publishEvent(new NewTaskEvent(this, taskDef));
 
         return Optional.of(task);
     }
