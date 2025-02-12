@@ -104,7 +104,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<CourseDTO> getCourse(String id, List<String> include) {
-        Optional<Course> course = courseService.getCourse(UUID.fromString(id), include);
+        Optional<Course> course = courseService.getCourse(UUID.fromString(id));
 
         if(course.isEmpty()) {
             // need to do this with error controller

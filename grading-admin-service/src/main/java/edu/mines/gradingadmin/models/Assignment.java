@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.models;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -23,10 +24,10 @@ public class Assignment {
     private double points;
 
     @Column(name = "due_date")
-    private LocalDateTime dueDate;
+    private Instant dueDate;
 
     @Column(name = "unlock_date")
-    private LocalDateTime unlockDate;
+    private Instant unlockDate;
 
     @Column(name = "category")
     private String category;
