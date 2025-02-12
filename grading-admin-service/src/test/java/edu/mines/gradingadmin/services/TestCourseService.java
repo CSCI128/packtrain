@@ -1,20 +1,24 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.managers.IdentityProvider;
+import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.repositories.CourseMemberRepo;
-import edu.mines.gradingadmin.repositories.CourseRepo;
+import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
+import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
-import edu.mines.gradingadmin.repositories.SectionRepo;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
+import edu.mines.gradingadmin.seeders.UserSeeders;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,21 +34,18 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
     @Autowired
     private CourseRepo courseRepo;
 
-    @Autowired
     private CourseService courseService;
 
     @Mock
     private CanvasService canvasService;
 
-    @Mock
-    private SecurityManager securityManager;
+    @Autowired
+    private UserSeeders userSeeders;
+    @Autowired
+    private ImpersonationManager impersonationManager;
 
     @Autowired
-    private SectionRepo sectionRepo;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private CourseMemberRepo courseMemberRepo;
+    private ScheduledTaskRepo<CourseImportTaskDef> scheduledTaskRepo;
 
 
     @BeforeAll
@@ -55,12 +56,19 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
 
     @BeforeEach
     void setup(){
-//        applyMocks(canvasService);
+        courseService = new CourseService(
+                courseRepo, scheduledTaskRepo,
+                Mockito.mock(ApplicationEventPublisher.class),
+                impersonationManager, canvasService
+        );
+
+        applyMocks(canvasService);
     }
 
 
     @AfterEach
     void tearDown() {
+        userSeeders.clearAll();
         courseRepo.deleteAll();
     }
 
@@ -88,11 +96,22 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
 
     @Test
     void verifyImportCourseFromCanvas(){
-        // I am aware that this is hot garbage,
-        // I need to take a step back from this and do another refactoring pass on it.
-//        Optional<Course> importedCourse = courseService.importCourseFromCanvas(String.valueOf(course1Id));
+        Course course = courseSeeders.course1();
+        User admin = userSeeders.admin1();
 
-//        Assertions.assertTrue(importedCourse.isPresent());
+        CourseImportTaskDef taskDef = new CourseImportTaskDef();
+        taskDef.setCreatedByUser(admin);
+        taskDef.setCourseToImport(course.getId());
+        taskDef.setCanvasId(course1Id);
+        taskDef.setOverwriteCode(true);
+        taskDef.setOverwriteName(true);
+
+        courseService.syncCourseTask(taskDef);
+
+        course = courseService.getCourse(course.getId()).orElseThrow(AssertionError::new);
+
+        Assertions.assertEquals(course1.get().getCourseCode(), course.getCode());
+        Assertions.assertEquals(course1.get().getName(), course.getName());
     }
 
     @Test

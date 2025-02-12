@@ -47,7 +47,7 @@ public class CourseService {
         return courseRepo.getById(courseId);
     }
 
-    private void syncCourseTask(CourseImportTaskDef task){
+    public void syncCourseTask(CourseImportTaskDef task){
         IdentityProvider user = impersonationManager.impersonateUser(task.getCreatedByUser());
         List<edu.ksu.canvas.model.Course> availableCourses =
                 canvasService.asUser(user).getAllAvailableCourses()
