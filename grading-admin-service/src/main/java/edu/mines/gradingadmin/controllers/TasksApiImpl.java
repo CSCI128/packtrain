@@ -28,8 +28,8 @@ public class TasksApiImpl implements TasksApiDelegate {
         return ResponseEntity.ok(taskExecutorService.getScheduledTasks(securityManager.getUser()).stream()
                 .map(t -> new TaskDTO()
                         .id(t.getId())
-                        .submittedTime(OffsetDateTime.from(t.getSubmittedTime()))
-                        .completedTime(t.getCompletedTime() == null ? null : OffsetDateTime.from(t.getCompletedTime()))
+                        .submittedTime(t.getSubmittedTime())
+                        .completedTime(t.getCompletedTime() == null ? null : t.getCompletedTime())
                         .status(t.getStatus().toString())
                         .message(t.getStatusText())
         ).toList());
@@ -45,8 +45,8 @@ public class TasksApiImpl implements TasksApiDelegate {
 
         return ResponseEntity.ok(task.map(t -> new TaskDTO()
                 .id(t.getId())
-                .submittedTime(OffsetDateTime.from(t.getSubmittedTime()))
-                .completedTime(t.getCompletedTime() == null ? null : OffsetDateTime.from(t.getCompletedTime()))
+                .submittedTime(t.getSubmittedTime())
+                .completedTime(t.getCompletedTime() == null ? null : t.getCompletedTime())
                 .status(t.getStatus().toString())
                 .message(t.getStatusText())).get());
     }
