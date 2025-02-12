@@ -40,6 +40,7 @@ public class CourseMemberService {
         this.impersonationManager = impersonationManager;
     }
 
+    // todo: break up this function a bit more
     public void syncCourseMembersTask(UserImportTaskDef task){
         Optional<Course> course = courseService.getCourse(task.getCourseToImport());
         if (course.isEmpty()){
