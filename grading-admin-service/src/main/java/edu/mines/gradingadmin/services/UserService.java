@@ -50,7 +50,7 @@ public class UserService {
     public List<User> getOrCreateUsersFromCanvas(Map<String, edu.ksu.canvas.model.User> canvasUsers){
         List<User> users = new LinkedList<>();
 
-        for (var user : canvasUsers.values()){
+        for (edu.ksu.canvas.model.User user : canvasUsers.values()){
             Optional<User> newUser = getUserByCwid(user.getSisUserId())
                     .or(() -> createNewUser(user.getSisUserId(), false, user.getName(), user.getEmail()));
 

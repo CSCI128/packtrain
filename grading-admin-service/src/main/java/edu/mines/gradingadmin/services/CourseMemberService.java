@@ -63,14 +63,14 @@ public class CourseMemberService {
 
         Set<CourseMember> members = new HashSet<>();
 
-        for(var user : users){
+        for(User user : users){
             log.trace("Processing user: {}", user);
             if (!canvasUsersForCourse.containsKey(user.getCwid())){
                 log.warn("Requested user '{}' is not a member of requested class {}", user.getEmail(), course.get().getCode());
                 continue;
             }
 
-            var canvasUser = canvasUsersForCourse.get(user.getCwid());
+            edu.ksu.canvas.model.User canvasUser = canvasUsersForCourse.get(user.getCwid());
 
             if (canvasUser.getEnrollments().isEmpty()) {
                 log.warn("User '{}' is not enrolled in any sections!", user.getEmail());
