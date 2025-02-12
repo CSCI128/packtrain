@@ -109,4 +109,29 @@ public class CourseService {
 
 
 
+    public void enableCourse(UUID courseId) {
+        Optional<Course> course = courseRepo.findById(courseId);
+        if(course.isPresent()) {
+            course.get().setEnabled(true);
+            courseRepo.save(course.get());
+        }
+    }
+
+    public void disableCourse(UUID courseId) {
+        Optional<Course> course = courseRepo.findById(courseId);
+        if(course.isPresent()) {
+            course.get().setEnabled(false);
+            courseRepo.save(course.get());
+        }
+    }
+
+    public Optional<UUID> createNewCourse(String name, String term, String courseCode){
+        Course newCourse = new Course();
+        newCourse.setName(name);
+        newCourse.setCode(courseCode);
+        newCourse.setTerm(term);
+        newCourse.setEnabled(true);
+        newCourse = courseRepo.save(newCourse);
+        return Optional.of(newCourse.getId());
+    }
 }

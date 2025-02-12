@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 
 public interface CanvasSeeder {
@@ -199,12 +200,12 @@ public interface CanvasSeeder {
         Mockito.when(service.getCourse(anyString())).thenReturn(Optional.empty());
         Mockito.when(service.getCourse(String.valueOf(course1Id))).thenReturn(Optional.of(course1.get()));
         Mockito.when(service.getCourse(String.valueOf(course2Id))).thenReturn(Optional.of(course2.get()));
-        Mockito.when(service.getCourseMembers(anyString())).thenReturn(Map.of());
-        Mockito.when(service.getCourseMembers(String.valueOf(course1Id))).thenReturn(course1Users.get());
-        Mockito.when(service.getCourseMembers(String.valueOf(course2Id))).thenReturn(course2Users.get());
-        Mockito.when(service.getCourseSections(anyString())).thenReturn(List.of());
-        Mockito.when(service.getCourseSections(String.valueOf(course1Id))).thenReturn(course1Sections.get());
-        Mockito.when(service.getCourseSections(String.valueOf(course2Id))).thenReturn(course2Sections.get());
+        Mockito.when(service.getCourseMembers(anyLong())).thenReturn(Map.of());
+        Mockito.when(service.getCourseMembers(course1Id)).thenReturn(course1Users.get());
+        Mockito.when(service.getCourseMembers(course2Id)).thenReturn(course2Users.get());
+        Mockito.when(service.getCourseSections(anyLong())).thenReturn(List.of());
+        Mockito.when(service.getCourseSections(course1Id)).thenReturn(course1Sections.get());
+        Mockito.when(service.getCourseSections(course2Id)).thenReturn(course2Sections.get());
 
     }
 
