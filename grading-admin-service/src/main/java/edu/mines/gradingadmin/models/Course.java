@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 
 import java.util.Set;
@@ -16,6 +17,9 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
     private UUID id;
+
+    @Column(name = "canvas_id", unique = true)
+    private long canvasId;
 
     @Column(name = "term")
     private String term;
@@ -33,8 +37,14 @@ public class Course {
     private String pages;
 
     @OneToMany(mappedBy = "course")
+    @EqualsAndHashCode.Exclude
     private Set<Assignment> assignments;
 
     @OneToMany(mappedBy = "course")
+    @EqualsAndHashCode.Exclude
     private Set<Section> sections;
+
+    @OneToMany(mappedBy = "course")
+    @EqualsAndHashCode.Exclude
+    private Set<CourseMember> members;
 }

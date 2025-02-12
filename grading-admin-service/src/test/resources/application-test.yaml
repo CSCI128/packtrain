@@ -16,3 +16,7 @@ server:
   error:
     whitelabel:
       enabled: false
+
+logging:
+  level:
+    edu.mines.gradingadmin: trace

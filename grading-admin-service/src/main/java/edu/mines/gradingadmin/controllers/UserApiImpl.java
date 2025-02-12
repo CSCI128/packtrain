@@ -1,16 +1,17 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.UserApiDelegate;
+import edu.mines.gradingadmin.data.CredentialDTO;
+import edu.mines.gradingadmin.data.UserDTO;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Credential;
+import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Optional;
 
 @Controller
@@ -27,9 +28,9 @@ public class UserApiImpl implements UserApiDelegate {
     }
 
     @Override
-    public ResponseEntity<edu.mines.gradingadmin.data.User> getUser() {
+    public ResponseEntity<UserDTO> getUser() {
         User user = securityManager.getUser();
-        edu.mines.gradingadmin.data.User userRes = new edu.mines.gradingadmin.data.User();
+        UserDTO userRes = new UserDTO();
 
         userRes.setAdmin(user.isAdmin());
         userRes.setCwid(user.getCwid());
@@ -40,30 +41,25 @@ public class UserApiImpl implements UserApiDelegate {
     }
 
     @Override
-    public ResponseEntity<edu.mines.gradingadmin.data.Credential>
-    newCredential( edu.mines.gradingadmin.data.Credential credential) {
+    public ResponseEntity<CredentialDTO>
+    newCredential( CredentialDTO credential) {
         User user = securityManager.getUser();
 
         Optional<Credential> newCredential = credentialService.createNewCredentialForService(
                 user.getCwid(), credential.getName(),
-                credential.getApiKey(), credential.getEndpoint().toString()
+                credential.getApiKey(), CredentialType.fromString(credential.getService().toString())
         );
 
         if (newCredential.isEmpty()) {
             // need to do this with error controller
             return ResponseEntity.badRequest().build();
         }
-        edu.mines.gradingadmin.data.Credential credentialRes = new edu.mines.gradingadmin.data.Credential();
-
-        try {
-            credentialRes.setId(newCredential.get().getId().toString());
-            credentialRes.setName(newCredential.get().getName());
-            credentialRes.setEndpoint(new URI(newCredential.get().getExternalSource().getEndpoint()));
-            credentialRes.setActive(newCredential.get().isActive());
-            credentialRes.setPrivate(newCredential.get().isPrivate());
-        } catch (URISyntaxException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        CredentialDTO credentialRes = new CredentialDTO();
+        credentialRes.setId(newCredential.get().getId().toString());
+        credentialRes.setName(newCredential.get().getName());
+        credentialRes.setService(CredentialDTO.ServiceEnum.valueOf(newCredential.get().getType().toString()));
+        credentialRes.setActive(newCredential.get().isActive());
+        credentialRes.setPrivate(newCredential.get().isPrivate());
 
         return ResponseEntity.ok(credentialRes);
     }

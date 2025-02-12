@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.UserRepo;
+import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.UserSeeders;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @SpringBootTest
-public class TestUserService implements PostgresTestContainer {
+public class TestUserService implements PostgresTestContainer, CanvasSeeder {
 
     @Autowired
     UserRepo userRepo;
@@ -64,6 +65,33 @@ public class TestUserService implements PostgresTestContainer {
         Assertions.assertEquals(1, users.size());
 
         Assertions.assertEquals(id, users.getFirst().getOAuthId().toString());
+    }
+
+    @Test
+    void verifyCreateNewUsersFromCanvas(){
+        List<User> users = userRepo.getAll();
+
+        Assertions.assertTrue(users.isEmpty());
+
+        users = userService.getOrCreateUsersFromCanvas(course1Users.get());
+
+        for (var user : users) {
+            Assertions.assertTrue(userRepo.existsByCwid(user.getCwid()));
+        }
+
+    }
+
+    @Test
+    void verifyDontCreateUsersIfExistFromCanvas(){
+        List<User> users = userRepo.getAll();
+
+        Assertions.assertTrue(users.isEmpty());
+
+        userService.getOrCreateUsersFromCanvas(course1Users.get());
+        userService.getOrCreateUsersFromCanvas(course1Users.get());
+
+        Assertions.assertEquals(course1Users.get().size(), userRepo.getAll().size());
+
     }
 
 
