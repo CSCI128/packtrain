@@ -73,6 +73,12 @@ Redirect URIs: `regex`, `https://localhost.dev/.*`
 
 Finally, assign that provider to the application that you just created.
 
+## Creating users
+
+To create a user, copy the `user.json.template` in `authentik-sidecar/src/users` to `user.json` and fill in values.
+
+Recreate authentik and you can now login with the information you provided in that user file.
+
 ## Running locally
 
 You can run locally from your IDE (so you can have debugging support) with all the services!

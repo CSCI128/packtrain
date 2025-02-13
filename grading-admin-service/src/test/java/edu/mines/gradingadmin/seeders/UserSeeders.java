@@ -23,6 +23,16 @@ public class UserSeeders {
         return repo.save(user);
     }
 
+    public User user2(){
+        User user = new User();
+        user.setName("User 2");
+        user.setEmail("user2@test.com");
+        user.setCwid("80000002");
+        user.setEnabled(true);
+
+        return repo.save(user);
+    }
+
     public User admin1(){
         User user = new User();
         user.setName("Admin 1");

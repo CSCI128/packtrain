@@ -24,3 +24,11 @@ server:
   error:
     whitelabel:
       enabled: false
+
+grading-admin:
+  external-services:
+    canvas:
+      endpoint: https://elearning.mines.edu/
+      teacher-enrollment-name: "TeacherEnrollment"
+      student-enrollment-name: "StudentEnrollment"
+      ta-enrollment-name: "TaEnrollment"
