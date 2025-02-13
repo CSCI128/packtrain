@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Controller
 public class UserApiImpl implements UserApiDelegate {
@@ -78,5 +79,33 @@ public class UserApiImpl implements UserApiDelegate {
                 .toList()
         );
     }
+
+    @Override
+    public ResponseEntity<Void> markCredentialAsPrivate(String credentialId){
+        Optional<Credential> credential = credentialService.markCredentialAsPrivate(UUID.fromString(credentialId));
+        if (credential.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.accepted().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> markCredentialAsPublic(String credentialId){
+        Optional<Credential> credential = credentialService.markCredentialAsPublic(UUID.fromString(credentialId));
+        if (credential.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.accepted().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> disableCredential(String credentialId){
+        Optional<Credential> credential = credentialService.markCredentialAsInactive(UUID.fromString(credentialId));
+        if (credential.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.accepted().build();
+    }
+
 
 }
