@@ -19,6 +19,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
+import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +46,12 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
     private ImpersonationManager impersonationManager;
 
     @Autowired
+    private S3Service s3Service;
+
+    @Autowired
+    private PolicyRepo policyRepo;
+
+    @Autowired
     private ScheduledTaskRepo<CourseImportTaskDef> scheduledTaskRepo;
 
 
@@ -59,7 +66,9 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
         courseService = new CourseService(
                 courseRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
-                impersonationManager, canvasService
+                impersonationManager, canvasService,
+                s3Service, policyRepo
+
         );
 
         applyMocks(canvasService);
