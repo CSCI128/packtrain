@@ -796,7 +796,7 @@ paths:
                 error_source: "update_user"
                 error_message: "Credential '99-9999-9999-99' does not exist!"
 
-  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extension/{extension_id}:
+  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions:
     post:
       tags:
         - instructor
@@ -824,11 +824,11 @@ paths:
             example: "999-9999-9999-99"
         - name: user_id
           required: true
-          description: "The user ID"
+          description: "The user's CWID"
           in: path
           schema:
             type: string
-            example: "999-9999-9999-99"
+            example: "11111111"
         - name: extension_id
           required: true
           description: "The extension ID"
@@ -845,15 +845,6 @@ paths:
                 $ref: "#/components/schemas/Assignment"
         404:
           description: "Extension not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "User Service"
-                error_message: "Error: extension request not found"
-        401:
-          description: "An authentication error occurred"
           content:
             application/json:
               schema:
