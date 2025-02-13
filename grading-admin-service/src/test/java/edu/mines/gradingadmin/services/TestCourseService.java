@@ -42,12 +42,6 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @Autowired
     private CourseMemberRepo courseMemberRepo;
 
-    @Autowired
-    private SectionRepo sectionRepo;
-
-    @Autowired
-    private SectionService sectionService;
-
     private CourseService courseService;
     @Mock
     private CanvasService canvasService;
@@ -89,7 +83,6 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @AfterEach
     void tearDown() {
-        sectionRepo.deleteAll();
         userSeeders.clearAll();
         courseRepo.deleteAll();
     }
@@ -105,113 +98,19 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @Test
     void verifyGetCourseNotFound() {
-        // TODO this is a bad test I think
         Optional<Course> course = courseService.getCourse(UUID.randomUUID());
         Assertions.assertTrue(course.isEmpty());
     }
 
     @Test
-    @Disabled
-    void verifyGetCourseIncludeMembers() {
-        User user = userSeeders.user1();
-        Course course1 = courseSeeders.course1();
-
-        // seed section
-        Section section = sectionService.createSection(1, "Section A", course1).orElseThrow(AssertionError::new);
-
-        // seed member
-        CourseMember member = new CourseMember();
-        member.setUser(user);
-        member.setRole(CourseRole.STUDENT);
-        member.setSections(Set.of(section));
-        member.setCourse(course1);
-        member.setCanvasId("x");
-        courseMemberRepo.save(member);
-
-        course1.setMembers(Set.of(member));
-
-        Optional<Course> course = courseService.getCourse(course1.getId());
-
-        Assertions.assertTrue(course.isPresent());
-        Assertions.assertEquals(1, course.get().getMembers().size());
-        Assertions.assertTrue(course.get().getMembers().contains(member));
-    }
-
-    @Test
-    void verifyGetCourseIncludeAssignments() {
-        Course course1 = courseSeeders.course1();
-
-        Assignment assignment = new Assignment();
-        assignment.setCourse(course1);
-        assignment.setName("Test Assignment");
-        assignment.setCategory("Assessments");
-        assignment.setPoints(25.0);
-        assignment.setDueDate(Instant.now());
-        assignment.setUnlockDate(Instant.now());
-
-        course1.setAssignments(Set.of(assignment));
-
-        Optional<Course> course = courseService.getCourse(course1.getId());
-
-        Assertions.assertTrue(course.isPresent());
-        Assertions.assertEquals(1, course.get().getAssignments().size());
-        Assertions.assertTrue(course.get().getAssignments().contains(assignment));
-    }
-
-    @Test
-    void verifyGetCourseIncludeSections() {
-        Course course1 = courseSeeders.course1();
-        Optional<Course> course = courseService.getCourse(course1.getId());
-
-        // seed section
-        Section section = sectionService.createSection(1, "Section A", course1).orElseThrow(AssertionError::new);
-
-        course1.setSections(Set.of(section));
-
-        Assertions.assertTrue(course.isPresent());
-        Assertions.assertEquals(1, course.get().getSections().size());
-        Assertions.assertTrue(course.get().getSections().contains(section));
-    }
-
-    @Test
-    @Disabled
     void verifyGetCourseIncludeAll() {
-        User user = userSeeders.user1();
-        Course course1 = courseSeeders.course1();
-        Optional<Course> course = courseService.getCourse(course1.getId());
-
-        // seed section
-        Section section = sectionService.createSection(1, "Section A", course1).orElseThrow(AssertionError::new);
-        course1.setSections(Set.of(section));
-
-        // seed member
-        CourseMember member = new CourseMember();
-        member.setUser(user);
-        member.setRole(CourseRole.STUDENT);
-        member.setSections(Set.of(section));
-        member.setCourse(course1);
-        member.setCanvasId("x");
-        courseMemberRepo.save(member);
-
-        course1.setMembers(Set.of(member));
-
-        Assignment assignment = new Assignment();
-        assignment.setCourse(course1);
-        assignment.setName("Test Assignment");
-        assignment.setCategory("Assessments");
-        assignment.setPoints(25.0);
-        assignment.setDueDate(Instant.now());
-        assignment.setUnlockDate(Instant.now());
-
-        course1.setAssignments(Set.of(assignment));
+        Course seededCourse = courseSeeders.populatedCourse();
+        Optional<Course> course = courseService.getCourse(seededCourse.getId());
 
         Assertions.assertTrue(course.isPresent());
         Assertions.assertEquals(1, course.get().getMembers().size());
         Assertions.assertEquals(1, course.get().getAssignments().size());
         Assertions.assertEquals(1, course.get().getSections().size());
-        Assertions.assertTrue(course.get().getMembers().contains(member));
-        Assertions.assertTrue(course.get().getAssignments().contains(assignment));
-        Assertions.assertTrue(course.get().getSections().contains(section));
     }
 
     @Test

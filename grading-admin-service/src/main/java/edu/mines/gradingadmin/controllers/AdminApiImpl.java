@@ -9,17 +9,17 @@ import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
 import edu.mines.gradingadmin.services.SectionService;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
-import javax.swing.text.html.Option;
-import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Transactional
 @Controller
 public class AdminApiImpl implements AdminApiDelegate {
 
@@ -104,6 +104,10 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<CourseDTO> getCourse(String id, List<String> include) {
+        if (include == null) {
+            include = List.of();
+        }
+
         Optional<Course> course = courseService.getCourse(UUID.fromString(id));
 
         if(course.isEmpty()) {

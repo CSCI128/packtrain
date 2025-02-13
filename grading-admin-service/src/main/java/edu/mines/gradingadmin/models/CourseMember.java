@@ -24,7 +24,7 @@ public class CourseMember {
     @Column(name = "course_role", nullable = false)
     private CourseRole role;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id", referencedColumnName = "cwid", nullable = false)
     @EqualsAndHashCode.Exclude
     private User user;
