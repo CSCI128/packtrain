@@ -707,9 +707,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Credentials"
+                $ref: "#/components/schemas/Credentials"
         404:
           description: "User not found"
           content:

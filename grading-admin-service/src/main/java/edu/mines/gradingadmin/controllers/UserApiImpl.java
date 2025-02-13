@@ -12,6 +12,7 @@ import edu.mines.gradingadmin.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -42,7 +43,7 @@ public class UserApiImpl implements UserApiDelegate {
 
     @Override
     public ResponseEntity<CredentialDTO>
-    newCredential( CredentialDTO credential) {
+    newCredential(CredentialDTO credential) {
         User user = securityManager.getUser();
 
         Optional<Credential> newCredential = credentialService.createNewCredentialForService(
@@ -64,5 +65,18 @@ public class UserApiImpl implements UserApiDelegate {
         return ResponseEntity.ok(credentialRes);
     }
 
+    @Override
+    public ResponseEntity<List<CredentialDTO>> getCredentials() {
+        User user = securityManager.getUser();
+        return ResponseEntity.ok(credentialService.getAllCredentials(user.getCwid()).stream()
+                .map(cred -> new CredentialDTO()
+                        .id(cred.getId().toString())
+                        .name(cred.getName())
+                        .service(CredentialDTO.ServiceEnum.valueOf(cred.getType().toString()))
+                        .active(cred.isActive())
+                        ._private(cred.isPrivate()))
+                .toList()
+        );
+    }
 
 }
