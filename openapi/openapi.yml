@@ -932,6 +932,40 @@ paths:
                 error_source: "get_task"
                 error_message: "Requested task was not found"
 
+  /instructor/courses/{course_id}/policies:
+    post:
+      tags:
+        - admin
+      operationId: new_policy
+      summary: Create a new policy
+      description: |
+        Create a new policy for the course
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/NewPolicy"
+            encoding:
+              file_data:
+                contentType: "text/javascript"
+      responses:
+        201:
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewPolicy"
+
 components:
   securitySchemes:
     OpenIDC:
@@ -947,6 +981,21 @@ components:
           type: string
         error_message:
           type: string
+    NewPolicy:
+      description: "Create a new policy file"
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "Default Policy"
+        file_path:
+          type: string
+          example: "default.js"
+        file_data:
+          type: string
+          format: binary
 
     Task:
       description: "An async task on the server"

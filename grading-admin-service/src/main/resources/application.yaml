@@ -32,3 +32,7 @@ grading-admin:
       teacher-enrollment-name: "TeacherEnrollment"
       student-enrollment-name: "StudentEnrollment"
       ta-enrollment-name: "TaEnrollment"
+    s3:
+      uri: ${S3_URI:https://localhost.dev:9000}
+      access_key: ${MINIO_ROOT_USER:admin}
+      secret_key: ${S3_SECRET_KEY:?s3 secret key required}
