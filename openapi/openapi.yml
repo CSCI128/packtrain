@@ -796,7 +796,7 @@ paths:
                 error_source: "update_user"
                 error_message: "Credential '99-9999-9999-99' does not exist!"
 
-  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extension/{extension_id}/approve:
+  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/approve:
     put:
       tags:
         - instructor
@@ -824,7 +824,7 @@ paths:
           required: true
           schema:
             type: string
-            example: "99-9999-9999-99"
+            example: "11111111"
         - name: extension_id
           in: path
           required: true
@@ -852,9 +852,9 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 error_source: "update_user"
-                error_message: "Failed to approve extension for user"
+                error_message: "Failed to approve extensions for user"
 
-  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extension/{extension_id}/deny:
+  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/deny:
     put:
       tags:
         - instructor
@@ -882,7 +882,7 @@ paths:
           required: true
           schema:
             type: string
-            example: "99-9999-9999-99"
+            example: "11111111"
         - name: extension_id
           in: path
           required: true
