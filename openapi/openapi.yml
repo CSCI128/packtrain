@@ -935,7 +935,7 @@ paths:
   /instructor/courses/{course_id}/policies:
     post:
       tags:
-        - admin
+        - instructor
       operationId: new_policy
       summary: Create a new policy
       description: |
@@ -964,7 +964,32 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/NewPolicy"
+                $ref: "#/components/schemas/Policy"
+    get:
+      tags:
+        - instructor
+      operationId: get_all_policies
+      summary: Get all policies
+      description: |
+        Get all policies for a course
+      security:
+        - openIDC: [instructor:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Policy"
 
 components:
   securitySchemes:
@@ -986,6 +1011,8 @@ components:
       type: object
       required:
         - name
+        - file_path
+        - file_data
       properties:
         name:
           type: string
@@ -996,6 +1023,23 @@ components:
         file_data:
           type: string
           format: binary
+          example: |
+            // valid javascript code
+
+    Policy:
+      description: "A grading policy"
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Default Policy"
+        uri:
+          type: string
+          example: "https://s3.aws.com/999-9999-9999-99/default.js"
+        course:
+          $ref: "#/components/schemas/Course"
+        assignment:
+          $ref: "#/components/schemas/Assignment"
 
     Task:
       description: "An async task on the server"

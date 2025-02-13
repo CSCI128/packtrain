@@ -22,6 +22,15 @@ public class EndpointConfig {
         private String taEnrollment;
     }
 
+
+    @AllArgsConstructor
+    @Getter
+    public static class S3Config{
+        private URI endpoint;
+        private String accessKey;
+        private String secretKey;
+    }
+
     @Bean
     public CanvasConfig configureCanvas(
             @Value("${grading-admin.external-services.canvas.endpoint}") URI endpoint,
@@ -33,6 +42,15 @@ public class EndpointConfig {
             throw new InvalidPropertiesFormatException("Canvas endpoint not defined");
         }
         return new CanvasConfig(endpoint, teacherEnrollment, studentEnrollment, taEnrollment);
+    }
+
+    @Bean
+    public S3Config configureS3(
+            @Value("${grading-admin.external-services.s3.uri}") URI endpoint,
+            @Value("${grading-admin.external-services.s3.access_key}") String accessKey,
+            @Value("${grading-admin.external-services.s3.secret_key}") String secretKey
+    ){
+        return new S3Config(endpoint, accessKey, secretKey);
     }
 
 }
