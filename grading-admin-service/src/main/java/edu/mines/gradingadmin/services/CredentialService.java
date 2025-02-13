@@ -5,7 +5,6 @@ import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.CredentialRepo;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -22,30 +21,17 @@ public class CredentialService {
         this.userService = userService;
     }
 
-    public Optional<List<Credential>> getAllCredentials(String cwid){
+    public List<Credential> getAllCredentials(String cwid){
         Optional<User> user = userService.getUserByCwid(cwid);
         if (user.isEmpty()){
             // todo: also needs error handling via error advice handler
-            log.error("Could not find user");
-            return Optional.empty();
+            log.warn("Could not find user with CWID: '{}'", cwid);
+            return List.of();
         }
 
         List<Credential> credentials = credentialRepo.getAllByCwid(cwid);
 
-        if (credentials.isEmpty()){
-            return Optional.empty();
-        }
-
-        // Should we have a separate function that only returns active credentials?
-        /*
-        Iterator<Credential> it = credentials.iterator();
-        while(it.hasNext()){
-            Credential credential = it.next();
-            if (!credential.isActive()) {it.remove();}
-        }
-        */
-
-        return Optional.of(credentials);
+        return credentials;
     }
 
     public Optional<String> getCredentialByService(String cwid, CredentialType type){
@@ -74,15 +60,6 @@ public class CredentialService {
 
     public Optional<Credential> createNewCredentialForService(String cwid, String name, String apiKey, CredentialType type){
         // todo this needs error handling
-        if (credentialRepo.existsByCwidAndEndpoint(cwid, type)){
-            log.error("Credential with service already exists");
-            return Optional.empty();
-        }
-
-        if (credentialRepo.existsByCwidAndName(cwid, name)){
-            log.error("Credential with name already exists");
-            return Optional.empty();
-        }
 
         Credential credential = new Credential();
 
@@ -90,7 +67,17 @@ public class CredentialService {
 
         if (user.isEmpty()){
             // todo: need error handling via error advice handler
-            log.error("Could not find user and/or service");
+            log.warn("Could not find user with CWID: '{}'", cwid);
+            return Optional.empty();
+        }
+
+        if (credentialRepo.existsByCwidAndEndpoint(cwid, type)){
+            log.warn("Credential with service: '{}', already exists", type);
+            return Optional.empty();
+        }
+
+        if (credentialRepo.existsByCwidAndName(cwid, name)){
+            log.warn("Credential with name: '{}', already exists", name);
             return Optional.empty();
         }
 
@@ -109,12 +96,12 @@ public class CredentialService {
 
         if (credential.isEmpty()){
             // todo need error handling
-            log.error("Credential does not exist");
+            log.warn("Credential with ID: '{}', does not exist", credentialId);
             return Optional.empty();
         }
 
         if (!credential.get().isActive()){
-            log.error("Credential is not active");
+            log.warn("Credential with ID: '{}', is not active", credentialId);
             return Optional.empty();
         }
 
@@ -128,12 +115,12 @@ public class CredentialService {
 
         if (credential.isEmpty()){
             // todo need error handling
-            log.error("Credential does not exist");
+            log.warn("Credential with ID: '{}', does not exist", credentialId);
             return Optional.empty();
         }
 
         if (!credential.get().isActive()){
-            log.error("Credential is not active");
+            log.warn("Credential with ID: '{}', is not active", credentialId);
             return Optional.empty();
         }
 
@@ -146,7 +133,7 @@ public class CredentialService {
         Optional<Credential> credential = credentialRepo.getById(credentialId);
 
         if (credential.isEmpty()){
-            log.error("Credential does not exist");
+            log.warn("Credential with ID: '{}', does not exist", credentialId);
             return Optional.empty();
         }
 
