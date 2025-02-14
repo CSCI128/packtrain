@@ -2,6 +2,8 @@ package edu.mines.gradingadmin.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+
 import java.util.UUID;
 
 @Data
@@ -28,6 +30,7 @@ public class Credential {
 
     @ManyToOne(optional=false)
     @JoinColumn(name="user_id", referencedColumnName="cwid")
+    @ToString.Exclude
     private User owningUser;
 
     @Enumerated(EnumType.STRING)

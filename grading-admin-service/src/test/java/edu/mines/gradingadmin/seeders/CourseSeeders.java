@@ -8,17 +8,20 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Set;
 
-@Transactional
 @Service
 public class CourseSeeders {
     private final CourseRepo repo;
     private final CourseMemberRepo courseMemberRepo;
-    private final UserRepo userRepo;
+    private final SectionRepo sectionRepo;
+    private final UserSeeders userSeeders;
+    private final AssignmentRepo assignmentRepo;
 
-    public CourseSeeders(CourseRepo repo, CourseMemberRepo courseMemberRepo, UserRepo userRepo) {
+    public CourseSeeders(CourseRepo repo, CourseMemberRepo courseMemberRepo, SectionRepo sectionRepo, UserSeeders userSeeders, AssignmentRepo assignmentRepo) {
         this.repo = repo;
         this.courseMemberRepo = courseMemberRepo;
-        this.userRepo = userRepo;
+        this.sectionRepo = sectionRepo;
+        this.userSeeders = userSeeders;
+        this.assignmentRepo = assignmentRepo;
     }
 
     public Course course1() {
@@ -48,28 +51,25 @@ public class CourseSeeders {
     }
 
     public Course populatedCourse() {
-        Course course = new Course();
+        Course course = course1();
 
         // seed section
         Section section = new Section();
         section.setName("Section A");
+        section.setCourse(course);
+        section = sectionRepo.save(section);
         course.setSections(Set.of(section));
 
-        // seed user
-        User user = new User();
-        user.setName("User 1");
-        user.setEmail("user1@test.com");
-        user.setCwid("80000001");
-        user.setEnabled(true);
+        User user = userSeeders.user1();
 
         // seed member
         CourseMember member = new CourseMember();
-        member.setUser(user);
         member.setRole(CourseRole.STUDENT);
+        member.setCanvasId("999999");
+        member.setUser(user);
         member.setCourse(course);
-        member.setCanvasId("x");
-        courseMemberRepo.save(member);
-
+        member.setSections(Set.of(section));
+        member = courseMemberRepo.save(member);
         course.setMembers(Set.of(member));
 
         Assignment assignment = new Assignment();
@@ -79,13 +79,16 @@ public class CourseSeeders {
         assignment.setPoints(25.0);
         assignment.setDueDate(Instant.now());
         assignment.setUnlockDate(Instant.now());
-
+        assignmentRepo.save(assignment);
         course.setAssignments(Set.of(assignment));
 
-        return repo.save(course);
+        return course;
     }
 
     public void clearAll(){
+        courseMemberRepo.deleteAll();
+        sectionRepo.deleteAll();
+        assignmentRepo.deleteAll();
         repo.deleteAll();
     }
 }

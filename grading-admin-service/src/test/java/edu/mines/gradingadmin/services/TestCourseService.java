@@ -39,9 +39,6 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @Autowired
     private CourseRepo courseRepo;
 
-    @Autowired
-    private CourseMemberRepo courseMemberRepo;
-
     private CourseService courseService;
     @Mock
     private CanvasService canvasService;
@@ -83,8 +80,8 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @AfterEach
     void tearDown() {
+        courseSeeders.clearAll();
         userSeeders.clearAll();
-        courseRepo.deleteAll();
     }
 
     @Test
@@ -105,12 +102,12 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @Test
     void verifyGetCourseIncludeAll() {
         Course seededCourse = courseSeeders.populatedCourse();
-        Optional<Course> course = courseService.getCourse(seededCourse.getId());
 
-        Assertions.assertTrue(course.isPresent());
-        Assertions.assertEquals(1, course.get().getMembers().size());
-        Assertions.assertEquals(1, course.get().getAssignments().size());
-        Assertions.assertEquals(1, course.get().getSections().size());
+        Course course = courseService.getCourse(seededCourse.getId()).orElseThrow(AssertionError::new);
+
+        Assertions.assertEquals(1, course.getAssignments().size());
+        Assertions.assertEquals(1, course.getSections().size());
+        Assertions.assertEquals(1, course.getMembers().size());
     }
 
     @Test

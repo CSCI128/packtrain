@@ -127,7 +127,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             courseDto.setMembers(course.get().getMembers().stream().map(member ->
                     new CourseMemberDTO()
                             .canvasId(member.getCanvasId())
-                            .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(member.getRole().name()))
+                            .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(member.getRole().getRole()))
                             .cwid(member.getUser().getCwid())
                             .sections(member.getSections().stream().map(Section::getName).toList())
             ).toList());

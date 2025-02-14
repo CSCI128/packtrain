@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -35,8 +36,9 @@ public class Assignment {
     @Column(name = "enabled")
     private boolean enabled;
 
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "course_id", referencedColumnName = "id")
+    @ToString.Exclude
     private Course course;
 
 }
