@@ -1,15 +1,12 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.containers.MinioTestContainer;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
-import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
-import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.Credential;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
 import edu.mines.gradingadmin.repositories.*;
-import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
@@ -20,15 +17,13 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
-import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @SpringBootTest
 @Transactional
-public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
+public class TestCourseService implements PostgresTestContainer, CanvasSeeder, MinioTestContainer {
 
     @Autowired
     private CourseSeeders courseSeeders;
@@ -59,7 +54,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
     @BeforeAll
     static void setupClass() {
         postgres.start();
-
+        minio.start();
     }
 
     @BeforeEach

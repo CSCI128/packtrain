@@ -1,6 +1,5 @@
 package edu.mines.gradingadmin.containers;
 
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -21,7 +20,7 @@ public interface PostgresTestContainer {
 	Supplier<Object> PASSWORD = postgres::getPassword;
 
 	@DynamicPropertySource
-	static void setProperties(DynamicPropertyRegistry registry){
+	static void setPostgresProperties(DynamicPropertyRegistry registry){
 		registry.add("spring.datasource.url", CONNECTION_STRING);
 		registry.add("spring.datasource.username", USER_NAME);
 		registry.add("spring.datasource.password", PASSWORD);

@@ -71,10 +71,34 @@ public class S3Service {
             return Optional.of(courseId.toString());
         }
 
+        // Allows you to download any resources in this bucket.
+        // This is an acceptable policy for this as it is internal to the docker network,
+        // but if this were exposed, we'd want to adjust this.
+        // Generated with https://awspolicygen.s3.amazonaws.com/policygen.html
+        String policy = String.format("""
+                {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Action": [
+                        "s3:GetObject"
+                      ],
+                      "Effect": "Allow",
+                      "Resource": "arn:aws:s3:::%s/*",
+                      "Principal": "*"
+                    }
+                  ]
+                }""", courseId);
+
         MakeBucketArgs args = MakeBucketArgs.builder().bucket(courseId.toString()).build();
+        SetBucketPolicyArgs policyArgs = SetBucketPolicyArgs.builder()
+                .bucket(courseId.toString())
+                .config(policy)
+                .build();
 
         try{
             s3Client.makeBucket(args);
+            s3Client.setBucketPolicy(policyArgs);
 
         }catch (MinioException | InvalidKeyException | IOException | NoSuchAlgorithmException e){
             log.error("Failed to create new bucket for course '{}'", courseId);
