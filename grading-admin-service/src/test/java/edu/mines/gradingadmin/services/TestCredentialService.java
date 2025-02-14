@@ -153,4 +153,34 @@ class TestCredentialService implements PostgresTestContainer {
 
 
     }
+
+    @Test
+    void verifyMarkCredentialAsPrivate(){
+        User user = userSeeder.user1();
+
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
+
+        Credential newCred = credentialService.markCredentialAsPublic(cred.getId()).orElseThrow();
+        newCred = credentialService.markCredentialAsPrivate(cred.getId()).orElseThrow();
+
+        Assertions.assertEquals(cred.getId(), newCred.getId());
+
+        Assertions.assertTrue(newCred.isPrivate());
+    }
+
+    @Test
+    void verifyGetAllCredentials(){
+        User user = userSeeder.user1();
+
+        Credential cred1 = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
+        Credential cred2 = credentialService.createNewCredentialForService(user.getCwid(), "Cred2", "super_secure", CredentialType.GRADESCOPE).orElseThrow();
+
+        List<Credential> creds = credentialService.getAllCredentials(user.getCwid());
+
+        Assertions.assertEquals(creds.size(), 2);
+        Assertions.assertTrue(creds.contains(cred1));
+        Assertions.assertTrue(creds.contains(cred2));
+    }
+
+
 }

@@ -12,7 +12,9 @@ import edu.mines.gradingadmin.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Controller
 public class UserApiImpl implements UserApiDelegate {
@@ -42,7 +44,7 @@ public class UserApiImpl implements UserApiDelegate {
 
     @Override
     public ResponseEntity<CredentialDTO>
-    newCredential( CredentialDTO credential) {
+    newCredential(CredentialDTO credential) {
         User user = securityManager.getUser();
 
         Optional<Credential> newCredential = credentialService.createNewCredentialForService(
@@ -62,6 +64,47 @@ public class UserApiImpl implements UserApiDelegate {
         credentialRes.setPrivate(newCredential.get().isPrivate());
 
         return ResponseEntity.ok(credentialRes);
+    }
+
+    @Override
+    public ResponseEntity<List<CredentialDTO>> getCredentials() {
+        User user = securityManager.getUser();
+        return ResponseEntity.ok(credentialService.getAllCredentials(user.getCwid()).stream()
+                .map(cred -> new CredentialDTO()
+                        .id(cred.getId().toString())
+                        .name(cred.getName())
+                        .service(CredentialDTO.ServiceEnum.valueOf(cred.getType().toString()))
+                        .active(cred.isActive())
+                        ._private(cred.isPrivate()))
+                .toList()
+        );
+    }
+
+    @Override
+    public ResponseEntity<Void> markCredentialAsPrivate(String credentialId){
+        Optional<Credential> credential = credentialService.markCredentialAsPrivate(UUID.fromString(credentialId));
+        if (credential.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.accepted().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> markCredentialAsPublic(String credentialId){
+        Optional<Credential> credential = credentialService.markCredentialAsPublic(UUID.fromString(credentialId));
+        if (credential.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.accepted().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> disableCredential(String credentialId){
+        Optional<Credential> credential = credentialService.markCredentialAsInactive(UUID.fromString(credentialId));
+        if (credential.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.accepted().build();
     }
 
 
