@@ -2,7 +2,6 @@ package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.InstructorApiDelegate;
 import edu.mines.gradingadmin.data.CourseDTO;
-import edu.mines.gradingadmin.data.NewPolicyDTO;
 import edu.mines.gradingadmin.data.PolicyDTO;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Policy;

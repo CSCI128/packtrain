@@ -5,6 +5,7 @@ import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.Credential;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
 import edu.mines.gradingadmin.repositories.*;
