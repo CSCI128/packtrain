@@ -6,13 +6,14 @@ import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
-import edu.mines.gradingadmin.models.tasks.SectionImportTaskDef;
 import edu.mines.gradingadmin.repositories.CourseRepo;
+import edu.mines.gradingadmin.repositories.PolicyRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.transaction.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -26,14 +27,18 @@ public class CourseService {
     private final ApplicationEventPublisher eventPublisher;
     private final ImpersonationManager impersonationManager;
     private final CanvasService canvasService;
+    private final S3Service s3Service;
+    private final PolicyRepo policyRepo;
 
     public CourseService(CourseRepo courseRepo, ScheduledTaskRepo<CourseImportTaskDef> taskRepo,
-                         ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, CanvasService canvasService) {
+                         ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo) {
         this.courseRepo = courseRepo;
         this.taskRepo = taskRepo;
         this.impersonationManager = impersonationManager;
         this.canvasService = canvasService;
         this.eventPublisher = eventPublisher;
+        this.s3Service = s3Service;
+        this.policyRepo = policyRepo;
     }
 
     public List<Course> getCourses(boolean enabled) {
@@ -136,6 +141,60 @@ public class CourseService {
         newCourse.setTerm(term);
         newCourse.setEnabled(true);
         newCourse = courseRepo.save(newCourse);
+
+        Optional<String> bucketName = s3Service.createNewBucketForCourse(newCourse.getId());
+
+        if (bucketName.isEmpty()){
+            log.warn("Failed to create S3 bucket!");
+        }
+
         return Optional.of(newCourse);
+    }
+
+    public Optional<Policy> createNewCourseWidePolicy(User actingUser, UUID courseId, String policyName, String fileName, MultipartFile file){
+        // if this is slow, we may need to make this a task
+        Optional<Course> course = courseRepo.findById(courseId);
+
+        if (course.isEmpty()){
+            log.warn("Course '{}' does not exist!", courseId);
+            return Optional.empty();
+        }
+
+        log.debug("Creating new course wide policy '{}' for course '{}'", policyName, course.get().getCode());
+
+        Optional<String> policyUrl = s3Service.uploadCourseWidePolicy(actingUser, courseId, fileName, file);
+
+        if (policyUrl.isEmpty()){
+            log.warn("Failed to upload policy '{}'", policyName);
+            return Optional.empty();
+        }
+
+        // this should never happen, but if it does, then we also need to reject it as the URIs must be unique
+        if (policyRepo.existsByPolicyURI(policyUrl.get())){
+            log.warn("Policy already exists at url '{}'", policyUrl.get());
+            return Optional.empty();
+        }
+
+        Policy policy = new Policy();
+        policy.setCourse(course.get());
+        policy.setCreatedByUser(actingUser);
+        policy.setPolicyName(policyName);
+        policy.setPolicyURI(policyUrl.get());
+
+        policy = policyRepo.save(policy);
+
+        log.info("Created new policy '{}' for course '{}' at '{}'", policyName, course.get().getCode(), policyUrl.get());
+
+        return Optional.of(policy);
+    }
+
+    public List<Policy> getAllPolicies(UUID courseId){
+        Optional<Course> course = courseRepo.findById(courseId);
+
+        if (course.isEmpty()){
+            return List.of();
+        }
+
+        return policyRepo.getPoliciesByCourse(course.get());
     }
 }

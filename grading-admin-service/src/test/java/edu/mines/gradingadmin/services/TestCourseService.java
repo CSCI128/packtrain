@@ -1,14 +1,12 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.containers.MinioTestContainer;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
-import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
-import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
 import edu.mines.gradingadmin.repositories.*;
-import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
@@ -22,11 +20,10 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @SpringBootTest
 @Transactional
-public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
+public class TestCourseService implements PostgresTestContainer, CanvasSeeder, MinioTestContainer {
 
     @Autowired
     private CourseSeeders courseSeeders;
@@ -45,13 +42,19 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
     private ImpersonationManager impersonationManager;
 
     @Autowired
+    private S3Service s3Service;
+
+    @Autowired
+    private PolicyRepo policyRepo;
+
+    @Autowired
     private ScheduledTaskRepo<CourseImportTaskDef> scheduledTaskRepo;
 
 
     @BeforeAll
     static void setupClass() {
         postgres.start();
-
+        minio.start();
     }
 
     @BeforeEach
@@ -59,7 +62,9 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder {
         courseService = new CourseService(
                 courseRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
-                impersonationManager, canvasService
+                impersonationManager, canvasService,
+                s3Service, policyRepo
+
         );
 
         applyMocks(canvasService);
