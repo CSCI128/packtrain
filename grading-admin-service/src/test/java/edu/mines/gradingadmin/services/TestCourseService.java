@@ -8,6 +8,11 @@ import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
 import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
+import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.repositories.CourseMemberRepo;
+import edu.mines.gradingadmin.repositories.CourseRepo;
+import edu.mines.gradingadmin.repositories.SectionRepo;
+import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
 import jakarta.transaction.Transactional;
@@ -18,6 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,12 +40,12 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     private CourseRepo courseRepo;
 
     private CourseService courseService;
-
     @Mock
     private CanvasService canvasService;
 
     @Autowired
     private UserSeeders userSeeders;
+
     @Autowired
     private ImpersonationManager impersonationManager;
 
@@ -49,7 +57,6 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @Autowired
     private ScheduledTaskRepo<CourseImportTaskDef> scheduledTaskRepo;
-
 
     @BeforeAll
     static void setupClass() {
@@ -73,8 +80,34 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @AfterEach
     void tearDown() {
+        courseSeeders.clearAll();
         userSeeders.clearAll();
-        courseRepo.deleteAll();
+    }
+
+    @Test
+    void verifyGetCourse() {
+        Course course1 = courseSeeders.course1();
+        Optional<Course> course = courseService.getCourse(course1.getId());
+
+        Assertions.assertTrue(course.isPresent());
+        Assertions.assertEquals(course.get(), course1);
+    }
+
+    @Test
+    void verifyGetCourseNotFound() {
+        Optional<Course> course = courseService.getCourse(UUID.randomUUID());
+        Assertions.assertTrue(course.isEmpty());
+    }
+
+    @Test
+    void verifyGetCourseIncludeAll() {
+        Course seededCourse = courseSeeders.populatedCourse();
+
+        Course course = courseService.getCourse(seededCourse.getId()).orElseThrow(AssertionError::new);
+
+        Assertions.assertEquals(1, course.getAssignments().size());
+        Assertions.assertEquals(1, course.getSections().size());
+        Assertions.assertEquals(1, course.getMembers().size());
     }
 
     @Test
@@ -147,4 +180,30 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         Assertions.assertEquals("fall.2024.tc.1", course.get().getCode());
     }
 
+    @Test
+    void verifyEnableCourse() {
+        Course inactiveCourse = courseSeeders.course2();
+        Assertions.assertFalse(inactiveCourse.isEnabled());
+        courseService.enableCourse(inactiveCourse.getId());
+        Assertions.assertTrue(inactiveCourse.isEnabled());
+    }
+
+    @Test
+    void verifyDisableCourse() {
+        Course activeCourse = courseSeeders.course1();
+        Assertions.assertTrue(activeCourse.isEnabled());
+        courseService.disableCourse(activeCourse.getId());
+        Assertions.assertFalse(activeCourse.isEnabled());
+    }
+
+    @Test
+    void verifyWhenAlreadyEnabledDisabled() {
+        Course activeCourse = courseSeeders.course1();
+        Course inactiveCourse = courseSeeders.course2();
+        courseService.enableCourse(activeCourse.getId());
+        courseService.disableCourse(inactiveCourse.getId());
+
+        Assertions.assertTrue(activeCourse.isEnabled());
+        Assertions.assertFalse(inactiveCourse.isEnabled());
+    }
 }

@@ -4,6 +4,7 @@ package edu.mines.gradingadmin.models;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.Set;
 import java.util.UUID;
@@ -32,6 +33,7 @@ public class CourseMember {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Course course;
 
     @ManyToMany
@@ -40,6 +42,7 @@ public class CourseMember {
             inverseJoinColumns  = @JoinColumn(name="section_id", referencedColumnName = "id")
     )
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<Section> sections;
 
 }

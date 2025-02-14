@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.models;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.Set;
 import java.util.UUID;
@@ -36,6 +37,7 @@ public class User{
 
     @OneToMany(mappedBy = "user")
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<CourseMember> courseMemberships;
 
 }
