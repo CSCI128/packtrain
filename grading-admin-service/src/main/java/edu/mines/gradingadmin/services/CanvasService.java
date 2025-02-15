@@ -14,7 +14,7 @@ import edu.ksu.canvas.oauth.OauthToken;
 import edu.ksu.canvas.requestOptions.GetSingleCourseOptions;
 import edu.ksu.canvas.requestOptions.GetUsersInCourseOptions;
 import edu.ksu.canvas.requestOptions.ListCurrentUserCoursesOptions;
-import edu.mines.gradingadmin.config.EndpointConfig;
+import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.CourseRole;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @Service
 public class CanvasService {
     private final SecurityManager manager;
-    private final EndpointConfig.CanvasConfig config;
+    private final ExternalServiceConfig.CanvasConfig config;
     private final CanvasApiFactory canvasApiFactory;
 
     public static class CanvasServiceWithAuth {
@@ -135,7 +135,7 @@ public class CanvasService {
 
     }
 
-    public CanvasService(@Autowired(required = false) SecurityManager manager, EndpointConfig.CanvasConfig config) {
+    public CanvasService(@Autowired(required = false) SecurityManager manager, ExternalServiceConfig.CanvasConfig config) {
         this.manager = manager;
         this.config = config;
 
