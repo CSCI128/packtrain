@@ -135,4 +135,23 @@ public class CourseMemberService {
 
         return Optional.of(task);
     }
+
+    public Optional<CourseMember> addMemberToCourse(String courseId, String cwid, String canvasId, CourseRole role) {
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+        if(course.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Optional<User> user = userService.getUserByCwid(cwid);
+        if(user.isEmpty()) {
+            return Optional.empty();
+        }
+
+        CourseMember member = new CourseMember();
+        member.setRole(role);
+        member.setCanvasId(canvasId);
+        member.setUser(user.get());
+        member.setCourse(course.get());
+        return Optional.of(courseMemberRepo.save(member));
+    }
 }

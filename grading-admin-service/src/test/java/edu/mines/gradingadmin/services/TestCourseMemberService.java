@@ -205,4 +205,15 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
         Set<CourseMember> foundMembers = courseMemberRepo.getAllByCourse(course);
         Assertions.assertEquals(2, foundMembers.size());
     }
+
+    @Test
+    void verifyAddMemberToCourse() {
+        Course course = courseSeeders.course1();
+        User user = userSeeders.user1();
+
+        courseMemberService.addMemberToCourse(course.getId().toString(), user.getCwid(), "234989", CourseRole.STUDENT);
+
+        Set<CourseMember> foundMembers = courseMemberRepo.getAllByCourse(course);
+        Assertions.assertEquals(1, foundMembers.size());
+    }
 }

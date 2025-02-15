@@ -4,6 +4,7 @@ import edu.mines.gradingadmin.api.AdminApiDelegate;
 import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.CourseRole;
 import edu.mines.gradingadmin.models.Section;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
@@ -15,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
-import java.sql.Array;
 import java.util.*;
 import java.util.List;
 import java.util.Optional;
@@ -204,5 +204,20 @@ public class AdminApiImpl implements AdminApiDelegate {
                     .cwid(member.getUser().getCwid())
                     .sections(member.getSections().stream().map(Section::getName).toList()))
                 .toList());
+    }
+
+    @Override
+    public ResponseEntity<Void> addCourseMember(String courseId, CourseMemberDTO courseMemberDTO) {
+        Optional<CourseMember> courseMember = courseMemberService.addMemberToCourse(courseId,
+                courseMemberDTO.getCwid(),
+                courseMemberDTO.getCanvasId(),
+                CourseRole.valueOf(courseMemberDTO.getCourseRole().getValue()));
+
+        if(courseMember.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
