@@ -40,6 +40,16 @@ public class CourseMemberService {
         this.impersonationManager = impersonationManager;
     }
 
+    public List<CourseMember> searchCourseMembers(Course course, List<CourseRole> roles, String name, String cwid) {
+        if(name != null) {
+            return courseMemberRepo.findAllByCourseByUserName(course, name).stream().filter(x -> roles.contains(x.getRole())).toList();
+        }
+        else if(cwid != null) {
+            return courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().filter(x -> roles.contains(x.getRole())).toList();
+        }
+        return courseMemberRepo.getAllByCourse(course).stream().filter(x -> roles.contains(x.getRole())).toList();
+    }
+
     // todo: break up this function a bit more
     public void syncCourseMembersTask(UserImportTaskDef task){
         Optional<Course> course = courseService.getCourse(task.getCourseToImport());
@@ -124,5 +134,24 @@ public class CourseMemberService {
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 
         return Optional.of(task);
+    }
+
+    public Optional<CourseMember> addMemberToCourse(String courseId, String cwid, String canvasId, CourseRole role) {
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+        if(course.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Optional<User> user = userService.getUserByCwid(cwid);
+        if(user.isEmpty()) {
+            return Optional.empty();
+        }
+
+        CourseMember member = new CourseMember();
+        member.setRole(role);
+        member.setCanvasId(canvasId);
+        member.setUser(user.get());
+        member.setCourse(course.get());
+        return Optional.of(courseMemberRepo.save(member));
     }
 }

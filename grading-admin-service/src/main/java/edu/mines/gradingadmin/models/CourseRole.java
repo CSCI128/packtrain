@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 public enum CourseRole {
     STUDENT("student"),
     TA("ta"),
-    TEACHER("teacher"),
+    INSTRUCTOR("instructor"),
     OWNER("owner");
 
     @Getter

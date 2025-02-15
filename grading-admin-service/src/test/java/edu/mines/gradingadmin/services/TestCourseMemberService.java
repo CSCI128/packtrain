@@ -3,10 +3,7 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.config.EndpointConfig;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
-import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.CourseMember;
-import edu.mines.gradingadmin.models.Section;
-import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.UserImportTaskDef;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
@@ -122,5 +119,101 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
 //        Assertions.assertEquals(members.size(), section.getMembers().size());
     }
 
+    @Test
+    void verifyGetMembersByName() {
+        Course course = courseSeeders.course1();
+        User user = userSeeders.user1();
 
+        // seed member
+        CourseMember member = new CourseMember();
+        member.setRole(CourseRole.STUDENT);
+        member.setCanvasId("999999");
+        member.setUser(user);
+        member.setCourse(course);
+        member = courseMemberRepo.save(member);
+        course.setMembers(Set.of(member));
+
+        User user2 = userSeeders.user2();
+
+        // seed member
+        CourseMember member2 = new CourseMember();
+        member2.setRole(CourseRole.STUDENT);
+        member2.setCanvasId("999999");
+        member2.setUser(user2);
+        member2.setCourse(course);
+        member2 = courseMemberRepo.save(member2);
+        course.setMembers(Set.of(member2));
+
+        Set<CourseMember> foundMembers = courseMemberRepo.findAllByCourseByUserName(course, "User 2");
+        Assertions.assertEquals(1, foundMembers.size());
+    }
+
+    @Test
+    void verifyGetMembersByCwid() {
+        Course course = courseSeeders.course1();
+        User user = userSeeders.user1();
+
+        // seed member
+        CourseMember member = new CourseMember();
+        member.setRole(CourseRole.STUDENT);
+        member.setCanvasId("999999");
+        member.setUser(user);
+        member.setCourse(course);
+        member = courseMemberRepo.save(member);
+        course.setMembers(Set.of(member));
+
+        User user2 = userSeeders.user2();
+
+        // seed member
+        CourseMember member2 = new CourseMember();
+        member2.setRole(CourseRole.STUDENT);
+        member2.setCanvasId("999999");
+        member2.setUser(user2);
+        member2.setCourse(course);
+        member2 = courseMemberRepo.save(member2);
+        course.setMembers(Set.of(member2));
+
+        Set<CourseMember> foundMembers = courseMemberRepo.findAllByCourseByCwid(course, "80000001");
+        Assertions.assertEquals(1, foundMembers.size());
+    }
+
+    @Test
+    void verifyGetMembers() {
+        Course course = courseSeeders.course1();
+        User user = userSeeders.user1();
+
+        // seed member
+        CourseMember member = new CourseMember();
+        member.setRole(CourseRole.STUDENT);
+        member.setCanvasId("999999");
+        member.setUser(user);
+        member.setCourse(course);
+        member = courseMemberRepo.save(member);
+        course.setMembers(Set.of(member));
+
+        User user2 = userSeeders.user2();
+
+        // seed member
+        CourseMember member2 = new CourseMember();
+        member2.setRole(CourseRole.STUDENT);
+        member2.setCanvasId("999999");
+        member2.setUser(user2);
+        member2.setCourse(course);
+        member2 = courseMemberRepo.save(member2);
+        course.setMembers(Set.of(member2));
+
+        Set<CourseMember> foundMembers = courseMemberRepo.getAllByCourse(course);
+        Assertions.assertEquals(2, foundMembers.size());
+    }
+
+    @Test
+    void verifyAddMemberToCourse() {
+        Course course = courseSeeders.course1();
+        User user = userSeeders.user1();
+
+        courseMemberService.addMemberToCourse(course.getId().toString(), user.getCwid(), "234989", CourseRole.STUDENT);
+
+        Set<CourseMember> foundMembers = courseMemberRepo.getAllByCourse(course);
+        Assertions.assertEquals(1, foundMembers.size());
+    }
 }
