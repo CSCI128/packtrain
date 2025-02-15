@@ -11,7 +11,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 
-@Service
+//@Service
 public class RabbitMqService {
     private final ExternalServiceConfig.RabbitMqConfig rabbitMqConfig;
     private final Connection rabbitMqConnection;
