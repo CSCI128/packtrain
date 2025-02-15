@@ -1103,6 +1103,62 @@ paths:
                 items:
                   $ref: "#/components/schemas/Policy"
 
+  /instructor/courses/{course_id}:
+    get:
+      tags:
+        - instructor
+      operationId: get_course_information_instructor
+      summary: Get information for a course
+      description: |
+        Get information from a course from
+        the instructor's perspective; returns
+        members as an aggregate of all members
+        in their sections.
+      security:
+        - openIDC: [instructor:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+
+  /student/courses/{course_id}:
+    get:
+      tags:
+        - student
+      operationId: get_course_information_student
+      summary: Get information for a course
+      description: |
+        Get information from a course from
+        the student's perspective; members and
+        assignments are not returned but the
+        section the student is in is returned.
+      security:
+        - openIDC: [student:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+
 components:
   securitySchemes:
     OpenIDC:
