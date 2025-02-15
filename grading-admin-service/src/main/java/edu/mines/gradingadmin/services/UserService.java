@@ -38,7 +38,7 @@ public class UserService {
         return userRepo.getAll();
     }
 
-    public Optional<User> updateUser(String cwid, boolean isAdmin, String name, String email){
+    public Optional<User> updateUser(String cwid, String name, String email){
         Optional<User> user = getUserByCwid(cwid);
 
         if (user.isEmpty()){
@@ -47,7 +47,6 @@ public class UserService {
 
         user.get().setEmail(email);
         user.get().setName(name);
-        user.get().setAdmin(isAdmin);
 
 
         return Optional.of(userRepo.save(user.get()));
