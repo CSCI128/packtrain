@@ -250,4 +250,38 @@ public class AdminApiImpl implements AdminApiDelegate {
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+    @Override
+    public ResponseEntity<Void> enableUser(String cwid) {
+        Optional<User> user = userService.enableUser(cwid);
+
+        if (user.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.accepted().build();
+
+    }
+
+    @Override
+    public ResponseEntity<Void> disableUser(String cwid) {
+        Optional<User> user = userService.disableUser(cwid);
+
+        if (user.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.accepted().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> makeAdmin(String cwid) {
+        Optional<User> user = userService.makeAdmin(cwid);
+
+        if (user.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.accepted().build();
+    }
 }

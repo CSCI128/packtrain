@@ -1,13 +1,18 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.CourseRole;
 import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.UserRepo;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
+import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,10 +25,18 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
     UserRepo userRepo;
 
     @Autowired
+    CourseMemberRepo courseMemberRepo;
+
+    @Autowired
     UserSeeders userSeeders;
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    CourseMemberService courseMemberService;
+    @Autowired
+    private CourseSeeders courseSeeders;
 
     @BeforeAll
     static void setupClass() {
@@ -32,7 +45,9 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
 
     @AfterEach
     void tearDown(){
+        courseMemberRepo.deleteAll();
         userRepo.deleteAll();
+        courseSeeders.clearAll();
     }
 
     @Test
@@ -94,6 +109,52 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
 
     }
 
+    @Test
+    void verifyMakeAdminNoMemberships(){
+        User user1 = userSeeders.user1();
+
+        userService.makeAdmin(user1.getCwid());
+
+        Optional<User> user = userService.getUserByCwid(user1.getCwid());
+        Assertions.assertTrue(user.isPresent());
+
+        Assertions.assertTrue(user.get().isAdmin());
+        Assertions.assertEquals(user1.getCwid(), user.get().getCwid());
+    }
+
+    @Test
+    void verifyMakeAdminTeacherMembership(){
+        User user1 = userSeeders.user1();
+
+        Course course1 = courseSeeders.course1();
+
+        courseMemberService.addMemberToCourse(course1.getId().toString(), user1.getCwid(), "99999", CourseRole.INSTRUCTOR);
+
+        userService.makeAdmin(user1.getCwid());
+
+        Optional<User> user = userService.getUserByCwid(user1.getCwid());
+        Assertions.assertTrue(user.isPresent());
+
+        Assertions.assertTrue(user.get().isAdmin());
+        Assertions.assertEquals(user1.getCwid(), user.get().getCwid());
+    }
+
+    @Test
+    void verifyMakeAdminStudentMembership(){
+        User user1 = userSeeders.user1();
+
+        Course course1 = courseSeeders.course1();
+
+        courseMemberService.addMemberToCourse(course1.getId().toString(), user1.getCwid(), "99999", CourseRole.STUDENT);
+
+        userService.makeAdmin(user1.getCwid());
+
+        Optional<User> user = userService.getUserByCwid(user1.getCwid());
+        Assertions.assertTrue(user.isPresent());
+
+        Assertions.assertFalse(user.get().isAdmin());
+        Assertions.assertEquals(user1.getCwid(), user.get().getCwid());
+    }
 
 
 

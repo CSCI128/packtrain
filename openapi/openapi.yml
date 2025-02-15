@@ -676,12 +676,12 @@ paths:
       parameters:
         - name: cwid
           in: path
-          required: false
+          required: true
           schema:
             type: string
             example: "99999999"
       responses:
-        202:
+        201:
           description: "Created"
         404:
           description: "User not found"
@@ -706,13 +706,44 @@ paths:
       parameters:
         - name: cwid
           in: path
-          required: false
+          required: true
+          schema:
+            type: string
+            example: "99999999"
+      responses:
+        201:
+          description: "Created"
+        404:
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to update user"
+
+  /admin/users/{cwid}/admin:
+    put:
+      tags:
+        - admin
+      operationId: make_admin
+      summary: "Make a user an admin"
+      description: |
+        Make a user an admin.
+        This will fail if the account is disabled or if the requested user is enrolled as a student in any classes
+      security:
+        - openIDC: [admin:write]
+      parameters:
+        - name: cwid
+          in: path
+          required: true
           schema:
             type: string
             example: "99999999"
       responses:
         202:
-          description: "Created"
+          description: "Accepted"
         404:
           description: "User not found"
           content:
@@ -1345,6 +1376,9 @@ components:
         admin:
           type: boolean
           example: false
+        enabled:
+          type: boolean
+          example: true
 
     CourseMember:
       description: "A user in a course"
