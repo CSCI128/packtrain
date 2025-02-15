@@ -1,6 +1,6 @@
 package edu.mines.gradingadmin.services;
 
-import edu.mines.gradingadmin.config.EndpointConfig;
+import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
@@ -68,7 +68,7 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
         // the sin of partial mocking
         canvasService = Mockito.spy(
                 new CanvasService(null,
-                new EndpointConfig.CanvasConfig(URI.create("https://test.com"), "TeacherEnrollment", "StudentEnrollment", "TaEnrollmentEnrollment"))
+                new ExternalServiceConfig.CanvasConfig(URI.create("https://test.com"), "TeacherEnrollment", "StudentEnrollment", "TaEnrollmentEnrollment"))
         );
 
         courseMemberService = new CourseMemberService(
