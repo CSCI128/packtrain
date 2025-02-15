@@ -32,19 +32,36 @@ public class UserApiImpl implements UserApiDelegate {
     @Override
     public ResponseEntity<UserDTO> getUser() {
         User user = securityManager.getUser();
-        UserDTO userRes = new UserDTO();
 
-        userRes.setAdmin(user.isAdmin());
-        userRes.setCwid(user.getCwid());
-        userRes.setName(user.getName());
-        userRes.setEmail(user.getEmail());
-
-        return ResponseEntity.ok(userRes);
+        return ResponseEntity.ok(new UserDTO()
+                .cwid(user.getCwid())
+                .email(user.getEmail())
+                .name(user.getName())
+                .admin(user.isAdmin())
+                .enabled(user.isEnabled())
+        );
     }
 
     @Override
-    public ResponseEntity<CredentialDTO>
-    newCredential(CredentialDTO credential) {
+    public ResponseEntity<UserDTO> updateUser(UserDTO userDTO) {
+        Optional<User> user = userService.updateUser(userDTO.getCwid(), userDTO.getName(), userDTO.getEmail());
+
+        if (user.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.accepted().body(user
+                .map(u -> new UserDTO()
+                        .cwid(user.get().getCwid())
+                        .email(user.get().getEmail())
+                        .name(user.get().getName())
+                        .admin(user.get().isAdmin())
+                        .enabled(user.get().isEnabled()))
+                .get());
+    }
+
+    @Override
+    public ResponseEntity<CredentialDTO> newCredential(CredentialDTO credential) {
         User user = securityManager.getUser();
 
         Optional<Credential> newCredential = credentialService.createNewCredentialForService(

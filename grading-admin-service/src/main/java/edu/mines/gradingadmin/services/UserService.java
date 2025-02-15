@@ -1,7 +1,9 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.models.CourseRole;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.UserRepo;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -32,7 +34,11 @@ public class UserService {
         return Optional.of(userRepo.save(user));
     }
 
-    public Optional<User> updateUser(String cwid, boolean isAdmin, String name, String email){
+    public List<User> getAllUsers(){
+        return userRepo.getAll();
+    }
+
+    public Optional<User> updateUser(String cwid, String name, String email){
         Optional<User> user = getUserByCwid(cwid);
 
         if (user.isEmpty()){
@@ -41,7 +47,6 @@ public class UserService {
 
         user.get().setEmail(email);
         user.get().setName(name);
-        user.get().setAdmin(isAdmin);
 
 
         return Optional.of(userRepo.save(user.get()));
@@ -130,6 +135,31 @@ public class UserService {
         user.get().setEnabled(true);
 
         return Optional.of(userRepo.save(user.get()));
+    }
+
+    @Transactional
+    public Optional<User> makeAdmin(String cwidToMakeAdmin){
+        Optional<User> user = getUserByCwid(cwidToMakeAdmin);
+
+        if (user.isEmpty()){
+            return Optional.empty();
+        }
+
+        boolean isStudent = user.get().getCourseMemberships().stream()
+                .anyMatch(u -> u.getRole() == CourseRole.STUDENT);
+
+        if (isStudent){
+            log.warn("Attempt to make student '{}' admin!", user.get().getEmail());
+            return Optional.empty();
+        }
+
+        user.get().setAdmin(true);
+
+        log.info("Made user '{}' an admin", user.get().getEmail());
+
+        return Optional.of(userRepo.save(user.get()));
+
+
     }
 
 

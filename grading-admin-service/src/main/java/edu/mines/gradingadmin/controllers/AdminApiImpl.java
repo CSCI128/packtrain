@@ -3,14 +3,12 @@ package edu.mines.gradingadmin.controllers;
 import edu.mines.gradingadmin.api.AdminApiDelegate;
 import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.managers.SecurityManager;
-import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.CourseMember;
-import edu.mines.gradingadmin.models.CourseRole;
-import edu.mines.gradingadmin.models.Section;
+import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
 import edu.mines.gradingadmin.services.SectionService;
+import edu.mines.gradingadmin.services.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,12 +27,14 @@ public class AdminApiImpl implements AdminApiDelegate {
     private final SectionService sectionService;
     private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
+    private final UserService userService;
 
-    public AdminApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, SecurityManager securityManager) {
+    public AdminApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, SecurityManager securityManager, UserService userService) {
         this.courseService = courseService;
         this.sectionService = sectionService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
+        this.userService = userService;
     }
 
     @Override
@@ -219,5 +219,69 @@ public class AdminApiImpl implements AdminApiDelegate {
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @Override
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+
+        return ResponseEntity.ok(users.stream()
+                .map(u -> new UserDTO()
+                        .cwid(u.getCwid())
+                        .email(u.getEmail())
+                        .name(u.getName())
+                        .admin(u.isAdmin())
+                        .enabled(u.isEnabled()))
+                .toList());
+    }
+
+    @Override
+    public ResponseEntity<Void> createUser(UserDTO userDTO) {
+        Optional<User> user = userService.createNewUser(
+                userDTO.getCwid(),
+                userDTO.getAdmin(),
+                userDTO.getName(),
+                userDTO.getEmail()
+        );
+
+        if (user.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @Override
+    public ResponseEntity<Void> enableUser(String cwid) {
+        Optional<User> user = userService.enableUser(cwid);
+
+        if (user.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.accepted().build();
+
+    }
+
+    @Override
+    public ResponseEntity<Void> disableUser(String cwid) {
+        Optional<User> user = userService.disableUser(cwid);
+
+        if (user.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.accepted().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> makeAdmin(String cwid) {
+        Optional<User> user = userService.makeAdmin(cwid);
+
+        if (user.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.accepted().build();
     }
 }
