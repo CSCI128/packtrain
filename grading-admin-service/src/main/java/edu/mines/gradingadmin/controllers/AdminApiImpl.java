@@ -4,6 +4,7 @@ import edu.mines.gradingadmin.api.AdminApiDelegate;
 import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.CourseRole;
 import edu.mines.gradingadmin.models.Section;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.services.CourseMemberService;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
+import java.sql.Array;
 import java.util.*;
 import java.util.List;
 import java.util.Optional;
@@ -161,5 +163,46 @@ public class AdminApiImpl implements AdminApiDelegate {
     public ResponseEntity<Void> disableCourse(String courseId) {
         courseService.disableCourse(UUID.fromString(courseId));
         return ResponseEntity.accepted().build();
+    }
+
+    @Override
+    public ResponseEntity<List<CourseMemberDTO>> getMembers(String courseId, List<String> enrollments, String name, String cwid) {
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+
+        if(course.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        if(name != null && cwid != null) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<CourseRole> roles = new ArrayList<>();
+        if (enrollments == null) {
+            roles = List.of(CourseRole.values());
+        }
+        else {
+            if (enrollments.contains("tas")) {
+                roles.add(CourseRole.TA);
+            }
+
+            if (enrollments.contains("instructors")) {
+                roles.add(CourseRole.INSTRUCTOR);
+            }
+
+            if (enrollments.contains("students")) {
+                roles.add(CourseRole.STUDENT);
+            }
+        }
+
+        return ResponseEntity.ok(courseMemberService.searchCourseMembers(course.get(), roles, name, cwid).stream()
+                .map(member -> new CourseMemberDTO()
+                    .canvasId(member.getCanvasId())
+                    .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(member.getRole().getRole()))
+                    .cwid(member.getUser().getCwid())
+                    .sections(member.getSections().stream().map(Section::getName).toList()))
+                .toList());
     }
 }

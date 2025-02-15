@@ -160,7 +160,7 @@ public class CanvasService {
         // Also, Mines is allowed to override these names if they want to
 
         if (enrollment.getType().equals(config.getTeacherEnrollment())){
-            return Optional.of(CourseRole.TEACHER);
+            return Optional.of(CourseRole.INSTRUCTOR);
         }
         else if (enrollment.getType().equals(config.getStudentEnrollment())) {
             return Optional.of(CourseRole.STUDENT);

@@ -122,5 +122,18 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
 //        Assertions.assertEquals(members.size(), section.getMembers().size());
     }
 
+    @Test
+    void verifyGetMembersByName() {
 
+    }
+
+    @Test
+    void verifyGetMembersByCwid() {
+
+    }
+
+    @Test
+    void verifyGetMembers() {
+
+    }
 }

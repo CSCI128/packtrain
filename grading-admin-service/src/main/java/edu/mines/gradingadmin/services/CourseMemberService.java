@@ -10,6 +10,7 @@ import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -38,6 +39,16 @@ public class CourseMemberService {
         this.canvasService = canvasService;
         this.eventPublisher = eventPublisher;
         this.impersonationManager = impersonationManager;
+    }
+
+    public List<CourseMember> searchCourseMembers(Course course, List<CourseRole> roles, String name, String cwid) {
+        if(name != null) {
+            return courseMemberRepo.findAllByCourseByUserName(course, name).stream().filter(x -> roles.contains(x.getRole())).toList();
+        }
+        else if(cwid != null) {
+            return courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().filter(x -> roles.contains(x.getRole())).toList();
+        }
+        return courseMemberRepo.getAllByCourse(course).stream().filter(x -> roles.contains(x.getRole())).toList();
     }
 
     // todo: break up this function a bit more
