@@ -1105,6 +1105,62 @@ paths:
                 items:
                   $ref: "#/components/schemas/Policy"
 
+/instructor/courses/{course_id}:
+  get:
+    tags:
+      - instructor
+    operationId: get_course_information
+    summary: Get information for a course
+    description: |
+      Get information from a course from
+      the instructor's perspective
+    security:
+      - openIDC: [instructor:read]
+    parameters:
+      - name: course_id
+        in: path
+        required: true
+        schema:
+          type: string
+          example: "999-9999-9999-99"
+    responses:
+      200:
+        description: "OK"
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Course"
+
+/student/courses/{course_id}:
+  get:
+    tags:
+      - student
+    operationId: get_course_information
+    summary: Get information for a course
+    description: |
+      Get information from a course from
+      the instructor's perspective
+    security:
+      - openIDC: [student:read]
+    parameters:
+      - name: course_id
+        in: path
+        required: true
+        schema:
+          type: string
+          example: "999-9999-9999-99"
+    responses:
+      200:
+        description: "OK"
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Course"
+
 components:
   securitySchemes:
     OpenIDC:
