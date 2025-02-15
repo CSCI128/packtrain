@@ -36,3 +36,5 @@ grading-admin:
       uri: ${S3_URI:https://localhost.dev:9000}
       access_key: ${MINIO_ROOT_USER:admin}
       secret_key: ${S3_SECRET_KEY:?s3 secret key required}
+    rabbitmq:
+      uri: amqp://${RABBITMQ_USER:admin}:${RABBITMQ_PASSWORD:?rabbitmq password required}@${RABBITMQ_HOST:localhost.dev:5672}

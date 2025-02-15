@@ -1,6 +1,6 @@
 package edu.mines.gradingadmin.services;
 
-import edu.mines.gradingadmin.config.EndpointConfig;
+import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.models.User;
 import io.minio.*;
 import io.minio.errors.*;
@@ -24,9 +24,9 @@ import java.util.UUID;
 public class S3Service {
 
     private final MinioClient s3Client;
-    private final EndpointConfig.S3Config config;
+    private final ExternalServiceConfig.S3Config config;
 
-    public S3Service(EndpointConfig.S3Config config) throws MalformedURLException {
+    public S3Service(ExternalServiceConfig.S3Config config) throws MalformedURLException {
         this.config = config;
         s3Client = MinioClient.builder()
                 .endpoint(config.getEndpoint().toURL())

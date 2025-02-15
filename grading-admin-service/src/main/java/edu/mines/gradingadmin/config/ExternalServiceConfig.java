@@ -2,9 +2,7 @@ package edu.mines.gradingadmin.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,7 +10,7 @@ import java.net.URI;
 import java.util.InvalidPropertiesFormatException;
 
 @Configuration
-public class EndpointConfig {
+public class ExternalServiceConfig {
     @AllArgsConstructor
     @Getter
     public static class CanvasConfig{
@@ -30,6 +28,12 @@ public class EndpointConfig {
         private String accessKey;
         private String secretKey;
     }
+
+    @AllArgsConstructor
+    @Getter
+    public static class RabbitMqConfig{
+        private URI uri;
+    };
 
     @Bean
     public CanvasConfig configureCanvas(
@@ -52,5 +56,14 @@ public class EndpointConfig {
     ){
         return new S3Config(endpoint, accessKey, secretKey);
     }
+
+    @Bean
+    public RabbitMqConfig configRabbitMq(
+            @Value("${grading-admin.external-services.rabbitmq.uri}") URI uri
+    ){
+        return new RabbitMqConfig(uri);
+    }
+
+
 
 }
