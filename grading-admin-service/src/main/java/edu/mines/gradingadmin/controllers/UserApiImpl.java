@@ -43,6 +43,24 @@ public class UserApiImpl implements UserApiDelegate {
     }
 
     @Override
+    public ResponseEntity<UserDTO> updateUser(UserDTO userDTO) {
+        Optional<User> user = userService.updateUser(userDTO.getCwid(), userDTO.getName(), userDTO.getEmail());
+
+        if (user.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.accepted().body(user
+                .map(u -> new UserDTO()
+                        .cwid(user.get().getCwid())
+                        .email(user.get().getEmail())
+                        .name(user.get().getName())
+                        .admin(user.get().isAdmin())
+                        .enabled(user.get().isEnabled()))
+                .get());
+    }
+
+    @Override
     public ResponseEntity<CredentialDTO> newCredential(CredentialDTO credential) {
         User user = securityManager.getUser();
 
