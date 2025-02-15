@@ -1111,7 +1111,9 @@ paths:
       summary: Get information for a course
       description: |
         Get information from a course from
-        the instructor's perspective
+        the instructor's perspective; returns
+        members as an aggregate of all members
+        in their sections.
       security:
         - openIDC: [instructor:read]
       parameters:
@@ -1127,9 +1129,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Course"
+                $ref: "#/components/schemas/Course"
 
   /student/courses/{course_id}:
     get:
@@ -1139,7 +1139,9 @@ paths:
       summary: Get information for a course
       description: |
         Get information from a course from
-        the instructor's perspective
+        the student's perspective; members and
+        assignments are not returned but the
+        section the student is in is returned.
       security:
         - openIDC: [student:read]
       parameters:
@@ -1155,9 +1157,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Course"
+                $ref: "#/components/schemas/Course"
 
 components:
   securitySchemes:
