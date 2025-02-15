@@ -615,7 +615,26 @@ paths:
                 error_source: "update_course"
                 error_message: "Course '999-9999-9999-99' does not exist"
 
-  /admin/users/:
+  /admin/users:
+    get:
+      tags:
+        - admin
+      operationId: get_all_users
+      summary: "Get all users"
+      description: |
+        Gets all the users in the system
+      security:
+        - openIDC: [admin:read]
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
     post:
       tags:
         - admin
@@ -632,7 +651,7 @@ paths:
             schema:
               $ref: "#/components/schemas/User"
       responses:
-        202:
+        201:
           description: "Created"
         400:
           description: "Failed to create new user"
@@ -643,6 +662,66 @@ paths:
               example:
                 error_source: "create_user"
                 error_message: "Failed to create new user"
+
+  /admin/users/{cwid}/enable:
+    put:
+      tags:
+        - admin
+      operationId: enable_user
+      summary: "enable a user"
+      description: |
+        Enables a user
+      security:
+        - openIDC: [admin:write]
+      parameters:
+        - name: cwid
+          in: path
+          required: false
+          schema:
+            type: string
+            example: "99999999"
+      responses:
+        202:
+          description: "Created"
+        404:
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to update user"
+
+  /admin/users/{cwid}/disable:
+    put:
+      tags:
+        - admin
+      operationId: disable_user
+      summary: "disable a user"
+      description: |
+        Disables a user
+      security:
+        - openIDC: [admin:write]
+      parameters:
+        - name: cwid
+          in: path
+          required: false
+          schema:
+            type: string
+            example: "99999999"
+      responses:
+        202:
+          description: "Created"
+        404:
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to update user"
 
   /user/credential:
     post:
@@ -756,6 +835,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+
   /user/{credential_id}/disable:
     put:
       tags:
