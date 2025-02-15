@@ -32,6 +32,10 @@ public class UserService {
         return Optional.of(userRepo.save(user));
     }
 
+    public List<User> getAllUsers(){
+        return userRepo.getAll();
+    }
+
     public Optional<User> updateUser(String cwid, boolean isAdmin, String name, String email){
         Optional<User> user = getUserByCwid(cwid);
 
