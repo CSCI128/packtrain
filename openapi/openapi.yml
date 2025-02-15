@@ -91,7 +91,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Course"
 
-
   /admin/courses/{course_id}:
     put:
       tags:
@@ -230,7 +229,6 @@ paths:
               example:
                 error_source: "Canvas Service"
                 error_message: "Error: invalid token"
-
 
   /admin/courses/{course_id}/sync:
     post:
@@ -885,7 +883,7 @@ paths:
       description: |
         Approves an extension for an assignment for the user.
       security:
-        - openIDC: [ instructor:write ]
+        - openIDC: [instructor:write]
       parameters:
         - name: course_id
           in: path
@@ -943,7 +941,7 @@ paths:
       description: |
         Denies an extension for an assignment for the user.
       security:
-        - openIDC: [ instructor:write ]
+        - openIDC: [instructor:write]
       parameters:
         - name: course_id
           in: path
@@ -991,7 +989,7 @@ paths:
               example:
                 error_source: "update_user"
                 error_message: "Failed to deny extension for user"
-                
+
   /tasks:
     get:
       tags:
@@ -1105,61 +1103,61 @@ paths:
                 items:
                   $ref: "#/components/schemas/Policy"
 
-/instructor/courses/{course_id}:
-  get:
-    tags:
-      - instructor
-    operationId: get_course_information
-    summary: Get information for a course
-    description: |
-      Get information from a course from
-      the instructor's perspective
-    security:
-      - openIDC: [instructor:read]
-    parameters:
-      - name: course_id
-        in: path
-        required: true
-        schema:
-          type: string
-          example: "999-9999-9999-99"
-    responses:
-      200:
-        description: "OK"
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: "#/components/schemas/Course"
+  /instructor/courses/{course_id}:
+    get:
+      tags:
+        - instructor
+      operationId: get_course_information_instructor
+      summary: Get information for a course
+      description: |
+        Get information from a course from
+        the instructor's perspective
+      security:
+        - openIDC: [instructor:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
 
-/student/courses/{course_id}:
-  get:
-    tags:
-      - student
-    operationId: get_course_information
-    summary: Get information for a course
-    description: |
-      Get information from a course from
-      the instructor's perspective
-    security:
-      - openIDC: [student:read]
-    parameters:
-      - name: course_id
-        in: path
-        required: true
-        schema:
-          type: string
-          example: "999-9999-9999-99"
-    responses:
-      200:
-        description: "OK"
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: "#/components/schemas/Course"
+  /student/courses/{course_id}:
+    get:
+      tags:
+        - student
+      operationId: get_course_information_student
+      summary: Get information for a course
+      description: |
+        Get information from a course from
+        the instructor's perspective
+      security:
+        - openIDC: [student:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
 
 components:
   securitySchemes:
