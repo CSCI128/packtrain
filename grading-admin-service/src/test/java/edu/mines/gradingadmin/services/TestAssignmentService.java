@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.models.Assignment;
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.repositories.UserRepo;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -21,6 +22,9 @@ public class TestAssignmentService implements PostgresTestContainer {
     @Autowired
     private AssignmentService assignmentService;
 
+    @Autowired
+    private UserRepo userRepo;
+
     @BeforeAll
     static void setupClass(){
         postgres.start();
@@ -29,8 +33,7 @@ public class TestAssignmentService implements PostgresTestContainer {
     @AfterEach
     void tearDown(){
         courseSeeders.clearAll();
-
-
+        userRepo.deleteAll();
     }
 
     @Test
