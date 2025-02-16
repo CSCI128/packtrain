@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.repositories;
 
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.CourseMember;
+import edu.mines.gradingadmin.models.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -18,4 +19,6 @@ public interface CourseMemberRepo extends CrudRepository<CourseMember, UUID> {
 
     @Query("select m from course_member m where m.course = ?1 and m.user.cwid like concat('%',?2,'%')")
     Set<CourseMember> findAllByCourseByCwid(Course course, String cwid);
+
+    Set<CourseMember> getByUserAndCourse(User user, Course course);
 }

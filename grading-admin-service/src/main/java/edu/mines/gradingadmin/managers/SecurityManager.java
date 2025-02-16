@@ -1,10 +1,13 @@
 package edu.mines.gradingadmin.managers;
 
+import edu.mines.gradingadmin.models.CourseRole;
 import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.RequestScope;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -22,14 +26,16 @@ import java.util.UUID;
 public class SecurityManager implements IdentityProvider{
     private final UserService userService;
     private final CredentialService credentialService;
+    private final CourseMemberService membershipService;
     private Optional<JwtAuthenticationToken> principal;
 
     @Getter
     private User user;
 
-    public SecurityManager(UserService userService, CredentialService credentialService) {
+    public SecurityManager(UserService userService, CredentialService credentialService, CourseMemberService membershipService) {
         this.userService = userService;
         this.credentialService = credentialService;
+        this.membershipService = membershipService;
         principal = Optional.empty();
 
         user = null;
@@ -172,6 +178,17 @@ public class SecurityManager implements IdentityProvider{
                 .or(() -> credentialService.getCredentialByService(course, type))
                 .orElseThrow(() -> new AccessDeniedException("No valid credentials found!"));
 
+    }
+
+    public boolean hasCourseMembership(CourseRole role, UUID courseId){
+        if (user == null){
+            throw new AccessDeniedException("No user context set.");
+        }
+
+        log.debug("Verifying '{}' has access to course '{}' with role '{}'", user.getEmail(), courseId, role.getRole());
+
+
+        return membershipService.getRolesForUserAndCourse(user, courseId).contains(role);
     }
 
 }

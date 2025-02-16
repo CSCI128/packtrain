@@ -157,4 +157,16 @@ public class CourseMemberService {
         member.setCourse(course.get());
         return Optional.of(courseMemberRepo.save(member));
     }
+
+    public List<CourseRole> getRolesForUserAndCourse(User user, UUID courseId){
+        Optional<Course> course = courseService.getCourse(courseId);
+
+        if (course.isEmpty()){
+            return List.of();
+        }
+
+        Set<CourseMember> memberships = courseMemberRepo.getByUserAndCourse(user, course.get());
+
+        return memberships.stream().map(CourseMember::getRole).toList();
+    }
 }
