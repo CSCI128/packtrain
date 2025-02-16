@@ -23,17 +23,23 @@ public class AdminApiImpl implements AdminApiDelegate {
     private final CourseService courseService;
     private final SectionService sectionService;
     private final CourseMemberService courseMemberService;
+    private final AssignmentService assignmentService;
     private final SecurityManager securityManager;
     private final UserService userService;
-    private final AssignmentService assignmentService;
 
-    public AdminApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, SecurityManager securityManager, UserService userService, AssignmentService assignmentService) {
+    public AdminApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager, UserService userService) {
         this.courseService = courseService;
         this.sectionService = sectionService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
         this.userService = userService;
         this.assignmentService = assignmentService;
+    }
+
+    @Override
+    public ResponseEntity<Void> addAssignment(String courseId, List<AssignmentDTO> assignmentDTO) {
+        assignmentService.addAssignmentToCourse(courseId, assignmentDTO);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
     @Override
