@@ -72,7 +72,7 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
         );
 
         courseMemberService = new CourseMemberService(
-                courseMemberRepo, userRepo, scheduledTaskRepo,
+                courseMemberRepo, scheduledTaskRepo,
                 userService, sectionService, courseService,
                 canvasService, Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager

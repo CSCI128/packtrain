@@ -63,26 +63,6 @@ public class UserApiImpl implements UserApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<CourseDTO>> getEnrollments() {
-        User user = securityManager.getUser();
-
-        Optional<List<Course>> enrollments = userService.getEnrollments(user.getCwid());
-
-        if (enrollments.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-
-        List<CourseDTO> enrollmentsDto = enrollments.get().stream().map(enrollment ->
-                new CourseDTO()
-                    .name(enrollment.getName())
-                    .term(enrollment.getTerm())
-                    .code(enrollment.getCode())
-        ).toList();
-
-        return ResponseEntity.ok(enrollmentsDto);
-    }
-
-    @Override
     public ResponseEntity<CredentialDTO> newCredential(CredentialDTO credential) {
         User user = securityManager.getUser();
 

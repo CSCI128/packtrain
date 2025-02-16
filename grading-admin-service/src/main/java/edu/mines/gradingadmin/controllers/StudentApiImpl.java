@@ -8,10 +8,12 @@ import edu.mines.gradingadmin.models.Assignment;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.Section;
+import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.services.AssignmentService;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
 import edu.mines.gradingadmin.services.SectionService;
+import edu.mines.gradingadmin.services.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -24,19 +26,40 @@ import java.util.UUID;
 @Transactional
 @Controller
 public class StudentApiImpl implements StudentApiDelegate {
-
+    private final UserService userService;
     private final CourseService courseService;
     private final SectionService sectionService;
     private final CourseMemberService courseMemberService;
     private final AssignmentService assignmentService;
     private final SecurityManager securityManager;
 
-    public StudentApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager) {
+    public StudentApiImpl(UserService userService, CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager) {
+        this.userService = userService;
         this.courseService = courseService;
         this.sectionService = sectionService;
         this.courseMemberService = courseMemberService;
         this.assignmentService = assignmentService;
         this.securityManager = securityManager;
+    }
+
+    @Override
+    public ResponseEntity<List<CourseDTO>> getEnrollments() {
+        User user = securityManager.getUser();
+
+        Optional<List<Course>> enrollments = userService.getEnrollments(user.getCwid());
+
+        if (enrollments.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        List<CourseDTO> enrollmentsDto = enrollments.get().stream().map(enrollment ->
+                new CourseDTO()
+                        .name(enrollment.getName())
+                        .term(enrollment.getTerm())
+                        .code(enrollment.getCode())
+        ).toList();
+
+        return ResponseEntity.ok(enrollmentsDto);
     }
 
     @Override

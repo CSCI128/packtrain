@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CourseMemberService {
     private final CourseMemberRepo courseMemberRepo;
-    private final UserRepo userRepo;
     private final ScheduledTaskRepo<UserImportTaskDef> taskRepo;
 
     private final UserService userService;
@@ -32,9 +31,8 @@ public class CourseMemberService {
     private final ApplicationEventPublisher eventPublisher;
     private final ImpersonationManager impersonationManager;
 
-    public CourseMemberService(CourseMemberRepo courseMemberRepo, UserRepo userRepo, ScheduledTaskRepo<UserImportTaskDef> taskRepo, UserService userService, SectionService sectionService, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager) {
+    public CourseMemberService(CourseMemberRepo courseMemberRepo, ScheduledTaskRepo<UserImportTaskDef> taskRepo, UserService userService, SectionService sectionService, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager) {
         this.courseMemberRepo = courseMemberRepo;
-        this.userRepo = userRepo;
         this.taskRepo = taskRepo;
         this.userService = userService;
         this.sectionService = sectionService;

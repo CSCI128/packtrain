@@ -63,7 +63,7 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
     @BeforeEach
     void setup(){
         courseMemberService = new CourseMemberService(
-                courseMemberRepo, userRepo, scheduledTaskRepo,
+                courseMemberRepo, scheduledTaskRepo,
                 userService, sectionService, courseService,
                 canvasService, Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager
