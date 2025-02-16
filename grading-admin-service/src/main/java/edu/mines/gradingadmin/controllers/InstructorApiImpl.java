@@ -6,30 +6,27 @@ import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.data.CourseMemberDTO;
 import edu.mines.gradingadmin.data.PolicyDTO;
 import edu.mines.gradingadmin.managers.SecurityManager;
-import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.CourseMember;
-import edu.mines.gradingadmin.models.Policy;
-import edu.mines.gradingadmin.models.Section;
+import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
 @Controller
 public class InstructorApiImpl implements InstructorApiDelegate {
     private final CourseService courseService;
+    private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
 
-    public InstructorApiImpl(CourseService courseService, SecurityManager securityManager) {
+    public InstructorApiImpl(CourseService courseService, CourseMemberService courseMemberService, SecurityManager securityManager) {
         this.courseService = courseService;
+        this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
     }
 
@@ -91,8 +88,6 @@ public class InstructorApiImpl implements InstructorApiDelegate {
                 .name(p.getPolicyName())
                 .uri(p.getPolicyURI())
         ).get());
-
-
     }
 
     @Override
@@ -106,5 +101,28 @@ public class InstructorApiImpl implements InstructorApiDelegate {
                 )
                 .name(p.getPolicyName())
                 .uri(p.getPolicyURI())).toList());
+    }
+
+    @Override
+    public ResponseEntity<List<CourseMemberDTO>> getInstructorEnrollments(String courseId, String name, String cwid) {
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+
+        if(course.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        if(name != null && cwid != null) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(courseMemberService.searchCourseMembers(course.get(), List.of(), name, cwid).stream()
+                .map(member -> new CourseMemberDTO()
+                        .canvasId(member.getCanvasId())
+                        .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(member.getRole().getRole()))
+                        .cwid(member.getUser().getCwid())
+                        .sections(member.getSections().stream().map(Section::getName).toList()))
+                .toList());
     }
 }
