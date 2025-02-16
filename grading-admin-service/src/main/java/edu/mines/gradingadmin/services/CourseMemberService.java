@@ -157,18 +157,6 @@ public class CourseMemberService {
         member.setCanvasId(canvasId);
         member.setUser(user.get());
         member.setCourse(course.get());
-        member = courseMemberRepo.save(member);
-
-        if(user.get().getCourseMemberships() == null) {
-            user.get().setCourseMemberships(Set.of(member));
-        }
-        else {
-            Set<CourseMember> memberships = new HashSet<>(user.get().getCourseMemberships());
-            memberships.add(member);
-            user.get().setCourseMemberships(memberships);
-        }
-//        userRepo.save(user.get());
-
-        return Optional.of(member);
+        return Optional.of(courseMemberRepo.save(member));
     }
 }

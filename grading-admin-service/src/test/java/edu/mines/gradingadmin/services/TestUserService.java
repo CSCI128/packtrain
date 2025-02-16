@@ -1,6 +1,5 @@
 package edu.mines.gradingadmin.services;
 
-import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
@@ -9,25 +8,21 @@ import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.UserImportTaskDef;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
-import edu.mines.gradingadmin.repositories.SectionRepo;
 import edu.mines.gradingadmin.repositories.UserRepo;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @SpringBootTest
-@Transactional
 public class TestUserService implements PostgresTestContainer, CanvasSeeder {
 
     @Autowired
@@ -42,7 +37,6 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
     @Autowired
     UserService userService;
 
-//    @Autowired
     CourseMemberService courseMemberService;
     @Autowired
     private CourseSeeders courseSeeders;
