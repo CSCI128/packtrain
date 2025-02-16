@@ -82,6 +82,44 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
+    public ResponseEntity<List<TaskDTO>> syncCourse(String courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+        List<TaskDTO> tasks = new LinkedList<>();
+        UUID courseUUID = UUID.fromString(courseId);
+
+        Optional<ScheduledTaskDef> courseTask = courseService.importCourseFromCanvas(
+                securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId(),
+                courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
+
+        if (courseTask.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+
+        tasks.add(courseTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+
+        Optional<ScheduledTaskDef> sectionTask = sectionService.createSectionsFromCanvas(
+                securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
+
+
+        if (sectionTask.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+
+        tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+
+        if (courseSyncTaskDTO.getImportUsers()){
+            Optional<ScheduledTaskDef> importUsersTask = courseMemberService.addMembersToCourse(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID);
+
+            if (importUsersTask.isEmpty()){
+                return ResponseEntity.badRequest().build();
+            }
+
+            tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        }
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(tasks);
+    }
+
+    @Override
     public ResponseEntity<List<TaskDTO>> importCourse(String courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
         List<TaskDTO> tasks = new LinkedList<>();
         UUID courseUUID = UUID.fromString(courseId);

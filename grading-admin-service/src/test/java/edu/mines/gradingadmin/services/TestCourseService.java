@@ -6,6 +6,7 @@ import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
+import edu.mines.gradingadmin.models.tasks.SyncCourseTaskDef;
 import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.repositories.CourseRepo;
@@ -126,6 +127,26 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         Assertions.assertEquals(2, courses.size());
         Assertions.assertTrue(courses.contains(activeCourse));
         Assertions.assertTrue(courses.contains(inactiveCourse));
+    }
+
+    @Test
+    void verifySyncCourseWithCanvas(){
+//        Course course = courseSeeders.course1();
+//        User admin = userSeeders.admin1();
+//
+//        SyncCourseTaskDef taskDef = new SyncCourseTaskDef();
+//        taskDef.setCreatedByUser(admin);
+//        taskDef.setCourseToImport(course.getId());
+//        taskDef.setCanvasId(course1Id);
+//        taskDef.setOverwriteCode(true);
+//        taskDef.setOverwriteName(true);
+//
+//        courseService.syncCourseTask(taskDef);
+//
+//        course = courseService.getCourse(course.getId()).orElseThrow(AssertionError::new);
+//
+//        Assertions.assertEquals(course1.get().getCourseCode(), course.getCode());
+//        Assertions.assertEquals(course1.get().getName(), course.getName());
     }
 
     @Test
