@@ -49,26 +49,24 @@ public class TestAssignmentService implements PostgresTestContainer {
     void verifyAddAssignments() {
         Course course1 = courseSeeders.course1();
 
-        List<AssignmentDTO> assignmentDTOs = new ArrayList<>();
-        assignmentDTOs.add(new AssignmentDTO()
+        AssignmentDTO assignmentDTO = new AssignmentDTO()
                 .category("Studios")
                 .dueDate(Instant.now())
                 .unlockDate(Instant.now())
                 .enabled(true)
-                .points(2.0));
-        assignmentDTOs.add(new AssignmentDTO()
-                .category("Assessments")
-                .dueDate(Instant.now())
-                .unlockDate(Instant.now())
-                .enabled(false)
-                .points(5.0));
+                .points(2.0);
 
-        assignmentService.addAssignmentToCourse(course1.getId().toString(), assignmentDTOs);
+        assignmentService.addAssignmentToCourse(course1.getId().toString(),
+                assignmentDTO.getPoints(),
+                assignmentDTO.getCategory(),
+                assignmentDTO.getEnabled(),
+                assignmentDTO.getDueDate(),
+                assignmentDTO.getUnlockDate());
 
         Optional<Course> course = courseService.getCourse(course1.getId());
 
         Assertions.assertTrue(course.isPresent());
-        Assertions.assertEquals(2, course.get().getAssignments().size());
+        Assertions.assertEquals(1, course.get().getAssignments().size());
     }
 
     @Test

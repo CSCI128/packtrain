@@ -4,6 +4,9 @@ import edu.mines.gradingadmin.data.AssignmentDTO;
 import edu.mines.gradingadmin.models.Assignment;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.repositories.AssignmentRepo;
+import edu.mines.gradingadmin.repositories.CourseMemberRepo;
+import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -22,23 +25,21 @@ public class AssignmentService {
         this.courseService = courseService;
     }
 
-    public Optional<List<Assignment>> addAssignmentToCourse(String courseId, List<AssignmentDTO> assignmentDtos) {
+    @Transactional
+    public Optional<Assignment> addAssignmentToCourse(String courseId, double points, String category, boolean enabled, Instant dueDate, Instant unlockDate) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if(course.isEmpty()) {
             return Optional.empty();
         }
 
-        List<Assignment> assignments = assignmentDtos.stream().map(assignmentDto -> {
-            Assignment assignment = new Assignment();
-            assignment.setPoints(assignmentDto.getPoints());
-            assignment.setCategory(assignmentDto.getCategory());
-            assignment.setEnabled(assignmentDto.getEnabled());
-            assignment.setDueDate(assignmentDto.getDueDate());
-            assignment.setUnlockDate(assignmentDto.getUnlockDate());
-            assignment.setCourse(course.get());
-            assignmentRepo.save(assignment);
-            return assignment;
-        }).toList();
+        Assignment assignment = new Assignment();
+        assignment.setPoints(points);
+        assignment.setCategory(category);
+        assignment.setEnabled(enabled);
+        assignment.setDueDate(dueDate);
+        assignment.setUnlockDate(unlockDate);
+        assignment.setCourse(course.get());
+        assignmentRepo.save(assignment);
 
         Set<Assignment> newAssignments;
         if(course.get().getAssignments() == null) {
@@ -48,9 +49,9 @@ public class AssignmentService {
             newAssignments = new HashSet<>(course.get().getAssignments());
         }
 
-        newAssignments.addAll(assignments);
+        newAssignments.add(assignment);
         course.get().setAssignments(newAssignments);
-        return Optional.of(assignments);
+        return Optional.of(assignment);
     }
 
     public List<Assignment> getAllUnlockedAssignments(String courseId) {

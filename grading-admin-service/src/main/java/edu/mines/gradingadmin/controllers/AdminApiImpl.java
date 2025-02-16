@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.List;
 import java.util.Optional;
@@ -37,9 +38,20 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
-    public ResponseEntity<Void> addAssignment(String courseId, List<AssignmentDTO> assignmentDTO) {
-        assignmentService.addAssignmentToCourse(courseId, assignmentDTO);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+    public ResponseEntity<AssignmentDTO> addAssignment(String courseId, AssignmentDTO assignmentDto) {
+        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(courseId,
+            assignmentDto.getPoints(),
+            assignmentDto.getCategory(),
+            assignmentDto.getEnabled(),
+            assignmentDto.getDueDate(),
+            assignmentDto.getUnlockDate());
+
+        return assignment.map(value -> ResponseEntity.status(HttpStatus.ACCEPTED).body(new AssignmentDTO()
+                .category(value.getCategory())
+                .dueDate(value.getDueDate())
+                .unlockDate(value.getUnlockDate())
+                .enabled(value.isEnabled())
+                .points(value.getPoints()))).orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @Override
