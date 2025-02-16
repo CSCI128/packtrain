@@ -1,9 +1,11 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.UserApiDelegate;
+import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.data.CredentialDTO;
 import edu.mines.gradingadmin.data.UserDTO;
 import edu.mines.gradingadmin.managers.SecurityManager;
+import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.Credential;
 import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.User;
@@ -58,6 +60,26 @@ public class UserApiImpl implements UserApiDelegate {
                         .admin(user.get().isAdmin())
                         .enabled(user.get().isEnabled()))
                 .get());
+    }
+
+    @Override
+    public ResponseEntity<List<CourseDTO>> getEnrollments() {
+        User user = securityManager.getUser();
+
+        Optional<List<Course>> enrollments = userService.getEnrollments(user.getCwid());
+
+        if (enrollments.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        List<CourseDTO> enrollmentsDto = enrollments.get().stream().map(enrollment ->
+                new CourseDTO()
+                    .name(enrollment.getName())
+                    .term(enrollment.getTerm())
+                    .code(enrollment.getCode())
+        ).toList();
+
+        return ResponseEntity.ok(enrollmentsDto);
     }
 
     @Override

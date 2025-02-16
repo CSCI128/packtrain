@@ -8,6 +8,8 @@ import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.tasks.UserImportTaskDef;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
+import edu.mines.gradingadmin.repositories.UserRepo;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CourseMemberService {
     private final CourseMemberRepo courseMemberRepo;
+    private final UserRepo userRepo;
     private final ScheduledTaskRepo<UserImportTaskDef> taskRepo;
 
     private final UserService userService;
@@ -29,8 +32,9 @@ public class CourseMemberService {
     private final ApplicationEventPublisher eventPublisher;
     private final ImpersonationManager impersonationManager;
 
-    public CourseMemberService(CourseMemberRepo courseMemberRepo, ScheduledTaskRepo<UserImportTaskDef> taskRepo, UserService userService, SectionService sectionService, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager) {
+    public CourseMemberService(CourseMemberRepo courseMemberRepo, UserRepo userRepo, ScheduledTaskRepo<UserImportTaskDef> taskRepo, UserService userService, SectionService sectionService, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager) {
         this.courseMemberRepo = courseMemberRepo;
+        this.userRepo = userRepo;
         this.taskRepo = taskRepo;
         this.userService = userService;
         this.sectionService = sectionService;
@@ -136,6 +140,7 @@ public class CourseMemberService {
         return Optional.of(task);
     }
 
+    @Transactional
     public Optional<CourseMember> addMemberToCourse(String courseId, String cwid, String canvasId, CourseRole role) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if(course.isEmpty()) {
@@ -152,6 +157,18 @@ public class CourseMemberService {
         member.setCanvasId(canvasId);
         member.setUser(user.get());
         member.setCourse(course.get());
-        return Optional.of(courseMemberRepo.save(member));
+        member = courseMemberRepo.save(member);
+
+        if(user.get().getCourseMemberships() == null) {
+            user.get().setCourseMemberships(Set.of(member));
+        }
+        else {
+            Set<CourseMember> memberships = new HashSet<>(user.get().getCourseMemberships());
+            memberships.add(member);
+            user.get().setCourseMemberships(memberships);
+        }
+//        userRepo.save(user.get());
+
+        return Optional.of(member);
     }
 }

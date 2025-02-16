@@ -8,6 +8,7 @@ import edu.mines.gradingadmin.models.tasks.UserImportTaskDef;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.repositories.SectionRepo;
+import edu.mines.gradingadmin.repositories.UserRepo;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
@@ -30,6 +31,8 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
 
     @Autowired
     private SectionRepo sectionRepo;
+    @Autowired
+    private UserRepo userRepo;
 
     private CanvasService canvasService;
 
@@ -69,7 +72,7 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
         );
 
         courseMemberService = new CourseMemberService(
-                courseMemberRepo, scheduledTaskRepo,
+                courseMemberRepo, userRepo, scheduledTaskRepo,
                 userService, sectionService, courseService,
                 canvasService, Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager
