@@ -304,10 +304,6 @@ paths:
       responses:
         201:
           description: "Accepted"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Assignment"
         404:
           description: Course Not Found
           content:
@@ -1500,6 +1496,8 @@ components:
       description: "An assignment in a course"
       type: object
       required:
+        - id
+        - name
         - points
         - due_date
         - unlock_date
@@ -1507,6 +1505,12 @@ components:
         - category
         - canvas_id
       properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
+        name:
+          type: string
+          example: "Assessment 1"
         points:
           type: number
           format: double

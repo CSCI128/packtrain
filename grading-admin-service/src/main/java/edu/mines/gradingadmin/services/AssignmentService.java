@@ -25,14 +25,48 @@ public class AssignmentService {
         this.courseService = courseService;
     }
 
+    public Optional<Assignment> getAssignmentById(String id) {
+        return assignmentRepo.getAssignmentById(UUID.fromString(id));
+    }
+
     @Transactional
-    public Optional<Assignment> addAssignmentToCourse(String courseId, double points, String category, boolean enabled, Instant dueDate, Instant unlockDate) {
+    public void updateAssignment(String courseId, String assignmentId, String name, double points, String category, boolean enabled, Instant dueDate, Instant unlockDate) {
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+        if(course.isPresent()) {
+            Optional<Assignment> assignment = getAssignmentById(assignmentId);
+            if(assignment.isPresent()) {
+                assignment.get().setName(name);
+                assignment.get().setPoints(points);
+                assignment.get().setCategory(category);
+                assignment.get().setEnabled(enabled);
+                assignment.get().setDueDate(dueDate);
+                assignment.get().setUnlockDate(unlockDate);
+                assignment.get().setCourse(course.get());
+                assignmentRepo.save(assignment.get());
+
+                Set<Assignment> newAssignments;
+                if(course.get().getAssignments() == null) {
+                    newAssignments = new HashSet<>();
+                }
+                else {
+                    newAssignments = new HashSet<>(course.get().getAssignments());
+                }
+
+                newAssignments.add(assignment.get());
+                course.get().setAssignments(newAssignments);
+            }
+        }
+    }
+
+    @Transactional
+    public Optional<Assignment> addAssignmentToCourse(String courseId, String name, double points, String category, boolean enabled, Instant dueDate, Instant unlockDate) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if(course.isEmpty()) {
             return Optional.empty();
         }
 
         Assignment assignment = new Assignment();
+        assignment.setName(name);
         assignment.setPoints(points);
         assignment.setCategory(category);
         assignment.setEnabled(enabled);

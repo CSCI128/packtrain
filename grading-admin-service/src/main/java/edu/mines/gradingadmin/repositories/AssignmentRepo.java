@@ -11,6 +11,7 @@ import java.util.List;
 
 @Repository
 public interface AssignmentRepo extends CrudRepository<Assignment, UUID> {
+    Optional<Assignment> getAssignmentById(UUID id);
 
     Optional<Assignment> getAssignmentById(UUID id);
 

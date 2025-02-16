@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @SpringBootTest
 @Transactional
@@ -50,6 +51,8 @@ public class TestAssignmentService implements PostgresTestContainer {
         Course course1 = courseSeeders.course1();
 
         AssignmentDTO assignmentDTO = new AssignmentDTO()
+                .id(UUID.randomUUID().toString())
+                .name("Studio 1")
                 .category("Studios")
                 .dueDate(Instant.now())
                 .unlockDate(Instant.now())
@@ -57,6 +60,7 @@ public class TestAssignmentService implements PostgresTestContainer {
                 .points(2.0);
 
         assignmentService.addAssignmentToCourse(course1.getId().toString(),
+                assignmentDTO.getName(),
                 assignmentDTO.getPoints(),
                 assignmentDTO.getCategory(),
                 assignmentDTO.getEnabled(),
@@ -78,4 +82,42 @@ public class TestAssignmentService implements PostgresTestContainer {
         Assertions.assertEquals(course.getAssignments().size(), assignments.size());
     }
 
+    @Test
+    void verifyUpdateAssignment() {
+        Course course1 = courseSeeders.course1();
+
+        AssignmentDTO assignmentDTO = new AssignmentDTO()
+                .id(UUID.randomUUID().toString())
+                .name("Studio 1")
+                .category("Studios")
+                .dueDate(Instant.now())
+                .unlockDate(Instant.now())
+                .enabled(true)
+                .points(5.0);
+
+        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(course1.getId().toString(),
+                assignmentDTO.getName(),
+                assignmentDTO.getPoints(),
+                assignmentDTO.getCategory(),
+                assignmentDTO.getEnabled(),
+                assignmentDTO.getDueDate(),
+                assignmentDTO.getUnlockDate());
+
+        Assertions.assertTrue(assignment.isPresent());
+
+        assignmentService.updateAssignment(course1.getId().toString(),
+                assignment.get().getId().toString(),
+                assignment.get().getName(),
+                10,
+                assignment.get().getCategory(),
+                assignment.get().isEnabled(),
+                assignment.get().getDueDate(),
+                assignment.get().getUnlockDate());
+
+        Optional<Course> course = courseService.getCourse(course1.getId());
+
+        Assertions.assertTrue(course.isPresent());
+        Assertions.assertEquals(1, course.get().getAssignments().size());
+        Assertions.assertEquals(10, course.get().getAssignments().stream().findFirst().get().getPoints());
+    }
 }
