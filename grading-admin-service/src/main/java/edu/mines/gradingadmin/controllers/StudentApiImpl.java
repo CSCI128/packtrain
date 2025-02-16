@@ -1,11 +1,14 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.StudentApiDelegate;
+import edu.mines.gradingadmin.data.AssignmentDTO;
 import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.managers.SecurityManager;
+import edu.mines.gradingadmin.models.Assignment;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.Section;
+import edu.mines.gradingadmin.services.AssignmentService;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
 import edu.mines.gradingadmin.services.SectionService;
@@ -25,12 +28,14 @@ public class StudentApiImpl implements StudentApiDelegate {
     private final CourseService courseService;
     private final SectionService sectionService;
     private final CourseMemberService courseMemberService;
+    private final AssignmentService assignmentService;
     private final SecurityManager securityManager;
 
-    public StudentApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, SecurityManager securityManager) {
+    public StudentApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager) {
         this.courseService = courseService;
         this.sectionService = sectionService;
         this.courseMemberService = courseMemberService;
+        this.assignmentService = assignmentService;
         this.securityManager = securityManager;
     }
 
@@ -59,6 +64,21 @@ public class StudentApiImpl implements StudentApiDelegate {
             .sections(courseMember.get().getSections().stream().map(Section::getName).toList());
 
         return ResponseEntity.ok(courseDTO);
+    }
+
+    @Override
+    public ResponseEntity<List<AssignmentDTO>> getCourseAssignmentsStudent(String courseId) {
+        List<Assignment> assignments = assignmentService.getAllUnlockedAssignments(courseId);
+
+
+        return ResponseEntity.ok(assignments.stream()
+                .map(a -> new AssignmentDTO()
+                        .points(a.getPoints())
+                        .dueDate(a.getDueDate())
+                        .unlockDate(a.getUnlockDate())
+                        .category(a.getCategory())
+                )
+                .toList());
     }
 }
 
