@@ -317,41 +317,6 @@ paths:
               example:
                 error_source: "update_course"
                 error_message: "Course '999-9999-9999-99' does not exist"
-    get:
-      tags:
-        - admin
-      operationId: get_assignments
-      security:
-        - openIDC: [admin:read]
-      summary: "Get all assignments for a course"
-      description: |
-        Get all information about the assignments in a course.
-        This is different from the other ones, as it returns all the metadata about an assignments.
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Assignment"
-        404:
-          description: Course Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_course"
-                error_message: "Course '999-9999-9999-99' does not exist"
 
   /admin/courses/{course_id}/enable:
     put:
@@ -754,7 +719,48 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to update user"
 
-  /user/credential:
+  /user:
+    get:
+      tags:
+        - user
+      operationId: get_user
+      security:
+        - openIDC: [user:read]
+      summary: Gets a user's information
+      description: |
+        Gets a user's information based on the provided JWT.
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+    put:
+      tags:
+        - user
+      operationId: update_user
+      security:
+        - openIDC: [user:write]
+      summary: Updates a user's information
+      description: |
+        Updates a user's information based on the User provided in body and provided JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        202:
+          description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /user/credentials:
     post:
       tags:
         - user
@@ -826,48 +832,7 @@ paths:
                 error_source: "update_user"
                 error_message: "User '999-9999-9999-99' does not exist!"
 
-  /user:
-    get:
-      tags:
-        - user
-      operationId: get_user
-      security:
-        - openIDC: [user:read]
-      summary: Gets a user's information
-      description: |
-        Gets a user's information based on the provided JWT.
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-
-    put:
-      tags:
-        - user
-      operationId: update_user
-      security:
-        - openIDC: [user:write]
-      summary: Updates a user's information
-      description: |
-        Updates a user's information based on the User provided in body and provided JWT.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/User"
-      responses:
-        202:
-          description: "Accepted"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-
-  /user/{credential_id}/disable:
+  /user/credentials/{credential_id}/disable:
     put:
       tags:
         - user
@@ -907,7 +872,7 @@ paths:
                 error_source: "update_user"
                 error_message: "Credential '99-9999-9999-99' does not exist!"
 
-  /user/{credential_id}/public:
+  /user/credentials/{credential_id}/public:
     put:
       tags:
         - user
@@ -946,7 +911,7 @@ paths:
                 error_source: "update_user"
                 error_message: "Credential '99-9999-9999-99' does not exist!"
 
-  /user/{credential_id}/private:
+  /user/credentials/{credential_id}/private:
     put:
       tags:
         - user
@@ -1101,60 +1066,6 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to deny extension for user"
 
-  /tasks:
-    get:
-      tags:
-        - tasks
-      operationId: get_all_tasks_for_user
-      summary: Get all tasks for current user
-      description: |
-        This endpoint gets all the tasks for the currently signed in user
-      security:
-        - openIDC: [user:read]
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Task"
-  /tasks/{task_id}:
-    get:
-      tags:
-        - tasks
-      operationId: get_task
-      summary: Get task by id
-      description: |
-        This endpoint returns the requested task if the user has access to it.
-      security:
-        - openIDC: [user:read]
-      parameters:
-        - name: task_id
-          required: true
-          in: path
-          schema:
-            type: integer
-            format: int64
-            example: 219
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Task"
-        404:
-          description: "Not Found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "get_task"
-                error_message: "Requested task was not found"
-
   /instructor/courses/{course_id}/policies:
     post:
       tags:
@@ -1269,6 +1180,87 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Course"
+
+  /student/courses/{course_id}/assignments:
+    get:
+      tags:
+        - student
+      operationId: get_course_assignments_student
+      summary: Get assignments for course
+      description: |
+        Get currently released assignments for course
+      security:
+        - openIDC: [student:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Assignment"
+
+  /tasks:
+    get:
+      tags:
+        - tasks
+      operationId: get_all_tasks_for_user
+      summary: Get all tasks for current user
+      description: |
+        This endpoint gets all the tasks for the currently signed in user
+      security:
+        - openIDC: [user:read]
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+  /tasks/{task_id}:
+    get:
+      tags:
+        - tasks
+      operationId: get_task
+      summary: Get task by id
+      description: |
+        This endpoint returns the requested task if the user has access to it.
+      security:
+        - openIDC: [user:read]
+      parameters:
+        - name: task_id
+          required: true
+          in: path
+          schema:
+            type: integer
+            format: int64
+            example: 219
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        404:
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "get_task"
+                error_message: "Requested task was not found"
 
 components:
   securitySchemes:

@@ -76,8 +76,10 @@ public class TestS3Service implements MinioTestContainer, PostgresTestContainer 
 
         Assertions.assertTrue(bucketId.isPresent());
 
-        List<Bucket> buckets = client.listBuckets();
-        Assertions.assertEquals(1, buckets.size());
+        List<String> buckets = client.listBuckets().stream().map(Bucket::name).toList();
+
+        Assertions.assertTrue(buckets.contains(bucketId.get()));
+
     }
 
     @Test

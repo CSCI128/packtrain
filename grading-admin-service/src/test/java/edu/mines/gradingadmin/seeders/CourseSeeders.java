@@ -78,7 +78,8 @@ public class CourseSeeders {
         assignment.setCategory("Assessments");
         assignment.setPoints(25.0);
         assignment.setDueDate(Instant.now());
-        assignment.setUnlockDate(Instant.now());
+        assignment.setUnlockDate(Instant.ofEpochSecond(946684800));
+        assignment.setEnabled(true);
         assignmentRepo.save(assignment);
         course.setAssignments(Set.of(assignment));
 
