@@ -18,6 +18,7 @@ public interface MinioTestContainer {
 
     @DynamicPropertySource
     static void setMinioProperties(DynamicPropertyRegistry registry){
+        registry.add("grading-admin.external-services.s3.enabled", () -> true);
         registry.add("grading-admin.external-services.s3.uri", S3_URI);
         registry.add("grading-admin.external-services.s3.access_key", ACCESS_KEY);
         registry.add("grading-admin.external-services.s3.secret_key", SECRET_KEY);

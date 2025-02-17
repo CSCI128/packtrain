@@ -12,6 +12,7 @@ import edu.mines.gradingadmin.repositories.UserRepo;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
+import edu.mines.gradingadmin.services.external.CanvasService;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;

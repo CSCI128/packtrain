@@ -1,9 +1,8 @@
-package edu.mines.gradingadmin.services;
+package edu.mines.gradingadmin.services.external;
 
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import edu.mines.gradingadmin.config.ExternalServiceConfig;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -14,10 +13,15 @@ import java.util.concurrent.TimeoutException;
 //@Service
 public class RabbitMqService {
     private final ExternalServiceConfig.RabbitMqConfig rabbitMqConfig;
-    private final Connection rabbitMqConnection;
+    private Connection rabbitMqConnection;
 
     public RabbitMqService(ExternalServiceConfig.RabbitMqConfig rabbitMqConfig) throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException, IOException, TimeoutException {
         this.rabbitMqConfig = rabbitMqConfig;
+
+        if (!rabbitMqConfig.isEnabled()){
+            return;
+        }
+
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(rabbitMqConfig.getUri());
         rabbitMqConnection = factory.newConnection();
