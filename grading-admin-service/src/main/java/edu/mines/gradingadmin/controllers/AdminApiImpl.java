@@ -38,33 +38,48 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<Void> updateAssignment(String courseId, AssignmentDTO assignmentDto) {
-        assignmentService.updateAssignment(courseId,
-            assignmentDto.getId(),
-            assignmentDto.getName(),
-            assignmentDto.getPoints(),
-            assignmentDto.getCategory(),
-            assignmentDto.getEnabled(),
-            assignmentDto.getDueDate(),
-            assignmentDto.getUnlockDate());
+        Optional<Assignment> assignment = assignmentService.updateAssignment(
+                courseId,
+                assignmentDto.getId(),
+                assignmentDto.getName(),
+                assignmentDto.getPoints(),
+                assignmentDto.getCategory(),
+                assignmentDto.getEnabled(),
+                assignmentDto.getDueDate(),
+                assignmentDto.getUnlockDate()
+        );
+
+        if (assignment.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
         return ResponseEntity.accepted().build();
     }
 
     @Override
     public ResponseEntity<AssignmentDTO> addAssignment(String courseId, AssignmentDTO assignmentDto) {
-        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(courseId,
-            assignmentDto.getName(),
-            assignmentDto.getPoints(),
-            assignmentDto.getCategory(),
-            assignmentDto.getEnabled(),
-            assignmentDto.getDueDate(),
-            assignmentDto.getUnlockDate());
+        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(
+                courseId,
+                assignmentDto.getName(),
+                assignmentDto.getPoints(),
+                assignmentDto.getCategory(),
+                assignmentDto.getEnabled(),
+                assignmentDto.getDueDate(),
+                assignmentDto.getUnlockDate()
+        );
 
-        return assignment.map(value -> ResponseEntity.status(HttpStatus.ACCEPTED).body(new AssignmentDTO()
-                .category(value.getCategory())
-                .dueDate(value.getDueDate())
-                .unlockDate(value.getUnlockDate())
-                .enabled(value.isEnabled())
-                .points(value.getPoints()))).orElseGet(() -> ResponseEntity.badRequest().build());
+        if (assignment.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.accepted().body(assignment.map(a -> new AssignmentDTO()
+                .id(a.getId().toString())
+                .category(a.getCategory())
+                .dueDate(a.getDueDate())
+                .unlockDate(a.getUnlockDate())
+                .enabled(a.isEnabled())
+                .points(a.getPoints())).get()
+        );
     }
 
     @Override
@@ -76,7 +91,7 @@ public class AdminApiImpl implements AdminApiDelegate {
                 securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId(),
                 courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
 
-        if (courseTask.isEmpty()){
+        if (courseTask.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -86,16 +101,16 @@ public class AdminApiImpl implements AdminApiDelegate {
                 securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
 
 
-        if (sectionTask.isEmpty()){
+        if (sectionTask.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
         tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
 
-        if (courseSyncTaskDTO.getImportUsers()){
+        if (courseSyncTaskDTO.getImportUsers()) {
             Optional<ScheduledTaskDef> importUsersTask = courseMemberService.addMembersToCourse(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID);
 
-            if (importUsersTask.isEmpty()){
+            if (importUsersTask.isEmpty()) {
                 return ResponseEntity.badRequest().build();
             }
 
@@ -108,7 +123,7 @@ public class AdminApiImpl implements AdminApiDelegate {
     @Override
     public ResponseEntity<CourseDTO> newCourse(CourseDTO courseDTO) {
         Optional<Course> course = courseService.createNewCourse(courseDTO.getName(), courseDTO.getTerm(), courseDTO.getCode());
-        if (course.isEmpty()){
+        if (course.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(course
@@ -123,12 +138,12 @@ public class AdminApiImpl implements AdminApiDelegate {
         List<Course> courses = courseService.getCourses(enabled);
 
         List<CourseDTO> coursesResponse = courses.stream().map(course ->
-            new CourseDTO()
-                .id(course.getId().toString())
-                .term(course.getTerm())
-                .enabled(course.isEnabled())
-                .name(course.getName())
-                .code(course.getCode())
+                new CourseDTO()
+                        .id(course.getId().toString())
+                        .term(course.getTerm())
+                        .enabled(course.isEnabled())
+                        .name(course.getName())
+                        .code(course.getCode())
         ).toList();
 
         return ResponseEntity.ok(coursesResponse);
@@ -142,7 +157,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
         Optional<Course> course = courseService.getCourse(UUID.fromString(id));
 
-        if(course.isEmpty()) {
+        if (course.isEmpty()) {
             // need to do this with error controller
             return ResponseEntity.badRequest().build();
         }
@@ -199,12 +214,12 @@ public class AdminApiImpl implements AdminApiDelegate {
     public ResponseEntity<List<CourseMemberDTO>> getMembers(String courseId, List<String> enrollments, String name, String cwid) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
 
-        if(course.isEmpty()) {
+        if (course.isEmpty()) {
             // need to do this with error controller
             return ResponseEntity.badRequest().build();
         }
 
-        if(name != null && cwid != null) {
+        if (name != null && cwid != null) {
             // need to do this with error controller
             return ResponseEntity.badRequest().build();
         }
@@ -212,8 +227,7 @@ public class AdminApiImpl implements AdminApiDelegate {
         List<CourseRole> roles = new ArrayList<>();
         if (enrollments == null) {
             roles = List.of(CourseRole.values());
-        }
-        else {
+        } else {
             if (enrollments.contains("tas")) {
                 roles.add(CourseRole.TA);
             }
@@ -229,10 +243,10 @@ public class AdminApiImpl implements AdminApiDelegate {
 
         return ResponseEntity.ok(courseMemberService.searchCourseMembers(course.get(), roles, name, cwid).stream()
                 .map(member -> new CourseMemberDTO()
-                    .canvasId(member.getCanvasId())
-                    .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(member.getRole().getRole()))
-                    .cwid(member.getUser().getCwid())
-                    .sections(member.getSections().stream().map(Section::getName).toList()))
+                        .canvasId(member.getCanvasId())
+                        .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(member.getRole().getRole()))
+                        .cwid(member.getUser().getCwid())
+                        .sections(member.getSections().stream().map(Section::getName).toList()))
                 .toList());
     }
 
@@ -243,7 +257,7 @@ public class AdminApiImpl implements AdminApiDelegate {
                 courseMemberDTO.getCanvasId(),
                 CourseRole.valueOf(courseMemberDTO.getCourseRole().getValue()));
 
-        if(courseMember.isEmpty()) {
+        if (courseMember.isEmpty()) {
             // need to do this with error controller
             return ResponseEntity.badRequest().build();
         }
@@ -268,7 +282,7 @@ public class AdminApiImpl implements AdminApiDelegate {
     @Override
     public ResponseEntity<Void> enableAssignment(String courseId, String assignmentId) {
         Optional<Assignment> assignment = assignmentService.enableAssignment(assignmentId);
-        if (assignment.isEmpty()){
+        if (assignment.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
@@ -278,7 +292,7 @@ public class AdminApiImpl implements AdminApiDelegate {
     @Override
     public ResponseEntity<Void> disableAssignment(String courseId, String assignmentId) {
         Optional<Assignment> assignment = assignmentService.disableAssignment(assignmentId);
-        if (assignment.isEmpty()){
+        if (assignment.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
@@ -294,7 +308,7 @@ public class AdminApiImpl implements AdminApiDelegate {
                 userDTO.getEmail()
         );
 
-        if (user.isEmpty()){
+        if (user.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -305,7 +319,7 @@ public class AdminApiImpl implements AdminApiDelegate {
     public ResponseEntity<Void> enableUser(String cwid) {
         Optional<User> user = userService.enableUser(cwid);
 
-        if (user.isEmpty()){
+        if (user.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
@@ -317,7 +331,7 @@ public class AdminApiImpl implements AdminApiDelegate {
     public ResponseEntity<Void> disableUser(String cwid) {
         Optional<User> user = userService.disableUser(cwid);
 
-        if (user.isEmpty()){
+        if (user.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
@@ -328,7 +342,7 @@ public class AdminApiImpl implements AdminApiDelegate {
     public ResponseEntity<Void> makeAdmin(String cwid) {
         Optional<User> user = userService.makeAdmin(cwid);
 
-        if (user.isEmpty()){
+        if (user.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 

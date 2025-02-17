@@ -13,8 +13,6 @@ import java.util.List;
 public interface AssignmentRepo extends CrudRepository<Assignment, UUID> {
     Optional<Assignment> getAssignmentById(UUID id);
 
-    Optional<Assignment> getAssignmentById(UUID id);
-
     @Query("select a from assignment a where a.course.id=?1 and a.enabled = true")
     List<Assignment> getAssignmentsByCourseId(UUID courseId);
 

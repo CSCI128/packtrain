@@ -1,12 +1,8 @@
 package edu.mines.gradingadmin.services;
 
-import edu.mines.gradingadmin.data.AssignmentDTO;
 import edu.mines.gradingadmin.models.Assignment;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.repositories.AssignmentRepo;
-import edu.mines.gradingadmin.repositories.CourseMemberRepo;
-import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -29,36 +25,27 @@ public class AssignmentService {
         return assignmentRepo.getAssignmentById(UUID.fromString(id));
     }
 
-    @Transactional
-    public void updateAssignment(String courseId, String assignmentId, String name, double points, String category, boolean enabled, Instant dueDate, Instant unlockDate) {
+    public Optional<Assignment> updateAssignment(String courseId, String assignmentId, String name, double points, String category, boolean enabled, Instant dueDate, Instant unlockDate) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-        if(course.isPresent()) {
-            Optional<Assignment> assignment = getAssignmentById(assignmentId);
-            if(assignment.isPresent()) {
-                assignment.get().setName(name);
-                assignment.get().setPoints(points);
-                assignment.get().setCategory(category);
-                assignment.get().setEnabled(enabled);
-                assignment.get().setDueDate(dueDate);
-                assignment.get().setUnlockDate(unlockDate);
-                assignment.get().setCourse(course.get());
-                assignmentRepo.save(assignment.get());
-
-                Set<Assignment> newAssignments;
-                if(course.get().getAssignments() == null) {
-                    newAssignments = new HashSet<>();
-                }
-                else {
-                    newAssignments = new HashSet<>(course.get().getAssignments());
-                }
-
-                newAssignments.add(assignment.get());
-                course.get().setAssignments(newAssignments);
-            }
+        if (course.isEmpty()) {
+            return Optional.empty();
         }
+
+        Optional<Assignment> assignment = getAssignmentById(assignmentId);
+        if (assignment.isEmpty()) {
+            return Optional.empty();
+        }
+        assignment.get().setName(name);
+        assignment.get().setPoints(points);
+        assignment.get().setCategory(category);
+        assignment.get().setEnabled(enabled);
+        assignment.get().setDueDate(dueDate);
+        assignment.get().setUnlockDate(unlockDate);
+        assignment.get().setCourse(course.get());
+
+        return Optional.of(assignmentRepo.save(assignment.get()));
     }
 
-    @Transactional
     public Optional<Assignment> addAssignmentToCourse(String courseId, String name, double points, String category, boolean enabled, Instant dueDate, Instant unlockDate) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if(course.isEmpty()) {
@@ -73,19 +60,8 @@ public class AssignmentService {
         assignment.setDueDate(dueDate);
         assignment.setUnlockDate(unlockDate);
         assignment.setCourse(course.get());
-        assignmentRepo.save(assignment);
 
-        Set<Assignment> newAssignments;
-        if(course.get().getAssignments() == null) {
-            newAssignments = new HashSet<>();
-        }
-        else {
-            newAssignments = new HashSet<>(course.get().getAssignments());
-        }
-
-        newAssignments.add(assignment);
-        course.get().setAssignments(newAssignments);
-        return Optional.of(assignment);
+        return Optional.of(assignmentRepo.save(assignment));
     }
 
     public List<Assignment> getAllUnlockedAssignments(String courseId) {

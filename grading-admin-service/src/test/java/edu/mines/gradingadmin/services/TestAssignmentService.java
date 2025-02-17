@@ -84,7 +84,7 @@ public class TestAssignmentService implements PostgresTestContainer {
 
     @Test
     void verifyUpdateAssignment() {
-        Course course1 = courseSeeders.course1();
+        Course course = courseSeeders.course1();
 
         AssignmentDTO assignmentDTO = new AssignmentDTO()
                 .id(UUID.randomUUID().toString())
@@ -95,7 +95,7 @@ public class TestAssignmentService implements PostgresTestContainer {
                 .enabled(true)
                 .points(5.0);
 
-        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(course1.getId().toString(),
+        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(course.getId().toString(),
                 assignmentDTO.getName(),
                 assignmentDTO.getPoints(),
                 assignmentDTO.getCategory(),
@@ -105,7 +105,7 @@ public class TestAssignmentService implements PostgresTestContainer {
 
         Assertions.assertTrue(assignment.isPresent());
 
-        assignmentService.updateAssignment(course1.getId().toString(),
+        assignment = assignmentService.updateAssignment(course.getId().toString(),
                 assignment.get().getId().toString(),
                 assignment.get().getName(),
                 10,
@@ -114,10 +114,11 @@ public class TestAssignmentService implements PostgresTestContainer {
                 assignment.get().getDueDate(),
                 assignment.get().getUnlockDate());
 
-        Optional<Course> course = courseService.getCourse(course1.getId());
+        course = courseService.getCourse(course.getId()).orElseThrow(AssertionError::new);
 
-        Assertions.assertTrue(course.isPresent());
-        Assertions.assertEquals(1, course.get().getAssignments().size());
-        Assertions.assertEquals(10, course.get().getAssignments().stream().findFirst().get().getPoints());
+        Assertions.assertEquals(1, course.getAssignments().size());
+
+        Assertions.assertTrue(assignment.isPresent());
+        Assertions.assertEquals(10, assignment.get().getPoints());
     }
 }
