@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -26,6 +27,32 @@ public class AssignmentService {
         return assignments.stream()
                 .filter(a -> a.getUnlockDate() == null || a.getUnlockDate().isBefore(now))
                 .toList();
+    }
+
+
+    public Optional<Assignment> enableAssignment(String assignmentId){
+        Optional<Assignment> assignment = assignmentRepo.getAssignmentById(UUID.fromString(assignmentId));
+
+        if (assignment.isEmpty()){
+            return Optional.empty();
+        }
+
+        assignment.get().setEnabled(true);
+
+        return Optional.of(assignmentRepo.save(assignment.get()));
+
+    }
+
+    public Optional<Assignment> disableAssignment(String assignmentId){
+        Optional<Assignment> assignment = assignmentRepo.getAssignmentById(UUID.fromString(assignmentId));
+
+        if (assignment.isEmpty()){
+            return Optional.empty();
+        }
+
+        assignment.get().setEnabled(false);
+
+        return Optional.of(assignmentRepo.save(assignment.get()));
     }
 
 }
