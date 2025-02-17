@@ -4,14 +4,12 @@ import edu.ksu.canvas.model.Course;
 import edu.ksu.canvas.model.Enrollment;
 import edu.ksu.canvas.model.Section;
 import edu.ksu.canvas.model.User;
-import edu.mines.gradingadmin.managers.IdentityProvider;
-import edu.mines.gradingadmin.services.CanvasService;
+import edu.mines.gradingadmin.services.external.CanvasService;
 import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import static org.mockito.ArgumentMatchers.*;

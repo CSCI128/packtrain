@@ -12,6 +12,7 @@ import edu.mines.gradingadmin.repositories.UserRepo;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
+import edu.mines.gradingadmin.services.external.CanvasService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
@@ -68,7 +69,7 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
         // the sin of partial mocking
         canvasService = Mockito.spy(
                 new CanvasService(null,
-                new ExternalServiceConfig.CanvasConfig(URI.create("https://test.com"), "TeacherEnrollment", "StudentEnrollment", "TaEnrollmentEnrollment"))
+                new ExternalServiceConfig.CanvasConfig(true, URI.create("https://test.com"), "TeacherEnrollment", "StudentEnrollment", "TaEnrollmentEnrollment"))
         );
 
         courseMemberService = new CourseMemberService(
