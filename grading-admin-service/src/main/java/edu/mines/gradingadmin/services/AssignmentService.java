@@ -46,7 +46,7 @@ public class AssignmentService {
         return Optional.of(assignmentRepo.save(assignment.get()));
     }
 
-    public Optional<Assignment> addAssignmentToCourse(String courseId, String name, double points, String category, boolean enabled, Instant dueDate, Instant unlockDate) {
+    public Optional<Assignment> addAssignmentToCourse(String courseId, String name, double points, String category, Instant dueDate, Instant unlockDate) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if(course.isEmpty()) {
             return Optional.empty();
@@ -56,9 +56,9 @@ public class AssignmentService {
         assignment.setName(name);
         assignment.setPoints(points);
         assignment.setCategory(category);
-        assignment.setEnabled(enabled);
         assignment.setDueDate(dueDate);
         assignment.setUnlockDate(unlockDate);
+        assignment.setEnabled(true);
         assignment.setCourse(course.get());
 
         return Optional.of(assignmentRepo.save(assignment));

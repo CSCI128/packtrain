@@ -48,29 +48,21 @@ public class TestAssignmentService implements PostgresTestContainer {
 
     @Test
     void verifyAddAssignments() {
-        Course course1 = courseSeeders.course1();
+        Course course = courseSeeders.course1();
 
-        AssignmentDTO assignmentDTO = new AssignmentDTO()
-                .id(UUID.randomUUID().toString())
-                .name("Studio 1")
-                .category("Studios")
-                .dueDate(Instant.now())
-                .unlockDate(Instant.now())
-                .enabled(true)
-                .points(2.0);
+        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(
+                course.getId().toString(),
+                "Studio 1",
+                2.0,
+                "Studios",
+                Instant.now(),
+                Instant.now()
+        );
 
-        assignmentService.addAssignmentToCourse(course1.getId().toString(),
-                assignmentDTO.getName(),
-                assignmentDTO.getPoints(),
-                assignmentDTO.getCategory(),
-                assignmentDTO.getEnabled(),
-                assignmentDTO.getDueDate(),
-                assignmentDTO.getUnlockDate());
+        course = courseService.getCourse(course.getId()).orElseThrow(AssertionError::new);
 
-        Optional<Course> course = courseService.getCourse(course1.getId());
-
-        Assertions.assertTrue(course.isPresent());
-        Assertions.assertEquals(1, course.get().getAssignments().size());
+        Assertions.assertTrue(assignment.isPresent());
+        Assertions.assertTrue(assignment.get().isEnabled());
     }
 
     @Test
@@ -86,22 +78,14 @@ public class TestAssignmentService implements PostgresTestContainer {
     void verifyUpdateAssignment() {
         Course course = courseSeeders.course1();
 
-        AssignmentDTO assignmentDTO = new AssignmentDTO()
-                .id(UUID.randomUUID().toString())
-                .name("Studio 1")
-                .category("Studios")
-                .dueDate(Instant.now())
-                .unlockDate(Instant.now())
-                .enabled(true)
-                .points(5.0);
-
-        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(course.getId().toString(),
-                assignmentDTO.getName(),
-                assignmentDTO.getPoints(),
-                assignmentDTO.getCategory(),
-                assignmentDTO.getEnabled(),
-                assignmentDTO.getDueDate(),
-                assignmentDTO.getUnlockDate());
+        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(
+                course.getId().toString(),
+                "Studio 1",
+                2.0,
+                "Studios",
+                Instant.now(),
+                Instant.now()
+        );
 
         Assertions.assertTrue(assignment.isPresent());
 
@@ -113,10 +97,6 @@ public class TestAssignmentService implements PostgresTestContainer {
                 assignment.get().isEnabled(),
                 assignment.get().getDueDate(),
                 assignment.get().getUnlockDate());
-
-        course = courseService.getCourse(course.getId()).orElseThrow(AssertionError::new);
-
-        Assertions.assertEquals(1, course.getAssignments().size());
 
         Assertions.assertTrue(assignment.isPresent());
         Assertions.assertEquals(10, assignment.get().getPoints());

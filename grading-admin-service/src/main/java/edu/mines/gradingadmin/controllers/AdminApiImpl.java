@@ -63,7 +63,6 @@ public class AdminApiImpl implements AdminApiDelegate {
                 assignmentDto.getName(),
                 assignmentDto.getPoints(),
                 assignmentDto.getCategory(),
-                assignmentDto.getEnabled(),
                 assignmentDto.getDueDate(),
                 assignmentDto.getUnlockDate()
         );

@@ -1,6 +1,5 @@
 package edu.mines.gradingadmin.services;
 
-import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
@@ -11,7 +10,6 @@ import edu.mines.gradingadmin.repositories.CourseRepo;
 import edu.mines.gradingadmin.repositories.PolicyRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import lombok.extern.slf4j.Slf4j;
-import jakarta.transaction.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,7 +18,6 @@ import java.util.*;
 
 @Slf4j
 @Service
-@Transactional
 public class CourseService {
     private final CourseRepo courseRepo;
     private final ScheduledTaskRepo<CourseImportTaskDef> taskRepo;
@@ -116,8 +113,6 @@ public class CourseService {
 
         return Optional.of(task);
     }
-
-
 
     public void enableCourse(UUID courseId) {
         Optional<Course> course = courseRepo.findById(courseId);
