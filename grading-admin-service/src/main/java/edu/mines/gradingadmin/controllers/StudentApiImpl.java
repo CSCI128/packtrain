@@ -6,7 +6,6 @@ import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Assignment;
 import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.Section;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.services.AssignmentService;
@@ -68,7 +67,7 @@ public class StudentApiImpl implements StudentApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        Set<Section> sections = courseMemberService.getSectionsSectionsForUserAndCourse(securityManager.getUser(), course.get());
+        Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(securityManager.getUser(), course.get());
 
         CourseDTO courseDTO = new CourseDTO()
             .id(course.get().getId().toString())

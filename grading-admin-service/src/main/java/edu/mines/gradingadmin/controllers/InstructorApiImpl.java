@@ -41,7 +41,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        Set<Section> sections = courseMemberService.getSectionsSectionsForUserAndCourse(securityManager.getUser(), course.get());
+        Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(securityManager.getUser(), course.get());
 
         CourseDTO courseDTO = new CourseDTO()
                 .id(course.get().getId().toString())
