@@ -59,8 +59,6 @@ public class TestAssignmentService implements PostgresTestContainer {
                 Instant.now()
         );
 
-        course = courseService.getCourse(course.getId()).orElseThrow(AssertionError::new);
-
         Assertions.assertTrue(assignment.isPresent());
         Assertions.assertTrue(assignment.get().isEnabled());
     }
