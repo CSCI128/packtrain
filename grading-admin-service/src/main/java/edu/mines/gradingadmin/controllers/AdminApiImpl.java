@@ -5,10 +5,7 @@ import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
-import edu.mines.gradingadmin.services.CourseMemberService;
-import edu.mines.gradingadmin.services.CourseService;
-import edu.mines.gradingadmin.services.SectionService;
-import edu.mines.gradingadmin.services.UserService;
+import edu.mines.gradingadmin.services.*;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,13 +25,15 @@ public class AdminApiImpl implements AdminApiDelegate {
     private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
     private final UserService userService;
+    private final AssignmentService assignmentService;
 
-    public AdminApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, SecurityManager securityManager, UserService userService) {
+    public AdminApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, SecurityManager securityManager, UserService userService, AssignmentService assignmentService) {
         this.courseService = courseService;
         this.sectionService = sectionService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
         this.userService = userService;
+        this.assignmentService = assignmentService;
     }
 
     @Override
@@ -233,6 +232,26 @@ public class AdminApiImpl implements AdminApiDelegate {
                         .admin(u.isAdmin())
                         .enabled(u.isEnabled()))
                 .toList());
+    }
+
+    @Override
+    public ResponseEntity<Void> enableAssignment(String courseId, String assignmentId) {
+        Optional<Assignment> assignment = assignmentService.enableAssignment(assignmentId);
+        if (assignment.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.accepted().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> disableAssignment(String courseId, String assignmentId) {
+        Optional<Assignment> assignment = assignmentService.disableAssignment(assignmentId);
+        if (assignment.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.accepted().build();
     }
 
     @Override
