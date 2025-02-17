@@ -1,6 +1,3 @@
-import { observable } from "@legendapp/state";
-import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/local-storage";
-import { syncObservable } from "@legendapp/state/sync";
 import {
   Box,
   Button,
@@ -11,47 +8,21 @@ import {
   Menu,
   Modal,
   ScrollArea,
+  Stack,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { $api, isAdmin, userManager } from "../../api";
+import { Link, useNavigate } from "react-router-dom";
+import { $api, store$, userManager } from "../../api";
 import classes from "./Navbar.module.scss";
 
-interface Course {
-  id: string;
-  name: string;
-}
-
-const store$ = observable<Course>();
-
-// TODO remove on logout + maybe add expiry date
-syncObservable(store$, {
-  persist: {
-    name: "activeCourse",
-    plugin: ObservablePersistLocalStorage,
-  },
-});
-
 export function Navbar() {
-  // export the class selection modal component elsewhere.
-
-  // const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
-
-  // if (isLoading || !data) return "Loading...";
-
-  // if (error) return `An error occured: ${error}`;
-
-  // console.log(data);
-
-  // export the class selection modal component elsewhere.
-
-  // TODO mobile responsiveness drawer
+  const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
   const [drawerOpened, { toggle: toggleDrawer }] = useDisclosure(false);
-
   const [user, setUser] = useState<User | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -78,45 +49,41 @@ export function Navbar() {
     await userManager.signoutRedirect();
   };
 
-  const setActiveCourse = () => {
-    store$.id.set("1");
-    store$.name.set("CSCI128");
+  const switchCourse = (id: string, name: string) => {
+    store$.id.set(id);
+    store$.name.set(name);
     close();
+    navigate("/admin/home");
   };
 
-  const fetchData = async () => {
-    if (await isAdmin()) {
-      // TODO make "middleware" for a user being authenticated as admin + instructor
-      const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
+  if (isLoading || !data) return "Loading...";
 
-      if (isLoading || !data) return "Loading...";
-
-      if (error) return `An error occured: ${error}`;
-
-      console.log(data);
-      return data;
-    }
-  };
+  if (error) return `An error occured: ${error}`;
 
   return (
     <>
+      {/* TODO move the modal out of here */}
       <Modal opened={opened} onClose={close} title="Select Class">
-        {/* TODO get all courses and map */}
         <Center>
-          {/* {data.map((course) => (
-            <p>{course.name}</p>
-          ))} */}
+          <Stack>
+            {data.map((course) => (
+              <Button
+                key={course.id}
+                onClick={() => switchCourse(course.id as string, course.name)}
+              >
+                {course.name}
+              </Button>
+            ))}
+            <Button
+              color="green"
+              component={Link}
+              to="/admin/create"
+              onClick={close}
+            >
+              Create Class
+            </Button>
+          </Stack>
         </Center>
-
-        {/* PUT /admin/course/{course_id} */}
-
-        {/* <Button onClick={setActiveCourse}>CSCI128</Button> */}
-
-        <br />
-
-        <Button component={Link} to="/admin/create" onClick={close}>
-          Create Class
-        </Button>
       </Modal>
 
       <Box mb={20}>

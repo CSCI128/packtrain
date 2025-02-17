@@ -8,15 +8,13 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { $api } from "../../../api";
 
 export function ImportPage() {
   const [importing, setImporting] = useState(true);
 
   const location = useLocation();
-
-  const navigate = useNavigate();
 
   const form = useForm({
     mode: "uncontrolled",
@@ -75,7 +73,6 @@ export function ImportPage() {
       {
         onSuccess: (response) => {
           console.log(response);
-          // navigate("/admin/edit");
           setImporting(false);
         },
       }
@@ -135,7 +132,7 @@ export function ImportPage() {
             <Button
               color={importing ? "blue" : "gray"}
               component={Link}
-              to="/admin/edit"
+              to="/admin/course"
             >
               Continue
             </Button>

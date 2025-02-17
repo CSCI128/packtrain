@@ -1,7 +1,7 @@
 import { Button, Container, Divider, Group, Text } from "@mantine/core";
 import { BsBoxArrowUpRight } from "react-icons/bs";
 import { Link } from "react-router-dom";
-import { $api } from "../../../api";
+import { $api, store$ } from "../../../api";
 
 export function CoursePage() {
   const { data, error, isLoading } = $api.useQuery(
@@ -9,7 +9,7 @@ export function CoursePage() {
     "/admin/courses/{course_id}",
     {
       params: {
-        path: { course_id: "1" },
+        path: { course_id: store$.id.get() as string },
       },
     }
   );
