@@ -1,20 +1,15 @@
 import { Container, Divider, Table, Tabs, Text } from "@mantine/core";
 import { $api } from "../../api";
 
+// TODO: page should only be visible to admins
 export function UsersPage() {
-  const { data, error, isLoading } = $api.useQuery(
-    "get",
-    "/admin/courses/{course_id}",
-    {
-      params: {
-        path: { course_id: "1" },
-      },
-    }
-  );
+  const { data, error, isLoading } = $api.useQuery("get", "/admin/users");
 
   if (isLoading || !data) return "Loading...";
 
   if (error) return `An error occured: ${error}`;
+
+  console.log(data);
 
   const elements = [
     { position: 6, mass: 12.011, symbol: "C", name: "Carbon" },
