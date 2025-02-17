@@ -8,21 +8,25 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { $api } from "../../../api";
 
 export function ImportPage() {
-  const [imported, setImported] = useState(false);
+  const [importing, setImporting] = useState(true);
+
+  const location = useLocation();
+
+  const navigate = useNavigate();
 
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
-      canvasAPIKey: "",
+      // canvasAPIKey: "",
       courseId: "",
     },
     validate: {
-      canvasAPIKey: (value) =>
-        value.length < 1 ? "API key must have at least 1 character" : null,
+      // canvasAPIKey: (value) =>
+      // value.length < 1 ? "API key must have at least 1 character" : null,
       courseId: (value) =>
         /^[0-9]+$/.test(value) ? null : "Invalid Canvas course ID",
     },
@@ -53,20 +57,29 @@ export function ImportPage() {
   };
 
   const importCourse = (values: typeof form.values) => {
-    mutation.mutate({
-      params: {
-        path: {
-          course_id: values.courseId,
+    mutation.mutate(
+      {
+        params: {
+          path: {
+            course_id: location.state.course_id,
+          },
+        },
+        body: {
+          canvas_id: Number(location.state.canvas_id),
+          overwrite_name: false,
+          overwrite_code: false,
+          import_users: true,
+          import_assignments: true,
         },
       },
-      body: {
-        canvas_id: Number(values.courseId),
-        overwrite_name: false,
-        overwrite_code: false,
-        import_users: true,
-        import_assignments: true,
-      },
-    });
+      {
+        onSuccess: (response) => {
+          console.log(response);
+          // navigate("/admin/edit");
+          setImporting(false);
+        },
+      }
+    );
   };
 
   return (
@@ -78,8 +91,13 @@ export function ImportPage() {
 
         <Divider my="sm" />
 
+        <Text size="md">Using canvas id: {location.state.canvas_id}</Text>
+
+        <Text size="md">Using course id: {location.state.course_id}</Text>
+
         <form onSubmit={form.onSubmit(importCourse)}>
-          {hasCanvasCredential() ? (
+          {/* dont think this is working with hidden stuff */}
+          {/* {hasCanvasCredential() ? (
             <>
               <Text mt={15} mb={15} c="dimmed" size="sm">
                 Using existing Canvas credential..
@@ -87,7 +105,6 @@ export function ImportPage() {
             </>
           ) : (
             <>
-              {/* TODO do we even want to handle this case? */}
               <TextInput
                 label="Canvas API Key"
                 placeholder="xxxxxxxx"
@@ -95,8 +112,10 @@ export function ImportPage() {
                 {...form.getInputProps("canvasAPIKey")}
               />
             </>
-          )}
+          )} */}
+          {/* TODO do we even want to handle this case? */}
 
+          {/* TODO rethink how this is shown and if this is editable */}
           <TextInput
             label="Canvas Course ID"
             placeholder="xxxxxxxx"
@@ -111,15 +130,19 @@ export function ImportPage() {
         </form>
 
         {/* TODO gray this out if import isn't done */}
-        <Group justify="flex-end" mt="md">
-          <Button
-            color={imported ? "blue" : "gray"}
-            component={Link}
-            to="/admin/edit"
-          >
-            Continue
-          </Button>
-        </Group>
+        {!importing ? (
+          <Group justify="flex-end" mt="md">
+            <Button
+              color={importing ? "blue" : "gray"}
+              component={Link}
+              to="/admin/edit"
+            >
+              Continue
+            </Button>
+          </Group>
+        ) : (
+          <></>
+        )}
       </Container>
     </>
   );

@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import { AssignmentsPage } from "./pages/admin/assignments";
 import { CoursePage } from "./pages/admin/course/Course";
+import { CreatePage } from "./pages/admin/course/Create";
 import { EditCourse } from "./pages/admin/course/Edit";
 import { ImportPage } from "./pages/admin/course/Import";
 import { MigratePage } from "./pages/admin/Migrate";
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
       {
         path: "/instructor/migrate",
         element: <MigratePage />,
+      },
+      {
+        path: "/admin/create",
+        element: <CreatePage />,
       },
       {
         path: "/admin/import",

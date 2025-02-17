@@ -79,6 +79,7 @@ export function Navbar() {
   };
 
   const setActiveCourse = () => {
+    store$.id.set("1");
     store$.name.set("CSCI128");
     close();
   };
@@ -113,7 +114,7 @@ export function Navbar() {
 
         <br />
 
-        <Button component={Link} to="/admin/import" onClick={close}>
+        <Button component={Link} to="/admin/create" onClick={close}>
           Create Class
         </Button>
       </Modal>
