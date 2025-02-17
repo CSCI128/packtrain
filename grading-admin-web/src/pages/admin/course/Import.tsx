@@ -28,6 +28,8 @@ export function ImportPage() {
     }
   );
 
+  // https://localhost.dev/api/user/credential
+
   const importCourse = (values: any) => {
     console.log(values);
   };
