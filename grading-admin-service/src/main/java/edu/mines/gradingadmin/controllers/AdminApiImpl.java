@@ -254,7 +254,7 @@ public class AdminApiImpl implements AdminApiDelegate {
         Optional<CourseMember> courseMember = courseMemberService.addMemberToCourse(courseId,
                 courseMemberDTO.getCwid(),
                 courseMemberDTO.getCanvasId(),
-                CourseRole.valueOf(courseMemberDTO.getCourseRole().getValue()));
+                CourseRole.fromString(courseMemberDTO.getCourseRole().getValue()));
 
         if (courseMember.isEmpty()) {
             // need to do this with error controller

@@ -8,8 +8,6 @@ import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.tasks.UserImportTaskDef;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
-import edu.mines.gradingadmin.repositories.UserRepo;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -138,7 +136,6 @@ public class CourseMemberService {
         return Optional.of(task);
     }
 
-    @Transactional
     public Optional<CourseMember> addMemberToCourse(String courseId, String cwid, String canvasId, CourseRole role) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if(course.isEmpty()) {
@@ -156,5 +153,23 @@ public class CourseMemberService {
         member.setUser(user.get());
         member.setCourse(course.get());
         return Optional.of(courseMemberRepo.save(member));
+    }
+
+    public List<CourseRole> getRolesForUserAndCourse(User user, UUID courseId){
+        Optional<Course> course = courseService.getCourse(courseId);
+
+        if (course.isEmpty()){
+            return List.of();
+        }
+
+        Set<CourseMember> memberships = courseMemberRepo.getByUserAndCourse(user, course.get());
+
+        return memberships.stream().map(CourseMember::getRole).toList();
+    }
+
+    public Set<Section> getSectionsForUserAndCourse(User user, Course course){
+        Set<CourseMember> memberships = courseMemberRepo.getByUserAndCourse(user, course);
+
+        return memberships.stream().map(CourseMember::getSections).flatMap(Set::stream).collect(Collectors.toSet());
     }
 }

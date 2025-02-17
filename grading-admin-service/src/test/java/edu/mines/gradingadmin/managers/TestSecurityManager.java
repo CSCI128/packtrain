@@ -1,11 +1,13 @@
 package edu.mines.gradingadmin.managers;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
-import edu.mines.gradingadmin.models.CredentialType;
-import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.CredentialRepo;
 import edu.mines.gradingadmin.repositories.UserRepo;
+import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
+import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,12 +33,22 @@ public class TestSecurityManager implements PostgresTestContainer {
     private UserRepo userRepo;
 
     @Autowired
+    private CredentialRepo credentialRepo;
+
+    @Autowired
+    private CourseMemberRepo courseMemberRepo;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
-    private CredentialService credentialService;
+    private CourseSeeders courseSeeders;
+
     @Autowired
-    private CredentialRepo credentialRepo;
+    private CredentialService credentialService;
+
+    @Autowired
+    private CourseMemberService courseMemberService;
 
 
     @BeforeAll
@@ -46,6 +58,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
     @AfterEach
     void tearDown(){
+        courseSeeders.clearAll();
         credentialRepo.deleteAll();
         userRepo.deleteAll();
     }
@@ -75,7 +88,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         HttpServletRequest request = requestFactory(token);
 
-        SecurityManager manager = new SecurityManager(userService, credentialService);
+        SecurityManager manager = new SecurityManager(userService, credentialService, courseMemberService);
 
         manager.setPrincipalFromRequest(request);
 
@@ -113,7 +126,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         HttpServletRequest request = requestFactory(token);
 
-        SecurityManager manager = new SecurityManager(userService, credentialService);
+        SecurityManager manager = new SecurityManager(userService, credentialService, courseMemberService);
 
         manager.setPrincipalFromRequest(request);
 
@@ -150,7 +163,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         HttpServletRequest request = requestFactory(token);
 
-        SecurityManager manager = new SecurityManager(userService, credentialService);
+        SecurityManager manager = new SecurityManager(userService, credentialService, courseMemberService);
 
         manager.setPrincipalFromRequest(request);
 
@@ -175,7 +188,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         HttpServletRequest request = requestFactory(token);
 
-        SecurityManager manager = new SecurityManager(userService, credentialService);
+        SecurityManager manager = new SecurityManager(userService, credentialService, courseMemberService);
 
         manager.setPrincipalFromRequest(request);
 
@@ -201,7 +214,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         HttpServletRequest request = requestFactory(token);
 
-        SecurityManager manager = new SecurityManager(userService, credentialService);
+        SecurityManager manager = new SecurityManager(userService, credentialService, courseMemberService);
 
         manager.setPrincipalFromRequest(request);
 
@@ -234,7 +247,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         HttpServletRequest request = requestFactory(token);
 
-        SecurityManager manager = new SecurityManager(userService, credentialService);
+        SecurityManager manager = new SecurityManager(userService, credentialService, courseMemberService);
 
         manager.setPrincipalFromRequest(request);
         manager.readUserFromRequest();
@@ -256,7 +269,7 @@ public class TestSecurityManager implements PostgresTestContainer {
         user.setName("Test User");
         userRepo.save(user);
 
-        SecurityManager manager = new SecurityManager(userService, credentialService);
+        SecurityManager manager = new SecurityManager(userService, credentialService, courseMemberService);
         Jwt token = new Jwt("token", null, null, Map.of("alg", "none"), Map.of(
                 "sub", sub,
                 "cwid", cwid,
@@ -271,6 +284,116 @@ public class TestSecurityManager implements PostgresTestContainer {
         manager.readUserFromRequest();
 
         Assertions.assertThrows(AccessDeniedException.class, () -> manager.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+    }
+
+
+    @Test
+    void verifyCheckEnrollmentMatch(){
+        String cwid = "99999999";
+        String sub = UUID.randomUUID().toString();
+
+        User user = new User();
+        user.setOAuthId(UUID.fromString(sub));
+        user.setCwid(cwid);
+        user.setEmail("test@test.com");
+        user.setName("Test User");
+        user = userRepo.save(user);
+
+        Course course = courseSeeders.course1();
+
+        CourseMember membership = new CourseMember();
+        membership.setCanvasId("9999999");
+        membership.setRole(CourseRole.INSTRUCTOR);
+        membership.setUser(user);
+        membership.setCourse(course);
+
+        membership = courseMemberRepo.save(membership);
+
+        SecurityManager manager = new SecurityManager(userService, credentialService, courseMemberService);
+        Jwt token = new Jwt("token", null, null, Map.of("alg", "none"), Map.of(
+                "sub", sub,
+                "cwid", cwid,
+                "email", "test@test.com",
+                "is_admin", false,
+                "name", "Test User"
+        ));
+
+        HttpServletRequest request = requestFactory(token);
+
+        manager.setPrincipalFromRequest(request);
+        manager.readUserFromRequest();
+
+        Assertions.assertTrue(manager.hasCourseMembership(CourseRole.INSTRUCTOR, course.getId()));
+    }
+
+    @Test
+    void verifyCheckEnrollmentNoMatch(){
+        String cwid = "99999999";
+        String sub = UUID.randomUUID().toString();
+
+        User user = new User();
+        user.setOAuthId(UUID.fromString(sub));
+        user.setCwid(cwid);
+        user.setEmail("test@test.com");
+        user.setName("Test User");
+        user = userRepo.save(user);
+
+        Course course = courseSeeders.course1();
+
+        CourseMember membership = new CourseMember();
+        membership.setCanvasId("9999999");
+        membership.setRole(CourseRole.INSTRUCTOR);
+        membership.setUser(user);
+        membership.setCourse(course);
+
+        membership = courseMemberRepo.save(membership);
+
+        SecurityManager manager = new SecurityManager(userService, credentialService, courseMemberService);
+        Jwt token = new Jwt("token", null, null, Map.of("alg", "none"), Map.of(
+                "sub", sub,
+                "cwid", cwid,
+                "email", "test@test.com",
+                "is_admin", false,
+                "name", "Test User"
+        ));
+
+        HttpServletRequest request = requestFactory(token);
+
+        manager.setPrincipalFromRequest(request);
+        manager.readUserFromRequest();
+
+        Assertions.assertFalse(manager.hasCourseMembership(CourseRole.STUDENT, course.getId()));
+    }
+
+    @Test
+    void verifyCheckEnrollmentDNE(){
+        String cwid = "99999999";
+        String sub = UUID.randomUUID().toString();
+
+        User user = new User();
+        user.setOAuthId(UUID.fromString(sub));
+        user.setCwid(cwid);
+        user.setEmail("test@test.com");
+        user.setName("Test User");
+        user = userRepo.save(user);
+
+        Course course = courseSeeders.course1();
+
+        SecurityManager manager = new SecurityManager(userService, credentialService, courseMemberService);
+        Jwt token = new Jwt("token", null, null, Map.of("alg", "none"), Map.of(
+                "sub", sub,
+                "cwid", cwid,
+                "email", "test@test.com",
+                "is_admin", false,
+                "name", "Test User"
+        ));
+
+        HttpServletRequest request = requestFactory(token);
+
+        manager.setPrincipalFromRequest(request);
+        manager.readUserFromRequest();
+
+        Assertions.assertFalse(manager.hasCourseMembership(CourseRole.STUDENT, course.getId()));
     }
 
 }
