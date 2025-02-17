@@ -1,5 +1,7 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.CourseRole;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.UserRepo;
@@ -9,6 +11,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Cacheable("users")
@@ -158,9 +162,11 @@ public class UserService {
         log.info("Made user '{}' an admin", user.get().getEmail());
 
         return Optional.of(userRepo.save(user.get()));
-
-
     }
 
-
+    @Transactional
+    public Optional<List<Course>> getEnrollments(String cwid) {
+        Optional<User> user = userRepo.getByCwid(cwid);
+        return user.map(member -> member.getCourseMemberships().stream().map(CourseMember::getCourse).toList());
+    }
 }

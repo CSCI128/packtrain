@@ -525,7 +525,7 @@ paths:
           required: false
           schema:
             type: string
-            description: "part of (or full) cwid to search for"
+            description: "Part of (or full) cwid to search for"
             example: "9999999"
       responses:
         200:
@@ -796,7 +796,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
 
-  /user/credentials:
+  /user/credential:
     post:
       tags:
         - user
@@ -1189,6 +1189,57 @@ paths:
               schema:
                 $ref: "#/components/schemas/Course"
 
+  /instructor/courses/{course_id}/enrollments:
+    get:
+      tags:
+        - instructor
+      operationId: get_instructor_enrollments
+      security:
+        - openIDC: [instructor:read]
+      summary: "Get all enrollments for all sections"
+      description: |
+        Gets user enrollments for all sections 
+        an instructor is apart of.
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: "name"
+          in: query
+          required: false
+          schema:
+            type: string
+            description: "Part of (or full) name to search for"
+            example: "Alex"
+        - name: "cwid"
+          in: query
+          required: false
+          schema:
+            type: string
+            description: "Part of (or full) cwid to search for"
+            example: "9999999"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CourseMember"
+        404:
+          description: Course Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_course"
+                error_message: "Course '999-9999-9999-99' does not exist"
+
   /student/courses/{course_id}:
     get:
       tags:
@@ -1216,6 +1267,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Course"
+
+  /student/enrollments:
+    get:
+      tags:
+        - user
+      operationId: get_enrollments
+      security:
+        - openIDC: [user:read]
+      summary: "Get all enrollments for a user"
+      description: |
+        Gets all enrollments (classes) that a
+        user is apart of.
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
+        404:
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "User '999-9999-9999-99' does not exist!"
 
   /student/courses/{course_id}/assignments:
     get:
