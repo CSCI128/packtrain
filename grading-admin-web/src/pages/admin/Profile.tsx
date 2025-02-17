@@ -55,7 +55,7 @@ export function Profile() {
 
   if (error || credentialError) return `An error occured: ${error}`;
 
-  const addCredential = async (values: typeof form.values) => {
+  const addCredential = (values: typeof form.values) => {
     mutation.mutate({
       body: {
         owning_user: {
@@ -153,16 +153,12 @@ export function Profile() {
           <React.Fragment key={credential.id}>
             <Box size="sm" mt={15}>
               <Text size="md" fw={700}>
-                {credential.name}
+                {credential.name} ({credential.active ? "Active" : "Inactive"})
               </Text>
 
               <Text size="md">Service: {credential.service}</Text>
 
               <Text size="md">API Key: {credential.api_key}</Text>
-
-              <Text size="md">
-                Active: {credential.active ? "true" : "false"}
-              </Text>
 
               {credential.active ? (
                 <>

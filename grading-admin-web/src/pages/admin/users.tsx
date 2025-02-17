@@ -1,6 +1,21 @@
-import { Container, Table, Tabs, Text } from "@mantine/core";
+import { Container, Divider, Table, Tabs, Text } from "@mantine/core";
+import { $api } from "../../api";
 
 export function UsersPage() {
+  const { data, error, isLoading } = $api.useQuery(
+    "get",
+    "/admin/courses/{course_id}",
+    {
+      params: {
+        path: { course_id: "1" },
+      },
+    }
+  );
+
+  if (isLoading || !data) return "Loading...";
+
+  if (error) return `An error occured: ${error}`;
+
   const elements = [
     { position: 6, mass: 12.011, symbol: "C", name: "Carbon" },
     { position: 7, mass: 14.007, symbol: "N", name: "Nitrogen" },
@@ -24,6 +39,8 @@ export function UsersPage() {
         <Text size="xl" fw={700}>
           Course Users
         </Text>
+
+        <Divider my="sm" />
 
         <Tabs defaultValue="first" mt={10}>
           <Tabs.List>

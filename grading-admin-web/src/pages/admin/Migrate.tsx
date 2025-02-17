@@ -1,10 +1,14 @@
-import { Container } from "@mantine/core";
+import { Container, Divider, Text } from "@mantine/core";
 
 export function MigratePage() {
   return (
     <>
       <Container size="md">
-        <p>Migrations</p>
+        <Text size="xl" fw={700}>
+          Migrations
+        </Text>
+
+        <Divider my="sm" />
       </Container>
     </>
   );

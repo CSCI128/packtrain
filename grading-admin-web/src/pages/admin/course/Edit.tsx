@@ -12,33 +12,44 @@ import { Link } from "react-router-dom";
 import { $api } from "../../../api";
 
 export function EditCourse() {
-  const updateCourse = () => {
-    const { data, error, isLoading } = $api.useQuery(
-      "put",
-      "/admin/course/{course_id}",
-      {
-        params: {
-          path: { course_id: "5" },
+  const mutation = $api.useMutation("put", "/admin/courses/{course_id}");
+
+  // TODO add/link service mutation here
+
+  const updateCourse = (values: typeof form.values) => {
+    mutation.mutate({
+      params: {
+        path: {
+          course_id: "1",
         },
-      }
-    );
-
-    if (isLoading || !data) return "Loading...";
-
-    if (error) return `An error occured: ${error}`;
-
-    console.log(data);
-    return data;
+      },
+      body: {
+        name: values.courseName,
+        code: values.courseCode,
+        term: values.courseTerm,
+        enabled: true,
+        canvas_id: Number(values.canvasId), // TODO they shouldn't really be editing canvas_id here
+      },
+    });
   };
 
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
+      courseName: "",
+      courseCode: "",
+      courseTerm: "",
       canvasId: "",
     },
     validate: {
       canvasId: (value) =>
         value.length == 8 ? null : "Canvas ID must be 8 characters",
+      courseName: (value) =>
+        value.length < 1 ? "Course name must have at least 1 character" : null,
+      courseCode: (value) =>
+        value.length < 1 ? "Course code must have at least 1 character" : null,
+      courseTerm: (value) =>
+        value.length < 1 ? "Course term must have at least 1 character" : null,
     },
   });
 
@@ -51,13 +62,14 @@ export function EditCourse() {
 
         <Divider my="md" />
 
-        <form onSubmit={form.onSubmit((values) => console.log(values))}>
+        <form onSubmit={form.onSubmit(updateCourse)}>
           <TextInput
             pb={8}
             label="Course Name"
             defaultValue="Computer Science For STEM"
             placeholder="Computer Science For STEM"
             key={form.key("courseName")}
+            {...form.getInputProps("courseName")}
           />
 
           <TextInput
@@ -66,6 +78,7 @@ export function EditCourse() {
             defaultValue="CSCI128"
             placeholder="CSCI128"
             key={form.key("courseCode")}
+            {...form.getInputProps("courseCode")}
           />
 
           <TextInput
@@ -74,15 +87,18 @@ export function EditCourse() {
             defaultValue="Fall 2024"
             placeholder="Fall 2024"
             key={form.key("courseTerm")}
+            {...form.getInputProps("courseTerm")}
           />
 
           <TextInput
             label="Canvas ID"
             placeholder="xxxxxxxx"
             key={form.key("canvasId")}
+            {...form.getInputProps("canvasId")}
           />
 
-          <p>External Services</p>
+          <Text size="md">External Services</Text>
+
           <Chip.Group multiple>
             <Group>
               <Chip value="1">Gradescope</Chip>

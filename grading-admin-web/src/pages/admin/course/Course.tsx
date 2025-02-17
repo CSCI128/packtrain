@@ -1,34 +1,41 @@
 import { Button, Container, Divider, Group, Text } from "@mantine/core";
 import { BsBoxArrowUpRight } from "react-icons/bs";
 import { Link } from "react-router-dom";
+import { $api } from "../../../api";
 
 export function CoursePage() {
-  const data = {
-    id: "1",
-    term: "Fall 2020",
-    enabled: true,
-    name: "Computer Science for STEM",
-    code: "CSCI128",
-    canvas_id: "1",
-  };
+  const { data, error, isLoading } = $api.useQuery(
+    "get",
+    "/admin/courses/{course_id}",
+    {
+      params: {
+        path: { course_id: "1" },
+      },
+    }
+  );
+
+  const mutation = $api.useMutation("post", "/admin/courses/{course_id}/sync");
+
+  if (isLoading || !data) return "Loading...";
+
+  if (error) return `An error occured: ${error}`;
 
   const syncAssignments = () => {
-    console.log("hello");
+    mutation.mutate({
+      params: {
+        path: {
+          course_id: "1",
+        },
+      },
+      body: {
+        canvas_id: 1,
+        overwrite_name: false,
+        overwrite_code: false,
+        import_users: true,
+        import_assignments: true,
+      },
+    });
   };
-
-  // const { data, error, isLoading } = $api.useQuery(
-  //   "get",
-  //   "/admin/course/{course_id}",
-  //   {
-  //     params: {
-  //       path: { course_id: "1" },
-  //     },
-  //   }
-  // );
-
-  // if (isLoading || !data) return "Loading...";
-
-  // if (error) return `An error occured: ${error}`;
 
   return (
     <>

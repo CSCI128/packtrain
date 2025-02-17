@@ -1,7 +1,17 @@
 import { observable } from "@legendapp/state";
 import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/local-storage";
 import { syncObservable } from "@legendapp/state/sync";
-import { Box, Button, Center, Group, Menu, Modal } from "@mantine/core";
+import {
+  Box,
+  Button,
+  Center,
+  Divider,
+  Drawer,
+  Group,
+  Menu,
+  Modal,
+  ScrollArea,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
@@ -38,9 +48,7 @@ export function Navbar() {
   // export the class selection modal component elsewhere.
 
   // TODO mobile responsiveness drawer
-  // const [drawerOpened, { toggle: toggleDrawer }] = useDisclosure(false);
-
-  // const [] = useState<>();
+  const [drawerOpened, { toggle: toggleDrawer }] = useDisclosure(false);
 
   const [user, setUser] = useState<User | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
@@ -165,14 +173,14 @@ export function Navbar() {
           </Group>
         </header>
 
-        {/* <Drawer
-        opened={drawerOpened}
-        onClose={closeDrawer}
-        size="100%"
-        padding="md"
-        title="Navigation"
-        hiddenFrom="sm"
-        zIndex={1000000}
+        <Drawer
+          opened={drawerOpened}
+          onClose={toggleDrawer}
+          size="100%"
+          padding="md"
+          title="Navigation"
+          hiddenFrom="sm"
+          zIndex={1000000}
         >
           <ScrollArea h="calc(100vh - 80px" mx="-md">
             <Divider my="sm" />
@@ -180,7 +188,7 @@ export function Navbar() {
             <a href="#" className={classes.link}>
               Home
             </a>
-            <UnstyledButton className={classes.link} onClick={toggleLinks}>
+            {/* <UnstyledButton className={classes.link} onClick={toggleLinks}>
               <Center inline>
                 <Box component="span" mr={5}>
                   Features
@@ -188,7 +196,7 @@ export function Navbar() {
                 <IconChevronDown size={16} color={theme.colors.blue[6]} />
               </Center>
             </UnstyledButton>
-            <Collapse in={linksOpened}>{links}</Collapse>
+            <Collapse in={linksOpened}>{links}</Collapse> */}
             <a href="#" className={classes.link}>
               Learn
             </a>
@@ -203,7 +211,7 @@ export function Navbar() {
               <Button>Sign up</Button>
             </Group>
           </ScrollArea>
-        </Drawer> */}
+        </Drawer>
       </Box>
     </>
   );
