@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-import static java.util.stream.Collectors.toList;
-
 @Service
 @Cacheable("users")
 @Slf4j

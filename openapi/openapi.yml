@@ -796,7 +796,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
 
-  /user/credential:
+  /user/credentials:
     post:
       tags:
         - user
@@ -1563,7 +1563,7 @@ components:
           type: string
           enum:
             - student
-            - teacher
+            - instructor
             - ta
             - owner
           example: "owner"

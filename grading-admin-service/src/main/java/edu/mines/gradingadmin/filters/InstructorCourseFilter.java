@@ -32,16 +32,16 @@ public class InstructorCourseFilter implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         final Map<String, String> pathVariables = (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 
-        if (!pathVariables.containsKey("courseId")){
+        if (!pathVariables.containsKey("course_id")){
             return true;
         }
 
-        log.debug("Validating instructor access to course for user '{}'", securityManager.getUser());
-        String courseId = pathVariables.get("courseId");
+        log.debug("Validating instructor access to course for user '{}'", securityManager.getUser().getEmail());
+        String courseId = pathVariables.get("course_id");
 
         if (courseId.isEmpty()){
             log.error("Failed to get courseId from protected request!");
-            throw new AccessDeniedException("Failed to get course Id from request");
+            throw new AccessDeniedException("Failed to get course id from request");
         }
 
         if (!securityManager.hasCourseMembership(CourseRole.INSTRUCTOR, UUID.fromString(courseId)) && !securityManager.hasCourseMembership(CourseRole.OWNER, UUID.fromString(courseId))){

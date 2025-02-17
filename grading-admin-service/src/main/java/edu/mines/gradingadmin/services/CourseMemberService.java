@@ -138,7 +138,6 @@ public class CourseMemberService {
         return Optional.of(task);
     }
 
-    @Transactional
     public Optional<CourseMember> addMemberToCourse(String courseId, String cwid, String canvasId, CourseRole role) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if(course.isEmpty()) {
@@ -168,5 +167,11 @@ public class CourseMemberService {
         Set<CourseMember> memberships = courseMemberRepo.getByUserAndCourse(user, course.get());
 
         return memberships.stream().map(CourseMember::getRole).toList();
+    }
+
+    public Set<Section> getSectionsSectionsForUserAndCourse(User user, Course course){
+        Set<CourseMember> memberships = courseMemberRepo.getByUserAndCourse(user, course);
+
+        return memberships.stream().map(CourseMember::getSections).flatMap(Set::stream).collect(Collectors.toSet());
     }
 }

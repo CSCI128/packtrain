@@ -9,6 +9,7 @@ import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -31,6 +32,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<CourseDTO> getCourseInformationInstructor(String courseId) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
 
@@ -39,11 +41,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        Optional<CourseMember> courseMember = securityManager.getUser().getCourseMemberships().stream().filter(c -> c.getId().toString().equals(courseId)).findFirst();
-        if(courseMember.isEmpty()) {
-            // need to do this with error controller
-            return ResponseEntity.badRequest().build();
-        }
+        Set<Section> sections = courseMemberService.getSectionsSectionsForUserAndCourse(securityManager.getUser(), course.get());
 
         CourseDTO courseDTO = new CourseDTO()
                 .id(course.get().getId().toString())
@@ -59,14 +57,14 @@ public class InstructorApiImpl implements InstructorApiDelegate {
                             .unlockDate(assignment.getUnlockDate())
                             .enabled(assignment.isEnabled())
                             .points(assignment.getPoints())).toList())
-                .members(courseMember.get().getSections().stream().map(Section::getMembers).flatMap(Set::stream).map(member ->
+                .members(sections.stream().map(Section::getMembers).flatMap(Set::stream).map(member ->
                     new CourseMemberDTO()
                         .canvasId(member.getCanvasId())
                         .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(member.getRole().getRole()))
                         .cwid(member.getUser().getCwid())
                         .sections(member.getSections().stream().map(Section::getName).toList()))
                     .collect(toList()))
-                .sections(courseMember.get().getSections().stream().map(Section::getName).toList());
+                .sections(sections.stream().map(Section::getName).toList());
 
         return ResponseEntity.ok(courseDTO);
     }

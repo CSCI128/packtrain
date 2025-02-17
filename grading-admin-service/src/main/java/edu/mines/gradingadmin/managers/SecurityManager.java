@@ -23,6 +23,7 @@ import java.util.UUID;
 @Service
 @RequestScope
 @Slf4j
+@Transactional
 public class SecurityManager implements IdentityProvider{
     private final UserService userService;
     private final CredentialService credentialService;
