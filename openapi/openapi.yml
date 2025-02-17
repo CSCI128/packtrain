@@ -282,6 +282,40 @@ paths:
     put:
       tags:
         - admin
+      operationId: update_assignment
+      summary: "Update an assignment in a course"
+      description: |
+        Update an assignment in a course
+      security:
+        - openIDC: [admin:write]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Assignment"
+      responses:
+        201:
+          description: "Accepted"
+        404:
+          description: Course Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_course"
+                error_message: "Course '999-9999-9999-99' does not exist"
+    post:
+      tags:
+        - admin
       operationId: add_assignment
       summary: "Add assignment to a course"
       description: |
@@ -302,12 +336,14 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: "#/components/schemas/Assignment"
+              $ref: "#/components/schemas/Assignment"
       responses:
         201:
           description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assignment"
         404:
           description: Course Not Found
           content:
@@ -1460,6 +1496,8 @@ components:
       description: "An assignment in a course"
       type: object
       required:
+        - id
+        - name
         - points
         - due_date
         - unlock_date
@@ -1467,6 +1505,12 @@ components:
         - category
         - canvas_id
       properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
+        name:
+          type: string
+          example: "Assessment 1"
         points:
           type: number
           format: double
