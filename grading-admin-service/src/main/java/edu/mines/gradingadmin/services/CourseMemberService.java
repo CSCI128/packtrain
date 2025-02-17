@@ -169,7 +169,7 @@ public class CourseMemberService {
         return memberships.stream().map(CourseMember::getRole).toList();
     }
 
-    public Set<Section> getSectionsSectionsForUserAndCourse(User user, Course course){
+    public Set<Section> getSectionsForUserAndCourse(User user, Course course){
         Set<CourseMember> memberships = courseMemberRepo.getByUserAndCourse(user, course);
 
         return memberships.stream().map(CourseMember::getSections).flatMap(Set::stream).collect(Collectors.toSet());
