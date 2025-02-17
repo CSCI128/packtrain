@@ -100,6 +100,9 @@ export function Navbar() {
               <a href="/admin/assignments" className={classes.link}>
                 Assignments
               </a>
+              <a href="/admin/members" className={classes.link}>
+                Members
+              </a>
               <a href="/admin/users" className={classes.link}>
                 Users
               </a>

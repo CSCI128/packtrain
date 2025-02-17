@@ -8,6 +8,7 @@ import { CoursePage } from "./pages/admin/course/Course";
 import { CreatePage } from "./pages/admin/course/Create";
 import { EditCourse } from "./pages/admin/course/Edit";
 import { ImportPage } from "./pages/admin/course/Import";
+import { MembersPage } from "./pages/admin/Members";
 import { MigratePage } from "./pages/admin/Migrate";
 import { Profile } from "./pages/admin/Profile";
 import { UsersPage } from "./pages/admin/Users";
@@ -47,6 +48,10 @@ const router = createBrowserRouter([
       {
         path: "/admin/assignments",
         element: <AssignmentsPage />,
+      },
+      {
+        path: "/admin/members",
+        element: <MembersPage />,
       },
       {
         path: "/admin/users",

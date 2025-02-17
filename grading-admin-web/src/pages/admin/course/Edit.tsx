@@ -9,9 +9,19 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { Link } from "react-router-dom";
-import { $api } from "../../../api";
+import { $api, store$ } from "../../../api";
 
 export function EditCourse() {
+  const { data, error, isLoading } = $api.useQuery(
+    "get",
+    "/admin/courses/{course_id}",
+    {
+      params: {
+        path: { course_id: store$.id.get() as string },
+      },
+    }
+  );
+
   const mutation = $api.useMutation("put", "/admin/courses/{course_id}");
 
   // TODO add/link service mutation here
@@ -33,25 +43,36 @@ export function EditCourse() {
     });
   };
 
+  // TODO await useForm/useEffect
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
-      courseName: "",
-      courseCode: "",
-      courseTerm: "",
-      canvasId: "",
+      courseName: data?.name,
+      courseCode: data?.code,
+      courseTerm: data?.term,
+      canvasId: data?.canvas_id,
     },
     validate: {
-      canvasId: (value) =>
-        value.length == 8 ? null : "Canvas ID must be 8 characters",
+      // canvasId: (value) =>
+      //   value.length == 8 ? null : "Canvas ID must be 8 characters",
       courseName: (value) =>
-        value.length < 1 ? "Course name must have at least 1 character" : null,
+        value && value.length < 1
+          ? "Course name must have at least 1 character"
+          : null,
       courseCode: (value) =>
-        value.length < 1 ? "Course code must have at least 1 character" : null,
+        value && value.length < 1
+          ? "Course code must have at least 1 character"
+          : null,
       courseTerm: (value) =>
-        value.length < 1 ? "Course term must have at least 1 character" : null,
+        value && value.length < 1
+          ? "Course term must have at least 1 character"
+          : null,
     },
   });
+
+  if (isLoading || !data) return "Loading...";
+
+  if (error) return `An error occured: ${error}`;
 
   return (
     <>
@@ -90,6 +111,7 @@ export function EditCourse() {
             {...form.getInputProps("courseTerm")}
           />
 
+          {/* TODO dont allow this, this shouldnt really happen or should resync? */}
           <TextInput
             label="Canvas ID"
             placeholder="xxxxxxxx"
