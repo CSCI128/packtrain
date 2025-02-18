@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Center,
+  Collapse,
   Divider,
   Drawer,
   Group,
@@ -9,20 +10,76 @@ import {
   Modal,
   ScrollArea,
   Stack,
+  Text,
+  UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
+import { FaChevronDown } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { $api, store$, userManager } from "../../api";
 import classes from "./Navbar.module.scss";
 
 export function Navbar() {
   const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
-  const [drawerOpened, { toggle: toggleDrawer }] = useDisclosure(false);
+  const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
+    useDisclosure(false);
+  const [linksOpened, { toggle: toggleLinks }] = useDisclosure(false);
   const [user, setUser] = useState<User | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
   const navigate = useNavigate();
+
+  const mockdata = [
+    {
+      // icon: IconCode,
+      title: "Open source",
+      description: "This Pokémon’s cry is very loud and distracting",
+    },
+    {
+      // icon: IconCoin,
+      title: "Free for everyone",
+      description: "The fluid of Smeargle’s tail secretions changes",
+    },
+    {
+      // icon: IconBook,
+      title: "Documentation",
+      description: "Yanma is capable of seeing 360 degrees without",
+    },
+    {
+      // icon: IconFingerprint,
+      title: "Security",
+      description: "The shell’s rounded shape and the grooves on its.",
+    },
+    {
+      // icon: IconChartPie3,
+      title: "Analytics",
+      description: "This Pokémon uses its flying ability to quickly chase",
+    },
+    {
+      // icon: IconNotification,
+      title: "Notifications",
+      description: "Combusken battles with the intensely hot flames it spews",
+    },
+  ];
+
+  const links = mockdata.map((item) => (
+    <UnstyledButton className={classes.subLink} key={item.title}>
+      <Group wrap="nowrap" align="flex-start">
+        {/* <ThemeIcon size={34} variant="default" radius="md">
+          <item.icon size={22} color={theme.colors.blue[6]} />
+        </ThemeIcon> */}
+        <div>
+          <Text size="sm" fw={500}>
+            {item.title}
+          </Text>
+          <Text size="xs" c="dimmed">
+            {item.description}
+          </Text>
+        </div>
+      </Group>
+    </UnstyledButton>
+  ));
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -146,7 +203,7 @@ export function Navbar() {
 
         <Drawer
           opened={drawerOpened}
-          onClose={toggleDrawer}
+          onClose={closeDrawer}
           size="100%"
           padding="md"
           title="Navigation"
@@ -159,15 +216,15 @@ export function Navbar() {
             <a href="#" className={classes.link}>
               Home
             </a>
-            {/* <UnstyledButton className={classes.link} onClick={toggleLinks}>
+            <UnstyledButton className={classes.link} onClick={toggleLinks}>
               <Center inline>
                 <Box component="span" mr={5}>
                   Features
                 </Box>
-                <IconChevronDown size={16} color={theme.colors.blue[6]} />
+                <FaChevronDown size={16} color="blue" />
               </Center>
             </UnstyledButton>
-            <Collapse in={linksOpened}>{links}</Collapse> */}
+            <Collapse in={linksOpened}>{links}</Collapse>
             <a href="#" className={classes.link}>
               Learn
             </a>

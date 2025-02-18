@@ -10,9 +10,10 @@ import { EditCourse } from "./pages/admin/course/Edit";
 import { ImportPage } from "./pages/admin/course/Import";
 import { MembersPage } from "./pages/admin/Members";
 import { MigratePage } from "./pages/admin/Migrate";
-import { Profile } from "./pages/admin/Profile";
+import { ProfilePage } from "./pages/admin/Profile";
 import { UsersPage } from "./pages/admin/Users";
 import { HomePage } from "./pages/Home";
+import ProtectedRoute from "./ProtectedRoute";
 import Root from "./templates/Root";
 
 const queryClient = new QueryClient();
@@ -27,11 +28,19 @@ const router = createBrowserRouter([
       },
       {
         path: "/admin/home",
-        element: <CoursePage />,
+        element: (
+          <ProtectedRoute>
+            <CoursePage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/admin/edit",
-        element: <EditCourse />,
+        element: (
+          <ProtectedRoute>
+            <EditCourse />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/instructor/migrate",
@@ -59,7 +68,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/profile",
-        element: <Profile />,
+        element: <ProfilePage />,
       },
     ],
   },

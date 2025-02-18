@@ -7,13 +7,13 @@ import createClient from "openapi-react-query";
 import { AUTH_CONFIG } from "./config/auth.config";
 import type { paths } from "./lib/api/v1";
 
-interface Course {
+interface CourseStore {
   id: string;
   name: string;
 }
 
-export const store$ = observable<Course>();
-// TODO remove on logout + maybe add expiry date
+export const store$ = observable<CourseStore>();
+
 syncObservable(store$, {
   persist: {
     name: "activeCourse",

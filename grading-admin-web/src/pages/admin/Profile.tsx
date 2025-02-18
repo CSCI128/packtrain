@@ -14,7 +14,7 @@ import { useDisclosure } from "@mantine/hooks";
 import React from "react";
 import { $api } from "../../api";
 
-export function Profile() {
+export function ProfilePage() {
   const [opened, { open, close }] = useDisclosure(false);
   const form = useForm({
     mode: "uncontrolled",
