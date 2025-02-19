@@ -41,4 +41,5 @@ grading-admin:
     rabbitmq:
       enabled: true
       uri: amqp://${RABBITMQ_USER:admin}:${RABBITMQ_PASSWORD:?rabbitmq password required}@${RABBITMQ_HOST:localhost.dev:5672}
-      grading-message-queue-name: "grading-message"
+      exchange-name: "grading-admin-message-exchange"
+      grading-message-routing-key: "grading-admin.messaging"
