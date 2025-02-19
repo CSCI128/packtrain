@@ -60,8 +60,8 @@ public class ExternalServiceConfig {
     public S3Config configureS3(
             @Value("${grading-admin.external-services.s3.enabled}") boolean enabled,
             @Value("${grading-admin.external-services.s3.uri}") URI endpoint,
-            @Value("${grading-admin.external-services.s3.access_key}") String accessKey,
-            @Value("${grading-admin.external-services.s3.secret_key}") String secretKey
+            @Value("${grading-admin.external-services.s3.access-key}") String accessKey,
+            @Value("${grading-admin.external-services.s3.secret-key}") String secretKey
     ){
         if (!enabled){
             return new S3Config(false);
