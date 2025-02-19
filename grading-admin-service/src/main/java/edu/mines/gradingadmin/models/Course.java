@@ -34,9 +34,6 @@ public class Course {
     @Column(name = "code")
     private String code;
 
-    @Column(name = "pages")
-    private String pages;
-
     @OneToMany(mappedBy = "course")
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
