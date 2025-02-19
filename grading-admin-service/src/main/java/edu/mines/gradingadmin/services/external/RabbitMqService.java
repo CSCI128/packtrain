@@ -19,11 +19,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
@@ -179,8 +176,7 @@ public class RabbitMqService {
         log.info("Connected to RabbitMQ broker at '{}' with client id '{}'", rabbitMqConnection.getAddress(), rabbitMqConnection.getId());
     }
 
-    @EventListener(ContextRefreshedEvent.class)
-    public void onContextRefreshed(ContextRefreshedEvent event) throws IOException {
+    public void start() throws IOException {
         if (!rabbitMqConfig.isEnabled()){
             return;
         }
@@ -196,8 +192,7 @@ public class RabbitMqService {
 
     }
 
-    @EventListener(ContextClosedEvent.class)
-    public void onContextClosed(ContextClosedEvent event){
+    public void end(){
         if (!rabbitMqConfig.isEnabled()){
             return;
         }
@@ -222,7 +217,7 @@ public class RabbitMqService {
         return new StartGradeMigrationFactory(migrationId, rabbitMqConnection, rabbitMqConfig.getExchangeName(), mapper);
     }
 
-    public void startGrading(MigrationConfig migrationConfig){
+    public boolean startGrading(MigrationConfig migrationConfig){
         log.info("Issuing Grading:Start command to all grading servers for migration '{}'", migrationConfig.getMigrationId());
         try {
             gradingMessageChannel.basicPublish(
@@ -237,7 +232,10 @@ public class RabbitMqService {
                     mapper.writeValueAsBytes(migrationConfig.getGradingStartDTO()));
         } catch (IOException e) {
             log.error("Failed to issue Grading:Start command due to: ", e);
+            return false;
         }
+
+        return true;
     }
 
     public void endGrading(MigrationConfig migrationConfig){
