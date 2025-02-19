@@ -1,40 +1,113 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.containers.MinioTestContainer;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
+import edu.mines.gradingadmin.repositories.*;
+import edu.mines.gradingadmin.seeders.CanvasSeeder;
+import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.CourseRepo;
+import edu.mines.gradingadmin.repositories.SectionRepo;
+import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
+import edu.mines.gradingadmin.seeders.UserSeeders;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @SpringBootTest
 @Transactional
-public class TestCourseService implements PostgresTestContainer {
+public class TestCourseService implements PostgresTestContainer, CanvasSeeder, MinioTestContainer {
 
     @Autowired
-    CourseSeeders courseSeeders;
+    private CourseSeeders courseSeeders;
+
     @Autowired
-    CourseRepo courseRepo;
+    private CourseRepo courseRepo;
+
+    private CourseService courseService;
+    @Mock
+    private CanvasService canvasService;
+
     @Autowired
-    CourseService courseService;
+    private UserSeeders userSeeders;
+
+    @Autowired
+    private ImpersonationManager impersonationManager;
+
+    @Autowired
+    private S3Service s3Service;
+
+    @Autowired
+    private PolicyRepo policyRepo;
+
+    @Autowired
+    private ScheduledTaskRepo<CourseImportTaskDef> scheduledTaskRepo;
 
     @BeforeAll
     static void setupClass() {
         postgres.start();
+        minio.start();
     }
+
+    @BeforeEach
+    void setup(){
+        courseService = new CourseService(
+                courseRepo, scheduledTaskRepo,
+                Mockito.mock(ApplicationEventPublisher.class),
+                impersonationManager, canvasService,
+                s3Service, policyRepo
+
+        );
+
+        applyMocks(canvasService);
+    }
+
 
     @AfterEach
     void tearDown() {
-        courseRepo.deleteAll();
+        courseSeeders.clearAll();
+        userSeeders.clearAll();
+    }
+
+    @Test
+    void verifyGetCourse() {
+        Course course1 = courseSeeders.course1();
+        Optional<Course> course = courseService.getCourse(course1.getId());
+
+        Assertions.assertTrue(course.isPresent());
+        Assertions.assertEquals(course.get(), course1);
+    }
+
+    @Test
+    void verifyGetCourseNotFound() {
+        Optional<Course> course = courseService.getCourse(UUID.randomUUID());
+        Assertions.assertTrue(course.isEmpty());
+    }
+
+    @Test
+    void verifyGetCourseIncludeAll() {
+        Course seededCourse = courseSeeders.populatedCourse();
+
+        Course course = courseService.getCourse(seededCourse.getId()).orElseThrow(AssertionError::new);
+
+        Assertions.assertEquals(1, course.getAssignments().size());
+        Assertions.assertEquals(1, course.getSections().size());
+        Assertions.assertEquals(1, course.getMembers().size());
     }
 
     @Test
@@ -60,39 +133,77 @@ public class TestCourseService implements PostgresTestContainer {
     }
 
     @Test
+    void verifyImportCourseFromCanvas(){
+        Course course = courseSeeders.course1();
+        User admin = userSeeders.admin1();
+
+        CourseImportTaskDef taskDef = new CourseImportTaskDef();
+        taskDef.setCreatedByUser(admin);
+        taskDef.setCourseToImport(course.getId());
+        taskDef.setCanvasId(course1Id);
+        taskDef.setOverwriteCode(true);
+        taskDef.setOverwriteName(true);
+
+        courseService.syncCourseTask(taskDef);
+
+        course = courseService.getCourse(course.getId()).orElseThrow(AssertionError::new);
+
+        Assertions.assertEquals(course1.get().getCourseCode(), course.getCode());
+        Assertions.assertEquals(course1.get().getName(), course.getName());
+    }
+
+    @Test
     void verifyCourseDoesNotExist(){
-        Optional<UUID> courseID = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
-        Assertions.assertTrue(courseID.isPresent());
-        Optional<Course> testCourse = courseRepo.getById(courseID.get());
-        Assertions.assertTrue(testCourse.isPresent());
-        Assertions.assertEquals(courseID.get(), testCourse.get().getId());
+        Optional<Course> course = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
+        Assertions.assertTrue(course.isPresent());
+        Assertions.assertNotNull(course.get().getId());
     }
 
     @Test
     void verifyNewCourseHasName(){
-        Optional<UUID> courseID = courseService.createNewCourse("Another Test Course 1", "Spring 2025", "spring.2025.atc.1");
-        Assertions.assertTrue(courseID.isPresent());
-        Optional<Course> testCourse = courseRepo.getById(courseID.get());
-        Assertions.assertTrue(courseID.isPresent());
-        Assertions.assertEquals("Another Test Course 1", testCourse.get().getName());
+        Optional<Course> course = courseService.createNewCourse("Another Test Course 1", "Spring 2025", "spring.2025.atc.1");
+        Assertions.assertTrue(course.isPresent());
+        Assertions.assertEquals("Another Test Course 1", course.get().getName());
     }
 
     @Test
     void verifyNewCourseHasTerm(){
-        Optional<UUID> courseID = courseService.createNewCourse("Another Test Course 1", "Spring 2025", "spring.2025.atc.1");
-        Assertions.assertTrue(courseID.isPresent());
-        Optional<Course> testCourse = courseRepo.getById(courseID.get());
-        Assertions.assertTrue(courseID.isPresent());
-        Assertions.assertEquals("Spring 2025", testCourse.get().getTerm());
+        Optional<Course> course = courseService.createNewCourse("Another Test Course 1", "Spring 2025", "spring.2025.atc.1");
+        Assertions.assertTrue(course.isPresent());
+        Assertions.assertEquals("Spring 2025", course.get().getTerm());
     }
 
     @Test
     void verifyNewCourseHasCode(){
-        Optional<UUID> courseID = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
-        Assertions.assertTrue(courseID.isPresent());
-        Optional<Course> testCourse = courseRepo.getById(courseID.get());
-        Assertions.assertTrue(courseID.isPresent());
-        Assertions.assertEquals("fall.2024.tc.1", testCourse.get().getCode());
+        Optional<Course> course = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
+        Assertions.assertTrue(course.isPresent());
+        Assertions.assertEquals("fall.2024.tc.1", course.get().getCode());
     }
 
+    @Test
+    void verifyEnableCourse() {
+        Course inactiveCourse = courseSeeders.course2();
+        Assertions.assertFalse(inactiveCourse.isEnabled());
+        courseService.enableCourse(inactiveCourse.getId());
+        Assertions.assertTrue(inactiveCourse.isEnabled());
+    }
+
+    @Test
+    void verifyDisableCourse() {
+        Course activeCourse = courseSeeders.course1();
+        Assertions.assertTrue(activeCourse.isEnabled());
+        courseService.disableCourse(activeCourse.getId());
+        Assertions.assertFalse(activeCourse.isEnabled());
+    }
+
+    @Test
+    void verifyWhenAlreadyEnabledDisabled() {
+        Course activeCourse = courseSeeders.course1();
+        Course inactiveCourse = courseSeeders.course2();
+        courseService.enableCourse(activeCourse.getId());
+        courseService.disableCourse(inactiveCourse.getId());
+
+        Assertions.assertTrue(activeCourse.isEnabled());
+        Assertions.assertFalse(inactiveCourse.isEnabled());
+    }
 }

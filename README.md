@@ -14,6 +14,7 @@ echo "PG_PASS=$(openssl rand -base64 36 | tr -d '\n')" >> .env
 echo "AUTHENTIK_SECRET_KEY=$(openssl rand -base64 60 | tr -d '\n')" >> .env
 echo "AUTHENTIK_BOOTSTRAP_PASSWORD=$(openssl rand -base64 36 | tr -d '\n')" >> .env
 echo "AUTHENTIK_BOOTSTRAP_TOKEN=$(openssl rand -base64 36 | tr -d '\n')" >> .env
+echo "MINIO_ROOT_PASSWORD=$(openssl rand -base64 36 | tr -d '\n')" >> .env
 ```
 
 Create a file called `passwords` in the `certificates/certs/` directory. Run the following commands to populate that file:
@@ -72,6 +73,12 @@ Redirect URIs: `regex`, `https://localhost.dev/.*`
 `strict`, `https://oauth.pstmn.io/v1/callback`
 
 Finally, assign that provider to the application that you just created.
+
+## Creating users
+
+To create a user, copy the `user.json.template` in `authentik-sidecar/src/users` to `user.json` and fill in values.
+
+Recreate authentik and you can now login with the information you provided in that user file.
 
 ## Running locally
 

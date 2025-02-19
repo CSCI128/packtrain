@@ -2,17 +2,15 @@ package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.models.Credential;
-import edu.mines.gradingadmin.models.ExternalSource;
+import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.CredentialRepo;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
-import edu.mines.gradingadmin.seeders.ExternalSourceSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,8 +22,6 @@ class TestCredentialService implements PostgresTestContainer {
     UserSeeders userSeeder;
     @Autowired
     CourseSeeders courseSeeders;
-    @Autowired
-    ExternalSourceSeeders externalSourceSeeders;
     @Autowired
     CredentialRepo credentialRepo;
 
@@ -43,24 +39,22 @@ class TestCredentialService implements PostgresTestContainer {
         credentialRepo.deleteAll();
         userSeeder.clearAll();
         courseSeeders.clearAll();
-        externalSourceSeeders.clearAll();
     }
 
 
     @Test
     void verifyCreateNewCredentialDoesNotExist(){
         User user = userSeeder.user1();
-        ExternalSource externalSource = externalSourceSeeders.externalSource1();
 
         List<Credential> credentials = credentialRepo.getAllByCwid(user.getCwid());
 
         Assertions.assertEquals(0, credentials.size());
 
-        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource.getEndpoint());
+        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS);
 
         Assertions.assertTrue(cred.isPresent());
 
-        credentials = credentialRepo.getByCwidAndEndpoint(user.getCwid(), externalSource.getEndpoint());
+        credentials = credentialRepo.getByCwidAndEndpoint(user.getCwid(), CredentialType.CANVAS);
 
         Assertions.assertEquals(1, credentials.size());
 
@@ -70,15 +64,14 @@ class TestCredentialService implements PostgresTestContainer {
     @Test
     void verifyCreateCredentialExists(){
         User user = userSeeder.user1();
-        ExternalSource externalSource = externalSourceSeeders.externalSource1();
 
-        credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource.getEndpoint());
+        credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS);
 
-        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred2", "super_secure", externalSource.getEndpoint());
+        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred2", "super_secure", CredentialType.CANVAS);
 
         Assertions.assertTrue(cred.isEmpty());
 
-        List<Credential> credentials = credentialRepo.getByCwidAndEndpoint(user.getCwid(), externalSource.getEndpoint());
+        List<Credential> credentials = credentialRepo.getByCwidAndEndpoint(user.getCwid(), CredentialType.CANVAS);
 
         Assertions.assertEquals(1, credentials.size());
     }
@@ -86,12 +79,10 @@ class TestCredentialService implements PostgresTestContainer {
     @Test
     void verifyCreateCredentialSameName(){
         User user = userSeeder.user1();
-        ExternalSource externalSource1 = externalSourceSeeders.externalSource1();
-        ExternalSource externalSource2 = externalSourceSeeders.externalSource2();
 
-        credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource1.getEndpoint());
+        credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS);
 
-        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource2.getEndpoint());
+        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.GRADESCOPE);
 
         Assertions.assertTrue(cred.isEmpty());
 
@@ -103,16 +94,14 @@ class TestCredentialService implements PostgresTestContainer {
     @Test
     void verifyCreateCredentialSameNameInactive(){
         User user = userSeeder.user1();
-        ExternalSource externalSource1 = externalSourceSeeders.externalSource1();
-        ExternalSource externalSource2 = externalSourceSeeders.externalSource2();
 
-        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource1.getEndpoint());
+        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS);
 
         Assertions.assertFalse(cred.isEmpty());
 
         credentialService.markCredentialAsInactive(cred.get().getId());
 
-        cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource2.getEndpoint());
+        cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.GRADESCOPE);
 
         Assertions.assertFalse(cred.isEmpty());
 
@@ -124,9 +113,8 @@ class TestCredentialService implements PostgresTestContainer {
     @Test
     void verifyMarkCredentialAsPublic(){
         User user = userSeeder.user1();
-        ExternalSource externalSource1 = externalSourceSeeders.externalSource1();
 
-        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource1.getEndpoint()).orElseThrow();
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
 
         Credential newCred = credentialService.markCredentialAsPublic(cred.getId()).orElseThrow();
 
@@ -138,9 +126,8 @@ class TestCredentialService implements PostgresTestContainer {
     @Test
     void verifyMarkCredentialAsPublicInactive(){
         User user = userSeeder.user1();
-        ExternalSource externalSource1 = externalSourceSeeders.externalSource1();
 
-        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource1.getEndpoint()).orElseThrow();
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
 
         credentialService.markCredentialAsInactive(cred.getId());
 
@@ -152,9 +139,8 @@ class TestCredentialService implements PostgresTestContainer {
     @Test
     void verifyDisableCredential(){
         User user = userSeeder.user1();
-        ExternalSource externalSource1 = externalSourceSeeders.externalSource1();
 
-        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", externalSource1.getEndpoint()).orElseThrow();
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
 
         Credential newCred = credentialService.markCredentialAsInactive(cred.getId()).orElseThrow();
 
@@ -167,4 +153,34 @@ class TestCredentialService implements PostgresTestContainer {
 
 
     }
+
+    @Test
+    void verifyMarkCredentialAsPrivate(){
+        User user = userSeeder.user1();
+
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
+
+        Credential newCred = credentialService.markCredentialAsPublic(cred.getId()).orElseThrow();
+        newCred = credentialService.markCredentialAsPrivate(cred.getId()).orElseThrow();
+
+        Assertions.assertEquals(cred.getId(), newCred.getId());
+
+        Assertions.assertTrue(newCred.isPrivate());
+    }
+
+    @Test
+    void verifyGetAllCredentials(){
+        User user = userSeeder.user1();
+
+        Credential cred1 = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
+        Credential cred2 = credentialService.createNewCredentialForService(user.getCwid(), "Cred2", "super_secure", CredentialType.GRADESCOPE).orElseThrow();
+
+        List<Credential> creds = credentialService.getAllCredentials(user.getCwid());
+
+        Assertions.assertEquals(creds.size(), 2);
+        Assertions.assertTrue(creds.contains(cred1));
+        Assertions.assertTrue(creds.contains(cred2));
+    }
+
+
 }
