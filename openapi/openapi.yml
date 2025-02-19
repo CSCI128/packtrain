@@ -22,6 +22,8 @@ tags:
     description: Administration functions for the grading server
   - name: user
     description: User management functions for the grading server
+  - name: instructor
+    description: Instructor functions for the grading server
 
 paths:
   /-/health:
@@ -842,7 +844,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Assignment"
+                $ref: "#/components/schemas/Extension"
         404:
           description: "Extension not found"
           content:
