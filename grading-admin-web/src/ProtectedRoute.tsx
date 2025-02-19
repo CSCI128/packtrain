@@ -7,6 +7,8 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const [loading, setLoading] = useState(true);
   const location = useLocation();
 
+  // redirect depending on user role
+
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await userManager.getUser();
@@ -20,7 +22,7 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 
   if (!user) {
     userManager.signinRedirect({ state: { from: location.pathname } });
-    return null; // Prevents rendering during redirection
+    return null;
   }
 
   return children;
