@@ -22,6 +22,8 @@ tags:
     description: Administration functions for the grading server
   - name: user
     description: User management functions for the grading server
+  - name: instructor
+    description: Instructor functions for the grading server
   - name: tasks
     description: Async task service for the grading server
 
@@ -1379,6 +1381,291 @@ paths:
                 error_source: "get_task"
                 error_message: "Requested task was not found"
 
+  /instructor/courses/{course_id}/assignments/{assignment_id}/user/{user_id}/extensions:
+    post:
+      tags:
+        - instructor
+      operationId: new_extension
+      summary: "Create Extension request"
+      description: |
+        Create a new extension request for an assignment.
+        Replies with an extension request for a user and assignment.
+      security:
+        - openIDC: [ instructor:write ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: assignment_id
+          required: true
+          description: "The assignment ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: user_id
+          required: true
+          description: "The user's CWID"
+          in: path
+          schema:
+            type: string
+            example: "11111111"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        201:
+          description: "An extension request has been created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Extension"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /instructors/courses/{course_id}/assignments/{assignment_id}/extensions/{extension_id}:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_approved_extensions_for_assignment
+      summary: Get all the approved extensions for the provided course and assignment
+      description: |
+        This endpoint gets all approved extensions for a given instructor
+      security:
+        - openIDC: [ instructor:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: assignment_id
+          required: true
+          description: "The assignment ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - approved
+              - denied
+              - pending
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /instructors/courses/{course_id}/users/{user_id}/extensions/{extension_id}:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_approved_extensions_for_member
+      summary: Get all the approved extensions for the provided member
+      description: |
+        This endpoint gets all approved extensions for a given member
+      security:
+        - openIDC: [ instructor:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: user_id
+          required: true
+          description: "The user's CWID"
+          in: path
+          schema:
+            type: string
+            example: "11111111"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - approved
+              - denied
+              - pending
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /instructors/courses/{course_id}/sections/{section_id}/extensions/{extension_id}:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_extensions_for_section
+      summary: Get all the extensions for the provided section
+      description: |
+        This endpoint gets all extensions for a given section
+      security:
+        - openIDC: [ instructor:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: section_id
+          required: true
+          description: "The course section"
+          in: path
+          schema:
+            type: string
+            example: "Section F"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - approved
+              - denied
+              - pending
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+
+
+  /admin/courses/{course_id}/extensions:
+    get:
+      tags:
+        - admin
+      operationId: get_all_extensions_for_course
+      summary: Get all the extensions for the course
+      description: |
+        This endpoint gets all extensions for a given course
+      security:
+        - openIDC: [ admin:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - approved
+              - denied
+              - pending
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
 components:
   securitySchemes:
     OpenIDC:
@@ -1656,3 +1943,60 @@ components:
             type: string
           example:
             - "fall.2020.excl.101.section.a"
+
+    Extension:
+      description: "An extension for an assignment"
+      type: object
+      required:
+        - assignments
+        - date_submitted
+        - num_days_requested
+        - user_requester
+      properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
+        assignments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Assignment"
+        date_submitted:
+          type: string
+          format: date-time
+          example: "2020-01-01T12:00:00.000Z"
+        num_days_requested:
+          type: integer
+          example: 2
+        user_requester:
+          type: string
+          items:
+            $ref: "#/components/schemas/CourseMember"
+        status:
+          type: string
+          enum:
+            - pending
+            - approved
+            - rejected
+          example: "Extension pending instructor approval"
+        request_type:
+          type: string
+          enum:
+            - extension
+            - late_pass
+          example: "Late Pass"
+        user_reviewer:
+          type: string
+          items:
+            $ref: "#/components/schemas/CourseMember"
+        response_timestamp:
+          type: string
+          format: date-time
+          example: "2020-01-01T12:00:00.000Z"
+        reason:
+          type: string
+          example: "Excused absence"
+        response_to_requester:
+          type: string
+          example: "Your 3 day extension for illness is approved"
+
+
