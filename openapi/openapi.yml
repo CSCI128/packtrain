@@ -1381,7 +1381,7 @@ paths:
                 error_source: "get_task"
                 error_message: "Requested task was not found"
 
-  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions:
+  /instructor/courses/{course_id}/assignments/{assignment_id}/user/{user_id}/extensions:
     post:
       tags:
         - instructor
@@ -1502,10 +1502,10 @@ paths:
     get:
       tags:
         - instructor
-      operationId: get_all_approved_extensions_for_user
-      summary: Get all the approved extensions for the provided user
+      operationId: get_all_approved_extensions_for_member
+      summary: Get all the approved extensions for the provided member
       description: |
-        This endpoint gets all approved extensions for a given user
+        This endpoint gets all approved extensions for a given member
       security:
         - openIDC: [ instructor:read ]
       parameters:
@@ -1562,10 +1562,10 @@ paths:
     get:
       tags:
         - instructor
-      operationId: get_all_approved_extensions_for_section
-      summary: Get all the approved extensions for the provided section
+      operationId: get_all_extensions_for_section
+      summary: Get all the extensions for the provided section
       description: |
-        This endpoint gets all approved extensions for a given section
+        This endpoint gets all extensions for a given section
       security:
         - openIDC: [ instructor:read ]
       parameters:
@@ -1624,10 +1624,10 @@ paths:
     get:
       tags:
         - admin
-      operationId: get_all_approved_extensions_for_course
-      summary: Get all the approved extensions for the course
+      operationId: get_all_extensions_for_course
+      summary: Get all the extensions for the course
       description: |
-        This endpoint gets all approved extensions for a given course
+        This endpoint gets all extensions for a given course
       security:
         - openIDC: [ admin:read ]
       parameters:
@@ -1952,12 +1952,6 @@ components:
         - date_submitted
         - num_days_requested
         - user_requester
-        - status
-        - request_type
-        - user_reviewer
-        - response_timestamp
-        - reason
-        - response_to_requester
       properties:
         id:
           type: string
@@ -2000,9 +1994,6 @@ components:
           example: "2020-01-01T12:00:00.000Z"
         reason:
           type: string
-          enum:
-            - illness
-            - excused
           example: "Excused absence"
         response_to_requester:
           type: string
