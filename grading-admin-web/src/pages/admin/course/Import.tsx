@@ -34,7 +34,7 @@ export function ImportPage() {
     data: data,
     error: error,
     isLoading: isLoading,
-  } = $api.useQuery("get", "/user/credential");
+  } = $api.useQuery("get", "/user/credentials");
 
   const mutation = $api.useMutation(
     "post",

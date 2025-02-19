@@ -383,7 +383,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/user/credential": {
+    "/user/credentials": {
         parameters: {
             query?: never;
             header?: never;
@@ -827,7 +827,7 @@ export interface components {
              * @example owner
              * @enum {string}
              */
-            course_role: "student" | "teacher" | "ta" | "owner";
+            course_role: "student" | "instructor" | "ta" | "owner";
             sections?: string[];
         };
         /** @description An assignment in a course */

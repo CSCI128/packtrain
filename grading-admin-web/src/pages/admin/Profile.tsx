@@ -45,9 +45,9 @@ export function ProfilePage() {
     refetch,
     error: credentialError,
     isLoading: credentialIsLoading,
-  } = $api.useQuery("get", "/user/credential");
+  } = $api.useQuery("get", "/user/credentials");
 
-  const mutation = $api.useMutation("post", "/user/credential");
+  const mutation = $api.useMutation("post", "/user/credentials");
 
   if (isLoading || !data) return "Loading...";
 
