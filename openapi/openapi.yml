@@ -1438,6 +1438,576 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
+  /instructors/course/{course_id}/assignments/{assignment_id}/extensions/{extension_id}?status=approved:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_approved_extensions_for_assignment
+      summary: Get all the approved extensions for the provided course and assignment
+      description: |
+        This endpoint gets all approved extensions for a given instructor
+      security:
+        - openIDC: [ instructor:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: assignment_id
+          required: true
+          description: "The assignment ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /instructors/course/{course_id}/assignments/{assignment_id}/extensions/{extension_id}?status=denied:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_denied_extensions_for_assignment
+      summary: Get all the denied extensions for the provided course and assignment
+      description: |
+        This endpoint gets all denied extensions for a given instructor
+      security:
+        - openIDC: [ instructor:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: assignment_id
+          required: true
+          description: "The assignment ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /instructors/course/{course_id}/assignments/{assignment_id}/extensions/{extension_id}?status=pending:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_pending_extensions_for_assignment
+      summary: Get all the pending extensions for the provided course and assignment
+      description: |
+        This endpoint gets all pending extensions for a given instructor
+      security:
+        - openIDC: [ instructor:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: assignment_id
+          required: true
+          description: "The assignment ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /instructors/course/{course_id}/users/{user_id}/extensions/{extension_id}?status=approved:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_approved_extensions_for_user
+      summary: Get all the approved extensions for the provided user
+      description: |
+        This endpoint gets all approved extensions for a given user
+      security:
+        - openIDC: [ instructor:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: user_id
+          required: true
+          description: "The user's CWID"
+          in: path
+          schema:
+            type: string
+            example: "11111111"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /instructors/course/{course_id}/users/{user_id}/extensions/{extension_id}?status=denied:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_denied_extensions_for_user
+      summary: Get all the denied extensions for the provided user
+      description: |
+        This endpoint gets all denied extensions for a given user
+      security:
+        - openIDC: [ instructor:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: user_id
+          required: true
+          description: "The user's CWID"
+          in: path
+          schema:
+            type: string
+            example: "11111111"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /instructors/course/{course_id}/users/{user_id}/extensions/{extension_id}?status=pending:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_pending_extensions_for_user
+      summary: Get all the pending extensions for the provided user
+      description: |
+        This endpoint gets all pending extensions for a given user
+      security:
+        - openIDC: [ instructor:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: user_id
+          required: true
+          description: "The user's CWID"
+          in: path
+          schema:
+            type: string
+            example: "11111111"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /instructors/course/{course_id}/sections/{section_id}/extensions/{extension_id}?status=approved:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_approved_extensions_for_section
+      summary: Get all the approved extensions for the provided section
+      description: |
+        This endpoint gets all approved extensions for a given section
+      security:
+        - openIDC: [ instructor:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: section_id
+          required: true
+          description: "The course section"
+          in: path
+          schema:
+            type: string
+            example: "Section F"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /instructors/course/{course_id}/sections/{section_id}/extensions/{extension_id}?status=denied:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_denied_extensions_for_section
+      summary: Get all the denied extensions for the provided section
+      description: |
+        This endpoint gets all denied extensions for a given section
+      security:
+        - openIDC: [ instructor:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: section_id
+          required: true
+          description: "The course section"
+          in: path
+          schema:
+            type: string
+            example: "Section F"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /instructors/course/{course_id}/sections/{section_id}/extensions/{extension_id}?status=pending:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_pending_extensions_for_section
+      summary: Get all the pending extensions for the provided section
+      description: |
+        This endpoint gets all pending extensions for a given section
+      security:
+        - openIDC: [ instructor:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: section_id
+          required: true
+          description: "The course section"
+          in: path
+          schema:
+            type: string
+            example: "Section F"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /admin/course/{course_id}/extensions?status=approved:
+    get:
+      tags:
+        - admin
+      operationId: get_all_approved_extensions_for_course
+      summary: Get all the approved extensions for the course
+      description: |
+        This endpoint gets all approved extensions for a given course
+      security:
+        - openIDC: [ admin:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /admin/course/{course_id}/extensions?status=denied:
+    get:
+      tags:
+        - admin
+      operationId: get_all_denied_extensions_for_course
+      summary: Get all the denied extensions for the course
+      description: |
+        This endpoint gets all denied extensions for a given course
+      security:
+        - openIDC: [ admin:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
+  /admin/course/{course_id}/extensions?status=pending:
+    get:
+      tags:
+        - admin
+      operationId: get_all_pending_extensions_for_course
+      summary: Get all the pending extensions for the course
+      description: |
+        This endpoint gets all pending extensions for a given course
+      security:
+        - openIDC: [ admin:read ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
 components:
   securitySchemes:
     OpenIDC:
