@@ -3,9 +3,12 @@ package edu.mines.gradingadmin.services.external;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 import edu.mines.gradingadmin.config.ExternalServiceConfig;
+import edu.mines.gradingadmin.data.messages.GradingStartDTO;
+import edu.mines.gradingadmin.data.messages.RawGradeDTO;
 import edu.mines.gradingadmin.data.messages.ScoredDTO;
+import edu.mines.gradingadmin.models.Assignment;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.startup.ContextConfig;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -16,6 +19,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,20 +31,141 @@ import java.util.function.Consumer;
 @Slf4j
 public class RabbitMqService {
     private final ExternalServiceConfig.RabbitMqConfig rabbitMqConfig;
-    private final ObjectMapper jacksonObjectMapper;
-    private final ConcurrentMap<UUID, Channel> rawGradePublishChannels;
-    private final ConcurrentMap<UUID, Channel> scoreReceiveChannels;
+    private final ObjectMapper mapper;
     private Connection rabbitMqConnection;
     private Channel gradingMessageChannel;
 
+    @Data
+    public static class MigrationConfig{
+        private UUID migrationId;
+        private Channel rawGradePublishChannel;
+        private Channel scoreReceivedChannel;
 
+        private GradingStartDTO gradingStartDTO;
+    }
 
-    public RabbitMqService(ExternalServiceConfig.RabbitMqConfig rabbitMqConfig, ObjectMapper jacksonObjectMapper) throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException, IOException, TimeoutException {
+    public static class StartGradeMigrationFactory{
+        private final Connection connection;
+        private final String exchangeName;
+        private final ObjectMapper mapper;
+        private MigrationConfig migrationConfig;
+        private GradingStartDTO gradingStartDTO;
+        private Consumer<ScoredDTO> onScoreReceived;
+
+        public StartGradeMigrationFactory(UUID migrationId, Connection connection, String exchangeName, ObjectMapper mapper) {
+            this.connection = connection;
+            this.exchangeName = exchangeName;
+            this.mapper = mapper;
+            migrationConfig = new MigrationConfig();
+            migrationConfig.setMigrationId(migrationId);
+            gradingStartDTO = new GradingStartDTO();
+            gradingStartDTO.setMigrationId(migrationId);
+        }
+
+        public StartGradeMigrationFactory forAssignment(Assignment assignment){
+            gradingStartDTO.setGlobalMetadata(new GradingStartDTO.GlobalAssignmentMetadata(
+                    assignment.getId(),
+                    assignment.getPoints(),
+                    0,
+                    assignment.getDueDate()
+            ));
+
+            return this;
+        }
+
+        public StartGradeMigrationFactory withPolicy(URI policy){
+            gradingStartDTO.setPolicyURI(policy);
+            return this;
+        }
+
+        public StartGradeMigrationFactory withOnScoreReceived(Consumer<ScoredDTO> onScoreReceived){
+            this.onScoreReceived = onScoreReceived;
+            return this;
+        }
+
+        private Optional<Channel> createRawGradePublishChannel(){
+            String routingKey = String.format("%s.raw-grades", migrationConfig.getMigrationId());
+
+            log.info("Creating new grade publish channel for migration '{}' with routing key '{}'", migrationConfig.getMigrationId(), routingKey);
+            try {
+                Channel publishChannel = connection.createChannel();
+                String queueName = publishChannel.queueDeclare().getQueue();
+                publishChannel.queueBind(queueName, exchangeName, routingKey);
+
+                log.info("Bind raw grade publish queue '{}' on exchange '{}' with routing key '{}'", queueName, exchangeName, routingKey);
+
+                gradingStartDTO.setRawGradeRoutingKey(routingKey);
+                return Optional.of(publishChannel);
+            } catch (IOException e) {
+                log.error("Failed to create raw grade publish channel for migration '{}' with routing key '{}'", migrationConfig.getMigrationId(), routingKey);
+                log.error("Failed due to: ", e);
+            }
+
+            return Optional.empty();
+        }
+
+        private Optional<Channel> createScoreReceivedChannel(){
+            String routingKey = String.format("%s.scored", migrationConfig.getMigrationId());
+
+            log.info("Creating new score received channel for migration '{}' with routing key '{}'", migrationConfig.getMigrationId(), routingKey);
+
+            try {
+                Channel recievedChannel = connection.createChannel();
+                String queueName = recievedChannel.queueDeclare().getQueue();
+                recievedChannel.queueBind(queueName, exchangeName, routingKey);
+
+                log.info("Bind score received queue '{}' on exchange '{}' with routing key '{}'", queueName, exchangeName, routingKey);
+
+                recievedChannel.basicConsume(queueName, false, new DefaultConsumer(recievedChannel){
+                    @Override
+                    public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                        long deliveryTag = envelope.getDeliveryTag();
+
+                        ScoredDTO parsedBody = mapper.readValue(body, ScoredDTO.class);
+                        log.debug("Received: {}", parsedBody);
+
+                        onScoreReceived.accept(parsedBody);
+
+                        recievedChannel.basicAck(deliveryTag, false);
+                    }
+                });
+
+                log.info("Bind consumer to queue '{}'", queueName);
+
+                gradingStartDTO.setScoreCreatedRoutingKey(routingKey);
+                return Optional.of(recievedChannel);
+
+            } catch (IOException e) {
+                log.error("Failed to create score received channel for migration '{}' with routing key '{}'", migrationConfig.getMigrationId(), routingKey);
+                log.error("Failed due to: ", e);
+            }
+
+            return Optional.empty();
+        }
+
+        public MigrationConfig build() throws IOException, TimeoutException {
+            Optional<Channel> publishChannel = createRawGradePublishChannel();
+            if (publishChannel.isEmpty()){
+                throw new IOException("Failed to create raw score publish channel!");
+            }
+            Optional<Channel> scoreReceivedChannel = createScoreReceivedChannel();
+            if (scoreReceivedChannel.isEmpty()){
+                publishChannel.get().close();
+                throw new IOException("Failed to create score received channel!");
+            }
+
+            migrationConfig.setGradingStartDTO(gradingStartDTO);
+            migrationConfig.setRawGradePublishChannel(publishChannel.get());
+            migrationConfig.setScoreReceivedChannel(scoreReceivedChannel.get());
+
+            return migrationConfig;
+        }
+
+    }
+
+    public RabbitMqService(ExternalServiceConfig.RabbitMqConfig rabbitMqConfig, ObjectMapper mapper) throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException, IOException, TimeoutException {
         this.rabbitMqConfig = rabbitMqConfig;
-        this.jacksonObjectMapper = jacksonObjectMapper;
-
-        rawGradePublishChannels = new ConcurrentHashMap<>();
-        scoreReceiveChannels = new ConcurrentHashMap<>();
+        this.mapper = mapper;
 
         if (!rabbitMqConfig.isEnabled()){
             log.warn("RabbitMQ is disabled!");
@@ -93,72 +218,71 @@ public class RabbitMqService {
 
     }
 
-    private Optional<String> createRawGradePublishChannel(UUID migrationId){
-        String routingKey = String.format("%s.raw-grades", migrationId);
+    public StartGradeMigrationFactory createMigrationConfig(UUID migrationId){
+        return new StartGradeMigrationFactory(migrationId, rabbitMqConnection, rabbitMqConfig.getExchangeName(), mapper);
+    }
 
-        log.info("Creating new grade publish channel for migration '{}' with routing key '{}'", migrationId, routingKey);
+    public void startGrading(MigrationConfig migrationConfig){
+        log.info("Issuing Grading:Start command to all grading servers for migration '{}'", migrationConfig.getMigrationId());
         try {
-            Channel publishChannel = rabbitMqConnection.createChannel();
-            String queueName = publishChannel.queueDeclare().getQueue();
-            publishChannel.queueBind(queueName, rabbitMqConfig.getExchangeName(), routingKey);
-
-            log.info("Bind raw grade publish queue '{}' on exchange '{}' with routing key '{}'", queueName, rabbitMqConfig.getExchangeName(), routingKey);
-
-            rawGradePublishChannels.put(migrationId, publishChannel);
+            gradingMessageChannel.basicPublish(
+                    rabbitMqConfig.getExchangeName(),
+                    rabbitMqConfig.getGradingMessageRoutingKey(),
+                    new AMQP.BasicProperties().builder()
+                            .contentType("application/json")
+                            // use persistent mode so that the message can be recovered
+                            .deliveryMode(2)
+                            .type("grading.start")
+                            .build(),
+                    mapper.writeValueAsBytes(migrationConfig.getGradingStartDTO()));
         } catch (IOException e) {
-            log.error("Failed to create raw grade publish channel for migration '{}' with routing key '{}'", migrationId, routingKey);
-            log.error("Failed due to: ", e);
-            return Optional.empty();
+            log.error("Failed to issue Grading:Start command due to: ", e);
         }
-
-        return Optional.of(routingKey);
     }
 
-
-    public void issueGradingStartMessage(UUID migrationId, URI policyURI, UUID assignmentId, double maxScore, double minScore){
-
-    }
-
-    private void onScoreReceived(UUID migrationId, String routingKey, Consumer<ScoredDTO> onReceived){
-        if(!scoreReceiveChannels.containsKey(migrationId)){
-            log.error("Attempt to bind consumer to non existent channel! No score receive channel has been defined for migration '{}'!", migrationId);
-            throw new RuntimeException("Attempt to bind consumer to non existent channel!");
-        }
-
-        Channel recievedChannel = scoreReceiveChannels.get(migrationId);
-
+    public void endGrading(MigrationConfig migrationConfig){
+        log.info("Attempting to end grading for migration '{}'", migrationConfig.getMigrationId());
 
         try {
-            String queueName = recievedChannel.queueDeclare().getQueue();
-            recievedChannel.queueBind(queueName, rabbitMqConfig.getExchangeName(), routingKey);
-            recievedChannel.basicConsume(queueName, false, new DefaultConsumer(recievedChannel){
-                @Override
-                public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-                    long deliveryTag = envelope.getDeliveryTag();
-
-                    ScoredDTO parsedBody = jacksonObjectMapper.readValue(body, ScoredDTO.class);
-
-                    onReceived.accept(parsedBody);
-
-                    recievedChannel.basicAck(deliveryTag, false);
-                }
-            });
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            migrationConfig.getRawGradePublishChannel().close();
+            migrationConfig.getScoreReceivedChannel().close();
+        } catch (IOException | TimeoutException e) {
+            log.error("Failed to close connections due to: ", e);
         }
 
-
+        // need to send a grading end message
     }
 
+    public boolean sendScore(MigrationConfig migrationConfig, RawGradeDTO rawGrade){
+        log.debug("Sending raw score for '{}' for migration '{}'", rawGrade.getCwid(), migrationConfig.getMigrationId());
 
+        if (!migrationConfig.getRawGradePublishChannel().isOpen()){
+            log.warn("Raw grade publish channel for migration '{}' is closed! Attempting to recover", migrationConfig.getMigrationId());
+            try {
+                migrationConfig.getRawGradePublishChannel().basicRecover(true);
+            } catch (IOException e) {
+                log.error("Failed to recover connection!", e);
+                return false;
+            }
+        }
 
+        try {
+            migrationConfig.getRawGradePublishChannel().basicPublish(
+                    rabbitMqConfig.getExchangeName(),
+                    migrationConfig.getGradingStartDTO().getRawGradeRoutingKey(),
+                    new AMQP.BasicProperties().builder()
+                            .contentType("application/json")
+                            // use persistent mode so that the message can be recovered
+                            .deliveryMode(2)
+                            .type("grading.raw_score")
+                            .build(),
+                    mapper.writeValueAsBytes(rawGrade)
+            );
+        } catch (IOException e) {
+            log.error("Failed to send raw score!", e);
+            return false;
+        }
 
-
-
-
-
-
-
-
+        return true;
+    }
 }
