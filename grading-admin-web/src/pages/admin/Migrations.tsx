@@ -1,6 +1,6 @@
 import { Container, Divider, Text } from "@mantine/core";
 
-export function MigratePage() {
+export function MigrationsPage() {
   return (
     <>
       <Container size="md">

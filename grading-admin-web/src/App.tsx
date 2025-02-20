@@ -9,14 +9,20 @@ import { CreatePage } from "./pages/admin/course/Create";
 import { EditCourse } from "./pages/admin/course/Edit";
 import { ImportPage } from "./pages/admin/course/Import";
 import { MembersPage } from "./pages/admin/Members";
-import { MigratePage } from "./pages/admin/Migrate";
+import { MigrationsPage } from "./pages/admin/Migrations";
 import { ProfilePage } from "./pages/admin/Profile";
 import { UsersPage } from "./pages/admin/Users";
 import { HomePage } from "./pages/Home";
 import ProtectedRoute from "./ProtectedRoute";
 import Root from "./templates/Root";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
 
 const router = createBrowserRouter([
   {
@@ -44,11 +50,15 @@ const router = createBrowserRouter([
       },
       {
         path: "/instructor/migrate",
-        element: <MigratePage />,
+        element: <MigrationsPage />,
       },
       {
         path: "/admin/create",
-        element: <CreatePage />,
+        element: (
+          <ProtectedRoute>
+            <CreatePage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/admin/import",

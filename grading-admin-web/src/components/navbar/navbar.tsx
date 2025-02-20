@@ -113,6 +113,14 @@ export function Navbar() {
     navigate("/admin/home");
   };
 
+  useEffect(() => {
+    // can't find course, delete state tracked course
+    if (data === undefined) {
+      store$.id.delete();
+      store$.name.delete();
+    }
+  }, []);
+
   if (isLoading || !data) return "Loading...";
 
   if (error) return `An error occured: ${error}`;
@@ -147,7 +155,7 @@ export function Navbar() {
         <header className={classes.header}>
           <Group justify="space-between" h="100%">
             <Group h="100%" gap={0} visibleFrom="sm">
-              <p>Grading Admin</p>
+              <p onClick={() => navigate("/")}>Grading Admin</p>
               <a href="/instructor/migrate" className={classes.link}>
                 Migrate
               </a>
