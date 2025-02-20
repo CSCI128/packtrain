@@ -1999,4 +1999,54 @@ components:
           type: string
           example: "Your 3 day extension for illness is approved"
 
+    MasterMigration:
+      description: "The master migration that contains to the list of migration objects"
+      type: object
+      required:
+        - migration_list
+      properties:
+        migration_list:
+          type: array
+          items:
+            $ref: "#/components/schemas/Migration"
+
+    MasterMigrationStatistics:
+      description: "The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit"
+      type: object
+      required:
+        - missing
+        - extensions_applied
+        - no_credit
+        - late_penalties
+      properties:
+        missing:
+          type: integer
+          example: 2
+        extensions_applied:
+          type: integer
+          example: 12
+        no_credit:
+          type: integer
+          example: 1
+        late_penalties:
+          type: integer
+          example: 5
+
+    Migration:
+      description: "Migration object that has a single assignment and a policy"
+      type: object
+      required:
+        - assignment
+        - policy
+      properties:
+        assignment:
+          items:
+            $ref: "#/components/schemas/Assignment"
+        policy:
+          items:
+            $ref: "#/components/schemas/Policy"
+
+
+
+
 
