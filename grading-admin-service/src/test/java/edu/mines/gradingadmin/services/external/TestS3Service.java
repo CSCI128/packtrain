@@ -1,9 +1,8 @@
-package edu.mines.gradingadmin.services;
+package edu.mines.gradingadmin.services.external;
 
 import edu.mines.gradingadmin.containers.MinioTestContainer;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.models.User;
-import edu.mines.gradingadmin.services.external.S3Service;
 import io.minio.*;
 import io.minio.messages.Bucket;
 import io.minio.messages.Item;
@@ -38,8 +37,8 @@ public class TestS3Service implements MinioTestContainer, PostgresTestContainer 
     static void setupClass(){
         minio.start();
         client = MinioClient.builder()
-                .endpoint(S3_URI.get().toString())
-                .credentials(ACCESS_KEY.get().toString(), SECRET_KEY.get().toString())
+                .endpoint(minio.getS3URL())
+                .credentials(minio.getUserName(), minio.getPassword())
                 .build();
     }
 
