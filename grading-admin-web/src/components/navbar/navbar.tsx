@@ -113,13 +113,13 @@ export function Navbar() {
     navigate("/admin/home");
   };
 
-  useEffect(() => {
-    // can't find course, delete state tracked course
-    if (data === undefined) {
-      store$.id.delete();
-      store$.name.delete();
-    }
-  }, []);
+  // useEffect(() => {
+  //   // can't find course, delete state tracked course
+  //   if (data === undefined) {
+  //     store$.id.delete();
+  //     store$.name.delete();
+  //   }
+  // }, []);
 
   if (isLoading || !data) return "Loading...";
 
