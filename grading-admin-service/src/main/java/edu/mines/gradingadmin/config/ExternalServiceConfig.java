@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
-import java.util.InvalidPropertiesFormatException;
 
 @Configuration
 public class ExternalServiceConfig {
@@ -40,6 +39,8 @@ public class ExternalServiceConfig {
     public static class RabbitMqConfig{
         private final boolean enabled;
         private URI uri;
+        private String exchangeName;
+        private String gradingMessageRoutingKey;
     };
 
     @Bean
@@ -60,8 +61,8 @@ public class ExternalServiceConfig {
     public S3Config configureS3(
             @Value("${grading-admin.external-services.s3.enabled}") boolean enabled,
             @Value("${grading-admin.external-services.s3.uri}") URI endpoint,
-            @Value("${grading-admin.external-services.s3.access_key}") String accessKey,
-            @Value("${grading-admin.external-services.s3.secret_key}") String secretKey
+            @Value("${grading-admin.external-services.s3.access-key}") String accessKey,
+            @Value("${grading-admin.external-services.s3.secret-key}") String secretKey
     ){
         if (!enabled){
             return new S3Config(false);
@@ -72,12 +73,14 @@ public class ExternalServiceConfig {
     @Bean
     public RabbitMqConfig configRabbitMq(
             @Value("${grading-admin.external-services.rabbitmq.enabled}") boolean enabled,
-            @Value("${grading-admin.external-services.rabbitmq.uri}") URI uri
+            @Value("${grading-admin.external-services.rabbitmq.uri}") URI uri,
+            @Value("${grading-admin.external-services.rabbitmq.exchange-name}") String exchangeName,
+            @Value("${grading-admin.external-services.rabbitmq.grading-message-routing-key}") String gradingMessageQueueName
     ){
         if (!enabled){
             return new RabbitMqConfig(false);
         }
-        return new RabbitMqConfig(true, uri);
+        return new RabbitMqConfig(true, uri, exchangeName, gradingMessageQueueName);
     }
 
 
