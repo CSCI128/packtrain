@@ -103,6 +103,8 @@ export function Navbar() {
   };
 
   const handleLogout = async () => {
+    store$.id.delete();
+    store$.name.delete();
     await userManager.signoutRedirect();
   };
 
