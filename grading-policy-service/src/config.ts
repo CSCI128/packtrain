@@ -1,11 +1,13 @@
 import {readFileSync} from "node:fs";
 import { parse } from "yaml";
 
-interface RabbitMqConfig {
+export interface RabbitMqConfig {
     username: string;
     password: string;
     endpoint: string;
     port: string;
+    exchangeName: string;
+    gradingMessageRoutingKey: string;
 }
 
 interface PolicyConfig{

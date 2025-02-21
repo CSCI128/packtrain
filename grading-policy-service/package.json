@@ -3,18 +3,24 @@
   "version": "1.0.0",
   "description": "Grading Policy Microservice",
   "main": "index.ts",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --import tsx --test --test-force-exit"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "amqplib": "^0.10.5",
+    "axios": "^1.7.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
     "yaml": "^2.7.0"
   },
   "devDependencies": {
-    "testcontainers": "^10.18.0"
+    "@testcontainers/rabbitmq": "^10.18.0",
+    "@types/amqplib": "^0.10.6",
+    "glob": "^11.0.1",
+    "testcontainers": "^10.18.0",
+    "tsx": "^4.19.3"
   }
 }

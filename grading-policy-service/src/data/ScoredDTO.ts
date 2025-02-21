@@ -12,15 +12,16 @@ enum SubmissionStatus {
     ON_TIME,
 }
 
-class ScoredDTO{
-    cwid: string;
-    extensionId: string;
-    rawScore: number;
-    finalScore: number;
-    adjustedSubmissionTime: Date;
-    hoursLate: number;
-    submissionStatus: SubmissionStatus;
-    extensionStatus: ExtensionStatus;
-    extensionMessage: string;
-    submissionMessage: string;
+export default class ScoredDTO{
+    cwid!: string;
+    extensionId!: string;
+    assignmentId!: string;
+    rawScore!: number;
+    finalScore!: number;
+    adjustedSubmissionTime!: Date;
+    hoursLate!: number;
+    submissionStatus!: SubmissionStatus;
+    extensionStatus!: ExtensionStatus;
+    extensionMessage!: string;
+    submissionMessage!: string;
 }
