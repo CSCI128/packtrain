@@ -101,8 +101,8 @@ export function Navbar() {
                   </Menu.Target>
 
                   <Menu.Dropdown>
-                    <Menu.Item>
-                      <a href="/profile">Profile</a>
+                    <Menu.Item component="a" href="/profile">
+                      Profile
                     </Menu.Item>
 
                     <Menu.Divider />
