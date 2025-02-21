@@ -2,14 +2,14 @@ import { Button, Center, Stack } from "@mantine/core";
 import { Link, useNavigate } from "react-router-dom";
 import { $api, store$ } from "../../../api";
 
-export const SelectClass = () => {
+export const SelectClass = ({ close }: { close: () => void }) => {
   const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
   const navigate = useNavigate();
 
   const switchCourse = (id: string, name: string) => {
     store$.id.set(id);
     store$.name.set(name);
-    // close();
+    close();
     navigate("/admin/home");
   };
 

@@ -65,7 +65,7 @@ export function ProfilePage() {
           admin: data.admin,
         },
         // I know this is cursed but I'm making TypeScript happy
-        service: values.service == "Canvas" ? "canvas" : "gradescope",
+        service: values.service === "Canvas" ? "canvas" : "gradescope",
         active: true,
         api_key: values.apiKey,
         name: values.credentialName,

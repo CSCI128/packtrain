@@ -8,7 +8,7 @@ import {
   RouterProvider,
   useNavigate,
 } from "react-router-dom";
-import { store$ } from "./api";
+import { store$, userManager } from "./api";
 import "./index.css";
 import { AssignmentsPage } from "./pages/admin/Assignments";
 import { CoursePage } from "./pages/admin/course/Course";
@@ -37,9 +37,21 @@ const MiddlewareLayout = () => {
   const isAuthenticated = store$.id.get();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("select");
-    }
+    const fetchData = async () => {
+      try {
+        const user = await userManager.getUser();
+        console.log(user);
+        // const user = await userManager.getUser();
+        if (!isAuthenticated && user) {
+          // && user
+          navigate("select");
+        }
+      } catch (error) {
+        console.error("An error occurred:", error);
+      }
+    };
+
+    fetchData();
   }, [isAuthenticated, navigate]);
 
   return <Outlet />;

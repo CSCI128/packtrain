@@ -9,7 +9,6 @@ import {
   Menu,
   Modal,
   ScrollArea,
-  Stack,
   Text,
   UnstyledButton,
 } from "@mantine/core";
@@ -17,8 +16,9 @@ import { useDisclosure } from "@mantine/hooks";
 import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
 import { FaChevronDown } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { $api, store$, userManager } from "../../api";
+import { SelectClass } from "../../pages/admin/course/Select";
 import classes from "./Navbar.module.scss";
 
 export function Navbar() {
@@ -106,13 +106,6 @@ export function Navbar() {
     await userManager.signoutRedirect();
   };
 
-  const switchCourse = (id: string, name: string) => {
-    store$.id.set(id);
-    store$.name.set(name);
-    close();
-    navigate("/admin/home");
-  };
-
   // useEffect(() => {
   //   // can't find course, delete state tracked course
   //   if (data === undefined) {
@@ -129,26 +122,7 @@ export function Navbar() {
     <>
       {/* TODO move the modal out of here */}
       <Modal opened={opened} onClose={close} title="Select Class">
-        <Center>
-          <Stack>
-            {data.map((course) => (
-              <Button
-                key={course.id}
-                onClick={() => switchCourse(course.id as string, course.name)}
-              >
-                {course.name}
-              </Button>
-            ))}
-            <Button
-              color="green"
-              component={Link}
-              to="/admin/create"
-              onClick={close}
-            >
-              Create Class
-            </Button>
-          </Stack>
-        </Center>
+        <SelectClass close={close} />
       </Modal>
 
       <Box mb={20}>
