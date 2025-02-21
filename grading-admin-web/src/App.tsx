@@ -36,14 +36,19 @@ const MiddlewareLayout = () => {
   const navigate = useNavigate();
   const isAuthenticated = store$.id.get();
 
+  // TODO can't find course, delete state tracked course
+  // useEffect(() => {
+  //   if (data === undefined) {
+  //     store$.id.delete();
+  //     store$.name.delete();
+  //   }
+  // }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const user = await userManager.getUser();
-        console.log(user);
-        // const user = await userManager.getUser();
         if (!isAuthenticated && user) {
-          // && user
           navigate("select");
         }
       } catch (error) {
@@ -130,7 +135,6 @@ const router = createBrowserRouter([
           },
         ],
       },
-      //   children: [
     ],
   },
 ]);

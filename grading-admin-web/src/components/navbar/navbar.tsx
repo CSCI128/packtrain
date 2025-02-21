@@ -106,14 +106,6 @@ export function Navbar() {
     await userManager.signoutRedirect();
   };
 
-  // useEffect(() => {
-  //   // can't find course, delete state tracked course
-  //   if (data === undefined) {
-  //     store$.id.delete();
-  //     store$.name.delete();
-  //   }
-  // }, []);
-
   if (isLoading || !data) return "Loading...";
 
   if (error) return `An error occured: ${error}`;

@@ -6,7 +6,6 @@ import { $api, store$ } from "../../../api";
 export function CoursePage() {
   const navigate = useNavigate();
 
-  // TODO handle error: bring up course selection if one isn't selected
   const { data, error, isLoading } = $api.useQuery(
     "get",
     "/admin/courses/{course_id}",

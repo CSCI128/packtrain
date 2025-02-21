@@ -1,15 +1,17 @@
-import { Button, Center, Stack } from "@mantine/core";
+import { Button, Center, Container, Stack } from "@mantine/core";
 import { Link, useNavigate } from "react-router-dom";
 import { $api, store$ } from "../../../api";
 
-export const SelectClass = ({ close }: { close: () => void }) => {
+export const SelectClass = ({ close }: { close?: () => void }) => {
   const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
   const navigate = useNavigate();
 
   const switchCourse = (id: string, name: string) => {
     store$.id.set(id);
     store$.name.set(name);
-    close();
+    if (close) {
+      close();
+    }
     navigate("/admin/home");
   };
 
@@ -18,7 +20,7 @@ export const SelectClass = ({ close }: { close: () => void }) => {
   if (error) return `An error occured: ${error}`;
 
   return (
-    <>
+    <Container size="sm">
       <Center>
         <Stack>
           {data.map((course) => (
@@ -39,6 +41,6 @@ export const SelectClass = ({ close }: { close: () => void }) => {
           </Button>
         </Stack>
       </Center>
-    </>
+    </Container>
   );
 };
