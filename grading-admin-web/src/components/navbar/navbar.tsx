@@ -1,23 +1,25 @@
 import {
   Box,
+  Burger,
   Button,
-  Center,
-  Collapse,
   Divider,
   Drawer,
   Group,
   Menu,
   Modal,
   ScrollArea,
-  Text,
-  UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
-import { FaChevronDown } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { $api, store$, userManager } from "../../api";
+import {
+  $api,
+  handleLogin,
+  handleLogout,
+  store$,
+  userManager,
+} from "../../api";
 import { SelectClass } from "../../pages/admin/course/Select";
 import classes from "./Navbar.module.scss";
 
@@ -25,61 +27,9 @@ export function Navbar() {
   const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
     useDisclosure(false);
-  const [linksOpened, { toggle: toggleLinks }] = useDisclosure(false);
   const [user, setUser] = useState<User | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
   const navigate = useNavigate();
-
-  const mockdata = [
-    {
-      // icon: IconCode,
-      title: "Open source",
-      description: "This Pokémon’s cry is very loud and distracting",
-    },
-    {
-      // icon: IconCoin,
-      title: "Free for everyone",
-      description: "The fluid of Smeargle’s tail secretions changes",
-    },
-    {
-      // icon: IconBook,
-      title: "Documentation",
-      description: "Yanma is capable of seeing 360 degrees without",
-    },
-    {
-      // icon: IconFingerprint,
-      title: "Security",
-      description: "The shell’s rounded shape and the grooves on its.",
-    },
-    {
-      // icon: IconChartPie3,
-      title: "Analytics",
-      description: "This Pokémon uses its flying ability to quickly chase",
-    },
-    {
-      // icon: IconNotification,
-      title: "Notifications",
-      description: "Combusken battles with the intensely hot flames it spews",
-    },
-  ];
-
-  const links = mockdata.map((item) => (
-    <UnstyledButton className={classes.subLink} key={item.title}>
-      <Group wrap="nowrap" align="flex-start">
-        {/* <ThemeIcon size={34} variant="default" radius="md">
-          <item.icon size={22} color={theme.colors.blue[6]} />
-        </ThemeIcon> */}
-        <div>
-          <Text size="sm" fw={500}>
-            {item.title}
-          </Text>
-          <Text size="xs" c="dimmed">
-            {item.description}
-          </Text>
-        </div>
-      </Group>
-    </UnstyledButton>
-  ));
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -98,23 +48,12 @@ export function Navbar() {
     handleCallback();
   }, []);
 
-  const handleLogin = async () => {
-    await userManager.signinRedirect();
-  };
-
-  const handleLogout = async () => {
-    store$.id.delete();
-    store$.name.delete();
-    await userManager.signoutRedirect();
-  };
-
   if (isLoading || !data) return "Loading...";
 
   if (error) return `An error occured: ${error}`;
 
   return (
     <>
-      {/* TODO move the modal out of here */}
       <Modal opened={opened} onClose={close} title="Select Class">
         <SelectClass close={close} />
       </Modal>
@@ -140,6 +79,13 @@ export function Navbar() {
                 Users
               </a>
             </Group>
+
+            <Burger
+              opened={opened}
+              onClick={toggleDrawer}
+              size="sm"
+              hiddenFrom="sm"
+            />
 
             <Group>
               {!user ? (
@@ -172,50 +118,39 @@ export function Navbar() {
                 {store$.name.get() || "Select Class"}
               </Button>
             </Group>
-
-            {/* <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="sm" /> */}
           </Group>
+
+          {/* TODO finish drawer */}
+          <Drawer
+            opened={drawerOpened}
+            onClose={closeDrawer}
+            size="100%"
+            padding="md"
+            title="Navigation"
+            hiddenFrom="sm"
+            zIndex={1000000}
+          >
+            <ScrollArea h="calc(100vh - 80px" mx="-md">
+              <Divider my="sm" />
+
+              <a href="#" className={classes.link}>
+                Home
+              </a>
+              <a href="#" className={classes.link}>
+                Learn
+              </a>
+              <a href="#" className={classes.link}>
+                Academy
+              </a>
+
+              <Divider my="sm" />
+
+              <Group justify="center" grow pb="xl" px="md">
+                <Button variant="default">Log in</Button>
+              </Group>
+            </ScrollArea>
+          </Drawer>
         </header>
-
-        <Drawer
-          opened={drawerOpened}
-          onClose={closeDrawer}
-          size="100%"
-          padding="md"
-          title="Navigation"
-          hiddenFrom="sm"
-          zIndex={1000000}
-        >
-          <ScrollArea h="calc(100vh - 80px" mx="-md">
-            <Divider my="sm" />
-
-            <a href="#" className={classes.link}>
-              Home
-            </a>
-            <UnstyledButton className={classes.link} onClick={toggleLinks}>
-              <Center inline>
-                <Box component="span" mr={5}>
-                  Features
-                </Box>
-                <FaChevronDown size={16} color="blue" />
-              </Center>
-            </UnstyledButton>
-            <Collapse in={linksOpened}>{links}</Collapse>
-            <a href="#" className={classes.link}>
-              Learn
-            </a>
-            <a href="#" className={classes.link}>
-              Academy
-            </a>
-
-            <Divider my="sm" />
-
-            <Group justify="center" grow pb="xl" px="md">
-              <Button variant="default">Log in</Button>
-              <Button>Sign up</Button>
-            </Group>
-          </ScrollArea>
-        </Drawer>
       </Box>
     </>
   );
