@@ -6,8 +6,6 @@ import * as assert from "node:assert";
 import {RabbitMqConfig} from "../../src/config";
 import {connect} from "../../src/services/rabbitMqService"
 
-
-
 describe("RabbitMq Service", () => {
     const username = "admin";
     const password = "password";
@@ -29,7 +27,6 @@ describe("RabbitMq Service", () => {
             endpoint: rabbitMq.getHost(),
             port: rabbitMq.getMappedPort(5672).toString(),
             exchangeName: "default",
-            gradingMessageRoutingKey: "grading",
         }
         connection = await ampq.connect({
             username: username,

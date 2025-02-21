@@ -23,7 +23,7 @@ function verifyPolicy(fun: ApplyPolicyFunctionSig): boolean{
     }
 }
 
-export async function downloadAndVerifyPolicy(uuid: string, uri: string): Promise<ApplyPolicyFunctionSig>{
+export async function downloadAndVerifyPolicy(uri: string): Promise<ApplyPolicyFunctionSig>{
     const res = await axios.get(uri);
 
     const f = Function(res.data as string) as ApplyPolicyFunctionSig;

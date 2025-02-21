@@ -16,17 +16,32 @@ interface MigrationSet {
 
 const activeMigrations: Map<string, MigrationSet> = new Map();
 
-export async function connect(rabbitMqConfig: RabbitMqConfig): Promise<Connection> {
+let connection: Connection | null = null;
+
+export async function connect(rabbitMqConfig: RabbitMqConfig): Promise<void> {
+    if (connection !== null){
+        return Promise.reject("Connection already established");
+    }
+
     const connectionURI = `amqp://${rabbitMqConfig.username}:${rabbitMqConfig.password}@${rabbitMqConfig.endpoint}:${rabbitMqConfig.port}`;
-    return rabbitMqConnect(connectionURI);
+
+    connection = await rabbitMqConnect(connectionURI);
 }
 
-async function onGradingStart(connection: Connection, exchangeName: string, start: GradingStartDTO){
+export function ready(){
+    return connection !== null;
+}
+
+export async function startMigration(exchangeName: string, start:GradingStartDTO): Promise<void> {
+    if (connection === null){
+        return Promise.reject("Connection has not been established!");
+    }
+
     if (activeMigrations.has(start.migrationId)){
         return Promise.reject("Migration is already started!");
     }
 
-    const policy = await downloadAndVerifyPolicy(start.migrationId, start.policyURI);
+    const policy = await downloadAndVerifyPolicy(start.policyURI);
 
     const publishChannel: Channel = await connection.createChannel()
         .then(async ch => {
@@ -54,8 +69,9 @@ async function onGradingStart(connection: Connection, exchangeName: string, star
         })
 
     activeMigrations.set(start.migrationId, {consumer: receiverChannel, producer: publishChannel});
-}
 
+    return Promise.resolve();
+}
 
 function onRawScoreReceive(exchange: string, routingKey: string, assignmentMetadata: GlobalAssignmentMetadata, rawScore: RawScoreDTO, policy: ApplyPolicyFunctionSig, publishChannel: Channel){
     rawScore.assignmentId = assignmentMetadata.assignmentId;
@@ -71,30 +87,4 @@ function onRawScoreReceive(exchange: string, routingKey: string, assignmentMetad
     }
     catch (e){
     }
-}
-
-export async function setupGradingMessageChannel(rabbitMqConfig: RabbitMqConfig, connection: Connection): Promise<ConsumerChannel> {
-    const channel = await connection.createChannel();
-
-    const queue = await channel.assertExchange(rabbitMqConfig.exchangeName, "direct", {durable: true})
-        .then(async (ex) => {
-            // let the server give us a randomly named queue
-            const queue = await channel.assertQueue("");
-            await channel.bindQueue(queue.queue, ex.exchange, rabbitMqConfig.gradingMessageRoutingKey);
-            return queue.queue;
-        });
-
-    const consumer = await channel.consume(queue, (msg: ConsumeMessage | null) => {
-        if (!msg){
-            return;
-        }
-
-        if (msg.properties.type === "grading.start" && msg.properties.contentType === "application/json"){
-            const content  = JSON.parse(msg.content.toString()) as GradingStartDTO;
-
-            onGradingStart(connection, rabbitMqConfig.exchangeName, content);
-        }
-    });
-
-    return {channel: channel, consumerTag: consumer.consumerTag};
 }

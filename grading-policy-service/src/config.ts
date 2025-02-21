@@ -7,18 +7,27 @@ export interface RabbitMqConfig {
     endpoint: string;
     port: string;
     exchangeName: string;
-    gradingMessageRoutingKey: string;
 }
 
-interface PolicyConfig{
+export interface PolicyConfig{
     trustedServer: string;
 }
 
-interface GradingPolicyConfig{
-    policyConfig: PolicyConfig;
-    rabbitMqConfig: RabbitMqConfig;
+export interface SecurityConfig{
+    serverKey: string;
+    serverCert: string;
+    trustedCAs: string[];
+    clientCert: string;
 }
 
-export const config: GradingPolicyConfig = parse(readFileSync("", "utf-8")) as GradingPolicyConfig;
+export interface GradingPolicyConfig{
+    securityConfig: SecurityConfig;
+    policyConfig: PolicyConfig;
+    rabbitMqConfig: RabbitMqConfig;
+
+    port: number;
+}
+
+export const config: GradingPolicyConfig = parse(readFileSync(process.argv[2], "utf-8")) as GradingPolicyConfig;
 
 
