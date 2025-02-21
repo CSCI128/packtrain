@@ -56,23 +56,28 @@ export function ProfilePage() {
   if (error || credentialError) return `An error occured: ${error}`;
 
   const addCredential = (values: typeof form.values) => {
-    mutation.mutate({
-      body: {
-        owning_user: {
-          email: data.email,
-          cwid: data.cwid,
-          name: data.name,
-          admin: data.admin,
+    mutation.mutate(
+      {
+        body: {
+          owning_user: {
+            email: data.email,
+            cwid: data.cwid,
+            name: data.name,
+            admin: data.admin,
+          },
+          service: values.service === "Canvas" ? "canvas" : "gradescope",
+          active: true,
+          api_key: values.apiKey,
+          name: values.credentialName,
+          private: true,
         },
-        // I know this is cursed but I'm making TypeScript happy
-        service: values.service === "Canvas" ? "canvas" : "gradescope",
-        active: true,
-        api_key: values.apiKey,
-        name: values.credentialName,
-        private: true,
       },
-    });
-    refetch();
+      {
+        onSuccess: () => {
+          refetch();
+        },
+      }
+    );
     close();
   };
 
