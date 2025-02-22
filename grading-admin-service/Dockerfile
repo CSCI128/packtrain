@@ -12,7 +12,7 @@ COPY --from=deps /root/.m2/repository /root/.m2/repository
 WORKDIR /app
 COPY grading-admin-service /app
 
-COPY openapi/openapi.yml /app/src/main/resources/openapi.yml
+ADD ../openapi /openapi
 
 RUN mvn clean package -Dmaven.test.skip=true
 

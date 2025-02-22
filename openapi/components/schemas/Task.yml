@@ -1,0 +1,25 @@
+description: An async task on the server
+type: object
+required:
+  - id
+  - submitted_time
+  - status
+properties:
+  id:
+    type: integer
+    format: int64
+    example: 291
+  submitted_time:
+    type: string
+    format: date-time
+    example: '2020-01-01T12:00:00.000Z'
+  completed_time:
+    type: string
+    format: date-time
+    example: '2020-01-01T12:00:00.000Z'
+  status:
+    type: string
+    example: COMPLETED
+  message:
+    type: string
+    example: A message about the status of the task

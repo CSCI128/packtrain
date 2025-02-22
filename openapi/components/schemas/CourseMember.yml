@@ -1,0 +1,26 @@
+description: A user in a course
+type: object
+required:
+  - cwid
+  - canvas_id
+  - course_role
+properties:
+  cwid:
+    type: string
+    example: '99999999'
+  canvas_id:
+    type: string
+    example: self
+  course_role:
+    type: string
+    enum:
+      - student
+      - instructor
+      - ta
+      - owner
+    example: owner
+  sections:
+    type: array
+    items:
+      type: string
+      example: fall.2020.excl.101.section.a

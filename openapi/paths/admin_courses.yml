@@ -1,0 +1,54 @@
+get:
+  tags:
+    - admin
+  operationId: get_courses
+  summary: Get all courses
+  description: |
+    Get all courses, returning
+    only active courses by default, and
+    inactive courses if specified. Will
+    return an empty list if there are no
+    courses.
+  security:
+    - openIDC:
+        - admin:read
+  parameters:
+    - name: onlyActive
+      in: query
+      required: false
+      schema:
+        type: boolean
+        example: true
+        default: true
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/Course.yml
+post:
+  tags:
+    - admin
+  operationId: new_course
+  summary: Create a new course
+  description: |
+    Create a new course.
+  security:
+    - openIDC:
+        - admin:write
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/Course.yml
+  responses:
+    '201':
+      description: Created
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Course.yml

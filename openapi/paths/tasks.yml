@@ -1,0 +1,19 @@
+get:
+  tags:
+    - tasks
+  operationId: get_all_tasks_for_user
+  summary: Get all tasks for current user
+  description: |
+    This endpoint gets all the tasks for the currently signed in user
+  security:
+    - openIDC:
+        - user:read
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/Task.yml

@@ -1,0 +1,7 @@
+description: An error occurred while processing that query
+type: object
+properties:
+  error_source:
+    type: string
+  error_message:
+    type: string

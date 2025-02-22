@@ -1,0 +1,39 @@
+description: An assignment in a course
+type: object
+required:
+  - id
+  - name
+  - points
+  - due_date
+  - unlock_date
+  - enabled
+  - category
+  - canvas_id
+properties:
+  id:
+    type: string
+    example: 999-9999-9999-99
+  name:
+    type: string
+    example: Assessment 1
+  points:
+    type: number
+    format: double
+    example: 15
+  due_date:
+    type: string
+    format: date-time
+    example: '2020-01-15T12:00:00.000Z'
+  unlock_date:
+    type: string
+    format: date-time
+    example: '2020-01-01T12:00:00.000Z'
+  enabled:
+    type: boolean
+    example: true
+  category:
+    type: string
+    example: Quiz
+  canvas_id:
+    type: string
+    example: '12345678'

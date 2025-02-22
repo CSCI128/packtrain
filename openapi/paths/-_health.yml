@@ -1,0 +1,10 @@
+get:
+  tags:
+    - health
+  operationId: check_health
+  summary: Checks the health of the server
+  responses:
+    '200':
+      description: ok
+    '500':
+      description: Server is unhealthy

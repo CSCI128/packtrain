@@ -1,0 +1,50 @@
+get:
+  tags:
+    - instructor
+  operationId: get_instructor_enrollments
+  security:
+    - openIDC:
+        - instructor:read
+  summary: Get all enrollments for all sections
+  description: |
+    Gets user enrollments for all sections 
+    an instructor is apart of.
+  parameters:
+    - name: course_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 999-9999-9999-99
+    - name: name
+      in: query
+      required: false
+      schema:
+        type: string
+        description: Part of (or full) name to search for
+        example: Alex
+    - name: cwid
+      in: query
+      required: false
+      schema:
+        type: string
+        description: Part of (or full) cwid to search for
+        example: '9999999'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/CourseMember.yml
+    '404':
+      description: Course Not Found
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErrorResponse.yml
+          example:
+            error_source: update_course
+            error_message: Course '999-9999-9999-99' does not exist

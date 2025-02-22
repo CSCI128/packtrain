@@ -1,0 +1,90 @@
+put:
+  tags:
+    - admin
+  operationId: update_course
+  summary: Update existing course
+  description: |
+    Update an existing course by replacing all content in the course.
+    If any assignments have been graded, then this will fail.
+  security:
+    - openIDC:
+        - admin:write
+  parameters:
+    - name: course_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 999-9999-9999-99
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/Course.yml
+  responses:
+    '201':
+      description: Updated course
+    '400':
+      description: Refused to update course
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErrorResponse.yml
+          example:
+            error_source: course_creation
+            error_message: >-
+              Refusing to update course. At least one assignment has been
+              graded.
+    '404':
+      description: Course does not exist
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErrorResponse.yml
+          example:
+            error_source: course_creation
+            error_message: Course '999-9999-9999-99' does not exist
+get:
+  tags:
+    - admin
+  operationId: get_course
+  summary: Get existing course
+  description: |
+    Gets a course
+  security:
+    - openIDC:
+        - admin:read
+  parameters:
+    - name: course_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 999-9999-9999-99
+    - name: include
+      in: query
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - members
+            - assignments
+            - sections
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Course.yml
+    '404':
+      description: Course does not exist
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErrorResponse.yml
+          example:
+            error_source: course_creation
+            error_message: Course '999-9999-9999-99' does not exist

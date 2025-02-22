@@ -1,0 +1,42 @@
+description: A complete course
+type: object
+required:
+  - term
+  - enabled
+  - name
+  - code
+  - canvas_id
+properties:
+  id:
+    type: string
+    example: 999-9999-9999-99
+  term:
+    type: string
+    example: Fall 2020
+  enabled:
+    type: boolean
+    example: true
+  name:
+    type: string
+    example: EXCL101
+  code:
+    type: string
+    example: Fall.2020.EXCL.101
+  canvas_id:
+    type: integer
+    format: int64
+    example: 123456
+  members:
+    type: array
+    items:
+      $ref: ./CourseMember.yml
+  assignments:
+    type: array
+    items:
+      $ref: ./Assignment.yml
+  sections:
+    type: array
+    items:
+      type: string
+    example:
+      - fall.2020.excl.101.section.a

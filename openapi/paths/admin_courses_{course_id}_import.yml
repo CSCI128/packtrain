@@ -1,0 +1,51 @@
+post:
+  tags:
+    - admin
+  operationId: import_course
+  summary: Import course from Canvas
+  description: |
+    Imports data from Canvas into an existing course
+  security:
+    - openIDC:
+        - admin:write
+  parameters:
+    - name: course_id
+      required: true
+      description: The course id
+      in: path
+      schema:
+        type: string
+        example: 999-9999-9999-99
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/CourseSyncTask.yml
+  responses:
+    '202':
+      description: Task Queued
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/Task.yml
+    '403':
+      description: An authentication error occurred
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErrorResponse.yml
+          example:
+            error_source: Canvas Service
+            error_message: 'Error: invalid token'
+    '404':
+      description: Course not found
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErrorResponse.yml
+          example:
+            error_source: Course Service
+            error_message: 'Error: course id not found'

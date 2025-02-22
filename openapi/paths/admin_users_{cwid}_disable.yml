@@ -1,0 +1,29 @@
+put:
+  tags:
+    - admin
+  operationId: disable_user
+  summary: disable a user
+  description: |
+    Disables a user
+  security:
+    - openIDC:
+        - admin:write
+  parameters:
+    - name: cwid
+      in: path
+      required: true
+      schema:
+        type: string
+        example: '99999999'
+  responses:
+    '201':
+      description: Created
+    '404':
+      description: User not found
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErrorResponse.yml
+          example:
+            error_source: update_user
+            error_message: Failed to update user

@@ -1,0 +1,47 @@
+get:
+  tags:
+    - admin
+  operationId: get_all_users
+  summary: Get all users
+  description: |
+    Gets all the users in the system
+  security:
+    - openIDC:
+        - admin:read
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/User.yml
+post:
+  tags:
+    - admin
+  operationId: create_user
+  summary: Create a new user
+  description: |
+    Creates a new user.
+  security:
+    - openIDC:
+        - admin:write
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/User.yml
+  responses:
+    '201':
+      description: Created
+    '400':
+      description: Failed to create new user
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErrorResponse.yml
+          example:
+            error_source: create_user
+            error_message: Failed to create new user

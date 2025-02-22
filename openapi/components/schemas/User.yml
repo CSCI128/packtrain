@@ -1,0 +1,24 @@
+description: A server user
+type: object
+required:
+  - email
+  - cwid
+  - name
+  - admin
+properties:
+  email:
+    type: string
+    format: email
+    example: user@test.com
+  cwid:
+    type: string
+    example: '99999999'
+  name:
+    type: string
+    example: Test User
+  admin:
+    type: boolean
+    example: false
+  enabled:
+    type: boolean
+    example: true

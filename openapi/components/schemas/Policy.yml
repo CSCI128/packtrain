@@ -1,0 +1,13 @@
+description: A grading policy
+type: object
+properties:
+  name:
+    type: string
+    example: Default Policy
+  uri:
+    type: string
+    example: https://s3.aws.com/999-9999-9999-99/default.js
+  course:
+    $ref: ./Course.yml
+  assignment:
+    $ref: ./Assignment.yml

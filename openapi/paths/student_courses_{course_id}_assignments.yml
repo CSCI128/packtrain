@@ -1,0 +1,26 @@
+get:
+  tags:
+    - student
+  operationId: get_course_assignments_student
+  summary: Get assignments for course
+  description: |
+    Get currently released assignments for course
+  security:
+    - openIDC:
+        - student:read
+  parameters:
+    - name: course_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 999-9999-9999-99
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/Assignment.yml

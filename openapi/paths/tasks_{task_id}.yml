@@ -1,0 +1,34 @@
+get:
+  tags:
+    - tasks
+  operationId: get_task
+  summary: Get task by id
+  description: |
+    This endpoint returns the requested task if the user has access to it.
+  security:
+    - openIDC:
+        - user:read
+  parameters:
+    - name: task_id
+      required: true
+      in: path
+      schema:
+        type: integer
+        format: int64
+        example: 219
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Task.yml
+    '404':
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErrorResponse.yml
+          example:
+            error_source: get_task
+            error_message: Requested task was not found

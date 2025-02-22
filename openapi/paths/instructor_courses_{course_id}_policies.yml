@@ -1,0 +1,59 @@
+post:
+  tags:
+    - instructor
+  operationId: new_policy
+  summary: Create a new policy
+  description: |
+    Create a new policy for the course
+  security:
+    - openIDC:
+        - instructor:write
+  parameters:
+    - name: course_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 999-9999-9999-99
+  requestBody:
+    required: true
+    content:
+      multipart/form-data:
+        schema:
+          $ref: ../components/schemas/NewPolicy.yml
+        encoding:
+          file_data:
+            contentType: text/javascript
+  responses:
+    '201':
+      description: Created
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Policy.yml
+get:
+  tags:
+    - instructor
+  operationId: get_all_policies
+  summary: Get all policies
+  description: |
+    Get all policies for a course
+  security:
+    - openIDC:
+        - instructor:read
+  parameters:
+    - name: course_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 999-9999-9999-99
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/Policy.yml

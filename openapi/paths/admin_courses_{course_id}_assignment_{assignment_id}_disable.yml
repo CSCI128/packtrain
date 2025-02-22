@@ -1,0 +1,35 @@
+put:
+  tags:
+    - admin
+  operationId: disable_assignment
+  summary: Disable the specified assignment.
+  description: |
+    Disable the specified assignment.
+  security:
+    - openIDC:
+        - admin:write
+  parameters:
+    - name: course_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 999-9999-9999-99
+    - name: assignment_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 999-9999-9999-99
+  responses:
+    '200':
+      description: OK
+    '404':
+      description: Assignment not Found
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErrorResponse.yml
+          example:
+            error_source: disable_assignment
+            error_message: Assignment '999-9999-9999-99' does not exist
