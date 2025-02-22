@@ -11,17 +11,17 @@ import {
 } from "react-router-dom";
 import { store$, userManager } from "./api";
 import "./index.css";
-import { AssignmentsPage } from "./pages/admin/Assignments";
 import { CoursePage } from "./pages/admin/course/Course";
 import { CreatePage } from "./pages/admin/course/Create";
 import { EditCourse } from "./pages/admin/course/Edit";
 import { ImportPage } from "./pages/admin/course/Import";
 import { SelectClass } from "./pages/admin/course/Select";
-import { MembersPage } from "./pages/admin/Members";
-import { MigrationsPage } from "./pages/admin/Migrations";
-import { ProfilePage } from "./pages/admin/Profile";
 import { UsersPage } from "./pages/admin/Users";
 import { HomePage } from "./pages/Home";
+import { AssignmentsPage } from "./pages/instructor/Assignments";
+import { MembersPage } from "./pages/instructor/Members";
+import { MigrationsPage } from "./pages/instructor/Migrations";
+import { ProfilePage } from "./pages/Profile";
 import ProtectedRoute from "./ProtectedRoute";
 import Root from "./templates/Root";
 

@@ -46,7 +46,7 @@ export function ImportPage() {
   );
 
   const hasCanvasCredential = () => {
-    for (var credential of data) {
+    for (let credential of data) {
       if (credential.service === "canvas") {
         return true;
       }
@@ -75,7 +75,7 @@ export function ImportPage() {
           setTaskId(response[0].id);
           setTaskId2(response[1].id);
           setTaskId3(response[2].id);
-          setImporting(false); // TODO move this
+          setImporting(false);
         },
       }
     );

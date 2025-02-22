@@ -45,7 +45,7 @@ export function CreatePage() {
   // disable form if none found
 
   // const hasCanvasCredential = () => {
-  //   for (var credential of data) {
+  //   for (let credential of data) {
   //     if (credential.service === "canvas") {
   //       return true;
   //     }

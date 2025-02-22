@@ -12,7 +12,7 @@ import {
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import React from "react";
-import { $api } from "../../api";
+import { $api } from "../api";
 
 export function ProfilePage() {
   const [opened, { open, close }] = useDisclosure(false);
