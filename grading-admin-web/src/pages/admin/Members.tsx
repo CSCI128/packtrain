@@ -45,7 +45,7 @@ export function MembersPage() {
     <Table.Tr key={element.cwid}>
       <Table.Td>{element.cwid}</Table.Td>
       <Table.Td>{element.course_role}</Table.Td>
-      <Table.Td>{element.sections}</Table.Td>
+      <Table.Td>{element.sections?.toSorted().join(", ")}</Table.Td>
     </Table.Tr>
   ));
 
