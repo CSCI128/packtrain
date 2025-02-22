@@ -6,6 +6,7 @@ import {
   createBrowserRouter,
   Outlet,
   RouterProvider,
+  useLocation,
   useNavigate,
 } from "react-router-dom";
 import { store$, userManager } from "./api";
@@ -32,11 +33,14 @@ const queryClient = new QueryClient({
   },
 });
 
+// TODO not sure if middleware is the correct name here but yeehaw
 const MiddlewareLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const isAuthenticated = store$.id.get();
+  const currentPage = location.pathname;
 
-  // TODO can't find course, delete state tracked course
+  // TODO can't find course, delete state tracked course; will this ever happen?
   // useEffect(() => {
   //   if (data === undefined) {
   //     store$.id.delete();
@@ -56,7 +60,9 @@ const MiddlewareLayout = () => {
       }
     };
 
-    fetchData();
+    if (currentPage !== "/profile") {
+      fetchData();
+    }
   }, [isAuthenticated, navigate]);
 
   return <Outlet />;
