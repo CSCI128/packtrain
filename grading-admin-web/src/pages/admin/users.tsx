@@ -108,6 +108,30 @@ export function UsersPage() {
   const [opened, { open, close }] = useDisclosure(false);
   const [addUserOpened, { open: openAddUser, close: closeAddUser }] =
     useDisclosure(false);
+
+  // TODO selectedUser row
+  interface User {
+    email: string;
+    cwid: string;
+    name: string;
+    admin: boolean;
+    enabled: boolean;
+  }
+
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  // [Log] {email: "erichards@mines.edu", cwid: "10884431", name: "Ethan Richards", admin: true, enabled: true} (Users.tsx, line 109)
+
+  // handleOpen() -- sets selected user and then opens
+
+  const handleOpen = (row: any) => {
+    console.log(row);
+
+    setSelectedUser(row);
+
+    open();
+  };
+
   const addUserForm = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -226,7 +250,7 @@ export function UsersPage() {
       </Table.Td>
       <Table.Td>{row.email}</Table.Td>
       <Table.Td>{row.cwid}</Table.Td>
-      <Table.Td onClick={open}>
+      <Table.Td onClick={() => handleOpen(row)}>
         <Center>
           <Text size="sm" pr={5}>
             Edit
@@ -245,8 +269,7 @@ export function UsersPage() {
           <TextInput
             withAsterisk
             label="Name"
-            value="Jane Doe"
-            placeholder="Jane Doe"
+            value={selectedUser?.name}
             key={addUserForm.key("name")}
             {...addUserForm.getInputProps("name")}
           />
@@ -254,7 +277,7 @@ export function UsersPage() {
           <TextInput
             disabled
             label="Email"
-            value="user@email.com"
+            value={selectedUser?.email}
             key={addUserForm.key("email")}
             {...addUserForm.getInputProps("email")}
           />
@@ -262,14 +285,14 @@ export function UsersPage() {
           <TextInput
             disabled
             label="CWID"
-            value="xxxxxxxx"
+            value={selectedUser?.cwid}
             key={addUserForm.key("cwid")}
             {...addUserForm.getInputProps("cwid")}
           />
 
           <InputWrapper
             withAsterisk
-            // defaultChecked
+            defaultChecked={selectedUser?.admin ? true : undefined}
             label="Admin User"
             key={addUserForm.key("admin")}
             {...addUserForm.getInputProps("admin")}
@@ -279,6 +302,7 @@ export function UsersPage() {
 
           <InputWrapper
             withAsterisk
+            defaultChecked={selectedUser?.enabled ? true : undefined}
             label="Enabled"
             key={addUserForm.key("enabled")}
             {...addUserForm.getInputProps("enabled")}
@@ -349,7 +373,7 @@ export function UsersPage() {
       <Container size="md">
         <Group justify="space-between">
           <Text size="xl" fw={700}>
-            Profile
+            Users
           </Text>
           <Button justify="flex-end" variant="filled" onClick={openAddUser}>
             Add User
