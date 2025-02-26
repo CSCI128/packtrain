@@ -1666,6 +1666,19 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
+  /instructors/courses/{course_id}/migrations:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_master_migrations_for_course
+      summary: Get all the master migrations for the course
+      description: |
+        This endpoint gets all master migrations for a given course
+      security:
+        - openIDC: [ admin:read ]
+      parameters:
+
+
 components:
   securitySchemes:
     OpenIDC:
