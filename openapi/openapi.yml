@@ -1391,7 +1391,7 @@ paths:
         Create a new extension request for an assignment.
         Replies with an extension request for a user and assignment.
       security:
-        - openIDC: [ instructor:write ]
+        - openIDC: [instructor:write]
       parameters:
         - name: course_id
           required: true
@@ -1447,7 +1447,7 @@ paths:
       description: |
         This endpoint gets all approved extensions for a given instructor
       security:
-        - openIDC: [ instructor:read ]
+        - openIDC: [instructor:read]
       parameters:
         - name: course_id
           required: true
@@ -1507,7 +1507,7 @@ paths:
       description: |
         This endpoint gets all approved extensions for a given member
       security:
-        - openIDC: [ instructor:read ]
+        - openIDC: [instructor:read]
       parameters:
         - name: course_id
           required: true
@@ -1567,7 +1567,7 @@ paths:
       description: |
         This endpoint gets all extensions for a given section
       security:
-        - openIDC: [ instructor:read ]
+        - openIDC: [instructor:read]
       parameters:
         - name: course_id
           required: true
@@ -1618,8 +1618,6 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-
-
   /admin/courses/{course_id}/extensions:
     get:
       tags:
@@ -1629,7 +1627,7 @@ paths:
       description: |
         This endpoint gets all extensions for a given course
       security:
-        - openIDC: [ admin:read ]
+        - openIDC: [admin:read]
       parameters:
         - name: course_id
           required: true
@@ -1998,5 +1996,3 @@ components:
         response_to_requester:
           type: string
           example: "Your 3 day extension for illness is approved"
-
-

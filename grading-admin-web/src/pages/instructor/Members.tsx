@@ -2,6 +2,8 @@ import { Container, ScrollArea, Table, Tabs, Text } from "@mantine/core";
 import { $api, store$ } from "../../api";
 
 export function MembersPage() {
+  // TODO add members here
+
   const { data, error, isLoading } = $api.useQuery(
     "get",
     "/admin/courses/{course_id}/members",
