@@ -1,17 +1,19 @@
 package edu.mines.gradingadmin.models;
 
-
-import lombok.Getter;
+import java.util.stream.Stream;
 
 public enum SubmissionStatus {
-    MISSING("missing"), EXCUSED("excused"), LATE("late"), EXTENDED("extended"), ON_TIME("on_time");
+    ONTIME("ontime"),
+    LATE("late"),
+    MISSING("missing"),
+    UNKNOWN("unkown");
 
-    @Getter
-    private final String status;
+    private final String type;
 
-    SubmissionStatus(String status){
-        this.status = status;
+    SubmissionStatus(String type) {this.type = type;}
+
+    public static SubmissionStatus fromString(String type){
+        return Stream.of(SubmissionStatus.values()).filter(t -> t.type.equals(type)).findFirst().orElseThrow(RuntimeException::new);
     }
-
 
 }
