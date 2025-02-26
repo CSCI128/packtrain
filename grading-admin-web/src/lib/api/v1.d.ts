@@ -699,6 +699,112 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/instructor/courses/{course_id}/assignments/{assignment_id}/user/{user_id}/extensions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Extension request
+         * @description Create a new extension request for an assignment.
+         *     Replies with an extension request for a user and assignment.
+         *
+         */
+        post: operations["new_extension"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructors/courses/{course_id}/assignments/{assignment_id}/extensions/{extension_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all the approved extensions for the provided course and assignment
+         * @description This endpoint gets all approved extensions for a given instructor
+         *
+         */
+        get: operations["get_all_approved_extensions_for_assignment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructors/courses/{course_id}/users/{user_id}/extensions/{extension_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all the approved extensions for the provided member
+         * @description This endpoint gets all approved extensions for a given member
+         *
+         */
+        get: operations["get_all_approved_extensions_for_member"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructors/courses/{course_id}/sections/{section_id}/extensions/{extension_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all the extensions for the provided section
+         * @description This endpoint gets all extensions for a given section
+         *
+         */
+        get: operations["get_all_extensions_for_section"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{course_id}/extensions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all the extensions for the course
+         * @description This endpoint gets all extensions for a given course
+         *
+         */
+        get: operations["get_all_extensions_for_course"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -881,6 +987,40 @@ export interface components {
              *       "fall.2020.excl.101.section.a"
              *     ] */
             sections?: string[];
+        };
+        /** @description An extension for an assignment */
+        Extension: {
+            /** @example 999-9999-9999-99 */
+            id?: string;
+            assignments: components["schemas"]["Assignment"][];
+            /**
+             * Format: date-time
+             * @example 2020-01-01T12:00:00.000Z
+             */
+            date_submitted: string;
+            /** @example 2 */
+            num_days_requested: number;
+            user_requester: string;
+            /**
+             * @example Extension pending instructor approval
+             * @enum {string}
+             */
+            status?: "pending" | "approved" | "rejected";
+            /**
+             * @example Late Pass
+             * @enum {string}
+             */
+            request_type?: "extension" | "late_pass";
+            user_reviewer?: string;
+            /**
+             * Format: date-time
+             * @example 2020-01-01T12:00:00.000Z
+             */
+            response_timestamp?: string;
+            /** @example Excused absence */
+            reason?: string;
+            /** @example Your 3 day extension for illness is approved */
+            response_to_requester?: string;
         };
     };
     responses: never;
@@ -2080,6 +2220,192 @@ export interface operations {
                 };
             };
             /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    new_extension: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+                /** @description The assignment ID */
+                assignment_id: string;
+                /** @description The user's CWID */
+                user_id: string;
+                /** @description The extension ID */
+                extension_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description An extension request has been created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Extension"];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_all_approved_extensions_for_assignment: {
+        parameters: {
+            query?: {
+                status?: "approved" | "denied" | "pending";
+            };
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+                /** @description The assignment ID */
+                assignment_id: string;
+                /** @description The extension ID */
+                extension_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"][];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_all_approved_extensions_for_member: {
+        parameters: {
+            query?: {
+                status?: "approved" | "denied" | "pending";
+            };
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+                /** @description The user's CWID */
+                user_id: string;
+                /** @description The extension ID */
+                extension_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"][];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_all_extensions_for_section: {
+        parameters: {
+            query?: {
+                status?: "approved" | "denied" | "pending";
+            };
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+                /** @description The course section */
+                section_id: string;
+                /** @description The extension ID */
+                extension_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"][];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_all_extensions_for_course: {
+        parameters: {
+            query?: {
+                status?: "approved" | "denied" | "pending";
+            };
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"][];
+                };
+            };
+            /** @description Extension not found */
             404: {
                 headers: {
                     [name: string]: unknown;

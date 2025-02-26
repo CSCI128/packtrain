@@ -9,7 +9,7 @@ export function MembersPage() {
       params: {
         path: { course_id: store$.id.get() as string },
         query: {
-          enrollments: ["tas", "students"],
+          enrollments: ["students"],
         },
       },
     }
@@ -58,7 +58,7 @@ export function MembersPage() {
 
         <Tabs defaultValue="first" mt={10}>
           <Tabs.List>
-            <Tabs.Tab value="first">Members</Tabs.Tab>
+            <Tabs.Tab value="first">Students</Tabs.Tab>
             <Tabs.Tab value="second">Instructors</Tabs.Tab>
           </Tabs.List>
 
