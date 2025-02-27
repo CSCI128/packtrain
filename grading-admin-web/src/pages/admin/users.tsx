@@ -182,7 +182,7 @@ export function UsersPage() {
         },
       }
     );
-    close();
+    closeAddUser();
   };
 
   const editUser = (values: typeof form.values) => {
