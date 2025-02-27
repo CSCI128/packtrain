@@ -134,9 +134,11 @@ export function UsersPage() {
     },
   });
   const form = useForm({
-    mode: "uncontrolled",
+    mode: "controlled",
     initialValues: {
       name: "",
+      email: "",
+      cwid: "",
       admin: false,
       enabled: true,
     },
@@ -150,9 +152,9 @@ export function UsersPage() {
     },
   });
 
-  const handleOpen = (row: any) => {
+  const handleEditOpen = (row: any) => {
     setSelectedUser(row);
-    addUserForm.setValues({
+    form.setValues({
       name: row.name,
       email: row.email,
       cwid: row.cwid,
@@ -160,11 +162,11 @@ export function UsersPage() {
     open();
   };
 
-  const mutation = $api.useMutation("post", "/admin/users");
-  const mutation2 = $api.useMutation("put", "/user");
+  const addUserMutation = $api.useMutation("post", "/admin/users");
+  const editUserMutation = $api.useMutation("put", "/user");
 
   const addUser = (values: typeof addUserForm.values) => {
-    mutation.mutate(
+    addUserMutation.mutate(
       {
         body: {
           cwid: values.cwid,
@@ -184,12 +186,11 @@ export function UsersPage() {
   };
 
   const editUser = (values: typeof form.values) => {
-    mutation2.mutate(
+    editUserMutation.mutate(
       {
         body: {
-          // TODO pass stuff in through here, doesn't exist on form
-          cwid: "",
-          email: "",
+          cwid: selectedUser?.cwid!,
+          email: selectedUser?.email!,
           admin: values.admin,
           name: values.name,
           enabled: values.enabled,
@@ -245,7 +246,7 @@ export function UsersPage() {
       </Table.Td>
       <Table.Td>{row.email}</Table.Td>
       <Table.Td>{row.cwid}</Table.Td>
-      <Table.Td onClick={() => handleOpen(row)}>
+      <Table.Td onClick={() => handleEditOpen(row)}>
         <Center>
           <Text size="sm" pr={5}>
             Edit
@@ -264,29 +265,29 @@ export function UsersPage() {
           <TextInput
             withAsterisk
             label="Name"
-            key={addUserForm.key("name")}
-            {...addUserForm.getInputProps("name")}
+            key={form.key("name")}
+            {...form.getInputProps("name")}
           />
 
           <TextInput
             disabled
             label="Email"
-            key={addUserForm.key("email")}
-            {...addUserForm.getInputProps("email")}
+            key={form.key("email")}
+            {...form.getInputProps("email")}
           />
 
           <TextInput
             disabled
             label="CWID"
-            key={addUserForm.key("cwid")}
-            {...addUserForm.getInputProps("cwid")}
+            key={form.key("cwid")}
+            {...form.getInputProps("cwid")}
           />
 
           <InputWrapper
             withAsterisk
             label="Admin User"
-            key={addUserForm.key("admin")}
-            {...addUserForm.getInputProps("admin")}
+            key={form.key("admin")}
+            {...form.getInputProps("admin")}
           >
             <Checkbox defaultChecked={selectedUser?.admin ? true : undefined} />
           </InputWrapper>
@@ -294,8 +295,8 @@ export function UsersPage() {
           <InputWrapper
             withAsterisk
             label="Enabled"
-            key={addUserForm.key("enabled")}
-            {...addUserForm.getInputProps("enabled")}
+            key={form.key("enabled")}
+            {...form.getInputProps("enabled")}
           >
             <Checkbox
               defaultChecked={selectedUser?.enabled ? true : undefined}
@@ -308,8 +309,8 @@ export function UsersPage() {
             <Button color="gray" onClick={close}>
               Cancel
             </Button>
-            <Button color="green" type="submit">
-              Add
+            <Button color="blue" type="submit">
+              Save
             </Button>
           </Group>
         </form>

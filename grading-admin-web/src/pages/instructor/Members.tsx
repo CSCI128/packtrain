@@ -27,7 +27,6 @@ interface MemberRowData {
   sections?: string[] | undefined;
 }
 
-// TODO can have null reversed/sorted/onsort; if null display nothing in that header
 interface TableHeaderProps {
   children: React.ReactNode;
   reversed: boolean;
