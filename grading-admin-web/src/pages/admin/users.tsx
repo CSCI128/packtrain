@@ -28,6 +28,14 @@ import { $api } from "../../api";
 import classes from "./Table.module.scss";
 
 // adapted from https://ui.mantine.dev/category/tables/#table-sort
+interface User {
+  email: string;
+  cwid: string;
+  name: string;
+  admin: boolean;
+  enabled: boolean;
+}
+
 interface UserRowData {
   email: string;
   cwid: string;
@@ -104,34 +112,10 @@ export function UsersPage() {
     "/admin/users"
   );
 
-  // TODO should export these modals to a separate component file
   const [opened, { open, close }] = useDisclosure(false);
   const [addUserOpened, { open: openAddUser, close: closeAddUser }] =
     useDisclosure(false);
-
-  // TODO selectedUser row
-  interface User {
-    email: string;
-    cwid: string;
-    name: string;
-    admin: boolean;
-    enabled: boolean;
-  }
-
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-
-  // [Log] {email: "erichards@mines.edu", cwid: "10884431", name: "Ethan Richards", admin: true, enabled: true} (Users.tsx, line 109)
-
-  // handleOpen() -- sets selected user and then opens
-
-  const handleOpen = (row: any) => {
-    console.log(row);
-
-    setSelectedUser(row);
-
-    open();
-  };
-
   const addUserForm = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -158,11 +142,23 @@ export function UsersPage() {
     },
     validate: {
       name: (value) =>
-        value.length < 1 ? "Name must have at least 1 character" : null,
+        value && value.length < 1
+          ? "Name must have at least 1 character"
+          : null,
       admin: () => null,
       enabled: () => null,
     },
   });
+
+  const handleOpen = (row: any) => {
+    setSelectedUser(row);
+    addUserForm.setValues({
+      name: row.name,
+      email: row.email,
+      cwid: row.cwid,
+    });
+    open();
+  };
 
   const mutation = $api.useMutation("post", "/admin/users");
   const mutation2 = $api.useMutation("put", "/user");
@@ -239,8 +235,7 @@ export function UsersPage() {
     );
   };
 
-  // (disabled) after name
-  // disable/enable user
+  // TODO disable/enable user
 
   const rows = sortedData.map((row) => (
     <Table.Tr key={row.cwid}>
@@ -263,13 +258,12 @@ export function UsersPage() {
 
   return (
     <>
-      {/* TODO add default values */}
+      {/* TODO should export these modals to a separate component file */}
       <Modal opened={opened} onClose={close} title="Edit User">
         <form onSubmit={form.onSubmit(editUser)}>
           <TextInput
             withAsterisk
             label="Name"
-            value={selectedUser?.name}
             key={addUserForm.key("name")}
             {...addUserForm.getInputProps("name")}
           />
@@ -277,7 +271,6 @@ export function UsersPage() {
           <TextInput
             disabled
             label="Email"
-            value={selectedUser?.email}
             key={addUserForm.key("email")}
             {...addUserForm.getInputProps("email")}
           />
@@ -285,29 +278,28 @@ export function UsersPage() {
           <TextInput
             disabled
             label="CWID"
-            value={selectedUser?.cwid}
             key={addUserForm.key("cwid")}
             {...addUserForm.getInputProps("cwid")}
           />
 
           <InputWrapper
             withAsterisk
-            defaultChecked={selectedUser?.admin ? true : undefined}
             label="Admin User"
             key={addUserForm.key("admin")}
             {...addUserForm.getInputProps("admin")}
           >
-            <Checkbox />
+            <Checkbox defaultChecked={selectedUser?.admin ? true : undefined} />
           </InputWrapper>
 
           <InputWrapper
             withAsterisk
-            defaultChecked={selectedUser?.enabled ? true : undefined}
             label="Enabled"
             key={addUserForm.key("enabled")}
             {...addUserForm.getInputProps("enabled")}
           >
-            <Checkbox />
+            <Checkbox
+              defaultChecked={selectedUser?.enabled ? true : undefined}
+            />
           </InputWrapper>
 
           <br />
