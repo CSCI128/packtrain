@@ -20,4 +20,13 @@ jobs:
         run: |
            mvn compile test -Dspring.profiles.active=test
         working-directory: grading-admin-service
-
+  ts-test:
+    name: Run Grading Policy Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run TS tests for Grading Policy
+        run: |
+          cd grading-policy-service
+          npm i --include=dev 
+          npm test
