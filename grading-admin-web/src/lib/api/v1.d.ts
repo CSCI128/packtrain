@@ -805,6 +805,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/student/courses/{course_id}/extensions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Student Extension request
+         * @description Create a new extension request for a student.
+         *     Replies with an extension request including the request date, assignment impacted, new due date,
+         *     status, and reason for extension.
+         *
+         */
+        post: operations["extension_request"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2403,6 +2426,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"][];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    extension_request: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description An extension request has been created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Extension"];
                 };
             };
             /** @description Extension not found */

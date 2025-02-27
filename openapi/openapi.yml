@@ -26,6 +26,8 @@ tags:
     description: Instructor functions for the grading server
   - name: tasks
     description: Async task service for the grading server
+  - name: student
+    description: Student functions for the grading server
 
 paths:
   /-/health:
@@ -1663,6 +1665,44 @@ paths:
               example:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
+
+  /student/courses/{course_id}/extensions:
+    post:
+      tags:
+        - student
+      operationId: extension_request
+      summary: "Student Extension request"
+      description: |
+        Create a new extension request for a student.
+        Replies with an extension request including the request date, assignment impacted, new due date,
+        status, and reason for extension.
+      security:
+        - openIDC: [ student:write ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        201:
+          description: "An extension request has been created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Extension"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
 
 components:
   securitySchemes:
