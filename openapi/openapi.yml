@@ -1677,7 +1677,7 @@ paths:
         Replies with an extension request including the request date, assignment impacted, new due date,
         status, and reason for extension.
       security:
-        - openIDC: [ student:write ]
+        - openIDC: [student:write]
       parameters:
         - name: course_id
           required: true
@@ -1702,7 +1702,6 @@ paths:
               example:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
-
 
 components:
   securitySchemes:
