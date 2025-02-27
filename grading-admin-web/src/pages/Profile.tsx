@@ -49,6 +49,8 @@ export function ProfilePage() {
 
   const mutation = $api.useMutation("post", "/user/credentials");
 
+  const disableCredentialMutation = $api.useMutation("put", "/user/credentials/{credential_id}/disable");
+
   if (isLoading || !data) return "Loading...";
 
   if (credentialIsLoading || !credentialData) return "Credentials loading..";
@@ -80,6 +82,21 @@ export function ProfilePage() {
     );
     close();
   };
+
+  const disableCredential = (credential_id: string) => {
+    disableCredentialMutation.mutate(
+      {
+        params: {
+          path: {credential_id: credential_id}
+        }
+      },
+      {
+        onSuccess: () => {
+          refetch();
+        }
+      }
+    )
+  }
 
   return (
     <>
@@ -167,11 +184,11 @@ export function ProfilePage() {
 
               {credential.active ? (
                 <>
-                  <Button color="red">Disable</Button>
+                  <Button color="red" onClick={ () => disableCredential(credential.id!.toString()) }>Disable</Button>
                 </>
               ) : (
                 <>
-                  <Button color="green">Enable</Button>
+                  <Button color="green" onClick={ open }>Enable</Button>
                 </>
               )}
             </Box>

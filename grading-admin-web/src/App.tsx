@@ -16,7 +16,7 @@ import { CreatePage } from "./pages/admin/course/Create";
 import { EditCourse } from "./pages/admin/course/Edit";
 import { ImportPage } from "./pages/admin/course/Import";
 import { SelectClass } from "./pages/admin/course/Select";
-import { UsersPage } from "./pages/admin/Users";
+import { UsersPage } from "./pages/admin/users";
 import { HomePage } from "./pages/Home";
 import { AssignmentsPage } from "./pages/instructor/Assignments";
 import { MembersPage } from "./pages/instructor/Members";
