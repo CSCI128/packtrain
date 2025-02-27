@@ -4,12 +4,12 @@ import GradingStartDTO, {GlobalAssignmentMetadata} from "../data/GradingStartDTO
 import RawScoreDTO from "../data/RawScoreDTO";
 import {ApplyPolicyFunctionSig, downloadAndVerifyPolicy} from "./policyService";
 
-interface ConsumerChannel {
+export interface ConsumerChannel {
     channel: Channel;
     consumerTag: string;
 }
 
-interface MigrationSet {
+export interface MigrationSet {
     consumer: ConsumerChannel;
     producer: Channel;
 }
@@ -28,11 +28,25 @@ export async function connect(rabbitMqConfig: RabbitMqConfig): Promise<void> {
     connection = await rabbitMqConnect(connectionURI);
 }
 
+export async function endConnection(): Promise<void> {
+    await connection?.close();
+    connection = null;
+}
+
+export function getMigration(uuid: string): MigrationSet | null{
+
+    if (!activeMigrations.has(uuid)){
+        return null;
+    }
+
+    return activeMigrations.get(uuid)!;
+}
+
 export function ready(){
     return connection !== null;
 }
 
-export async function startMigration(exchangeName: string, start:GradingStartDTO): Promise<void> {
+export async function startMigration(exchangeName: string, start:GradingStartDTO, overridePolicy?: string): Promise<void> {
     if (connection === null){
         return Promise.reject("Connection has not been established!");
     }
@@ -41,19 +55,21 @@ export async function startMigration(exchangeName: string, start:GradingStartDTO
         return Promise.reject("Migration is already started!");
     }
 
-    const policy = await downloadAndVerifyPolicy(start.policyURI);
+    const policy = overridePolicy ? Function(overridePolicy) as ApplyPolicyFunctionSig : await downloadAndVerifyPolicy(start.policyURI);
 
     const publishChannel: Channel = await connection.createChannel()
         .then(async ch => {
             const queue = await ch.assertQueue("");
+            await ch.assertExchange(exchangeName, "direct");
             await ch.bindQueue(queue.queue, exchangeName, start.scoreCreatedRoutingKey);
 
-            return publishChannel;
+            return ch;
         })
 
     const receiverChannel= await connection.createChannel()
         .then(async (ch): Promise<ConsumerChannel> => {
             const queue = await ch.assertQueue("");
+            await ch.assertExchange(exchangeName, "direct");
             await ch.bindQueue(queue.queue, exchangeName, start.rawGradeRoutingKey);
             const consumer= await ch.consume(queue.queue, (msg: ConsumeMessage | null) => {
                 if (!msg){
@@ -66,14 +82,14 @@ export async function startMigration(exchangeName: string, start:GradingStartDTO
             });
 
             return {channel: ch, consumerTag: consumer.consumerTag};
-        })
+        });
 
     activeMigrations.set(start.migrationId, {consumer: receiverChannel, producer: publishChannel});
 
     return Promise.resolve();
 }
 
-function onRawScoreReceive(exchange: string, routingKey: string, assignmentMetadata: GlobalAssignmentMetadata, rawScore: RawScoreDTO, policy: ApplyPolicyFunctionSig, publishChannel: Channel){
+function onRawScoreReceive(exchange: string, routingKey: string, assignmentMetadata: GlobalAssignmentMetadata, rawScore: RawScoreDTO, policy: ApplyPolicyFunctionSig, publishChannel: Channel) {
     rawScore.assignmentId = assignmentMetadata.assignmentId;
     rawScore.minScore = assignmentMetadata.minScore;
     rawScore.maxScore = assignmentMetadata.maxScore;
@@ -83,8 +99,10 @@ function onRawScoreReceive(exchange: string, routingKey: string, assignmentMetad
     try {
         const score = policy(rawScore);
 
-        publishChannel.publish(exchange, routingKey, Buffer.from(JSON.stringify(score)), {contentType: "application/json", type: "grade.scored"})
-    }
-    catch (e){
+        publishChannel.publish(exchange, routingKey, Buffer.from(JSON.stringify(score)), {
+            contentType: "application/json",
+            type: "grade.scored"
+        })
+    } catch (e) {
     }
 }
