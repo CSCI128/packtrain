@@ -1,14 +1,12 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.InstructorApiDelegate;
-import edu.mines.gradingadmin.data.AssignmentDTO;
-import edu.mines.gradingadmin.data.CourseDTO;
-import edu.mines.gradingadmin.data.CourseMemberDTO;
-import edu.mines.gradingadmin.data.PolicyDTO;
+import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
+import edu.mines.gradingadmin.services.MigrationService;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +22,13 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     private final CourseService courseService;
     private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
+    private final MigrationService migrationService;
 
-    public InstructorApiImpl(CourseService courseService, CourseMemberService courseMemberService, SecurityManager securityManager) {
+    public InstructorApiImpl(CourseService courseService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService) {
         this.courseService = courseService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
+        this.migrationService = migrationService;
     }
 
     @Override
@@ -123,4 +123,12 @@ public class InstructorApiImpl implements InstructorApiDelegate {
                         .sections(member.getSections().stream().map(Section::getName).toList()))
                 .toList());
     }
+
+    @Override
+    public ResponseEntity<List<Migration>>getAllMigrations(String courseId){
+        List<Migration> migrations = migrationService.getAllMigrations(courseId);
+        // need to figure out what else goes here
+
+    }
+
 }
