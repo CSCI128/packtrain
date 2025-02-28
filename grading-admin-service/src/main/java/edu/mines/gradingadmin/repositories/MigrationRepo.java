@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface MigrationRepo  extends CrudRepository<Course, UUID>{
 
-    @Query("select a from course a where a.course.id=?1")
+    @Query("select a from course a where a.id=?1")
     List<Migration> getMigrationsByCourseId(UUID courseId);
 
 

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -39,5 +40,10 @@ public class User{
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Set<CourseMember> courseMemberships;
+
+    @OneToMany()
+    @JoinColumn(name = "migration_id", referencedColumnName = "id")
+    @EqualsAndHashCode.Exclude
+    protected List<MasterMigration> masterMigration;
 
 }

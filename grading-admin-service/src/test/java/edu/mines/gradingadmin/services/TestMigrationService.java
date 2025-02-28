@@ -36,7 +36,7 @@ public class TestMigrationService {
     void tearDown(){
         migrationRepo.deleteAll();
     }
-
+    /*
     @Test
     void verifyGetAllMigration(){
        Course course = courseSeeders.populatedCourse();
@@ -45,4 +45,6 @@ public class TestMigrationService {
        Assertions.assertEquals();
 
     }
+
+     */
 }

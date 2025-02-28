@@ -2,10 +2,10 @@ package edu.mines.gradingadmin.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -40,5 +40,10 @@ public class Assignment {
     @JoinColumn(name = "course_id", referencedColumnName = "id")
     @ToString.Exclude
     private Course course;
+
+    @OneToOne()
+    @JoinColumn(name = "assignment_extensions", referencedColumnName = "id")
+    @EqualsAndHashCode.Exclude
+    protected AssignmentExtensions assignmentExtensions;
 
 }

@@ -1,12 +1,16 @@
 package edu.mines.gradingadmin.models;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
 import java.util.UUID;
 
-public class Extensions {
+@Data
+@Entity(name = "assignment_extension")
+@Table(name="assignment_extensions")
+public class AssignmentExtensions {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -18,8 +22,8 @@ public class Extensions {
     @EqualsAndHashCode.Exclude
     protected List<Extension> extensions;
 
-
-    @ManyToOne()
+    // one to one for both sides
+    @OneToOne()
     @JoinColumn(name = "assignment", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
     protected Assignment assignment;

@@ -1,22 +1,26 @@
 package edu.mines.gradingadmin.models;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.checkerframework.checker.units.qual.C;
 
-import java.util.List;
 import java.util.UUID;
 
+@Data
+@Entity(name = "extension")
+@Table(name="extensions")
 public class Extension {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
     private UUID id;
-
+    /*
     @Column(name = "status")
-    private String status;
+    // create enum class for this in models
+    private enum status;
 
+    // need make a relationship by assignment id? fix this
     @Column(name = "assignment")
     private Assignment assignment;
 
@@ -28,12 +32,8 @@ public class Extension {
     @ManyToOne()
     @JoinColumn(name = "extensions", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
-    protected Extensions extension_list;
-
-    // TO-DO: once raw shore sheet is created pull from that here too
-    // many to one with a migration
-    // many to one with extensions
-
+    protected AssignmentExtensions extension_list;
+    */
 
 
 }
