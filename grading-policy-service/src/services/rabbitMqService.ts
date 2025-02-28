@@ -103,8 +103,8 @@ export async function startMigration(
                         return;
                     }
                     if (
-                        msg.properties.type == "grade.raw_score" &&
-                        msg.properties.contentType == "application/json"
+                        msg.properties.type === "grade.raw_score" &&
+                        msg.properties.contentType === "application/json"
                     ) {
                         const content = JSON.parse(
                             msg.content.toString(),
