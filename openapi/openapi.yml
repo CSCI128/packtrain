@@ -1438,7 +1438,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructors/courses/{course_id}/assignments/{assignment_id}/extensions/{extension_id}:
+  /instructor/courses/{course_id}/assignments/{assignment_id}/extensions/{extension_id}:
     get:
       tags:
         - instructor
@@ -1498,7 +1498,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructors/courses/{course_id}/users/{user_id}/extensions/{extension_id}:
+  /instructor/courses/{course_id}/users/{user_id}/extensions/{extension_id}:
     get:
       tags:
         - instructor
@@ -1558,7 +1558,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructors/courses/{course_id}/sections/{section_id}/extensions/{extension_id}:
+  /instructor/courses/{course_id}/sections/{section_id}/extensions/{extension_id}:
     get:
       tags:
         - instructor
@@ -1666,7 +1666,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructors/courses/{course_id}/migrations:
+  /instructor/courses/{course_id}/migrations:
     get:
       tags:
         - instructor
