@@ -1686,24 +1686,24 @@ paths:
          schema:
            type: string
            example: "999-9999-9999-99"
-     responses:
-      200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/MasterMigration"
+      responses:
+        200:
+            description: "OK"
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/MasterMigration"
         404:
-          description: "Migration not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "User Service"
-                error_message: "Error: migration not found"
+            description: "Migration not found"
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ErrorResponse"
+                example:
+                  error_source: "User Service"
+                  error_message: "Error: migration not found"
                 
           
   /student/courses/{course_id}/extensions:
