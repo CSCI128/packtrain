@@ -123,13 +123,12 @@ public class InstructorApiImpl implements InstructorApiDelegate {
                         .sections(member.getSections().stream().map(Section::getName).toList()))
                 .toList());
     }
-    /*
-    @Override
-    public ResponseEntity<List<Migration>>getAllMigrations(String courseId){
-        List<Migration> migrations = migrationService.getAllMigrations(courseId);
-        // need to figure out what else goes here
 
+    @Override
+    public ResponseEntity<List<MasterMigrationDTO>> getAllMasterMigrationsForCourse(String courseId){
+        List<MasterMigration> migrations = migrationService.getAllMigrations(courseId);
+g
     }
-     */
+
 
 }

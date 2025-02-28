@@ -15,14 +15,13 @@ public class Extension {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
     private UUID id;
-    /*
-    @Column(name = "status")
-    // create enum class for this in models
-    private enum status;
 
-    // need make a relationship by assignment id? fix this
-    @Column(name = "assignment")
-    private Assignment assignment;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private String status;
+
+    @Column(name = "assignment_id")
+    private String assignment_id;
 
     @ManyToOne()
     @JoinColumn(name = "migration", referencedColumnName = "id")
@@ -33,7 +32,7 @@ public class Extension {
     @JoinColumn(name = "extensions", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
     protected AssignmentExtensions extension_list;
-    */
+
 
 
 }

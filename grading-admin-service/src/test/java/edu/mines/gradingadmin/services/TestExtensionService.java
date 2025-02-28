@@ -35,12 +35,11 @@ public class TestExtensionService implements PostgresTestContainer {
     }
 
     // TO-DO: test that getAllExtensions does what is expected
-    // Will need to create a migration seed in order to write this test I think
+    // Will need to create a migration seed in order to write this test
     // This test should be implemented when the ExtensionService is implemented
     @Test
     void verifyGetAllExtensions(){
-        Course course = courseSeeders.populatedCourse();
-        Set<Assignment> assignment = course.getAssignments();
+
 
     }
 

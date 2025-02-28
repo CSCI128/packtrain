@@ -22,7 +22,8 @@ public class Migration {
     @EqualsAndHashCode.Exclude
     protected MasterMigration master_migration;
 
-    // for now this relationship is one to one, later on this might be one to many
+    // for now this relationship is one to one, later on this will be one to many
+    // for now this relationship is one to one, later on this will be one to many
     // TO-DO: implement one to many so edge case like One Migration is for an assessment and reflection
     @OneToOne()
     @JoinColumn(name = "assignment", referencedColumnName = "id")

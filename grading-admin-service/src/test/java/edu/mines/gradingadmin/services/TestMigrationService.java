@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.services;
 
 
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.MasterMigration;
 import edu.mines.gradingadmin.models.Migration;
 import edu.mines.gradingadmin.repositories.ExtensionRepo;
 import edu.mines.gradingadmin.repositories.MigrationRepo;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
+import java.util.Optional;
 
 import static edu.mines.gradingadmin.containers.PostgresTestContainer.postgres;
 
@@ -36,15 +38,14 @@ public class TestMigrationService {
     void tearDown(){
         migrationRepo.deleteAll();
     }
-    /*
-    @Test
-    void verifyGetAllMigration(){
-       Course course = courseSeeders.populatedCourse();
-       List<Migration> migrations = migrationService.getAllMigrations(course.getId().toString());
-       // need to think about how to assert this in a way that makes the most sense
-       Assertions.assertEquals();
 
+    @Test
+    void verifyGetMigrations() {
+        Course course1 = courseSeeders.course1();
+        List<Migration> migrations = migrationService.getAllMigrations(course1.getId().toString());
+
+        // how do I create a migration seeder in order to test this?
     }
 
-     */
+
 }
