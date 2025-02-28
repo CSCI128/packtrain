@@ -18,11 +18,6 @@
   font-weight: 500;
   font-size: var(--mantine-font-size-sm);
 
-  // @media (max-width: $mantine-breakpoint-sm) {
-  //   height: 42px;
-  //   width: 100%;
-  // }
-
   @mixin hover {
     background-color: light-dark(
       var(--mantine-color-gray-0),

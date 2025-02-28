@@ -21,19 +21,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/course/new/{canvas_id}": {
+    "/admin/courses": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get all courses
+         * @description Get all courses, returning
+         *     only active courses by default, and
+         *     inactive courses if specified. Will
+         *     return an empty list if there are no
+         *     courses.
+         *
+         */
+        get: operations["get_courses"];
         put?: never;
         /**
-         * Import course from Canvas
-         * @description Create a new course in system using a Canvas course as a template.
-         *     Replies with populated template values, but those values must be committed by updating the course.
+         * Create a new course
+         * @description Create a new course.
          *
          */
         post: operations["new_course"];
@@ -43,7 +51,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/course/{course_id}": {
+    "/admin/courses/{course_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -70,7 +78,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/course/{course_id}/update": {
+    "/admin/courses/{course_id}/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import course from Canvas
+         * @description Imports data from Canvas into an existing course
+         *
+         */
+        post: operations["import_course"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{course_id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync with established course controller
+         * @description Syncs with a course in the controller.
+         *
+         */
+        post: operations["sync_course"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{course_id}/assignments": {
         parameters: {
             query?: never;
             header?: never;
@@ -79,61 +129,11 @@ export interface paths {
         };
         get?: never;
         /**
-         * Sync with established course controller
-         * @description Syncs with a course in the controller.
+         * Update an assignment in a course
+         * @description Update an assignment in a course
          *
          */
-        put: operations["sync_course"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/course/{course_id}/students": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get all students for a course
-         * @description Get all information about the students in a course.
-         *     This is different from the other ones, as it returns all the metadata about a student.
-         *
-         */
-        get: operations["get_students"];
-        /**
-         * Add students to a course
-         * @description Add students to a course.
-         *     If any student already exist in the class (based off of the students CWID),
-         *     their information will be updated.
-         *
-         */
-        put: operations["add_students"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/course/{course_id}/assignments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get all assignments for a course
-         * @description Get all information about the assignments in a course.
-         *     This is different from the other ones, as it returns all the metadata about an assignments.
-         *
-         */
-        get: operations["get_assignments"];
+        put: operations["update_assignment"];
         /**
          * Add assignment to a course
          * @description Add assignments to a course.
@@ -141,15 +141,14 @@ export interface paths {
          *     their information will be updated.
          *
          */
-        put: operations["add_assignment"];
-        post?: never;
+        post: operations["add_assignment"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/admin/course/{course_id}/enable": {
+    "/admin/courses/{course_id}/enable": {
         parameters: {
             query?: never;
             header?: never;
@@ -170,7 +169,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/course/{course_id}/disable": {
+    "/admin/courses/{course_id}/disable": {
         parameters: {
             query?: never;
             header?: never;
@@ -191,7 +190,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/course/{course_id}/assignment/{assignment_id}/disable": {
+    "/admin/courses/{course_id}/assignment/{assignment_id}/disable": {
         parameters: {
             query?: never;
             header?: never;
@@ -212,7 +211,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/course/{course_id}/assignment/{assignment_id}/enable": {
+    "/admin/courses/{course_id}/assignment/{assignment_id}/enable": {
         parameters: {
             query?: never;
             header?: never;
@@ -233,37 +232,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/course/{course_id}/instructor": {
+    "/admin/courses/{course_id}/members": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
         /**
-         * Add an instructor to a course
-         * @description Add an instructor to a course.
-         *     If the instructor already exists in the class (based off of CWID),
-         *     their information will be updated.
+         * Get all members for a course
+         * @description Gets all members for a course.
+         *     Optional query params can be used to filter by TAs, Instructors, or Students.
+         *     Can also be used to search by CWID or by name
          *
          */
-        put: operations["add_instructor"];
-        post?: never;
+        get: operations["get_members"];
+        /**
+         * Updates a member's membership in a course
+         * @description Updates a member in a course. If they do not exist, then they are rejected.
+         *
+         */
+        put: operations["update_course_member"];
+        /**
+         * Add a member to a course
+         * @description Adds a member to a course.
+         *     If they already exist, the request is rejected.
+         *     If the user does not exist in system, then the request is rejected.
+         *
+         */
+        post: operations["add_course_member"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/admin/users/": {
+    "/admin/users": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get all users
+         * @description Gets all the users in the system
+         *
+         */
+        get: operations["get_all_users"];
         put?: never;
         /**
          * Create a new user
@@ -277,30 +293,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/user/credential": {
+    "/admin/users/{cwid}/enable": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        get?: never;
         /**
-         * Get all credentials for a user
-         * @description Gets all credentials for the signed in user.
-         *     A user can only view their own credentials (including admins)
+         * enable a user
+         * @description Enables a user
          *
          */
-        get: operations["get_credentials"];
-        put?: never;
+        put: operations["enable_user"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{cwid}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
         /**
-         * Create a new credential for the user
-         * @description Create a new credential for a user.
-         *
-         *     The credential must have a unique name for the user.
-         *     It must also be the only credential for a service.
+         * disable a user
+         * @description Disables a user
          *
          */
-        post: operations["new_credential"];
+        put: operations["disable_user"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{cwid}/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Make a user an admin
+         * @description Make a user an admin.
+         *     This will fail if the account is disabled or if the requested user is enrolled as a student in any classes
+         *
+         */
+        put: operations["make_admin"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -333,7 +383,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/user/{credential_id}/disable": {
+    "/user/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all credentials for a user
+         * @description Gets all credentials for the signed in user.
+         *     A user can only view their own credentials (including admins)
+         *
+         */
+        get: operations["get_credentials"];
+        put?: never;
+        /**
+         * Create a new credential for the user
+         * @description Create a new credential for a user.
+         *
+         *     The credential must have a unique name for the user.
+         *     It must also be the only credential for a service.
+         *
+         */
+        post: operations["new_credential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/credentials/{credential_id}/disable": {
         parameters: {
             query?: never;
             header?: never;
@@ -354,7 +434,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/user/{credential_id}/public": {
+    "/user/credentials/{credential_id}/public": {
         parameters: {
             query?: never;
             header?: never;
@@ -375,7 +455,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/user/{credential_id}/private": {
+    "/user/credentials/{credential_id}/private": {
         parameters: {
             query?: never;
             header?: never;
@@ -396,6 +476,358 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Approves an extension for an assignment for the user.
+         * @description Approves an extension for an assignment for the user.
+         *
+         */
+        put: operations["approve_extension"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/deny": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Denies an extension for an assignment for the user.
+         * @description Denies an extension for an assignment for the user.
+         *
+         */
+        put: operations["deny_extension"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses/{course_id}/policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all policies
+         * @description Get all policies for a course
+         *
+         */
+        get: operations["get_all_policies"];
+        put?: never;
+        /**
+         * Create a new policy
+         * @description Create a new policy for the course
+         *
+         */
+        post: operations["new_policy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses/{course_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get information for a course
+         * @description Get information from a course from
+         *     the instructor's perspective; returns
+         *     members as an aggregate of all members
+         *     in their sections.
+         *
+         */
+        get: operations["get_course_information_instructor"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses/{course_id}/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all enrollments for all sections
+         * @description Gets user enrollments for all sections
+         *     an instructor is apart of.
+         *
+         */
+        get: operations["get_instructor_enrollments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student/courses/{course_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get information for a course
+         * @description Get information from a course from
+         *     the student's perspective; members and
+         *     assignments are not returned but the
+         *     section the student is in is returned.
+         *
+         */
+        get: operations["get_course_information_student"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all enrollments for a user
+         * @description Gets all enrollments (classes) that a
+         *     user is apart of.
+         *
+         */
+        get: operations["get_enrollments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student/courses/{course_id}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get assignments for course
+         * @description Get currently released assignments for course
+         *
+         */
+        get: operations["get_course_assignments_student"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all tasks for current user
+         * @description This endpoint gets all the tasks for the currently signed in user
+         *
+         */
+        get: operations["get_all_tasks_for_user"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get task by id
+         * @description This endpoint returns the requested task if the user has access to it.
+         *
+         */
+        get: operations["get_task"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses/{course_id}/assignments/{assignment_id}/user/{user_id}/extensions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Extension request
+         * @description Create a new extension request for an assignment.
+         *     Replies with an extension request for a user and assignment.
+         *
+         */
+        post: operations["new_extension"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructors/courses/{course_id}/assignments/{assignment_id}/extensions/{extension_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all the approved extensions for the provided course and assignment
+         * @description This endpoint gets all approved extensions for a given instructor
+         *
+         */
+        get: operations["get_all_approved_extensions_for_assignment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructors/courses/{course_id}/users/{user_id}/extensions/{extension_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all the approved extensions for the provided member
+         * @description This endpoint gets all approved extensions for a given member
+         *
+         */
+        get: operations["get_all_approved_extensions_for_member"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructors/courses/{course_id}/sections/{section_id}/extensions/{extension_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all the extensions for the provided section
+         * @description This endpoint gets all extensions for a given section
+         *
+         */
+        get: operations["get_all_extensions_for_section"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{course_id}/extensions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all the extensions for the course
+         * @description This endpoint gets all extensions for a given course
+         *
+         */
+        get: operations["get_all_extensions_for_course"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student/courses/{course_id}/extensions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Student Extension request
+         * @description Create a new extension request for a student.
+         *     Replies with an extension request including the request date, assignment impacted, new due date,
+         *     status, and reason for extension.
+         *
+         */
+        post: operations["extension_request"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -405,6 +837,78 @@ export interface components {
             error_source?: string;
             error_message?: string;
         };
+        /** @description Create a new policy file */
+        NewPolicy: {
+            /** @example Default Policy */
+            name: string;
+            /** @example default.js */
+            file_path: string;
+            /**
+             * Format: binary
+             * @example // valid javascript code
+             *
+             */
+            file_data: string;
+        };
+        /** @description A grading policy */
+        Policy: {
+            /** @example Default Policy */
+            name?: string;
+            /** @example https://s3.aws.com/999-9999-9999-99/default.js */
+            uri?: string;
+            course?: components["schemas"]["Course"];
+            assignment?: components["schemas"]["Assignment"];
+        };
+        /** @description An async task on the server */
+        Task: {
+            /**
+             * Format: int64
+             * @example 291
+             */
+            id: number;
+            /**
+             * Format: date-time
+             * @example 2020-01-01T12:00:00.000Z
+             */
+            submitted_time: string;
+            /**
+             * Format: date-time
+             * @example 2020-01-01T12:00:00.000Z
+             */
+            completed_time?: string;
+            /** @example COMPLETED */
+            status: string;
+            /** @example A message about the status of the task */
+            message?: string;
+        };
+        /** @description Import a new course from canvas */
+        CourseSyncTask: {
+            /**
+             * Format: int64
+             * @example 999999
+             */
+            canvas_id: number;
+            /**
+             * @default false
+             * @example false
+             */
+            overwrite_name: boolean;
+            /**
+             * @default false
+             * @example false
+             */
+            overwrite_code: boolean;
+            /**
+             * @default false
+             * @example false
+             */
+            import_users: boolean;
+            /**
+             * @default false
+             * @example false
+             */
+            import_assignments: boolean;
+        };
         /** @description A credential for external service */
         Credential: {
             /** @example 99-9999-9999-99 */
@@ -412,10 +916,10 @@ export interface components {
             /** @example Cred 1 */
             name?: string;
             /**
-             * Format: uri
-             * @example https://secure-service.com/
+             * @example canvas
+             * @enum {string}
              */
-            endpoint: string;
+            service: "canvas" | "gradescope";
             /** @example a super secure key */
             api_key?: string;
             /** @example true */
@@ -439,6 +943,8 @@ export interface components {
             name: string;
             /** @example false */
             admin: boolean;
+            /** @example true */
+            enabled?: boolean;
         };
         /** @description A user in a course */
         CourseMember: {
@@ -450,12 +956,15 @@ export interface components {
              * @example owner
              * @enum {string}
              */
-            course_role: "student" | "teacher" | "ta" | "owner";
-            /** @example fall.2020.excl.101.section.a */
-            section?: string;
+            course_role: "student" | "instructor" | "ta" | "owner";
+            sections?: string[];
         };
         /** @description An assignment in a course */
         Assignment: {
+            /** @example 999-9999-9999-99 */
+            id: string;
+            /** @example Assessment 1 */
+            name: string;
             /**
              * Format: double
              * @example 15
@@ -490,14 +999,51 @@ export interface components {
             name: string;
             /** @example Fall.2020.EXCL.101 */
             code: string;
-            /** @example 123456 */
-            canvas_id: string;
+            /**
+             * Format: int64
+             * @example 123456
+             */
+            canvas_id: number;
             members?: components["schemas"]["CourseMember"][];
             assignments?: components["schemas"]["Assignment"][];
             /** @example [
              *       "fall.2020.excl.101.section.a"
              *     ] */
             sections?: string[];
+        };
+        /** @description An extension for an assignment */
+        Extension: {
+            /** @example 999-9999-9999-99 */
+            id?: string;
+            assignments: components["schemas"]["Assignment"][];
+            /**
+             * Format: date-time
+             * @example 2020-01-01T12:00:00.000Z
+             */
+            date_submitted: string;
+            /** @example 2 */
+            num_days_requested: number;
+            user_requester: string;
+            /**
+             * @example Extension pending instructor approval
+             * @enum {string}
+             */
+            status?: "pending" | "approved" | "rejected";
+            /**
+             * @example Late Pass
+             * @enum {string}
+             */
+            request_type?: "extension" | "late_pass";
+            user_reviewer?: string;
+            /**
+             * Format: date-time
+             * @example 2020-01-01T12:00:00.000Z
+             */
+            response_timestamp?: string;
+            /** @example Excused absence */
+            reason?: string;
+            /** @example Your 3 day extension for illness is approved */
+            response_to_requester?: string;
         };
     };
     responses: never;
@@ -533,43 +1079,48 @@ export interface operations {
             };
         };
     };
-    new_course: {
+    get_courses: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description The Canvas course ID */
-                canvas_id: string;
+            query?: {
+                onlyActive?: boolean;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description A empty course has been created */
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Course"][];
+                };
+            };
+        };
+    };
+    new_course: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Course"];
+            };
+        };
+        responses: {
+            /** @description Created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["Course"];
-                };
-            };
-            /** @description An authentication error occurred */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Canvas course not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -596,6 +1147,15 @@ export interface operations {
                     "application/json": components["schemas"]["Course"];
                 };
             };
+            /** @description Course does not exist */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     update_course: {
@@ -613,8 +1173,8 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Course update request accepted */
-            202: {
+            /** @description Updated course */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -640,6 +1200,51 @@ export interface operations {
             };
         };
     };
+    import_course: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course id */
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CourseSyncTask"];
+            };
+        };
+        responses: {
+            /** @description Task Queued */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"][];
+                };
+            };
+            /** @description An authentication error occurred */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Course not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     sync_course: {
         parameters: {
             query?: never;
@@ -649,44 +1254,28 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CourseSyncTask"];
+            };
+        };
         responses: {
             /** @description Accepted */
-            201: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
             };
-            /** @description Course Not Found */
-            404: {
+            /** @description An authentication error occurred */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    get_students: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                course_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CourseMember"][];
                 };
             };
             /** @description Course Not Found */
@@ -700,7 +1289,7 @@ export interface operations {
             };
         };
     };
-    add_students: {
+    update_assignment: {
         parameters: {
             query?: never;
             header?: never;
@@ -711,7 +1300,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CourseMember"][];
+                "application/json": components["schemas"]["Assignment"];
             };
         };
         responses: {
@@ -721,37 +1310,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Course Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    get_assignments: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                course_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Assignment"][];
-                };
             };
             /** @description Course Not Found */
             404: {
@@ -775,7 +1333,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Assignment"][];
+                "application/json": components["schemas"]["Assignment"];
             };
         };
         responses: {
@@ -784,7 +1342,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["Assignment"];
+                };
             };
             /** @description Course Not Found */
             404: {
@@ -808,8 +1368,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Accepted */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -837,8 +1397,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Accepted */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -915,7 +1475,42 @@ export interface operations {
             };
         };
     };
-    add_instructor: {
+    get_members: {
+        parameters: {
+            query?: {
+                enrollments?: ("tas" | "instructors" | "students")[];
+                name?: string;
+                cwid?: string;
+            };
+            header?: never;
+            path: {
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseMember"][];
+                };
+            };
+            /** @description Course Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_course_member: {
         parameters: {
             query?: never;
             header?: never;
@@ -930,7 +1525,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Accepted */
+            /** @description Created */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -944,6 +1539,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    add_course_member: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CourseMember"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Course Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_all_users: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"][];
                 };
             };
         };
@@ -962,7 +1610,7 @@ export interface operations {
         };
         responses: {
             /** @description Created */
-            202: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -975,6 +1623,137 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    enable_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cwid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    disable_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cwid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    make_admin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cwid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+        };
+    };
+    update_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["User"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
                 };
             };
         };
@@ -1046,50 +1825,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    get_user: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"];
-                };
-            };
-        };
-    };
-    update_user: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["User"];
-            };
-        };
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"];
                 };
             };
         };
@@ -1198,6 +1933,534 @@ export interface operations {
                 };
             };
             /** @description Credential not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    approve_extension: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+                assignment_id: string;
+                user_id: string;
+                extension_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Failed to approve extension */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deny_extension: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+                assignment_id: string;
+                user_id: string;
+                extension_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Failed to deny extension */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_all_policies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Policy"][];
+                };
+            };
+        };
+    };
+    new_policy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["NewPolicy"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Policy"];
+                };
+            };
+        };
+    };
+    get_course_information_instructor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Course"];
+                };
+            };
+        };
+    };
+    get_instructor_enrollments: {
+        parameters: {
+            query?: {
+                name?: string;
+                cwid?: string;
+            };
+            header?: never;
+            path: {
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseMember"][];
+                };
+            };
+            /** @description Course Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_course_information_student: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Course"];
+                };
+            };
+        };
+    };
+    get_enrollments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Course"][];
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_course_assignments_student: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Assignment"][];
+                };
+            };
+        };
+    };
+    get_all_tasks_for_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"][];
+                };
+            };
+        };
+    };
+    get_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    new_extension: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+                /** @description The assignment ID */
+                assignment_id: string;
+                /** @description The user's CWID */
+                user_id: string;
+                /** @description The extension ID */
+                extension_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description An extension request has been created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Extension"];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_all_approved_extensions_for_assignment: {
+        parameters: {
+            query?: {
+                status?: "approved" | "denied" | "pending";
+            };
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+                /** @description The assignment ID */
+                assignment_id: string;
+                /** @description The extension ID */
+                extension_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"][];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_all_approved_extensions_for_member: {
+        parameters: {
+            query?: {
+                status?: "approved" | "denied" | "pending";
+            };
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+                /** @description The user's CWID */
+                user_id: string;
+                /** @description The extension ID */
+                extension_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"][];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_all_extensions_for_section: {
+        parameters: {
+            query?: {
+                status?: "approved" | "denied" | "pending";
+            };
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+                /** @description The course section */
+                section_id: string;
+                /** @description The extension ID */
+                extension_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"][];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_all_extensions_for_course: {
+        parameters: {
+            query?: {
+                status?: "approved" | "denied" | "pending";
+            };
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"][];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    extension_request: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description An extension request has been created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Extension"];
+                };
+            };
+            /** @description Extension not found */
             404: {
                 headers: {
                     [name: string]: unknown;
