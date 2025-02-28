@@ -8,14 +8,19 @@ import java.util.UUID;
 import java.util.List;
 
 @Data
-@Entity(name = "Migration")
-@Table(name = "Migrations")
+@Entity(name = "migration")
+@Table(name = "migrations")
 public class Migration {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
     private UUID id;
+
+    @ManyToOne()
+    @JoinColumn(name = "policy", referencedColumnName = "id")
+    @EqualsAndHashCode.Exclude
+    protected Policy policy;
 
     @ManyToOne()
     @JoinColumn(name = "master_migration", referencedColumnName = "id")

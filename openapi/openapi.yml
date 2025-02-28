@@ -1655,7 +1655,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ErrorResponse"
+                  $ref: "#/components/schemas/Extension"
         404:
           description: "Extension not found"
           content:
@@ -1692,7 +1692,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ErrorResponse"
+                  $ref: "#/components/schemas/MasterMigration"
         404:
           description: "Migration not found"
           content:
@@ -2079,10 +2079,8 @@ components:
         - policy
       properties:
         assignment:
-          items:
             $ref: "#/components/schemas/Assignment"
         policy:
-          items:
             $ref: "#/components/schemas/Policy"
 
 

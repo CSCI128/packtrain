@@ -41,9 +41,5 @@ public class User{
     @ToString.Exclude
     private Set<CourseMember> courseMemberships;
 
-    @OneToMany()
-    @JoinColumn(name = "migration_id", referencedColumnName = "id")
-    @EqualsAndHashCode.Exclude
-    protected List<MasterMigration> masterMigration;
 
 }

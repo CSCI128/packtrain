@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 public enum ExtensionStatus {
     APPROVED("approved"),
     DENIED("denied"),
-    PENDING("pending"),
+    PENDING("pending");
 
 
     private final String status;

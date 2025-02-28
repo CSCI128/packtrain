@@ -1,18 +1,23 @@
 package edu.mines.gradingadmin.services;
 
 
-import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.MasterMigration;
-import edu.mines.gradingadmin.models.Migration;
+import edu.mines.gradingadmin.containers.MinioTestContainer;
+import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.repositories.ExtensionRepo;
+import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
 import edu.mines.gradingadmin.repositories.MigrationRepo;
+import edu.mines.gradingadmin.repositories.PolicyRepo;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
+import edu.mines.gradingadmin.seeders.UserSeeders;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +25,7 @@ import java.util.Optional;
 import static edu.mines.gradingadmin.containers.PostgresTestContainer.postgres;
 
 @SpringBootTest
-public class TestMigrationService {
+public class TestMigrationService implements PostgresTestContainer, MinioTestContainer {
     @Autowired
     MigrationService migrationService;
 
@@ -28,10 +33,20 @@ public class TestMigrationService {
     private MigrationRepo migrationRepo;
     @Autowired
     private CourseSeeders courseSeeders;
+    @Autowired
+    private CourseService courseService;
+    @Autowired
+    private UserSeeders userSeeders;
+    @Autowired
+    private MasterMigrationRepo masterMigrationRepo;
+    @Autowired
+    private PolicyRepo policyRepo;
 
     @BeforeAll
     static void setupClass(){
         postgres.start();
+        minio.start();
+
     }
 
     @AfterEach
@@ -39,12 +54,24 @@ public class TestMigrationService {
         migrationRepo.deleteAll();
     }
 
+    @Transactional
     @Test
     void verifyGetMigrations() {
-        Course course1 = courseSeeders.course1();
-        List<Migration> migrations = migrationService.getAllMigrations(course1.getId().toString());
+        Course course1 = courseSeeders.populatedCourse();
+        User user = userSeeders.user1();
+        String filename = "file.js";
+        String expectedContent = "console.log(\"test\")";
+        MockMultipartFile file = new MockMultipartFile(filename, expectedContent.getBytes());
+        Policy policy = new Policy();
+        policy.setCreatedByUser(user);
+        policy.setCourse(course1);
+        policy.setPolicyName("test_policy");
+        policy.setPolicyURI(filename);
+        policyRepo.save(policy);
 
-        // how do I create a migration seeder in order to test this?
+        MasterMigration masterMigration = migrationService.createMigrationForAssignment(course1, List.of(policy), course1.getAssignments().stream().toList());
+
+        Assertions.assertEquals(masterMigration, masterMigrationRepo.getMasterMigrationsByCourseId(course1.getId()).get(0));
     }
 
 

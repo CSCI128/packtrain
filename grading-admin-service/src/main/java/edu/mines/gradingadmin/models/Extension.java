@@ -18,7 +18,7 @@ public class Extension {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private ExtensionStatus status;
 
     @Column(name = "assignment_id")
     private String assignment_id;

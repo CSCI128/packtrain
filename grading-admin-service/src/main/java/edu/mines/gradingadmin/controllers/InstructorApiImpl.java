@@ -126,8 +126,17 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<List<MasterMigrationDTO>> getAllMasterMigrationsForCourse(String courseId){
-        List<MasterMigration> migrations = migrationService.getAllMigrations(courseId);
-g
+        List<MasterMigration> masterMigrations = migrationService.getAllMasterMigrations(courseId);
+        return ResponseEntity.ok(masterMigrations.stream().map(
+                mastermigration -> new MasterMigrationDTO()
+                        .migrationList( mastermigration.getMigrations().stream().map(
+                                migration -> new MigrationDTO()
+
+                                        .policy( new PolicyDTO().uri(migration.getPolicy().getPolicyURI())
+                                        )
+                                        .assignment(new AssignmentDTO().id(migration.getAssignment().getId().toString()).name(migration.getAssignment().getName()))
+                        ).toList()))
+                .toList());
     }
 
 

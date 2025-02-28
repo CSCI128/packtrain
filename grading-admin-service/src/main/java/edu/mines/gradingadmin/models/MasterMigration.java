@@ -11,8 +11,8 @@ import java.util.List;
 
 
 @Data
-@Entity (name = "Master Migration")
-@Table (name = "Master Migrations")
+@Entity (name = "master_migration")
+@Table (name = "master_migrations")
 public class MasterMigration {
 
     @Id
@@ -41,9 +41,15 @@ public class MasterMigration {
     protected List<Migration> migrations;
 
     @ManyToOne()
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id", referencedColumnName = "cwid")
     @EqualsAndHashCode.Exclude
     protected User createdByUser;
+
+
+    @ManyToOne()
+    @JoinColumn(name = "course_id", referencedColumnName = "id")
+    @EqualsAndHashCode.Exclude
+    protected Course course;
 
 
 }
