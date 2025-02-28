@@ -186,6 +186,8 @@ export function UsersPage() {
   };
 
   const editUser = (values: typeof form.values) => {
+    // console.log("VALUES:", values.enabled);
+    // console.log("SELECTED USER", selectedUser?.enabled);
     editUserMutation.mutate(
       {
         body: {
@@ -235,8 +237,6 @@ export function UsersPage() {
       sortData(data, { sortBy, reversed: reverseSortDirection, search: value })
     );
   };
-
-  // TODO disable/enable user
 
   const rows = sortedData.map((row) => (
     <Table.Tr key={row.cwid}>
@@ -289,7 +289,13 @@ export function UsersPage() {
             key={form.key("admin")}
             {...form.getInputProps("admin")}
           >
-            <Checkbox defaultChecked={selectedUser?.admin ? true : undefined} />
+            <Checkbox
+              checked={form.values.admin || false}
+              // checked={selectedUser?.admin ? true : undefined}
+              onChange={(event) =>
+                form.setFieldValue("admin", event.currentTarget.checked)
+              }
+            />
           </InputWrapper>
 
           <InputWrapper
@@ -299,7 +305,11 @@ export function UsersPage() {
             {...form.getInputProps("enabled")}
           >
             <Checkbox
-              defaultChecked={selectedUser?.enabled ? true : undefined}
+              checked={form.values.enabled || false}
+              // checked={selectedUser?.enabled ? true : false}
+              onChange={(event) =>
+                form.setFieldValue("enabled", event.currentTarget.checked)
+              }
             />
           </InputWrapper>
 
