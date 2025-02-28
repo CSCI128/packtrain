@@ -20,4 +20,18 @@ jobs:
         run: |
            mvn compile test -Dspring.profiles.active=test
         working-directory: grading-admin-service
-
+  ts-test:
+    name: Run Grading Policy Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '23.6.x'
+      - name: Install dependencies
+        working-directory: grading-policy-service
+        run: npm i --include=dev
+      - name: Run tests
+        working-directory: grading-policy-service
+        run: npm test

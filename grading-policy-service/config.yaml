@@ -1,0 +1,17 @@
+port: 4443
+securityConfig:
+  serverKey: "./certs/."
+  serverCert: "./certs/."
+  trustedCAs:
+    - "./certs/."
+  clientCert: "./certs/."
+
+policyConfig:
+  trustedServer: "https://localhost.dev"
+
+rabbitMqConfig:
+  username: "admin"
+  password: "changeme!"
+  endpoint: "localhost"
+  exchangeName: "exchange"
+
