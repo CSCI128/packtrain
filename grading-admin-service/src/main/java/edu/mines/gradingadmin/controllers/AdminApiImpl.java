@@ -86,7 +86,7 @@ public class AdminApiImpl implements AdminApiDelegate {
         List<TaskDTO> tasks = new LinkedList<>();
         UUID courseUUID = UUID.fromString(courseId);
 
-        Optional<ScheduledTaskDef> courseTask = courseService.importCourseFromCanvas(
+        Optional<ScheduledTaskDef> courseTask = courseService.syncCourseWithCanvas(
                 securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId(),
                 courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
 
@@ -98,7 +98,6 @@ public class AdminApiImpl implements AdminApiDelegate {
 
         Optional<ScheduledTaskDef> sectionTask = sectionService.createSectionsFromCanvas(
                 securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
-
 
         if (sectionTask.isEmpty()){
             return ResponseEntity.badRequest().build();

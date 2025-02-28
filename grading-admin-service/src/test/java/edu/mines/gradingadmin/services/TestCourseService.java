@@ -6,7 +6,7 @@ import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
-import edu.mines.gradingadmin.models.tasks.SyncCourseTaskDef;
+import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
 import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.repositories.CourseRepo;
@@ -55,6 +55,9 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @Autowired
     private ScheduledTaskRepo<CourseImportTaskDef> scheduledTaskRepo;
 
+    @Autowired
+    private ScheduledTaskRepo<CourseSyncTaskDef> syncTaskRepo;
+
     @BeforeAll
     static void setupClass() {
         postgres.start();
@@ -64,7 +67,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @BeforeEach
     void setup(){
         courseService = new CourseService(
-                courseRepo, scheduledTaskRepo,
+                courseRepo, scheduledTaskRepo, syncTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
                 s3Service, policyRepo
@@ -161,7 +164,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         taskDef.setOverwriteCode(true);
         taskDef.setOverwriteName(true);
 
-        courseService.syncCourseTask(taskDef);
+        courseService.importCourseTask(taskDef);
 
         course = courseService.getCourse(course.getId()).orElseThrow(AssertionError::new);
 

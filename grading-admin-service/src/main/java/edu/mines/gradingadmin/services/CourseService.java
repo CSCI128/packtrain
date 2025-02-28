@@ -6,6 +6,7 @@ import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
+import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
 import edu.mines.gradingadmin.repositories.CourseRepo;
 import edu.mines.gradingadmin.repositories.PolicyRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
@@ -23,6 +24,7 @@ import java.util.*;
 public class CourseService {
     private final CourseRepo courseRepo;
     private final ScheduledTaskRepo<CourseImportTaskDef> taskRepo;
+    private final ScheduledTaskRepo<CourseSyncTaskDef> syncTaskRepo;
 
     private final ApplicationEventPublisher eventPublisher;
     private final ImpersonationManager impersonationManager;
@@ -30,10 +32,11 @@ public class CourseService {
     private final S3Service s3Service;
     private final PolicyRepo policyRepo;
 
-    public CourseService(CourseRepo courseRepo, ScheduledTaskRepo<CourseImportTaskDef> taskRepo,
+    public CourseService(CourseRepo courseRepo, ScheduledTaskRepo<CourseImportTaskDef> taskRepo, ScheduledTaskRepo<CourseSyncTaskDef> syncTaskRepo,
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo) {
         this.courseRepo = courseRepo;
         this.taskRepo = taskRepo;
+        this.syncTaskRepo = syncTaskRepo;
         this.impersonationManager = impersonationManager;
         this.canvasService = canvasService;
         this.eventPublisher = eventPublisher;
@@ -52,7 +55,7 @@ public class CourseService {
         return courseRepo.getById(courseId);
     }
 
-    public void syncCourseTask(CourseImportTaskDef task){
+    public void importCourseTask(CourseImportTaskDef task){
         IdentityProvider user = impersonationManager.impersonateUser(task.getCreatedByUser());
         List<edu.ksu.canvas.model.Course> availableCourses =
                 canvasService.asUser(user).getAllAvailableCourses()
@@ -109,7 +112,66 @@ public class CourseService {
 
         task = taskRepo.save(task);
 
-        NewTaskEvent.TaskData<CourseImportTaskDef> taskDef = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseTask);
+        NewTaskEvent.TaskData<CourseImportTaskDef> taskDef = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::importCourseTask);
+
+        eventPublisher.publishEvent(new NewTaskEvent(this, taskDef));
+
+        return Optional.of(task);
+    }
+
+    public void syncCourseTask(CourseSyncTaskDef task){
+        IdentityProvider user = impersonationManager.impersonateUser(task.getCreatedByUser());
+        List<edu.ksu.canvas.model.Course> availableCourses =
+                canvasService.asUser(user).getAllAvailableCourses()
+                        .stream()
+                        .filter(course -> course.getId() == task.getCanvasId())
+                        .toList();
+
+        if (availableCourses.isEmpty()) {
+            log.warn("No courses were found with canvas id '{}'", task.getCanvasId());
+            throw new RuntimeException(String.format("Failed to find Canvas course: '%d'", task.getCanvasId()));
+        }
+
+        if (availableCourses.size() != 1) {
+            log.warn("More than one course was found with canvas id '{}'. This shouldn't be possible", task.getCanvasId());
+            throw new RuntimeException(String.format("Failed to find Canvas course: '%d'", task.getCanvasId()));
+        }
+
+        edu.ksu.canvas.model.Course canvasCourse = availableCourses.getFirst();
+
+        Optional<Course> toUpdate = courseRepo.getById(task.getCourseToSync());
+
+        if (toUpdate.isEmpty()){
+            log.warn("Course to sync not found!");
+            throw new RuntimeException(String.format("Failed to find course: '%s'", task.getCourseToSync()));
+        }
+
+        toUpdate.get().setCanvasId(canvasCourse.getId());
+        if (task.isOverwriteCode())
+            toUpdate.get().setCode(canvasCourse.getCourseCode());
+        if (task.isOverwriteName())
+            toUpdate.get().setName(canvasCourse.getName());
+
+        courseRepo.save(toUpdate.get());
+    }
+
+    public Optional<ScheduledTaskDef> syncCourseWithCanvas(User actingUser, UUID courseId, long canvasId,
+                                                             boolean overwriteName, boolean overwriteCode) {
+        if (!courseRepo.existsById(courseId)){
+            log.warn("Course '{}' has not been created!", courseId);
+            return Optional.empty();
+        }
+
+        CourseSyncTaskDef task = new CourseSyncTaskDef();
+        task.setCreatedByUser(actingUser);
+        task.setCourseToSync(courseId);
+        task.setCanvasId(canvasId);
+        task.setOverwriteName(overwriteName);
+        task.setOverwriteCode(overwriteCode);
+
+        task = syncTaskRepo.save(task);
+
+        NewTaskEvent.TaskData<CourseSyncTaskDef> taskDef = new NewTaskEvent.TaskData<>(syncTaskRepo, task.getId(), this::syncCourseTask);
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDef));
 

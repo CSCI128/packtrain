@@ -12,9 +12,9 @@ import java.util.UUID;
 @Data
 @Table(name = "sync_course_tasks")
 @Entity(name = "sync_course_task")
-public class SyncCourseTaskDef extends ScheduledTaskDef {
+public class CourseSyncTaskDef extends ScheduledTaskDef {
     @Column(name = "course_id")
-    private UUID courseToImport;
+    private UUID courseToSync;
 
     @Column(name = "canvas_id")
     private long canvasId;
