@@ -1,4 +1,4 @@
-enum ExtensionStatus{
+enum ExtensionStatus {
     IGNORED,
     APPLIED,
     REJECTED,
@@ -12,7 +12,7 @@ enum SubmissionStatus {
     ON_TIME,
 }
 
-export default class ScoredDTO{
+export default class ScoredDTO {
     cwid!: string;
     extensionId!: string;
     assignmentId!: string;

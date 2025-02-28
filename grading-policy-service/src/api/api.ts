@@ -1,13 +1,13 @@
 import express from "express";
 import GradingStartDTO from "../data/GradingStartDTO";
-import {GradingPolicyConfig} from "../config";
-import {ready, startMigration} from "../services/rabbitMqService";
-import {TLSSocket} from "node:tls";
+import { GradingPolicyConfig } from "../config";
+import { ready, startMigration } from "../services/rabbitMqService";
+import { TLSSocket } from "node:tls";
 
-export function setup(config: GradingPolicyConfig, app: express.Application ){
+export function setup(config: GradingPolicyConfig, app: express.Application) {
     app.get("/-/ready", (req, res) => {
         // unauthenticated endpoint
-        if (!ready()){
+        if (!ready()) {
             res.sendStatus(500);
             return;
         }
@@ -15,10 +15,10 @@ export function setup(config: GradingPolicyConfig, app: express.Application ){
         res.sendStatus(200);
     });
     app.post("/grading/start", (req, res) => {
-        if (!(req.socket as TLSSocket).authorized){
+        if (!(req.socket as TLSSocket).authorized) {
             res.sendStatus(401);
         }
-        if (!req.body){
+        if (!req.body) {
             res.sendStatus(400);
             return;
         }
@@ -27,11 +27,11 @@ export function setup(config: GradingPolicyConfig, app: express.Application ){
         startMigration(config.rabbitMqConfig.exchangeName, body)
             .then(() => {
                 res.status(201);
-                res.send({status: "created"});
+                res.send({ status: "created" });
             })
             .catch((e) => {
                 res.status(400);
-                res.send({status: "failed", reason: e})
+                res.send({ status: "failed", reason: e });
             });
     });
 

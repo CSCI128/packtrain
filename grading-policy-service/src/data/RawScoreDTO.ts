@@ -1,4 +1,4 @@
-export default class RawScoreDTO{
+export default class RawScoreDTO {
     cwid!: string;
     extensionId!: string;
     assignmentId!: string;

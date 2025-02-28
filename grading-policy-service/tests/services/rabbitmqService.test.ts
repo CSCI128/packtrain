@@ -1,12 +1,21 @@
-import {describe, it} from "node:test"
-import {before, after} from "node:test"
-import {RabbitMQContainer, StartedRabbitMQContainer} from "@testcontainers/rabbitmq";
+import { describe, it } from "node:test";
+import { before, after } from "node:test";
+import {
+    RabbitMQContainer,
+    StartedRabbitMQContainer,
+} from "@testcontainers/rabbitmq";
 import ampq from "amqplib";
 import * as assert from "node:assert";
-import {RabbitMqConfig} from "../../src/config";
-import {connect, endConnection, getMigration, ready, startMigration} from "../../src/services/rabbitMqService"
+import { RabbitMqConfig } from "../../src/config";
+import {
+    connect,
+    endConnection,
+    getMigration,
+    ready,
+    startMigration,
+} from "../../src/services/rabbitMqService";
 import GradingStartDTO from "../../src/data/GradingStartDTO";
-import {randomUUID} from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 describe("RabbitMq Service", () => {
     const username = "admin";
@@ -23,19 +32,18 @@ describe("RabbitMq Service", () => {
             })
             .start();
 
-        config  = {
+        config = {
             username: username,
             password: password,
             endpoint: rabbitMq.getHost(),
             port: rabbitMq.getMappedPort(5672).toString(),
             exchangeName: "default",
-        }
+        };
         connection = await ampq.connect({
             username: username,
             password: password,
             port: rabbitMq.getMappedPort(5672),
         });
-
     });
 
     it("should create connection", async () => {
@@ -46,19 +54,21 @@ describe("RabbitMq Service", () => {
         await endConnection();
     });
 
-    it("should create channels on migration start", async () =>{
+    it("should create channels on migration start", async () => {
         await connect(config!);
 
         assert.equal(ready(), true);
-
 
         const dto = new GradingStartDTO();
         dto.migrationId = randomUUID();
         dto.scoreCreatedRoutingKey = `${dto.migrationId}-score`;
         dto.rawGradeRoutingKey = `${dto.migrationId}-raw`;
 
-
-        await startMigration(config!.exchangeName, dto, "console.log(\"default\");");
+        await startMigration(
+            config!.exchangeName,
+            dto,
+            'console.log("default");',
+        );
 
         const migration = getMigration(dto.migrationId)!;
 
@@ -67,8 +77,7 @@ describe("RabbitMq Service", () => {
         assert.equal(migration.producer == null, false);
 
         await endConnection();
-    })
-
+    });
 
     after(() => {
         connection?.close();

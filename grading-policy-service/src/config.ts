@@ -1,4 +1,4 @@
-import {readFileSync} from "node:fs";
+import { readFileSync } from "node:fs";
 import { parse } from "yaml";
 
 export interface RabbitMqConfig {
@@ -9,18 +9,18 @@ export interface RabbitMqConfig {
     exchangeName: string;
 }
 
-export interface PolicyConfig{
+export interface PolicyConfig {
     trustedServer: string;
 }
 
-export interface SecurityConfig{
+export interface SecurityConfig {
     serverKey: string;
     serverCert: string;
     trustedCAs: string[];
     clientCert: string;
 }
 
-export interface GradingPolicyConfig{
+export interface GradingPolicyConfig {
     securityConfig: SecurityConfig;
     policyConfig: PolicyConfig;
     rabbitMqConfig: RabbitMqConfig;
@@ -28,6 +28,6 @@ export interface GradingPolicyConfig{
     port: number;
 }
 
-export const config: GradingPolicyConfig = parse(readFileSync(process.argv[2], "utf-8")) as GradingPolicyConfig;
-
-
+export const config: GradingPolicyConfig = parse(
+    readFileSync(process.argv[2], "utf-8"),
+) as GradingPolicyConfig;
