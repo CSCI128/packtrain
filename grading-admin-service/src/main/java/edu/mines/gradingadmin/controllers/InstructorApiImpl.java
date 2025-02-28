@@ -131,11 +131,9 @@ public class InstructorApiImpl implements InstructorApiDelegate {
                 mastermigration -> new MasterMigrationDTO()
                         .migrationList( mastermigration.getMigrations().stream().map(
                                 migration -> new MigrationDTO()
-
-                                        .policy( new PolicyDTO().uri(migration.getPolicy().getPolicyURI())
-                                        )
-                                        .assignment(new AssignmentDTO().id(migration.getAssignment().getId().toString()).name(migration.getAssignment().getName()))
-                        ).toList()))
+                                        .policy( new PolicyDTO().uri(migration.getPolicy().getPolicyURI()))
+                                        .assignment(new AssignmentDTO().id(migration.getAssignment().getId().toString())
+                                                .name(migration.getAssignment().getName()))).toList()))
                 .toList());
     }
 
