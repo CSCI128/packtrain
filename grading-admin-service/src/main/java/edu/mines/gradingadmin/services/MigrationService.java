@@ -35,7 +35,6 @@ public class MigrationService {
         }
         masterMigration.setMigrations(migrations);
         return masterMigrationRepo.save(masterMigration);
-
     }
 
     @Transactional
