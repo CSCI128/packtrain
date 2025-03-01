@@ -18,7 +18,7 @@ public class ExtensionService {
     }
 
     public List<Extension> getAllExtensions(String migrationId){
-        List<Extension> extensions = extensionRepo.getExtensionByMigrationId(UUID.fromString(migrationId));
+        List<Extension> extensions = extensionRepo.getExtensionsByMigrationId(UUID.fromString(migrationId));
         return extensions.stream().toList();
     }
 

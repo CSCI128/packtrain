@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface ExtensionRepo extends CrudRepository<Extension, UUID> {
     @Query("select a from extension a where a.id=?1")
-    List<Extension> getExtensionByMigrationId(UUID migrationId);
+    List<Extension> getExtensionsByMigrationId(UUID migrationId);
 }

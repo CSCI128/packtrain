@@ -54,7 +54,6 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
         migrationRepo.deleteAll();
     }
 
-    @Transactional
     @Test
     void verifyGetMigrations() {
         Course course1 = courseSeeders.populatedCourse();
@@ -70,7 +69,7 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
         policyRepo.save(policy);
 
         MasterMigration masterMigration = migrationService.createMigrationForAssignment(course1, List.of(policy), course1.getAssignments().stream().toList());
-
+        Assertions.assertEquals(1, masterMigrationRepo.getMasterMigrationsByCourseId(course1.getId()).size());
         Assertions.assertEquals(masterMigration, masterMigrationRepo.getMasterMigrationsByCourseId(course1.getId()).get(0));
     }
 
