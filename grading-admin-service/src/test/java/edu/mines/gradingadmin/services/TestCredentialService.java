@@ -110,7 +110,7 @@ class TestCredentialService implements PostgresTestContainer {
 
         Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
 
-        credentialService.deleteCredential(cred.getId());
+        credentialService.deleteCredential(cred);
 
         Assertions.assertEquals(0, credentialRepo.getByCwid(user.getCwid()).size());
     }

@@ -117,8 +117,11 @@ public class UserApiImpl implements UserApiDelegate {
 
     @Override
     public ResponseEntity<Void> deleteCredential(String credentialId){
-        // TODO need to restructure here to return 400 if not exists
-        credentialService.deleteCredential(UUID.fromString(credentialId));
+        Optional<Credential> credential = credentialService.getCredentialById(UUID.fromString(credentialId));
+        if (credential.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+        credentialService.deleteCredential(credential.get());
         return ResponseEntity.accepted().build();
     }
 }

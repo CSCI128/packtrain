@@ -1829,9 +1829,6 @@ components:
         private:
           type: boolean
           example: true
-        active:
-          type: boolean
-          example: true
         owning_user:
           $ref: "#/components/schemas/User"
 

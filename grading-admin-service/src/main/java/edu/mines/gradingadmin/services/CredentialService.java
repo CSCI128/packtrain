@@ -33,6 +33,10 @@ public class CredentialService {
         return credentialRepo.getByCwid(cwid);
     }
 
+    public Optional<Credential> getCredentialById(UUID id) {
+        return credentialRepo.getById(id);
+    }
+
     public Optional<String> getCredentialByService(String cwid, CredentialType type){
         List<Credential> availableCredentials = credentialRepo.getByCwidAndEndpoint(cwid, type);
 
@@ -118,8 +122,7 @@ public class CredentialService {
     }
 
     @Transactional
-    public void deleteCredential(UUID credentialId) {
-        Optional<Credential> credential = credentialRepo.getById(credentialId);
-        credential.ifPresent(credentialRepo::delete);
+    public void deleteCredential(Credential credential) {
+        credentialRepo.delete(credential);
     }
 }

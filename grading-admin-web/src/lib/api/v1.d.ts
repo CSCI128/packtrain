@@ -407,28 +407,12 @@ export interface paths {
          *
          */
         post: operations["new_credential"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/user/credentials/{credential_id}/disable": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
         /**
-         * Disables a credential for the user.
-         * @description Disables a selected credential for the user.
+         * Deletes a credential for the user.
+         * @description Deletes a selected credential for the user.
          *
          */
-        put: operations["disable_credential"];
-        post?: never;
-        delete?: never;
+        delete: operations["delete_credential"];
         options?: never;
         head?: never;
         patch?: never;
@@ -924,8 +908,6 @@ export interface components {
             api_key?: string;
             /** @example true */
             private?: boolean;
-            /** @example true */
-            active?: boolean;
             owning_user: components["schemas"]["User"];
         };
         /** @description A list of credentials */
@@ -1829,13 +1811,13 @@ export interface operations {
             };
         };
     };
-    disable_credential: {
+    delete_credential: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 credential_id: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1847,7 +1829,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Failed to disable credential */
+            /** @description Failed to delete credential */
             400: {
                 headers: {
                     [name: string]: unknown;
