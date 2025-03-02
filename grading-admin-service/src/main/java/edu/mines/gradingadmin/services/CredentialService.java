@@ -30,9 +30,7 @@ public class CredentialService {
             return List.of();
         }
 
-        List<Credential> credentials = credentialRepo.getAllByCwid(cwid);
-
-        return credentials;
+        return credentialRepo.getByCwid(cwid);
     }
 
     public Optional<String> getCredentialByService(String cwid, CredentialType type){
@@ -86,7 +84,6 @@ public class CredentialService {
         credential.setType(type);
         credential.setName(name);
         credential.setApiKey(apiKey);
-        credential.setActive(true);
         credential.setPrivate(true);
 
         return Optional.of(credentialRepo.save(credential));
@@ -98,11 +95,6 @@ public class CredentialService {
         if (credential.isEmpty()){
             // todo need error handling
             log.warn("Credential with ID: '{}', does not exist", credentialId);
-            return Optional.empty();
-        }
-
-        if (!credential.get().isActive()){
-            log.warn("Credential with ID: '{}', is not active", credentialId);
             return Optional.empty();
         }
 
@@ -120,28 +112,14 @@ public class CredentialService {
             return Optional.empty();
         }
 
-        if (!credential.get().isActive()){
-            log.warn("Credential with ID: '{}', is not active", credentialId);
-            return Optional.empty();
-        }
-
         credential.get().setPrivate(true);
 
         return Optional.of(credentialRepo.save(credential.get()));
     }
 
     @Transactional
-    public Optional<Credential> markCredentialAsInactive(UUID credentialId) {
+    public void deleteCredential(UUID credentialId) {
         Optional<Credential> credential = credentialRepo.getById(credentialId);
-
-        if (credential.isEmpty()){
-            log.warn("Credential with ID: '{}', does not exist", credentialId);
-            return Optional.empty();
-        }
-
-        credential.get().setActive(false);
-
-        return Optional.of(credentialRepo.save(credential.get()));
+        credential.ifPresent(credentialRepo::delete);
     }
-
 }

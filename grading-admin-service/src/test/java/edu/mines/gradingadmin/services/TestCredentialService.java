@@ -46,7 +46,7 @@ class TestCredentialService implements PostgresTestContainer {
     void verifyCreateNewCredentialDoesNotExist(){
         User user = userSeeder.user1();
 
-        List<Credential> credentials = credentialRepo.getAllByCwid(user.getCwid());
+        List<Credential> credentials = credentialRepo.getByCwid(user.getCwid());
 
         Assertions.assertEquals(0, credentials.size());
 
@@ -92,25 +92,6 @@ class TestCredentialService implements PostgresTestContainer {
     }
 
     @Test
-    void verifyCreateCredentialSameNameInactive(){
-        User user = userSeeder.user1();
-
-        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS);
-
-        Assertions.assertFalse(cred.isEmpty());
-
-        credentialService.markCredentialAsInactive(cred.get().getId());
-
-        cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.GRADESCOPE);
-
-        Assertions.assertFalse(cred.isEmpty());
-
-        List<Credential> credentials = credentialRepo.getByCwid(user.getCwid());
-
-        Assertions.assertEquals(1, credentials.size());
-    }
-
-    @Test
     void verifyMarkCredentialAsPublic(){
         User user = userSeeder.user1();
 
@@ -124,34 +105,14 @@ class TestCredentialService implements PostgresTestContainer {
     }
 
     @Test
-    void verifyMarkCredentialAsPublicInactive(){
+    void verifyDeleteCredential(){
         User user = userSeeder.user1();
 
         Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
 
-        credentialService.markCredentialAsInactive(cred.getId());
-
-        Optional<Credential> newCred = credentialService.markCredentialAsPublic(cred.getId());
-
-        Assertions.assertTrue(newCred.isEmpty());
-    }
-
-    @Test
-    void verifyDisableCredential(){
-        User user = userSeeder.user1();
-
-        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
-
-        Credential newCred = credentialService.markCredentialAsInactive(cred.getId()).orElseThrow();
-
-        Assertions.assertEquals(cred.getId(), newCred.getId());
-
-        Assertions.assertFalse(newCred.isActive());
+        credentialService.deleteCredential(cred.getId());
 
         Assertions.assertEquals(0, credentialRepo.getByCwid(user.getCwid()).size());
-        Assertions.assertEquals(1, credentialRepo.getAllByCwid(user.getCwid()).size());
-
-
     }
 
     @Test
