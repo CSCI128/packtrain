@@ -162,8 +162,8 @@ export function MembersPage() {
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
-    setSortedData(
-      sortData(sortedInstructorData, { sortBy: field, reversed, search })
+    setSortedInstructorData(
+      sortData(instructorData, { sortBy: field, reversed, search })
     );
   };
 
@@ -172,8 +172,8 @@ export function MembersPage() {
   ) => {
     const { value } = event.currentTarget;
     setSearch(value);
-    setSortedData(
-      sortData(sortedInstructorData, {
+    setSortedInstructorData(
+      sortData(instructorData, {
         sortBy,
         reversed: reverseSortDirection,
         search: value,
