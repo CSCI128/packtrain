@@ -32,7 +32,6 @@
 	<pluginRepositories>
 		<pluginRepository>
 			<id>sonatype-snapshots</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
 		</pluginRepository>
 	</pluginRepositories>
 	<dependencies>
@@ -133,6 +132,12 @@
 			<version>5.11.4</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>openapi-generator-maven-plugin</artifactId>
+			<version>7.11.0</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -164,7 +169,7 @@
 			<plugin>
 				<groupId>org.openapitools</groupId>
 				<artifactId>openapi-generator-maven-plugin</artifactId>
-				<version>7.11.0-SNAPSHOT</version>
+				<version>7.11.0</version>
 				<executions>
 					<execution>
 						<goals>
