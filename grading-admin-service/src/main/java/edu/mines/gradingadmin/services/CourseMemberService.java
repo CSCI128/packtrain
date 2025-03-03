@@ -5,10 +5,11 @@ import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
-import edu.mines.gradingadmin.models.tasks.UserImportTaskDef;
+import edu.mines.gradingadmin.models.tasks.UserSyncTaskDef;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.services.external.CanvasService;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CourseMemberService {
     private final CourseMemberRepo courseMemberRepo;
-    private final ScheduledTaskRepo<UserImportTaskDef> taskRepo;
+    private final ScheduledTaskRepo<UserSyncTaskDef> taskRepo;
 
     private final UserService userService;
     private final SectionService sectionService;
@@ -30,7 +31,7 @@ public class CourseMemberService {
     private final ApplicationEventPublisher eventPublisher;
     private final ImpersonationManager impersonationManager;
 
-    public CourseMemberService(CourseMemberRepo courseMemberRepo, ScheduledTaskRepo<UserImportTaskDef> taskRepo, UserService userService, SectionService sectionService, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager) {
+    public CourseMemberService(CourseMemberRepo courseMemberRepo, ScheduledTaskRepo<UserSyncTaskDef> taskRepo, UserService userService, SectionService sectionService, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager) {
         this.courseMemberRepo = courseMemberRepo;
         this.taskRepo = taskRepo;
         this.userService = userService;
@@ -51,8 +52,13 @@ public class CourseMemberService {
         return courseMemberRepo.getAllByCourse(course).stream().filter(x -> roles.contains(x.getRole())).toList();
     }
 
-    // todo: break up this function a bit more
-    public void syncCourseMembersTask(UserImportTaskDef task){
+    @Transactional
+    public void syncCourseMembersTask(UserSyncTaskDef task){
+        if (!task.shouldAddNewUsers() && !task.shouldUpdateExistingUsers() && !task.shouldRemoveOldUsers()){
+            log.warn("No user sync action should be taken. Skipping task");
+            return;
+        }
+
         Optional<Course> course = courseService.getCourse(task.getCourseToImport());
         if (course.isEmpty()){
             log.warn("Course '{}' does not exist!", task.getCourseToImport());
@@ -72,15 +78,93 @@ public class CourseMemberService {
 
         List<User> users = userService.getOrCreateUsersFromCanvas(canvasUsersForCourse);
 
+        Set<String> incomingCwids = users.stream().map(User::getCwid).collect(Collectors.toSet());
+
+        Set<String> existingCwids = courseMemberRepo.getAllCwidsByCourse(course.get());
+
+        // why the heck does java not define a proper difference function?
+        Set<String> cwidsToCreate = incomingCwids.stream().filter(c -> !existingCwids.contains(c)).collect(Collectors.toSet());
+
+        Set<String> cwidsToRemove = existingCwids.stream().filter(c -> !incomingCwids.contains(c)).collect(Collectors.toSet());
+
+        Set<String> cwidsToUpdate = incomingCwids.stream().filter(c -> !cwidsToCreate.contains(c)).collect(Collectors.toSet());
+
+        if (task.shouldAddNewUsers()) {
+            Set<CourseMember> newMembers = createNewEnrollments(
+                    task,
+                    users.stream().filter(u -> cwidsToCreate.contains(u.getCwid())).toList(),
+                    canvasUsersForCourse,
+                    course.get(), sections
+            );
+
+            log.info("Saving {} new course memberships for '{}'", newMembers.size(), course.get().getCode());
+            // this is quite large, so doing it at once will be a lot faster than saving incrementally
+            courseMemberRepo.saveAll(newMembers);
+        }
+
+
+        if (task.shouldRemoveOldUsers()) {
+            log.info("Deleting {} course memberships for '{}'", cwidsToRemove.size(), course.get().getCode());
+            courseMemberRepo.deleteByCourseAndCwid(course.get(), cwidsToRemove);
+        }
+
+        if (task.shouldUpdateExistingUsers()) {
+            Set<CourseMember> updatedMembers = updateExistingEnrollments(task, cwidsToUpdate, canvasUsersForCourse, course.get(), sections);
+
+            log.info("Updating {} course memberships for '{}'", updatedMembers.size(), course.get().getCode());
+
+            courseMemberRepo.saveAll(updatedMembers);
+        }
+    }
+
+    @Transactional
+    protected Set<CourseMember> updateExistingEnrollments(UserSyncTaskDef task, Set<String> users, Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse, Course course, Map<String, Section> sections){
+        Map<String, CourseMember> members = courseMemberRepo.getAllByCourseAndCwids(course, users).stream().collect(Collectors.toMap(c->c.getUser().getCwid(), c -> c));
+
+        for (String user : members.keySet()) {
+            log.trace("Updating membership for user: {}", user);
+
+            CourseMember member = members.get(user);
+
+            edu.ksu.canvas.model.User canvasUser = canvasUsersForCourse.get(user);
+
+            if (canvasUser.getEnrollments().isEmpty()) {
+                log.warn("User '{}' is not enrolled in any sections!", user);
+            }
+            if (!canvasUser.getEnrollments().stream().allMatch(e -> sections.containsKey(e.getCourseSectionId()))) {
+                // this shouldn't be possible
+                log.warn("Requested sections for user '{}' do not exist!", user);
+                continue;
+            }
+
+            Set<Section> enrolledSections = canvasUser.getEnrollments().stream().map(e -> sections.get(e.getCourseSectionId())).collect(Collectors.toSet());
+
+            Optional<CourseRole> role = canvasService.mapEnrollmentToRole(canvasUser.getEnrollments().getFirst());
+
+            if (role.isEmpty()) {
+                log.warn("Missing role '{}' for user '{}'", canvasUser.getEnrollments().getFirst().getType(), user);
+                continue;
+            }
+
+            member.setSections(enrolledSections);
+            if (member.getRole() != CourseRole.OWNER) {
+                member.setRole(role.get());
+            }
+
+            members.put(user, member);
+        }
+
+        return new HashSet<>(members.values());
+
+    }
+
+    private Set<CourseMember> createNewEnrollments(UserSyncTaskDef task, List<User> users, Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse, Course course, Map<String, Section> sections) {
         Set<CourseMember> members = new HashSet<>();
 
         for(User user : users){
             log.trace("Processing user: {}", user);
-            if (!canvasUsersForCourse.containsKey(user.getCwid())){
-                log.warn("Requested user '{}' is not a member of requested class {}", user.getEmail(), course.get().getCode());
-                continue;
-            }
 
+            // we dont need to worry about this case, if we get here then it is in the course.
             edu.ksu.canvas.model.User canvasUser = canvasUsersForCourse.get(user.getCwid());
 
             if (canvasUser.getEnrollments().isEmpty()) {
@@ -109,7 +193,7 @@ public class CourseMemberService {
 
             CourseMember newMembership = new CourseMember();
             newMembership.setCanvasId(String.valueOf(canvasUser.getId()));
-            newMembership.setCourse(course.get());
+            newMembership.setCourse(course);
             newMembership.setSections(enrolledSections);
             newMembership.setUser(user);
             newMembership.setRole(role.get());
@@ -117,19 +201,19 @@ public class CourseMemberService {
 
             members.add(newMembership);
         }
-
-        log.info("Saving {} course memberships for '{}'", members.size(), course.get().getCode());
-        // this is quite large, so doing it at once will be a lot faster than saving incrementally
-        courseMemberRepo.saveAll(members);
+        return members;
     }
 
-    public Optional<ScheduledTaskDef> addMembersToCourse(User actingUser, Set<Long> dependencies, UUID courseId) {
-        UserImportTaskDef task = new UserImportTaskDef();
+    public Optional<ScheduledTaskDef> syncMembersFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean updateExisting, boolean removeOld, boolean addNew) {
+        UserSyncTaskDef task = new UserSyncTaskDef();
         task.setCreatedByUser(actingUser);
         task.setCourseToImport(courseId);
+        task.shouldUpdateExistingUsers(updateExisting);
+        task.shouldAddNewUsers(addNew);
+        task.shouldRemoveOldUsers(removeOld);
         task = taskRepo.save(task);
 
-        NewTaskEvent.TaskData<UserImportTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseMembersTask);
+        NewTaskEvent.TaskData<UserSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseMembersTask);
         taskDefinition.setDependsOn(dependencies);
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
@@ -154,6 +238,31 @@ public class CourseMemberService {
         member.setUser(user.get());
         member.setCourse(course.get());
         return Optional.of(courseMemberRepo.save(member));
+    }
+
+    public boolean removeMembershipForUserAndCourse(User user, UUID courseId){
+        Optional<Course> course = courseService.getCourse(courseId);
+        if (course.isEmpty()){
+            log.warn("Course '{}' does not exist!", courseId);
+            return false;
+        }
+
+        Optional<CourseMember> courseMember = courseMemberRepo.getAllByCourseAndUser(course.get(), user);
+
+        if (courseMember.isEmpty()){
+            log.warn("User '{}' is not enrolled in course '{}'!", user.getEmail(), course.get().getCode());
+            return false;
+        }
+
+        if (courseMember.get().getRole() == CourseRole.OWNER){
+            log.warn("Attempt to remove owner '{}' from '{}'!", user.getEmail(), course.get().getCode());
+            return false;
+        }
+
+        courseMemberRepo.delete(courseMember.get());
+        // may want to do check to make sure that the user is not a admin
+        log.info("Removed user '{}' from course '{}'", user.getEmail(), course.get().getCode());
+        return true;
     }
 
     public List<CourseRole> getRolesForUserAndCourse(User user, UUID courseId){

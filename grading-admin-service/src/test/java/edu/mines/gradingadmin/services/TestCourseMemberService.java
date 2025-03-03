@@ -4,7 +4,7 @@ import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
-import edu.mines.gradingadmin.models.tasks.UserImportTaskDef;
+import edu.mines.gradingadmin.models.tasks.UserSyncTaskDef;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.repositories.SectionRepo;
@@ -41,7 +41,7 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
     private SectionService sectionService;
 
     @Autowired
-    private ScheduledTaskRepo<UserImportTaskDef> scheduledTaskRepo;
+    private ScheduledTaskRepo<UserSyncTaskDef> scheduledTaskRepo;
 
     @Autowired
     private CourseService courseService;
@@ -99,8 +99,9 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
         Section section = sectionService.createSection(course1Section1Id, "Section A", course).orElseThrow(AssertionError::new);
 
 
-        UserImportTaskDef task = new UserImportTaskDef();
+        UserSyncTaskDef task = new UserSyncTaskDef();
         task.setCreatedByUser(admin);
+        task.shouldAddNewUsers(true);
         task.setCourseToImport(course.getId());
 
         courseMemberService.syncCourseMembersTask(task);

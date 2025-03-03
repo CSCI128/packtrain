@@ -106,7 +106,7 @@ public class AdminApiImpl implements AdminApiDelegate {
         tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
 
         if (courseSyncTaskDTO.getImportUsers()){
-            Optional<ScheduledTaskDef> importUsersTask = courseMemberService.addMembersToCourse(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID);
+            Optional<ScheduledTaskDef> importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID, true, true, true);
 
             if (importUsersTask.isEmpty()){
                 return ResponseEntity.badRequest().build();
@@ -123,7 +123,7 @@ public class AdminApiImpl implements AdminApiDelegate {
         List<TaskDTO> tasks = new LinkedList<>();
         UUID courseUUID = UUID.fromString(courseId);
 
-        Optional<ScheduledTaskDef> courseTask = courseService.importCourseFromCanvas(
+        Optional<ScheduledTaskDef> courseTask = courseService.syncCourseWithCanvas(
                 securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId(),
                 courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
 
@@ -144,7 +144,7 @@ public class AdminApiImpl implements AdminApiDelegate {
         tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
 
         if (courseSyncTaskDTO.getImportUsers()) {
-            Optional<ScheduledTaskDef> importUsersTask = courseMemberService.addMembersToCourse(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID);
+            Optional<ScheduledTaskDef> importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID, true, true, true);
 
             if (importUsersTask.isEmpty()) {
                 return ResponseEntity.badRequest().build();

@@ -5,7 +5,6 @@ import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.User;
-import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
 import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
 import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
@@ -53,10 +52,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     private PolicyRepo policyRepo;
 
     @Autowired
-    private ScheduledTaskRepo<CourseImportTaskDef> scheduledTaskRepo;
-
-    @Autowired
-    private ScheduledTaskRepo<CourseSyncTaskDef> syncTaskRepo;
+    private ScheduledTaskRepo<CourseSyncTaskDef> scheduledTaskRepo;
 
     @BeforeAll
     static void setupClass() {
@@ -67,7 +63,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @BeforeEach
     void setup(){
         courseService = new CourseService(
-                courseRepo, scheduledTaskRepo, syncTaskRepo,
+                courseRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
                 s3Service, policyRepo
@@ -157,14 +153,14 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         Course course = courseSeeders.course1();
         User admin = userSeeders.admin1();
 
-        CourseImportTaskDef taskDef = new CourseImportTaskDef();
+        CourseSyncTaskDef taskDef = new CourseSyncTaskDef();
         taskDef.setCreatedByUser(admin);
-        taskDef.setCourseToImport(course.getId());
+        taskDef.setCourseToSync(course.getId());
         taskDef.setCanvasId(course1Id);
         taskDef.setOverwriteCode(true);
         taskDef.setOverwriteName(true);
 
-        courseService.importCourseTask(taskDef);
+        courseService.syncCourseTask(taskDef);
 
         course = courseService.getCourse(course.getId()).orElseThrow(AssertionError::new);
 
