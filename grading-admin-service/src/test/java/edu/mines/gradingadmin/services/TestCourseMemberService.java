@@ -139,6 +139,28 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
     }
 
     @Test
+    void verifyDuplicatesAreUpdated(){
+        Course course = courseSeeders.course1(course1Id);
+        User admin = userSeeders.admin1();
+
+        sectionService.createSection(course1Section1Id, "Section A", course).orElseThrow(AssertionError::new);
+
+        UserSyncTaskDef task = new UserSyncTaskDef();
+        task.setCreatedByUser(admin);
+        task.shouldAddNewUsers(true);
+        task.shouldUpdateExistingUsers(true);
+        task.setCourseToImport(course.getId());
+
+        courseMemberService.syncCourseMembersTask(task);
+
+        courseMemberService.syncCourseMembersTask(task);
+
+        Set<CourseMember> members = courseMemberRepo.getAllByCourse(course);
+
+        Assertions.assertEquals(course1Users.get().size(), members.size());
+    }
+
+    @Test
     void verifyRemoveOldMembers(){
         Course course = courseSeeders.course1(course1Id);
         User admin = userSeeders.admin1();
