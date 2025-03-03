@@ -30,8 +30,8 @@ public class RabbitMqService {
     private final ExternalServiceConfig.RabbitMqConfig rabbitMqConfig;
     private final ObjectMapper mapper;
     private Connection rabbitMqConnection;
-    private Channel gradingMessageChannel;
 
+    // todo - in the future we should probably move this into the migration service somehow
     @Data
     public static class MigrationConfig{
         private UUID migrationId;
@@ -86,6 +86,8 @@ public class RabbitMqService {
             log.info("Creating new grade publish channel for migration '{}' with routing key '{}'", migrationConfig.getMigrationId(), routingKey);
             try {
                 Channel publishChannel = connection.createChannel();
+                // if the exchange already exists, then nothing happens
+                publishChannel.exchangeDeclare(exchangeName, "direct", true);
                 String queueName = publishChannel.queueDeclare().getQueue();
                 publishChannel.queueBind(queueName, exchangeName, routingKey);
 
@@ -108,6 +110,7 @@ public class RabbitMqService {
 
             try {
                 Channel recievedChannel = connection.createChannel();
+                recievedChannel.exchangeDeclare(exchangeName, "direct", true);
                 String queueName = recievedChannel.queueDeclare().getQueue();
                 recievedChannel.queueBind(queueName, exchangeName, routingKey);
 
@@ -176,79 +179,8 @@ public class RabbitMqService {
         log.info("Connected to RabbitMQ broker at '{}' with client id '{}'", rabbitMqConnection.getAddress(), rabbitMqConnection.getId());
     }
 
-    public void start() throws IOException {
-        if (!rabbitMqConfig.isEnabled()){
-            return;
-        }
-
-        gradingMessageChannel = rabbitMqConnection.createChannel();
-
-        gradingMessageChannel.exchangeDeclare(rabbitMqConfig.getExchangeName(), "direct", true);
-        String queueName = gradingMessageChannel.queueDeclare().getQueue();
-
-        gradingMessageChannel.queueBind(queueName, rabbitMqConfig.getExchangeName(), rabbitMqConfig.getGradingMessageRoutingKey());
-
-        log.info("Bind grading message queue '{}' on exchange '{}' with routing key '{}'", queueName, rabbitMqConfig.getExchangeName(), rabbitMqConfig.getGradingMessageRoutingKey());
-
-    }
-
-    public void end(){
-        if (!rabbitMqConfig.isEnabled()){
-            return;
-        }
-
-        if (gradingMessageChannel != null && gradingMessageChannel.isOpen()) {
-            try {
-                gradingMessageChannel.close();
-            } catch (IOException | TimeoutException e) {
-                log.error("Failed to close grading message channel!", e);
-            }
-        }
-
-        try {
-            rabbitMqConnection.close();
-        } catch (IOException e) {
-            log.error("Failed to close rabbitMQ connection!", e);
-        }
-
-    }
-
     public StartGradeMigrationFactory createMigrationConfig(UUID migrationId){
         return new StartGradeMigrationFactory(migrationId, rabbitMqConnection, rabbitMqConfig.getExchangeName(), mapper);
-    }
-
-    public boolean startGrading(MigrationConfig migrationConfig){
-        log.info("Issuing Grading:Start command to all grading servers for migration '{}'", migrationConfig.getMigrationId());
-        try {
-            gradingMessageChannel.basicPublish(
-                    rabbitMqConfig.getExchangeName(),
-                    rabbitMqConfig.getGradingMessageRoutingKey(),
-                    new AMQP.BasicProperties().builder()
-                            .contentType("application/json")
-                            // use persistent mode so that the message can be recovered
-                            .deliveryMode(2)
-                            .type("grading.start")
-                            .build(),
-                    mapper.writeValueAsBytes(migrationConfig.getGradingStartDTO()));
-        } catch (IOException e) {
-            log.error("Failed to issue Grading:Start command due to: ", e);
-            return false;
-        }
-
-        return true;
-    }
-
-    public void endGrading(MigrationConfig migrationConfig){
-        log.info("Attempting to end grading for migration '{}'", migrationConfig.getMigrationId());
-
-        try {
-            migrationConfig.getRawGradePublishChannel().close();
-            migrationConfig.getScoreReceivedChannel().close();
-        } catch (IOException | TimeoutException e) {
-            log.error("Failed to close connections due to: ", e);
-        }
-
-        // need to send a grading end message
     }
 
     public boolean sendScore(MigrationConfig migrationConfig, RawGradeDTO rawGrade){

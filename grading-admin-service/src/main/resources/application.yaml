@@ -42,4 +42,7 @@ grading-admin:
       enabled: true
       uri: amqp://${RABBITMQ_USER:admin}:${RABBITMQ_PASSWORD:?rabbitmq password required}@${RABBITMQ_HOST:localhost.dev:5672}
       exchange-name: "grading-admin-message-exchange"
-      grading-message-routing-key: "grading-admin.messaging"
+    policy-server:
+      enabled: true
+      uri: https://localhost.dev/
+

@@ -1,10 +1,4 @@
-port: 4443
-securityConfig:
-  serverKey: "./certs/."
-  serverCert: "./certs/."
-  trustedCAs:
-    - "./certs/."
-  clientCert: "./certs/."
+port: 80
 
 policyConfig:
   trustedServer: "https://localhost.dev"
@@ -12,6 +6,7 @@ policyConfig:
 rabbitMqConfig:
   username: "admin"
   password: "changeme!"
-  endpoint: "localhost"
+  endpoint: "localhost.dev"
   exchangeName: "exchange"
+  port: 5672
 

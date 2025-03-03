@@ -116,7 +116,12 @@ services:
       timeout: 3s
     volumes:
       - authentik-redis-store:/data
-
+  grading-policy-service:
+    build: ./grading-policy-service
+    command:
+      - /opt/config.yaml
+    volumes:
+      - "./grading-policy-service/config.yaml:/opt/config.yaml"
   minio:
     image: minio/minio:latest
     command: server /data
@@ -188,6 +193,8 @@ services:
         condition: service_completed_successfully
       openapi-docs:
         condition: service_started
+      grading-policy-service:
+        condition: service_healthy
 
   localhost.dev-local:
     hostname: localhost.dev
@@ -225,6 +232,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      grading-policy-service:
+        condition: service_started
 
 volumes:
   grading-admin-db:

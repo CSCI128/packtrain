@@ -23,6 +23,7 @@ export interface MigrationSet {
     consumer: ConsumerChannel;
     producer: Channel;
 }
+const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms))
 
 const activeMigrations: Map<string, MigrationSet> = new Map();
 
@@ -35,7 +36,21 @@ export async function connect(rabbitMqConfig: RabbitMqConfig): Promise<void> {
 
     const connectionURI = `amqp://${rabbitMqConfig.username}:${rabbitMqConfig.password}@${rabbitMqConfig.endpoint}:${rabbitMqConfig.port}`;
 
-    connection = await rabbitMqConnect(connectionURI);
+    let attempts = 0;
+    do {
+        try{
+            connection = await rabbitMqConnect(connectionURI);
+        } catch (e){
+            console.error(`Connection attempt failed! Retrying ${attempts+1}/10...`);
+        }
+
+        await delay(5000);
+
+    } while (connection === null && ++attempts < 10);
+
+    if (connection === null){
+        return Promise.reject("Failed to connect!");
+    }
 }
 
 export async function endConnection(): Promise<void> {
