@@ -10,44 +10,18 @@ import {
   ScrollArea,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { User } from "oidc-client-ts";
-import { useEffect, useState } from "react";
+import { useAuth } from "react-oidc-context";
 import { useNavigate } from "react-router-dom";
-import { handleLogin, handleLogout, store$, userManager } from "../../api";
+import { store$ } from "../../api";
 import { SelectClass } from "../../pages/admin/course/Select";
 import classes from "./Navbar.module.scss";
 
 export function Navbar() {
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
     useDisclosure(false);
-  const [user, setUser] = useState<User | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        const url = new URL(window.location.href);
-        if (url.searchParams.has("code") || url.searchParams.has("state")) {
-          await userManager.signinRedirectCallback();
-          window.history.replaceState({}, document.title, url.pathname);
-        }
-        const user = await userManager.getUser();
-        setUser(user);
-
-        // TODO need to check for instructors and redirect them.
-        if (user?.profile.is_admin && !store$.id.get()) {
-          navigate("/select");
-        } else if (!user?.profile.is_admin && !store$.id.get()) {
-          navigate("/");
-        }
-        console.log(user);
-      } catch (error) {
-        console.error("Error handling callback:", error);
-      }
-    };
-    handleCallback();
-  }, []);
+  const auth = useAuth();
 
   return (
     <>
@@ -85,16 +59,19 @@ export function Navbar() {
             />
 
             <Group>
-              {!user ? (
+              {!auth.user ? (
                 <Group visibleFrom="sm">
-                  <Button onClick={handleLogin} variant="default">
+                  <Button
+                    onClick={() => void auth.signinRedirect()}
+                    variant="default"
+                  >
                     Login
                   </Button>
                 </Group>
               ) : (
                 <Menu shadow="md" width={200}>
                   <Menu.Target>
-                    <p>{user.profile.name}</p>
+                    <p>{auth.user.profile.name}</p>
                   </Menu.Target>
 
                   <Menu.Dropdown>
@@ -104,17 +81,25 @@ export function Navbar() {
 
                     <Menu.Divider />
 
-                    <Menu.Item color="red" onClick={handleLogout}>
+                    <Menu.Item
+                      color="red"
+                      onClick={() => {
+                        void auth.signoutRedirect();
+                        store$.id.delete();
+                        store$.name.delete();
+                      }}
+                    >
                       Logout
                     </Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
               )}
 
-              {/* TODO this shouldnt show if not authenticated */}
-              <Button variant="default" onClick={open}>
-                {store$.name.get() || "Select Class"}
-              </Button>
+              {auth.isAuthenticated && (
+                <Button variant="default" onClick={open}>
+                  {store$.name.get() || "Select Class"}
+                </Button>
+              )}
             </Group>
           </Group>
 

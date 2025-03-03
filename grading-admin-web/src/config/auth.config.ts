@@ -11,4 +11,7 @@ export const AUTH_CONFIG = {
   post_logout_redirect_uri:
     import.meta.env.VITE_LOGOUT_REDIRECT_URI || "https://localhost.dev/",
   code_challenge_method: "S256",
+  onSigninCallback: () => {
+    window.history.replaceState({}, document.title, window.location.origin);
+  },
 };

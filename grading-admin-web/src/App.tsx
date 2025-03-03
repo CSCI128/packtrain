@@ -2,6 +2,7 @@ import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { useAuth } from "react-oidc-context";
 import {
   createBrowserRouter,
   Outlet,
@@ -68,6 +69,23 @@ const MiddlewareLayout = () => {
   return <Outlet />;
 };
 
+const CallbackPage = () => {
+  const auth = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (auth.isAuthenticated) {
+      if (auth.user?.profile.is_admin && !store$.id.get()) {
+        navigate("/select");
+      } else if (!auth.user?.profile.is_admin && !store$.id.get()) {
+        navigate("/");
+      }
+    }
+  }, [auth.isAuthenticated]);
+
+  return null;
+};
+
 const router = createBrowserRouter([
   {
     element: <Root />,
@@ -82,6 +100,10 @@ const router = createBrowserRouter([
           {
             path: "/select",
             element: <SelectClass />,
+          },
+          {
+            path: "/callback",
+            element: <CallbackPage />,
           },
           {
             path: "/admin/home",

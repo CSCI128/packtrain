@@ -1,5 +1,7 @@
-import requests
 import time
+
+import requests
+
 
 class Authentik:
     def __init__(self, base, token, recreate=False):
@@ -302,8 +304,8 @@ class Authentik:
             "redirect_uris": [
                 # im going to leave these hard coded
                 {
-                    "matching_mode": "regex",
-                    "url": "https://localhost.dev/.*"
+                    "matching_mode": "strict",
+                    "url": "https://localhost.dev/callback"
                 },
                 {
                     "matching_mode": "strict",
