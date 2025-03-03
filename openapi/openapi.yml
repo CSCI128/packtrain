@@ -872,6 +872,7 @@ paths:
                 error_source: "update_user"
                 error_message: "User '999-9999-9999-99' does not exist!"
 
+  /user/credentials/{credential_id}/delete:
     delete:
       tags:
         - user
@@ -883,14 +884,14 @@ paths:
         - openIDC: [user:write]
       parameters:
         - name: credential_id
-          in: query
+          in: path
           required: true
           schema:
             type: string
             example: "99-9999-9999-99"
       responses:
-        202:
-          description: "Accepted"
+        204:
+          description: "No Content"
         400:
           description: "Failed to delete credential"
           content:

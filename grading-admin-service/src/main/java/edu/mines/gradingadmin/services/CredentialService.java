@@ -121,7 +121,6 @@ public class CredentialService {
         return Optional.of(credentialRepo.save(credential.get()));
     }
 
-    @Transactional
     public void deleteCredential(Credential credential) {
         credentialRepo.delete(credential);
     }

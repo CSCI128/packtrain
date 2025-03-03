@@ -66,7 +66,7 @@ export function ProfilePage() {
 
   const deleteCredentialMutation = $api.useMutation(
     "delete",
-    "/user/credentials"
+    "/user/credentials/{credential_id}/delete"
   );
 
   if (isLoading || !data) return "Loading...";
@@ -104,7 +104,7 @@ export function ProfilePage() {
     deleteCredentialMutation.mutate(
       {
         params: {
-          query: { credential_id: credential_id },
+          path: { credential_id: credential_id },
         },
       },
       {

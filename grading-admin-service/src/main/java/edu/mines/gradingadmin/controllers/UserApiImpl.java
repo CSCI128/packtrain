@@ -119,9 +119,9 @@ public class UserApiImpl implements UserApiDelegate {
     public ResponseEntity<Void> deleteCredential(String credentialId){
         Optional<Credential> credential = credentialService.getCredentialById(UUID.fromString(credentialId));
         if (credential.isEmpty()){
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.notFound().build();
         }
         credentialService.deleteCredential(credential.get());
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.noContent().build();
     }
 }

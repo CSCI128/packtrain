@@ -407,6 +407,22 @@ export interface paths {
          *
          */
         post: operations["new_credential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/credentials/{credential_id}/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
         /**
          * Deletes a credential for the user.
          * @description Deletes a selected credential for the user.
@@ -1813,17 +1829,17 @@ export interface operations {
     };
     delete_credential: {
         parameters: {
-            query: {
+            query?: never;
+            header?: never;
+            path: {
                 credential_id: string;
             };
-            header?: never;
-            path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Accepted */
-            202: {
+            /** @description No Content */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
