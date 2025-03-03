@@ -1,6 +1,8 @@
 package edu.mines.gradingadmin.models.tasks;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -8,11 +10,11 @@ import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@Table(name = "course_import_tasks")
-@Entity(name = "course_import_task")
-public class CourseImportTaskDef extends ScheduledTaskDef {
+@Table(name = "sync_course_tasks")
+@Entity(name = "sync_course_task")
+public class CourseSyncTaskDef extends ScheduledTaskDef {
     @Column(name = "course_id")
-    private UUID courseToImport;
+    private UUID courseToSync;
 
     @Column(name = "canvas_id")
     private long canvasId;

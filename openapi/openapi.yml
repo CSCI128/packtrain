@@ -258,11 +258,13 @@ paths:
               $ref: "#/components/schemas/CourseSyncTask"
       responses:
         202:
-          description: "Accepted"
+          description: "Task Queued"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Task"
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
         403:
           description: "An authentication error occurred"
           content:
