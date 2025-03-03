@@ -13,18 +13,11 @@ import { useDisclosure } from "@mantine/hooks";
 import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  $api,
-  handleLogin,
-  handleLogout,
-  store$,
-  userManager,
-} from "../../api";
+import { handleLogin, handleLogout, store$, userManager } from "../../api";
 import { SelectClass } from "../../pages/admin/course/Select";
 import classes from "./Navbar.module.scss";
 
 export function Navbar() {
-  const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
     useDisclosure(false);
   const [user, setUser] = useState<User | null>(null);
@@ -41,16 +34,20 @@ export function Navbar() {
         }
         const user = await userManager.getUser();
         setUser(user);
+
+        // TODO need to check for instructors and redirect them.
+        if (user?.profile.is_admin && !store$.id.get()) {
+          navigate("/select");
+        } else if (!user?.profile.is_admin && !store$.id.get()) {
+          navigate("/");
+        }
+        console.log(user);
       } catch (error) {
         console.error("Error handling callback:", error);
       }
     };
     handleCallback();
   }, []);
-
-  if (isLoading || !data) return "Loading...";
-
-  if (error) return `An error occured: ${error}`;
 
   return (
     <>
@@ -114,6 +111,7 @@ export function Navbar() {
                 </Menu>
               )}
 
+              {/* TODO this shouldnt show if not authenticated */}
               <Button variant="default" onClick={open}>
                 {store$.name.get() || "Select Class"}
               </Button>

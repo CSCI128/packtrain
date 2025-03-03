@@ -53,7 +53,7 @@ const MiddlewareLayout = () => {
       try {
         const user = await userManager.getUser();
         if (!isAuthenticated && user) {
-          navigate("select");
+          navigate("/select");
         }
       } catch (error) {
         console.error("An error occurred:", error);
@@ -85,6 +85,7 @@ const router = createBrowserRouter([
           },
           {
             path: "/admin/home",
+            // TODO rename to AdminRoute and ensure this works with instructors + normal users too
             element: (
               <ProtectedRoute>
                 <CoursePage />
