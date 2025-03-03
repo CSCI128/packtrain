@@ -1,0 +1,12 @@
+port: 80
+
+policyConfig:
+  trustedServer: "https://localhost.dev"
+
+rabbitMqConfig:
+  username: "admin"
+  password: "changeme!"
+  endpoint: "localhost.dev"
+  exchangeName: "exchange"
+  port: 5672
+

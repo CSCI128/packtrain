@@ -1,0 +1,43 @@
+{
+  "name": "grading-policy-service",
+  "version": "1.0.0",
+  "description": "Grading Policy Microservice",
+  "main": "src/main.ts",
+  "scripts": {
+    "test": "node --import tsx --test --test-force-exit",
+    "bundle": "npx ncc build src/main.ts -o dist --source-map",
+    "lint": "prettier '**/*.ts' write",
+    "start": "node ./dist/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.10.5",
+    "axios": "^1.7.9",
+    "express": "^4.21.2",
+    "systemjs": "^6.15.1",
+    "uuid": "^11.1.0",
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "@testcontainers/rabbitmq": "^10.18.0",
+    "@types/amqplib": "^0.10.6",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.4",
+    "@vercel/ncc": "^0.38.3",
+    "eslint": "^9.21.0",
+    "glob": "^11.0.1",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.2",
+    "prettier-eslint": "^16.3.0",
+    "testcontainers": "^10.18.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.25.0"
+  },
+  "prettier": {
+    "tabWidth": 4
+  }
+}

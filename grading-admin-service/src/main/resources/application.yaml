@@ -28,13 +28,21 @@ server:
 grading-admin:
   external-services:
     canvas:
+      enabled: true
       endpoint: https://elearning.mines.edu/
       teacher-enrollment-name: "TeacherEnrollment"
       student-enrollment-name: "StudentEnrollment"
       ta-enrollment-name: "TaEnrollment"
     s3:
+      enabled: true
       uri: ${S3_URI:https://localhost.dev:9000}
-      access_key: ${MINIO_ROOT_USER:admin}
-      secret_key: ${S3_SECRET_KEY:?s3 secret key required}
+      access-key: ${MINIO_ROOT_USER:admin}
+      secret-key: ${S3_SECRET_KEY:?s3 secret key required}
     rabbitmq:
+      enabled: true
       uri: amqp://${RABBITMQ_USER:admin}:${RABBITMQ_PASSWORD:?rabbitmq password required}@${RABBITMQ_HOST:localhost.dev:5672}
+      exchange-name: "grading-admin-message-exchange"
+    policy-server:
+      enabled: true
+      uri: https://localhost.dev/
+

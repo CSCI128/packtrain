@@ -13,17 +13,11 @@ import java.util.function.Supplier;
 public interface PostgresTestContainer {
 	PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:alpine"));
 
-	Supplier<Object> CONNECTION_STRING = postgres::getJdbcUrl;
-
-	Supplier<Object> USER_NAME = postgres::getUsername;
-
-	Supplier<Object> PASSWORD = postgres::getPassword;
-
 	@DynamicPropertySource
 	static void setPostgresProperties(DynamicPropertyRegistry registry){
-		registry.add("spring.datasource.url", CONNECTION_STRING);
-		registry.add("spring.datasource.username", USER_NAME);
-		registry.add("spring.datasource.password", PASSWORD);
+		registry.add("spring.datasource.url", postgres::getJdbcUrl);
+		registry.add("spring.datasource.username", postgres::getUsername);
+		registry.add("spring.datasource.password", postgres::getPassword);
 	}
 
 

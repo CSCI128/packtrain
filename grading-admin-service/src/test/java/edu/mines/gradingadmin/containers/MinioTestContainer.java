@@ -12,15 +12,12 @@ import java.util.function.Supplier;
 public interface MinioTestContainer {
     MinIOContainer minio = new MinIOContainer(DockerImageName.parse("minio/minio"));
 
-    Supplier<Object> S3_URI = minio::getS3URL;
-    Supplier<Object> ACCESS_KEY = minio::getUserName;
-    Supplier<Object> SECRET_KEY = minio::getPassword;
-
     @DynamicPropertySource
     static void setMinioProperties(DynamicPropertyRegistry registry){
-        registry.add("grading-admin.external-services.s3.uri", S3_URI);
-        registry.add("grading-admin.external-services.s3.access_key", ACCESS_KEY);
-        registry.add("grading-admin.external-services.s3.secret_key", SECRET_KEY);
+        registry.add("grading-admin.external-services.s3.enabled", () -> true);
+        registry.add("grading-admin.external-services.s3.uri", minio::getS3URL);
+        registry.add("grading-admin.external-services.s3.access_key", minio::getUserName);
+        registry.add("grading-admin.external-services.s3.secret_key", minio::getPassword);
 
     }
 }
