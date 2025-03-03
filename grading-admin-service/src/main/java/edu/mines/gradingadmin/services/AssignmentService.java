@@ -2,7 +2,9 @@ package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.models.Assignment;
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.tasks.AssignmentsSyncTaskDef;
 import edu.mines.gradingadmin.repositories.AssignmentRepo;
+import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +14,12 @@ import java.util.*;
 @Service
 @Slf4j
 public class AssignmentService {
-
+    private final ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo;
     private final AssignmentRepo assignmentRepo;
     private final CourseService courseService;
 
-    public AssignmentService(AssignmentRepo assignmentRepo, CourseService courseService) {
+    public AssignmentService(ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo, AssignmentRepo assignmentRepo, CourseService courseService) {
+        this.taskRepo = taskRepo;
         this.assignmentRepo = assignmentRepo;
         this.courseService = courseService;
     }

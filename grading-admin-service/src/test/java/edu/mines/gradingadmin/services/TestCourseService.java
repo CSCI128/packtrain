@@ -157,8 +157,8 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         taskDef.setCreatedByUser(admin);
         taskDef.setCourseToSync(course.getId());
         taskDef.setCanvasId(course1Id);
-        taskDef.setOverwriteCode(true);
-        taskDef.setOverwriteName(true);
+        taskDef.setShouldOverwriteCode(true);
+        taskDef.setShouldOverwriteName(true);
 
         courseService.syncCourseTask(taskDef);
 
