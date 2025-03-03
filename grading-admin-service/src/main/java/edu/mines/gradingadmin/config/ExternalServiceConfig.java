@@ -40,8 +40,16 @@ public class ExternalServiceConfig {
         private final boolean enabled;
         private URI uri;
         private String exchangeName;
-        private String gradingMessageRoutingKey;
     };
+
+
+    @AllArgsConstructor
+    @RequiredArgsConstructor
+    @Getter
+    public static class PolicyServerConfig{
+        private final boolean enabled;
+        private URI uri;
+    }
 
     @Bean
     public CanvasConfig configureCanvas(
@@ -71,16 +79,27 @@ public class ExternalServiceConfig {
     }
 
     @Bean
-    public RabbitMqConfig configRabbitMq(
+    public RabbitMqConfig configureRabbitMq(
             @Value("${grading-admin.external-services.rabbitmq.enabled}") boolean enabled,
             @Value("${grading-admin.external-services.rabbitmq.uri}") URI uri,
-            @Value("${grading-admin.external-services.rabbitmq.exchange-name}") String exchangeName,
-            @Value("${grading-admin.external-services.rabbitmq.grading-message-routing-key}") String gradingMessageQueueName
+            @Value("${grading-admin.external-services.rabbitmq.exchange-name}") String exchangeName
     ){
         if (!enabled){
             return new RabbitMqConfig(false);
         }
-        return new RabbitMqConfig(true, uri, exchangeName, gradingMessageQueueName);
+        return new RabbitMqConfig(true, uri, exchangeName);
+    }
+
+    @Bean
+    public PolicyServerConfig configurePolicyServer(
+            @Value("${grading-admin.external-services.policy-server.enabled}") boolean enabled,
+            @Value("${grading-admin.external-services.policy-server.uri}") URI uri
+    ){
+        if (!enabled){
+            return new PolicyServerConfig(false);
+        }
+
+        return new PolicyServerConfig(true, uri);
     }
 
 

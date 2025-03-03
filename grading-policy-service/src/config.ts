@@ -13,15 +13,7 @@ export interface PolicyConfig {
     trustedServer: string;
 }
 
-export interface SecurityConfig {
-    serverKey: string;
-    serverCert: string;
-    trustedCAs: string[];
-    clientCert: string;
-}
-
 export interface GradingPolicyConfig {
-    securityConfig: SecurityConfig;
     policyConfig: PolicyConfig;
     rabbitMqConfig: RabbitMqConfig;
 

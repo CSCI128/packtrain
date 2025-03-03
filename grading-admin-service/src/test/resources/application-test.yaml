@@ -29,3 +29,5 @@ grading-admin:
       enabled: false
     rabbitmq:
       enabled: false
+    policy-server:
+      enabled: false

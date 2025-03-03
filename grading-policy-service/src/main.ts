@@ -1,24 +1,18 @@
 import express from "express";
-import https from "https";
-import { config } from "./config";
-import { readFileSync } from "node:fs";
-import { setup } from "./api/api";
-import { connect } from "./services/rabbitMqService";
-
-const serverOpts: https.ServerOptions = {
-    key: readFileSync(config.securityConfig.serverKey),
-    cert: readFileSync(config.securityConfig.serverCert),
-    requestCert: true,
-    rejectUnauthorized: false,
-    ca: config.securityConfig.trustedCAs.map((ca) => readFileSync(ca)),
-};
+import http from "http";
+import {config} from "./config";
+import {setup} from "./api/api";
+import {connect} from "./services/rabbitMqService";
 
 const app = setup(config, express());
 
 connect(config.rabbitMqConfig).then(() => {
-    console.log("Connection Established!");
+    console.log("RabbitMQ Connection Established!");
+})
+.catch(e => {
+    console.error("Failed to connect to rabbitMQ", e)
 });
 
-https.createServer(serverOpts, app).listen(config.port, () => {
+http.createServer(app).listen(config.port, () => {
     console.log(`Listening on :${config.port}`);
 });

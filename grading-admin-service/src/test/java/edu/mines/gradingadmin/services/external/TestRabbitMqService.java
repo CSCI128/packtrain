@@ -27,13 +27,13 @@ import java.util.function.Consumer;
 
 @SpringBootTest
 public class TestRabbitMqService implements PostgresTestContainer, RabbitMqTestContainer {
-    @Autowired
-    private RabbitMqService rabbitMqService;
-
     private static Connection rabbitMqConnection;
 
     @Autowired
-    ObjectMapper mapper;
+    private RabbitMqService rabbitMqService;
+
+    @Autowired
+    private ObjectMapper mapper;
 
 
     @BeforeAll
@@ -52,12 +52,6 @@ public class TestRabbitMqService implements PostgresTestContainer, RabbitMqTestC
         rabbitMqConnection.close();
 
     }
-
-    @BeforeEach
-    void setup() throws IOException {
-        rabbitMqService.start();
-    }
-
 
     @Test
     void verifyCreateMigrationConfig() throws IOException, TimeoutException {
@@ -152,41 +146,6 @@ public class TestRabbitMqService implements PostgresTestContainer, RabbitMqTestC
 
         // clean up testing connection
         scoreReceiver.close();
-    }
-
-    @Test
-    void verifySendsStartGrading() throws IOException, TimeoutException, InterruptedException {
-        RabbitMqService.MigrationConfig config = rabbitMqService.createMigrationConfig(UUID.randomUUID())
-                .build();
-
-        Channel gradingStartReceiver = rabbitMqConnection.createChannel();
-        String queue = gradingStartReceiver.queueDeclare().getQueue();
-        gradingStartReceiver.queueBind(queue, rabbitMqExchange.get().toString(), rabbitMqGradingMessageRoutingKey.get().toString());
-
-        class Wrapper {
-            GradingStartDTO data;
-        }
-
-        Wrapper wrapper = new Wrapper();
-
-        gradingStartReceiver.basicConsume(queue, new DefaultConsumer(gradingStartReceiver) {
-            @Override
-            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-                wrapper.data = mapper.readValue(body, GradingStartDTO.class);
-            }
-        });
-
-        Assertions.assertTrue(rabbitMqService.startGrading(config));
-
-        // Yucky - but not really a good way to wait for the network otherwise
-        TimeUnit.MILLISECONDS.sleep(500);
-
-        Assertions.assertNotNull(wrapper.data);
-        Assertions.assertEquals(config.getGradingStartDTO(), wrapper.data);
-
-        // clean up testing connection
-        gradingStartReceiver.close();
-
     }
 
 }
