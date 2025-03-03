@@ -15,7 +15,6 @@ import "./index.css";
 import { CoursePage } from "./pages/admin/course/Course";
 import { CreatePage } from "./pages/admin/course/Create";
 import { EditCourse } from "./pages/admin/course/Edit";
-import { ImportPage } from "./pages/admin/course/Import";
 import { SelectClass } from "./pages/admin/course/Select";
 import { UsersPage } from "./pages/admin/users";
 import { HomePage } from "./pages/Home";
@@ -131,14 +130,6 @@ const router = createBrowserRouter([
             element: (
               <ProtectedRoute>
                 <CreatePage />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: "/admin/import",
-            element: (
-              <ProtectedRoute>
-                <ImportPage />
               </ProtectedRoute>
             ),
           },
