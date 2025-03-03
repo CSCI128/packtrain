@@ -203,7 +203,7 @@ export function MembersPage() {
         Course Members
       </Text>
 
-      <Tabs defaultValue="first" mt={10}>
+      <Tabs defaultValue="first" mt={10} onChange={() => setSearch("")}>
         <Tabs.List>
           <Tabs.Tab value="first">Students</Tabs.Tab>
           <Tabs.Tab value="second">Instructors</Tabs.Tab>
