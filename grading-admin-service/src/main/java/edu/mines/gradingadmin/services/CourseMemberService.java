@@ -240,8 +240,8 @@ public class CourseMemberService {
         return Optional.of(courseMemberRepo.save(member));
     }
 
-    public boolean removeMembershipForUserAndCourse(User user, UUID courseId){
-        Optional<Course> course = courseService.getCourse(courseId);
+    public boolean removeMembershipForUserAndCourse(User user, String courseId){
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if (course.isEmpty()){
             log.warn("Course '{}' does not exist!", courseId);
             return false;

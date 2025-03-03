@@ -13,6 +13,16 @@ public class UserSeeders {
         this.repo = repo;
     }
 
+    public User user(String name, String email,String cwid){
+        User user = new User();
+        user.setName(name);
+        user.setEmail(email);
+        user.setCwid(cwid);
+        user.setEnabled(true);
+
+        return repo.save(user);
+    }
+
     public User user1(){
         User user = new User();
         user.setName("User 1");
