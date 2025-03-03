@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { $api, store$ } from "../../../api";
 
 export function CreatePage() {
+  const POLLING_INTERVAL = 10000;
   const mutation = $api.useMutation("post", "/admin/courses");
   const mutation2 = $api.useMutation(
     "post",
@@ -24,14 +25,15 @@ export function CreatePage() {
   const [taskId3, setTaskId3] = useState(-1);
   const [canvasId, setCanvasId] = useState("");
   const [courseId, setCourseId] = useState("");
-  const POLLING_INTERVAL = 10000;
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
+
+  // TODO this might not be needed based off alltasksCompleted
   const [courseCreated, setCourseCreated] = useState(false);
   const [importing, setImporting] = useState(false);
   const [membersImported, setMembersImported] = useState(0);
   const [assignmentsImported, setAssignmentsImported] = useState(0);
   const [sectionsImported, setSectionsImported] = useState(0);
-  // TODO make struct
+  // TODO make struct for this and cleanup this file ^^
 
   // TODO add/link service mutation here
 
