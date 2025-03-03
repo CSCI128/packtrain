@@ -25,9 +25,6 @@ public class Credential {
     @Column(name="private")
     private boolean isPrivate;
 
-    @Column(name="active")
-    private boolean isActive;
-
     @ManyToOne(optional=false)
     @JoinColumn(name="user_id", referencedColumnName="cwid")
     @ToString.Exclude

@@ -1,20 +1,35 @@
 import {
   Box,
   Button,
+  Center,
   Container,
   Divider,
   Group,
   Modal,
   Select,
+  Stack,
   Text,
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import React from "react";
+import React, { useState } from "react";
 import { $api } from "../api";
 
+// TODO figure out how to grab the types from the generated file
+export interface Credential {
+  id?: string;
+  name?: string;
+  service: "canvas" | "gradescope";
+  api_key?: string;
+  private?: boolean;
+}
+
 export function ProfilePage() {
+  const [selectedCredential, setSelectedCredential] =
+    useState<Credential | null>(null);
+  const [deleteOpened, { open: openDelete, close: closeDelete }] =
+    useDisclosure(false);
   const [opened, { open, close }] = useDisclosure(false);
   const form = useForm({
     mode: "uncontrolled",
@@ -49,7 +64,10 @@ export function ProfilePage() {
 
   const mutation = $api.useMutation("post", "/user/credentials");
 
-  const disableCredentialMutation = $api.useMutation("put", "/user/credentials/{credential_id}/disable");
+  const deleteCredentialMutation = $api.useMutation(
+    "delete",
+    "/user/credentials/{credential_id}/delete"
+  );
 
   if (isLoading || !data) return "Loading...";
 
@@ -68,7 +86,6 @@ export function ProfilePage() {
             admin: data.admin,
           },
           service: values.service === "Canvas" ? "canvas" : "gradescope",
-          active: true,
           api_key: values.apiKey,
           name: values.credentialName,
           private: true,
@@ -83,23 +100,55 @@ export function ProfilePage() {
     close();
   };
 
-  const disableCredential = (credential_id: string) => {
-    disableCredentialMutation.mutate(
+  const deleteCredential = (credential_id: string) => {
+    deleteCredentialMutation.mutate(
       {
         params: {
-          path: {credential_id: credential_id}
-        }
+          path: { credential_id: credential_id },
+        },
       },
       {
         onSuccess: () => {
           refetch();
-        }
+        },
       }
-    )
-  }
+    );
+    closeDelete();
+  };
+
+  const handleDelete = (credential: Credential) => {
+    setSelectedCredential(credential);
+    openDelete();
+  };
 
   return (
     <>
+      <Modal
+        opened={deleteOpened}
+        onClose={closeDelete}
+        title="Delete Credential"
+        centered
+      >
+        <Center>
+          <Stack>
+            <Text size="md">
+              Are you sure you want to delete the specified credential?
+            </Text>
+
+            <Button color="gray" onClick={closeDelete}>
+              Cancel
+            </Button>
+
+            <Button
+              color="red"
+              onClick={() => deleteCredential(selectedCredential?.id!)}
+            >
+              Delete
+            </Button>
+          </Stack>
+        </Center>
+      </Modal>
+
       <Modal opened={opened} onClose={close} title="Add Credential">
         <form onSubmit={form.onSubmit(addCredential)}>
           <TextInput
@@ -175,22 +224,14 @@ export function ProfilePage() {
           <React.Fragment key={credential.id}>
             <Box size="sm" mt={15}>
               <Text size="md" fw={700}>
-                {credential.name} ({credential.active ? "Active" : "Inactive"})
+                {credential.name}
               </Text>
 
               <Text size="md">Service: {credential.service}</Text>
 
-              <Text size="md">API Key: {credential.api_key}</Text>
-
-              {credential.active ? (
-                <>
-                  <Button color="red" onClick={ () => disableCredential(credential.id!.toString()) }>Disable</Button>
-                </>
-              ) : (
-                <>
-                  <Button color="green" onClick={ open }>Enable</Button>
-                </>
-              )}
+              <Button color="red" onClick={() => handleDelete(credential)}>
+                Delete
+              </Button>
             </Box>
           </React.Fragment>
         ))}

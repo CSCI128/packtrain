@@ -872,14 +872,14 @@ paths:
                 error_source: "update_user"
                 error_message: "User '999-9999-9999-99' does not exist!"
 
-  /user/credentials/{credential_id}/disable:
-    put:
+  /user/credentials/{credential_id}/delete:
+    delete:
       tags:
         - user
-      operationId: disable_credential
-      summary: Disables a credential for the user.
+      operationId: delete_credential
+      summary: Deletes a credential for the user.
       description: |
-        Disables a selected credential for the user.
+        Deletes a selected credential for the user.
       security:
         - openIDC: [user:write]
       parameters:
@@ -889,19 +889,18 @@ paths:
           schema:
             type: string
             example: "99-9999-9999-99"
-
       responses:
-        202:
-          description: "Accepted"
+        204:
+          description: "No Content"
         400:
-          description: "Failed to disable credential"
+          description: "Failed to delete credential"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 error_source: "update_user"
-                error_message: "Failed to disable credential for user"
+                error_message: "Failed to delete credential for user"
         404:
           description: "Credential not found"
           content:
@@ -1393,7 +1392,7 @@ paths:
         Create a new extension request for an assignment.
         Replies with an extension request for a user and assignment.
       security:
-        - openIDC: [ instructor:write ]
+        - openIDC: [instructor:write]
       parameters:
         - name: course_id
           required: true
@@ -1449,7 +1448,7 @@ paths:
       description: |
         This endpoint gets all approved extensions for a given instructor
       security:
-        - openIDC: [ instructor:read ]
+        - openIDC: [instructor:read]
       parameters:
         - name: course_id
           required: true
@@ -1509,7 +1508,7 @@ paths:
       description: |
         This endpoint gets all approved extensions for a given member
       security:
-        - openIDC: [ instructor:read ]
+        - openIDC: [instructor:read]
       parameters:
         - name: course_id
           required: true
@@ -1569,7 +1568,7 @@ paths:
       description: |
         This endpoint gets all extensions for a given section
       security:
-        - openIDC: [ instructor:read ]
+        - openIDC: [instructor:read]
       parameters:
         - name: course_id
           required: true
@@ -1620,8 +1619,6 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-
-
   /admin/courses/{course_id}/extensions:
     get:
       tags:
@@ -1631,7 +1628,7 @@ paths:
       description: |
         This endpoint gets all extensions for a given course
       security:
-        - openIDC: [ admin:read ]
+        - openIDC: [admin:read]
       parameters:
         - name: course_id
           required: true
@@ -1679,7 +1676,7 @@ paths:
         Replies with an extension request including the request date, assignment impacted, new due date,
         status, and reason for extension.
       security:
-        - openIDC: [ student:write ]
+        - openIDC: [student:write]
       parameters:
         - name: course_id
           required: true
@@ -1704,7 +1701,6 @@ paths:
               example:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
-
 
 components:
   securitySchemes:
@@ -1832,9 +1828,6 @@ components:
           type: string
           example: "a super secure key"
         private:
-          type: boolean
-          example: true
-        active:
           type: boolean
           example: true
         owning_user:
@@ -2038,9 +2031,3 @@ components:
         response_to_requester:
           type: string
           example: "Your 3 day extension for illness is approved"
-
-
-
-
-
-
