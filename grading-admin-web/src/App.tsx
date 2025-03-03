@@ -2,6 +2,7 @@ import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { useAuth } from "react-oidc-context";
 import {
   createBrowserRouter,
   Outlet,
@@ -14,7 +15,6 @@ import "./index.css";
 import { CoursePage } from "./pages/admin/course/Course";
 import { CreatePage } from "./pages/admin/course/Create";
 import { EditCourse } from "./pages/admin/course/Edit";
-import { ImportPage } from "./pages/admin/course/Import";
 import { SelectClass } from "./pages/admin/course/Select";
 import { UsersPage } from "./pages/admin/users";
 import { HomePage } from "./pages/Home";
@@ -53,7 +53,7 @@ const MiddlewareLayout = () => {
       try {
         const user = await userManager.getUser();
         if (!isAuthenticated && user) {
-          navigate("select");
+          navigate("/select");
         }
       } catch (error) {
         console.error("An error occurred:", error);
@@ -66,6 +66,23 @@ const MiddlewareLayout = () => {
   }, [isAuthenticated, navigate]);
 
   return <Outlet />;
+};
+
+const CallbackPage = () => {
+  const auth = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (auth.isAuthenticated) {
+      if (auth.user?.profile.is_admin && !store$.id.get()) {
+        navigate("/select");
+      } else if (!auth.user?.profile.is_admin && !store$.id.get()) {
+        navigate("/");
+      }
+    }
+  }, [auth.isAuthenticated]);
+
+  return null;
 };
 
 const router = createBrowserRouter([
@@ -84,7 +101,12 @@ const router = createBrowserRouter([
             element: <SelectClass />,
           },
           {
+            path: "/callback",
+            element: <CallbackPage />,
+          },
+          {
             path: "/admin/home",
+            // TODO rename to AdminRoute and ensure this works with instructors + normal users too
             element: (
               <ProtectedRoute>
                 <CoursePage />
@@ -108,14 +130,6 @@ const router = createBrowserRouter([
             element: (
               <ProtectedRoute>
                 <CreatePage />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: "/admin/import",
-            element: (
-              <ProtectedRoute>
-                <ImportPage />
               </ProtectedRoute>
             ),
           },
