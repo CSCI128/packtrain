@@ -964,6 +964,11 @@ export interface components {
             /** @example Assessment 1 */
             name: string;
             /**
+             * Format: int64
+             * @example 1245678
+             */
+            canvas_id: number;
+            /**
              * Format: double
              * @example 15
              */
@@ -980,10 +985,12 @@ export interface components {
             unlock_date: string;
             /** @example true */
             enabled: boolean;
+            /** @example false */
+            group_assignment?: boolean;
+            /** @example false */
+            attention_required?: boolean;
             /** @example Quiz */
             category: string;
-            /** @example 12345678 */
-            canvas_id: string;
         };
         /** @description A complete course */
         Course: {

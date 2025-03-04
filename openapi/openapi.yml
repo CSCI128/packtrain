@@ -1914,6 +1914,10 @@ components:
         name:
           type: string
           example: "Assessment 1"
+        canvas_id:
+          type: integer
+          format: int64
+          example: 1245678
         points:
           type: number
           format: double
@@ -1929,12 +1933,15 @@ components:
         enabled:
           type: boolean
           example: true
+        group_assignment:
+          type: boolean
+          example: false
+        attention_required:
+          type: boolean
+          example: false
         category:
           type: string
           example: "Quiz"
-        canvas_id:
-          type: string
-          example: "12345678"
     Course:
       description: "A complete course"
       type: object
