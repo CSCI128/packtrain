@@ -20,7 +20,7 @@ import { $api } from "../api";
 export interface Credential {
   id?: string;
   name?: string;
-  service: "canvas" | "gradescope";
+  service?: string;
   api_key?: string;
   private?: boolean;
 }
@@ -44,10 +44,10 @@ export function ProfilePage() {
       apiKey: (value) =>
         value.length < 1 ? "API key must have at least 1 character" : null,
       service: (value) =>
-        value != "Canvas" &&
-        value != "Gradescope" &&
-        value != "PrairieLearn" &&
-        value != "Runestone"
+        value != "canvas" &&
+        value != "gradescope" &&
+        value != "prairielearn" &&
+        value != "runestone"
           ? "Please select a valid service!"
           : null,
     },
@@ -85,7 +85,7 @@ export function ProfilePage() {
             name: data.name,
             admin: data.admin,
           },
-          service: values.service === "Canvas" ? "canvas" : "gradescope",
+          service: values.service as "canvas" | "gradescope", // still cursed
           api_key: values.apiKey,
           name: values.credentialName,
           private: true,
@@ -163,7 +163,12 @@ export function ProfilePage() {
             withAsterisk
             label="Service:"
             placeholder="Pick value"
-            data={["Canvas", "Gradescope", "PrairieLearn", "Runestone"]}
+            data={[
+              { value: "canvas", label: "Canvas" },
+              { value: "gradescope", label: "Gradescope" },
+              { value: "prairielearn", label: "PrairieLearn" },
+              { value: "runestone", label: "Runestone" },
+            ]}
             key={form.key("service")}
             {...form.getInputProps("service")}
           />
