@@ -239,11 +239,17 @@ public class AdminApiImpl implements AdminApiDelegate {
         if (include.contains("assignments")) {
             courseDto.setAssignments(course.get().getAssignments().stream().map(assignment ->
                     new AssignmentDTO()
-                            .category(assignment.getCategory())
-                            .dueDate(assignment.getDueDate())
-                            .unlockDate(assignment.getUnlockDate())
-                            .enabled(assignment.isEnabled())
-                            .points(assignment.getPoints())
+                        .id(assignment.getId().toString())
+                        .name(assignment.getName())
+                        .canvasId(assignment.getCanvasId())
+                        .points(assignment.getPoints())
+                        .dueDate(assignment.getDueDate())
+                        .unlockDate(assignment.getUnlockDate())
+                        .category(assignment.getCategory())
+                        .groupAssignment(assignment.isGroupAssignment())
+                        .attentionRequired(assignment.isAttentionRequired())
+                    // need to add external source config
+                    .enabled(assignment.isEnabled())
             ).toList());
         }
 

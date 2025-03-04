@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.ToString;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -43,7 +42,7 @@ public class Assignment {
     private boolean groupAssignment = false;
 
     @Column(name = "requires_attention")
-    private boolean requiresAttention = false;
+    private boolean attentionRequired = false;
 
     @OneToOne(optional = true)
     @JoinColumn(name = "external_config", referencedColumnName = "id")

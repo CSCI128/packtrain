@@ -56,6 +56,7 @@ public class AssignmentService {
 
         IdentityProvider impersonatedUser = impersonationManager.impersonateUser(task.getCreatedByUser());
 
+        Map<Long, String> assignmentGroups = canvasService.asUser(impersonatedUser).getAssignmentGroups(course.get().getCanvasId());
         List<edu.ksu.canvas.model.assignment.Assignment> assignments = canvasService.asUser(impersonatedUser).getCourseAssignments(course.get().getCanvasId());
 
         Set<Long> incomingAssignments = assignments.stream().map(edu.ksu.canvas.model.assignment.Assignment::getId).collect(Collectors.toSet());
@@ -68,6 +69,7 @@ public class AssignmentService {
 
         if (task.shouldAddNewAssignments()){
             Set<Assignment> newAssignments = createNewAssignments(
+                    assignmentGroups,
                     assignments.stream().filter(a -> assignmentsToCreate.contains(a.getId())).toList(),
                     course.get()
             );
@@ -94,7 +96,7 @@ public class AssignmentService {
 
     }
 
-    private Set<Assignment> createNewAssignments(List<edu.ksu.canvas.model.assignment.Assignment> canvasAssignments, Course course){
+    private Set<Assignment> createNewAssignments(Map<Long, String> assignmentGroups, List<edu.ksu.canvas.model.assignment.Assignment> canvasAssignments, Course course){
         Set<Assignment> assignments = new HashSet<>();
 
         for (edu.ksu.canvas.model.assignment.Assignment assignment : canvasAssignments){
@@ -102,6 +104,10 @@ public class AssignmentService {
             a.setName(assignment.getName());
             a.setCanvasId(assignment.getId());
             a.setPoints(assignment.getPointsPossible());
+
+            if (assignment.getAssignmentGroupId() != null && assignmentGroups.containsKey(assignment.getAssignmentGroupId())){
+                a.setCategory(assignmentGroups.get(assignment.getAssignmentGroupId()));
+            }
 
             if (assignment.getDueAt() != null){
                 a.setDueDate(assignment.getDueAt().toInstant());
@@ -118,11 +124,11 @@ public class AssignmentService {
             }
 
             if (assignment.getSubmissionTypes().isEmpty()){
-                a.setRequiresAttention(true);
+                a.setAttentionRequired(true);
             }
             else if (assignment.getSubmissionTypes().getFirst().equals("none") ||
                     assignment.getSubmissionTypes().getFirst().equals("external_tool")){
-                a.setRequiresAttention(true);
+                a.setAttentionRequired(true);
             }
 
             a.setCourse(course);
