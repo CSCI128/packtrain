@@ -307,16 +307,14 @@ export function CreatePage() {
             </Group>
           </Chip.Group>
 
-          {courseCreated ? (
-            <></>
-          ) : (
+          {!courseCreated && (
             <Group justify="flex-end" mt="md">
               <Button type="submit">Create</Button>
             </Group>
           )}
         </form>
 
-        {courseCreated ? (
+        {courseCreated && (
           <>
             {!allTasksCompleted ? (
               <>
@@ -351,8 +349,6 @@ export function CreatePage() {
               </Button>
             </Group>
           </>
-        ) : (
-          <></>
         )}
       </Container>
     </>

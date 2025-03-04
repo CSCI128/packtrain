@@ -239,8 +239,7 @@ export function UsersPage() {
   const rows = sortedData.map((row) => (
     <Table.Tr key={row.cwid}>
       <Table.Td>
-        {row.name} {row.admin ? <>(admin)</> : <></>}{" "}
-        {!row.enabled ? <>(disabled)</> : <></>}
+        {row.name} {row.admin && <>(admin)</>} {!row.enabled && <>(disabled)</>}
       </Table.Td>
       <Table.Td>{row.email}</Table.Td>
       <Table.Td>{row.cwid}</Table.Td>
