@@ -21,6 +21,9 @@ public class Assignment {
     @Column(name = "name")
     private String name;
 
+    @Column(name ="canvas_id", unique = true)
+    private long canvasId;
+
     @Column(name = "points")
     private double points;
 
@@ -34,7 +37,14 @@ public class Assignment {
     private String category;
 
     @Column(name = "enabled")
-    private boolean enabled;
+    private boolean enabled = true;
+
+    @Column(name = "is_group_assignment")
+    private boolean groupAssignment = false;
+
+    @OneToOne(optional = true)
+    @JoinColumn(name = "external_config", referencedColumnName = "id")
+    private ExternalAssignment externalAssignmentConfig;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "course_id", referencedColumnName = "id")
