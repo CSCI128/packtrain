@@ -1258,13 +1258,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Accepted */
+            /** @description Task Queued */
             202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Task"];
+                    "application/json": components["schemas"]["Task"][];
                 };
             };
             /** @description An authentication error occurred */
