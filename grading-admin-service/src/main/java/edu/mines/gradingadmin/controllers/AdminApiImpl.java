@@ -115,6 +115,16 @@ public class AdminApiImpl implements AdminApiDelegate {
             tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
         }
 
+        if (courseSyncTaskDTO.getImportAssignments()){
+            // currently not doing the update because oh god reconciling that seems like a pain
+            Optional<ScheduledTaskDef> importAssignmentsTask = assignmentService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.get().getId()), courseUUID, true, true, false);
+            if (importAssignmentsTask.isEmpty()){
+                return ResponseEntity.badRequest().build();
+            }
+
+            tasks.add(importAssignmentsTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        }
+
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(tasks);
     }
 
@@ -151,6 +161,16 @@ public class AdminApiImpl implements AdminApiDelegate {
             }
 
             tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        }
+
+        if (courseSyncTaskDTO.getImportAssignments()){
+            // currently not doing the update because oh god reconciling that seems like a pain
+            Optional<ScheduledTaskDef> importAssignmentsTask = assignmentService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.get().getId()), courseUUID, true, true, false);
+            if (importAssignmentsTask.isEmpty()){
+                return ResponseEntity.badRequest().build();
+            }
+
+            tasks.add(importAssignmentsTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(tasks);

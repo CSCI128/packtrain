@@ -105,7 +105,9 @@ public class CourseMemberService {
 
         if (task.shouldRemoveOldUsers()) {
             log.info("Deleting {} course memberships for '{}'", cwidsToRemove.size(), course.get().getCode());
-            courseMemberRepo.deleteByCourseAndCwid(course.get(), cwidsToRemove);
+            if (!cwidsToRemove.isEmpty()) {
+                courseMemberRepo.deleteByCourseAndCwid(course.get(), cwidsToRemove);
+            }
         }
 
         if (task.shouldUpdateExistingUsers()) {

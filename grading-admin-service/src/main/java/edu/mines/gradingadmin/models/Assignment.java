@@ -42,6 +42,9 @@ public class Assignment {
     @Column(name = "is_group_assignment")
     private boolean groupAssignment = false;
 
+    @Column(name = "requires_attention")
+    private boolean requiresAttention = false;
+
     @OneToOne(optional = true)
     @JoinColumn(name = "external_config", referencedColumnName = "id")
     private ExternalAssignment externalAssignmentConfig;
