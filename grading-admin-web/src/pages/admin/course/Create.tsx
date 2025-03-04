@@ -12,6 +12,8 @@ import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { $api, store$ } from "../../../api";
+import {components} from "../../../lib/api/v1";
+import {waitForTaskCompletion} from "../../../services/TaskMiddleware"
 
 export function CreatePage() {
   const POLLING_INTERVAL = 10000;
@@ -20,9 +22,7 @@ export function CreatePage() {
     "post",
     "/admin/courses/{course_id}/import"
   );
-  const [taskId, setTaskId] = useState(-1);
-  const [taskId2, setTaskId2] = useState(-1);
-  const [taskId3, setTaskId3] = useState(-1);
+  const [outstandingTasks, setOutstandingTasks] = useState<components["schemas"]["Task"][]>([]);
   const [canvasId, setCanvasId] = useState("");
   const [courseId, setCourseId] = useState("");
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
@@ -67,123 +67,29 @@ export function CreatePage() {
         body: {
           canvas_id: Number(canvasId),
           overwrite_name: false,
-          overwrite_code: false,
+          overwrite_code: true,
           import_users: true,
           import_assignments: true,
         },
       },
       {
         onSuccess: (response) => {
-          setTaskId(response[0].id);
-          setTaskId2(response[1].id);
-          setTaskId3(response[2].id);
+          setOutstandingTasks(response);
         },
       }
     );
   };
 
-  const {
-    data: taskData,
-    error: taskError,
-    isLoading: taskIsLoading,
-    refetch,
-  } = $api.useQuery(
-    "get",
-    `/tasks/{task_id}`,
-    {
-      params: {
-        path: { task_id: taskId },
-      },
-    },
-    {
-      enabled: taskId != -1,
-    }
-  );
-
-  const {
-    data: taskData2,
-    error: taskError2,
-    isLoading: taskIsLoading2,
-    refetch: refetch2,
-  } = $api.useQuery(
-    "get",
-    `/tasks/{task_id}`,
-    {
-      params: {
-        path: { task_id: taskId2 },
-      },
-    },
-    {
-      enabled: taskId2 != -1,
-    }
-  );
-
-  const {
-    data: taskData3,
-    error: taskError3,
-    isLoading: taskIsLoading3,
-    refetch: refetch3,
-  } = $api.useQuery(
-    "get",
-    `/tasks/{task_id}`,
-    {
-      params: {
-        path: { task_id: taskId3 },
-      },
-    },
-    {
-      enabled: taskId3 != -1,
-    }
-  );
-
   useEffect(() => {
     if (allTasksCompleted) return;
 
-    let interval1: number, interval2: number, interval3: number;
+    return () => {waitForTaskCompletion(outstandingTasks,
+      () => {setAllTasksCompleted(true); setImporting(false); setOutstandingTasks([])},
+      (name, msg) => console.error(`Failed to import ${name}: ${msg}`),
+      (msg) => {console.log(`Completed: ${msg}`)}).then(() => {
+    })};
+  }, [outstandingTasks, allTasksCompleted, importing]);
 
-    const checkAllCompleted = () => {
-      const allCompleted =
-        taskData?.status === "COMPLETED" &&
-        taskData2?.status === "COMPLETED" &&
-        taskData3?.status === "COMPLETED";
-      if (allCompleted) {
-        setAllTasksCompleted(true);
-      }
-    };
-
-    if (taskData?.status !== "COMPLETED" && taskId != -1) {
-      interval1 = setInterval(() => {
-        refetch();
-      }, POLLING_INTERVAL);
-    }
-
-    if (taskData2?.status !== "COMPLETED" && taskId2 != -1) {
-      interval2 = setInterval(() => {
-        refetch2();
-      }, POLLING_INTERVAL);
-    }
-
-    if (taskData3?.status !== "COMPLETED" && taskId3 != -1) {
-      interval3 = setInterval(() => {
-        refetch3();
-      }, POLLING_INTERVAL);
-    }
-
-    checkAllCompleted();
-
-    return () => {
-      if (interval1) clearInterval(interval1);
-      if (interval2) clearInterval(interval2);
-      if (interval3) clearInterval(interval3);
-    };
-  }, [
-    taskData?.status,
-    taskData2?.status,
-    taskData3?.status,
-    refetch,
-    refetch2,
-    refetch3,
-  ]);
 
   const { data, error, isLoading } = $api.useQuery(
     "get",

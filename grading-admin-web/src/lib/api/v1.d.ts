@@ -866,6 +866,8 @@ export interface components {
              * @example 291
              */
             id: number;
+            /** @example Course Import - Canvas */
+            name?: string;
             /**
              * Format: date-time
              * @example 2020-01-01T12:00:00.000Z
