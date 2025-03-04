@@ -94,7 +94,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        tasks.add(courseTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        tasks.add(courseTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
 
         Optional<ScheduledTaskDef> sectionTask = sectionService.createSectionsFromCanvas(
                 securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
@@ -103,7 +103,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
 
         if (courseSyncTaskDTO.getImportUsers()){
             Optional<ScheduledTaskDef> importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID, true, true, true);
@@ -112,7 +112,7 @@ public class AdminApiImpl implements AdminApiDelegate {
                 return ResponseEntity.badRequest().build();
             }
 
-            tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+            tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
         }
 
         if (courseSyncTaskDTO.getImportAssignments()){
@@ -122,7 +122,7 @@ public class AdminApiImpl implements AdminApiDelegate {
                 return ResponseEntity.badRequest().build();
             }
 
-            tasks.add(importAssignmentsTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+            tasks.add(importAssignmentsTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(tasks);
@@ -141,7 +141,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        tasks.add(courseTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        tasks.add(courseTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
 
         Optional<ScheduledTaskDef> sectionTask = sectionService.createSectionsFromCanvas(
                 securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
@@ -151,7 +151,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
 
         if (courseSyncTaskDTO.getImportUsers()) {
             Optional<ScheduledTaskDef> importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID, true, true, true);
@@ -160,7 +160,7 @@ public class AdminApiImpl implements AdminApiDelegate {
                 return ResponseEntity.badRequest().build();
             }
 
-            tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+            tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
         }
 
         if (courseSyncTaskDTO.getImportAssignments()){
@@ -170,7 +170,7 @@ public class AdminApiImpl implements AdminApiDelegate {
                 return ResponseEntity.badRequest().build();
             }
 
-            tasks.add(importAssignmentsTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+            tasks.add(importAssignmentsTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(tasks);

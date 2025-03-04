@@ -141,6 +141,7 @@ public class AssignmentService {
     public Optional<ScheduledTaskDef> syncAssignmentsFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean addNew, boolean deleteOld, boolean updateExisting){
         AssignmentsSyncTaskDef task = new AssignmentsSyncTaskDef();
         task.setCourseToSync(courseId);
+        task.setTaskName(String.format("Sync Course '%s': Course Assignments", courseId));
         task.setCreatedByUser(actingUser);
         task.shouldAddNewAssignments(addNew);
         task.shouldDeleteAssignments(deleteOld);

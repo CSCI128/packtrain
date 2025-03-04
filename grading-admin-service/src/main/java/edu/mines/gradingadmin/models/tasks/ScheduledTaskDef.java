@@ -20,6 +20,9 @@ public abstract class ScheduledTaskDef {
     @EqualsAndHashCode.Exclude
     protected User createdByUser;
 
+    @Column(name = "task_name", nullable = false)
+    protected String taskName;
+
     @Column(name = "submitted_time")
     protected Instant submittedTime = Instant.now();
 

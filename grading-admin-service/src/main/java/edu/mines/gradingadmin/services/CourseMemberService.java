@@ -209,6 +209,7 @@ public class CourseMemberService {
     public Optional<ScheduledTaskDef> syncMembersFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean updateExisting, boolean removeOld, boolean addNew) {
         UserSyncTaskDef task = new UserSyncTaskDef();
         task.setCreatedByUser(actingUser);
+        task.setTaskName(String.format("Sync Course '%s': Course Members", courseId));
         task.setCourseToImport(courseId);
         task.shouldUpdateExistingUsers(updateExisting);
         task.shouldAddNewUsers(addNew);

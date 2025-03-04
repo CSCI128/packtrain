@@ -81,6 +81,7 @@ public class SectionService {
     public Optional<ScheduledTaskDef> createSectionsFromCanvas(User actingUser, UUID courseId, long canvasId){
         SectionSyncTaskDef task = new SectionSyncTaskDef();
         task.setCreatedByUser(actingUser);
+        task.setTaskName(String.format("Sync Course '%s': Course Sections", courseId));
         task.setCourseToImport(courseId);
         task.setCanvasId(canvasId);
 
