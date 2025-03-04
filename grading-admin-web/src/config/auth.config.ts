@@ -1,3 +1,5 @@
+import { WebStorageStateStore } from "oidc-client-ts";
+
 export const AUTH_CONFIG = {
   authority:
     import.meta.env.VITE_OAUTH_URL ||
@@ -14,4 +16,5 @@ export const AUTH_CONFIG = {
   onSigninCallback: () => {
     window.history.replaceState({}, document.title, window.location.origin);
   },
+  userStore: new WebStorageStateStore({ store: window.localStorage }),
 };
