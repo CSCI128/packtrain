@@ -8,10 +8,10 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
-import { useForm } from "@mantine/form";
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { $api, store$ } from "../../../api";
+import {useForm} from "@mantine/form";
+import {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
+import {$api, store$} from "../../../api";
 import {components} from "../../../lib/api/v1";
 import {waitForTaskCompletion} from "../../../services/TaskMiddleware"
 
@@ -74,6 +74,7 @@ export function CreatePage() {
       },
       {
         onSuccess: (response) => {
+          console.log(response);
           setOutstandingTasks(response);
         },
       }
@@ -81,22 +82,30 @@ export function CreatePage() {
   };
 
   useEffect(() => {
-    if (allTasksCompleted) return;
 
-    return () => {waitForTaskCompletion(outstandingTasks,
-      () => {setAllTasksCompleted(true); setImporting(false); setOutstandingTasks([])},
+    waitForTaskCompletion(outstandingTasks,
+      () => {
+        console.log("javascript is bad")
+        setAllTasksCompleted(true);
+        setImporting(false);
+        setOutstandingTasks([]);
+      },
       (name, msg) => console.error(`Failed to import ${name}: ${msg}`),
-      (msg) => {console.log(`Completed: ${msg}`)}).then(() => {
-    })};
-  }, [outstandingTasks, allTasksCompleted, importing]);
+      (msg) => {
+        console.log(`Completed: ${msg}`)
+      }).then(() => {
+        console.log("yap")
+    })
+
+  }, [outstandingTasks, importing]);
 
 
-  const { data, error, isLoading } = $api.useQuery(
+  const {data, error, isLoading} = $api.useQuery(
     "get",
     "/admin/courses/{course_id}",
     {
       params: {
-        path: { course_id: courseId as string },
+        path: {course_id: courseId as string},
         query: {
           include: ["members", "assignments", "sections"],
         },
@@ -132,6 +141,7 @@ export function CreatePage() {
           setCanvasId(values.canvasId);
           setCourseId(response.id as string);
           setCourseCreated(true);
+          setAllTasksCompleted(false);
           store$.id.set(response.id as string);
           store$.name.set(response.name);
         },
@@ -166,7 +176,7 @@ export function CreatePage() {
           Create Course
         </Text>
 
-        <Divider my="md" />
+        <Divider my="md"/>
 
         <form onSubmit={form.onSubmit(createCourse)}>
           <TextInput
@@ -227,7 +237,7 @@ export function CreatePage() {
                 {importing ? (
                   <>
                     <p>Importing, this may take a moment..</p>{" "}
-                    <Loader color="blue" />
+                    <Loader color="blue"/>
                   </>
                 ) : (
                   <Group justify="flex-end" mt="md">

@@ -29,10 +29,13 @@ export async function waitForTaskCompletion(tasks: components["schemas"]["Task"]
     }
 
     // clean up solved tasks
+    console.log(activeTaskIds);
     activeTaskIds = activeTaskIds.filter(id => id !== -1);
     await new Promise(f => setTimeout(f, 10000));
 
+    if (activeTaskIds.length === 0)
+      onSuccess();
+
   } while (activeTaskIds.length !== 0);
 
-  onSuccess();
 }
