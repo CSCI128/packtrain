@@ -8,21 +8,22 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
-import {useForm} from "@mantine/form";
-import {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
-import {$api, store$} from "../../../api";
-import {components} from "../../../lib/api/v1";
-import {waitForTaskCompletion} from "../../../services/TaskMiddleware"
+import { useForm } from "@mantine/form";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { $api, store$ } from "../../../api";
+import { components } from "../../../lib/api/v1";
 
 export function CreatePage() {
   const POLLING_INTERVAL = 10000;
   const mutation = $api.useMutation("post", "/admin/courses");
-  const mutation2 = $api.useMutation(
+  const importMutation = $api.useMutation(
     "post",
     "/admin/courses/{course_id}/import"
   );
-  const [outstandingTasks, setOutstandingTasks] = useState<components["schemas"]["Task"][]>([]);
+  const [outstandingTasks, setOutstandingTasks] = useState<
+    components["schemas"]["Task"][]
+  >([]);
   const [canvasId, setCanvasId] = useState("");
   const [courseId, setCourseId] = useState("");
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
@@ -57,7 +58,7 @@ export function CreatePage() {
 
   const importCourse = () => {
     setImporting(true);
-    mutation2.mutate(
+    importMutation.mutate(
       {
         params: {
           path: {
@@ -74,38 +75,80 @@ export function CreatePage() {
       },
       {
         onSuccess: (response) => {
-          console.log(response);
           setOutstandingTasks(response);
         },
       }
     );
   };
 
-  useEffect(() => {
+  const { mutateAsync: fetchTask } = $api.useMutation(
+    "get",
+    "/tasks/{task_id}"
+  );
 
-    waitForTaskCompletion(outstandingTasks,
-      () => {
-        console.log("javascript is bad")
+  const pollTaskUntilComplete = async (taskId: number, delay = 5000) => {
+    while (true) {
+      try {
+        const response = await fetchTask({
+          params: { path: { task_id: taskId } },
+        });
+
+        if (response.status === "COMPLETED") {
+          console.log(`Task ${taskId} is completed!`);
+          return response;
+        } else if (response.status === "FAILED") {
+          console.log(`Task ${taskId} failed`);
+          throw new Error("ERR");
+        } else {
+          console.log(
+            `Task ${taskId} is still in progress, retrying in ${delay}ms...`
+          );
+          await new Promise((res) => setTimeout(res, delay)); // Wait before retrying
+        }
+      } catch (error) {
+        console.error(`Error fetching task ${taskId}:`, error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (outstandingTasks.length === 0) return;
+
+    Promise.all(outstandingTasks.map((task) => pollTaskUntilComplete(task.id)))
+      .then((results) => {
+        console.log("All tasks are completed:", results);
         setAllTasksCompleted(true);
         setImporting(false);
         setOutstandingTasks([]);
-      },
-      (name, msg) => console.error(`Failed to import ${name}: ${msg}`),
-      (msg) => {
-        console.log(`Completed: ${msg}`)
-      }).then(() => {
-        console.log("yap")
-    })
+      })
+      .catch((error) => {
+        console.error("Some tasks failed:", error);
+      });
 
-  }, [outstandingTasks, importing]);
+    // waitForTaskCompletion(
+    //   outstandingTasks,
+    //   () => {
+    //     console.log("javascript is bad");
+    //     setAllTasksCompleted(true);
+    //     setImporting(false);
+    //     setOutstandingTasks([]);
+    //   },
+    //   (name, msg) => console.error(`Failed to import ${name}: ${msg}`),
+    //   (msg) => {
+    //     console.log(`Completed: ${msg}`);
+    //   },
+    //   taskData
+    // ).then(() => {
+    //   console.log("yap");
+    // });
+  }, [!!outstandingTasks.length, importing]);
 
-
-  const {data, error, isLoading} = $api.useQuery(
+  const { data, error, isLoading } = $api.useQuery(
     "get",
     "/admin/courses/{course_id}",
     {
       params: {
-        path: {course_id: courseId as string},
+        path: { course_id: courseId as string },
         query: {
           include: ["members", "assignments", "sections"],
         },
@@ -176,7 +219,7 @@ export function CreatePage() {
           Create Course
         </Text>
 
-        <Divider my="md"/>
+        <Divider my="md" />
 
         <form onSubmit={form.onSubmit(createCourse)}>
           <TextInput
@@ -237,7 +280,7 @@ export function CreatePage() {
                 {importing ? (
                   <>
                     <p>Importing, this may take a moment..</p>{" "}
-                    <Loader color="blue"/>
+                    <Loader color="blue" />
                   </>
                 ) : (
                   <Group justify="flex-end" mt="md">
