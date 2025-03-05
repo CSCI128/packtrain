@@ -45,7 +45,18 @@ public class RawScoreService {
                     .build()){
                 String[] line;
                 while((line = csvReader.readNext()) != null){
-                    continue;
+                    String cwid = line[2];
+                    String status = line[8].trim().toUpperCase();
+
+                    SubmissionStatus submissionStatus;
+                    try {
+                        submissionStatus = SubmissionStatus.valueOf(status);
+                    }
+                    catch (IllegalArgumentException e) {
+                        log.warn("Invalid submission status {} for cwid {}. Skipping this raw score", status, cwid);
+                        continue;
+                    }
+
                 }
             }
         }
