@@ -1,6 +1,7 @@
-package edu.mines.gradingadmin.services;
+package edu.mines.gradingadmin.services.external;
 
 
+import com.sun.jdi.request.InvalidRequestStateException;
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.interfaces.CourseReader;
 import edu.ksu.canvas.interfaces.SectionReader;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 public class CanvasService {
     private final SecurityManager manager;
     private final ExternalServiceConfig.CanvasConfig config;
-    private final CanvasApiFactory canvasApiFactory;
+    private CanvasApiFactory canvasApiFactory;
 
     public static class CanvasServiceWithAuth {
         private final CanvasApiFactory canvasApiFactory;
@@ -139,10 +140,18 @@ public class CanvasService {
         this.manager = manager;
         this.config = config;
 
+        if (!config.isEnabled()){
+            return;
+        }
+
         canvasApiFactory = new CanvasApiFactory(this.config.getEndpoint().toString());
     }
 
     public CanvasServiceWithAuth withRequestIdentity(){
+        if (!config.isEnabled()){
+            throw new ExternalServiceDisabledException("Canvas service is disabled!");
+        }
+
         if (manager == null){
             throw new RuntimeException("No request in scope");
         }
@@ -150,6 +159,9 @@ public class CanvasService {
     }
 
     public CanvasServiceWithAuth asUser(IdentityProvider identityProvider){
+        if (!config.isEnabled()){
+            throw new ExternalServiceDisabledException("Canvas service is disabled!");
+        }
         return new CanvasServiceWithAuth(canvasApiFactory, identityProvider);
     }
 

@@ -413,7 +413,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/user/credentials/{credential_id}/disable": {
+    "/user/credentials/{credential_id}/delete": {
         parameters: {
             query?: never;
             header?: never;
@@ -421,14 +421,14 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
+        put?: never;
+        post?: never;
         /**
-         * Disables a credential for the user.
-         * @description Disables a selected credential for the user.
+         * Deletes a credential for the user.
+         * @description Deletes a selected credential for the user.
          *
          */
-        put: operations["disable_credential"];
-        post?: never;
-        delete?: never;
+        delete: operations["delete_credential"];
         options?: never;
         head?: never;
         patch?: never;
@@ -924,8 +924,6 @@ export interface components {
             api_key?: string;
             /** @example true */
             private?: boolean;
-            /** @example true */
-            active?: boolean;
             owning_user: components["schemas"]["User"];
         };
         /** @description A list of credentials */
@@ -1260,13 +1258,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Accepted */
+            /** @description Task Queued */
             202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Task"];
+                    "application/json": components["schemas"]["Task"][];
                 };
             };
             /** @description An authentication error occurred */
@@ -1829,7 +1827,7 @@ export interface operations {
             };
         };
     };
-    disable_credential: {
+    delete_credential: {
         parameters: {
             query?: never;
             header?: never;
@@ -1840,14 +1838,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Accepted */
-            202: {
+            /** @description No Content */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description Failed to disable credential */
+            /** @description Failed to delete credential */
             400: {
                 headers: {
                     [name: string]: unknown;

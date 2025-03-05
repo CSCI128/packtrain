@@ -1,10 +1,9 @@
-package edu.mines.gradingadmin.services;
+package edu.mines.gradingadmin.services.external;
 
 import edu.mines.gradingadmin.containers.MinioTestContainer;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.models.User;
 import io.minio.*;
-import io.minio.errors.*;
 import io.minio.messages.Bucket;
 import io.minio.messages.Item;
 import lombok.SneakyThrows;
@@ -13,22 +12,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.client.RestClient;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
@@ -45,8 +37,8 @@ public class TestS3Service implements MinioTestContainer, PostgresTestContainer 
     static void setupClass(){
         minio.start();
         client = MinioClient.builder()
-                .endpoint(S3_URI.get().toString())
-                .credentials(ACCESS_KEY.get().toString(), SECRET_KEY.get().toString())
+                .endpoint(minio.getS3URL())
+                .credentials(minio.getUserName(), minio.getPassword())
                 .build();
     }
 

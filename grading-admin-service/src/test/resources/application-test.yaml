@@ -20,3 +20,14 @@ server:
 logging:
   level:
     edu.mines.gradingadmin: trace
+
+grading-admin:
+  external-services:
+    canvas:
+      enabled: false
+    s3:
+      enabled: false
+    rabbitmq:
+      enabled: false
+    policy-server:
+      enabled: false

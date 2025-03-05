@@ -1,20 +1,39 @@
 import {
   Box,
   Button,
+  Center,
   Container,
   Divider,
   Group,
   Modal,
   Select,
+  Stack,
   Text,
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useAuth } from "react-oidc-context";
 import { $api } from "../api";
 
+// TODO figure out how to grab the types from the generated file
+export interface Credential {
+  id?: string;
+  name?: string;
+  service?: string;
+  api_key?: string;
+  private?: boolean;
+}
+
 export function ProfilePage() {
+  const auth = useAuth();
+  const [selectedCredential, setSelectedCredential] =
+    useState<Credential | null>(null);
+  const [deleteOpened, { open: openDelete, close: closeDelete }] =
+    useDisclosure(false);
+  const [editUserOpened, { open: openEditUser, close: closeEditUser }] =
+    useDisclosure(false);
   const [opened, { open, close }] = useDisclosure(false);
   const form = useForm({
     mode: "uncontrolled",
@@ -29,16 +48,37 @@ export function ProfilePage() {
       apiKey: (value) =>
         value.length < 1 ? "API key must have at least 1 character" : null,
       service: (value) =>
-        value != "Canvas" &&
-        value != "Gradescope" &&
-        value != "PrairieLearn" &&
-        value != "Runestone"
+        value != "canvas" &&
+        value != "gradescope" &&
+        value != "prairielearn" &&
+        value != "runestone"
           ? "Please select a valid service!"
           : null,
     },
   });
 
-  const { data, error, isLoading } = $api.useQuery("get", "/user");
+  const {
+    data,
+    error,
+    isLoading,
+    refetch: refetchUser,
+  } = $api.useQuery("get", "/user");
+
+  const editUserForm = useForm({
+    mode: "controlled",
+    initialValues: {
+      name: "",
+      email: "",
+      cwid: "",
+    },
+    validate: {
+      name: (value) =>
+        value && value.length < 1
+          ? "Name must have at least 1 character"
+          : null,
+      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
+    },
+  });
 
   const {
     data: credentialData,
@@ -49,13 +89,46 @@ export function ProfilePage() {
 
   const mutation = $api.useMutation("post", "/user/credentials");
 
-  const disableCredentialMutation = $api.useMutation("put", "/user/credentials/{credential_id}/disable");
+  const deleteCredentialMutation = $api.useMutation(
+    "delete",
+    "/user/credentials/{credential_id}/delete"
+  );
+
+  const updateUserMutation = $api.useMutation("put", "/user");
+
+  useEffect(() => {
+    editUserForm.setValues({
+      name: data?.name,
+      email: data?.email,
+      cwid: data?.cwid,
+    });
+  }, [data]);
 
   if (isLoading || !data) return "Loading...";
 
   if (credentialIsLoading || !credentialData) return "Credentials loading..";
 
   if (error || credentialError) return `An error occured: ${error}`;
+
+  const editUser = (values: typeof editUserForm.values) => {
+    updateUserMutation.mutate(
+      {
+        body: {
+          cwid: data.cwid,
+          email: values.email,
+          name: values.name,
+          admin: auth.user?.profile.is_admin as boolean,
+          enabled: true,
+        },
+      },
+      {
+        onSuccess: () => {
+          refetchUser();
+        },
+      }
+    );
+    closeEditUser();
+  };
 
   const addCredential = (values: typeof form.values) => {
     mutation.mutate(
@@ -67,8 +140,7 @@ export function ProfilePage() {
             name: data.name,
             admin: data.admin,
           },
-          service: values.service === "Canvas" ? "canvas" : "gradescope",
-          active: true,
+          service: values.service as "canvas" | "gradescope", // still cursed
           api_key: values.apiKey,
           name: values.credentialName,
           private: true,
@@ -83,23 +155,55 @@ export function ProfilePage() {
     close();
   };
 
-  const disableCredential = (credential_id: string) => {
-    disableCredentialMutation.mutate(
+  const deleteCredential = (credential_id: string) => {
+    deleteCredentialMutation.mutate(
       {
         params: {
-          path: {credential_id: credential_id}
-        }
+          path: { credential_id: credential_id },
+        },
       },
       {
         onSuccess: () => {
           refetch();
-        }
+        },
       }
-    )
-  }
+    );
+    closeDelete();
+  };
+
+  const handleDelete = (credential: Credential) => {
+    setSelectedCredential(credential);
+    openDelete();
+  };
 
   return (
     <>
+      <Modal
+        opened={deleteOpened}
+        onClose={closeDelete}
+        title="Delete Credential"
+        centered
+      >
+        <Center>
+          <Stack>
+            <Text size="md">
+              Are you sure you want to delete the specified credential?
+            </Text>
+
+            <Button color="gray" onClick={closeDelete}>
+              Cancel
+            </Button>
+
+            <Button
+              color="red"
+              onClick={() => deleteCredential(selectedCredential?.id!)}
+            >
+              Delete
+            </Button>
+          </Stack>
+        </Center>
+      </Modal>
+
       <Modal opened={opened} onClose={close} title="Add Credential">
         <form onSubmit={form.onSubmit(addCredential)}>
           <TextInput
@@ -114,7 +218,12 @@ export function ProfilePage() {
             withAsterisk
             label="Service:"
             placeholder="Pick value"
-            data={["Canvas", "Gradescope", "PrairieLearn", "Runestone"]}
+            data={[
+              { value: "canvas", label: "Canvas" },
+              { value: "gradescope", label: "Gradescope" },
+              { value: "prairielearn", label: "PrairieLearn" },
+              { value: "runestone", label: "Runestone" },
+            ]}
             key={form.key("service")}
             {...form.getInputProps("service")}
           />
@@ -140,12 +249,46 @@ export function ProfilePage() {
         </form>
       </Modal>
 
+      <Modal opened={editUserOpened} onClose={closeEditUser} title="Edit User">
+        <form onSubmit={editUserForm.onSubmit(editUser)}>
+          <TextInput
+            label="Name"
+            key={editUserForm.key("name")}
+            {...editUserForm.getInputProps("name")}
+          />
+
+          <TextInput
+            label="Email"
+            key={editUserForm.key("email")}
+            {...editUserForm.getInputProps("email")}
+          />
+
+          <TextInput
+            disabled
+            label="CWID"
+            key={editUserForm.key("cwid")}
+            {...editUserForm.getInputProps("cwid")}
+          />
+
+          <br />
+
+          <Group gap="xs" justify="flex-end">
+            <Button color="gray" onClick={closeEditUser}>
+              Cancel
+            </Button>
+            <Button color="blue" type="submit">
+              Save
+            </Button>
+          </Group>
+        </form>
+      </Modal>
+
       <Container size="sm">
         <Group justify="space-between">
           <Text size="xl" fw={700}>
             Profile
           </Text>
-          <Button justify="flex-end" variant="filled">
+          <Button justify="flex-end" variant="filled" onClick={openEditUser}>
             Edit
           </Button>
         </Group>
@@ -175,22 +318,14 @@ export function ProfilePage() {
           <React.Fragment key={credential.id}>
             <Box size="sm" mt={15}>
               <Text size="md" fw={700}>
-                {credential.name} ({credential.active ? "Active" : "Inactive"})
+                {credential.name}
               </Text>
 
               <Text size="md">Service: {credential.service}</Text>
 
-              <Text size="md">API Key: {credential.api_key}</Text>
-
-              {credential.active ? (
-                <>
-                  <Button color="red" onClick={ () => disableCredential(credential.id!.toString()) }>Disable</Button>
-                </>
-              ) : (
-                <>
-                  <Button color="green" onClick={ open }>Enable</Button>
-                </>
-              )}
+              <Button color="red" onClick={() => handleDelete(credential)}>
+                Delete
+              </Button>
             </Box>
           </React.Fragment>
         ))}

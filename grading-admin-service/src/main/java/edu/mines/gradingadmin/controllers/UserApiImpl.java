@@ -79,7 +79,6 @@ public class UserApiImpl implements UserApiDelegate {
         credentialRes.setId(newCredential.get().getId().toString());
         credentialRes.setName(newCredential.get().getName());
         credentialRes.setService(CredentialDTO.ServiceEnum.valueOf(newCredential.get().getType().toString()));
-        credentialRes.setActive(newCredential.get().isActive());
         credentialRes.setPrivate(newCredential.get().isPrivate());
 
         return ResponseEntity.ok(credentialRes);
@@ -93,7 +92,6 @@ public class UserApiImpl implements UserApiDelegate {
                         .id(cred.getId().toString())
                         .name(cred.getName())
                         .service(CredentialDTO.ServiceEnum.valueOf(cred.getType().toString()))
-                        .active(cred.isActive())
                         ._private(cred.isPrivate()))
                 .toList()
         );
@@ -118,13 +116,12 @@ public class UserApiImpl implements UserApiDelegate {
     }
 
     @Override
-    public ResponseEntity<Void> disableCredential(String credentialId){
-        Optional<Credential> credential = credentialService.markCredentialAsInactive(UUID.fromString(credentialId));
+    public ResponseEntity<Void> deleteCredential(String credentialId){
+        Optional<Credential> credential = credentialService.getCredentialById(UUID.fromString(credentialId));
         if (credential.isEmpty()){
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.accepted().build();
+        credentialService.deleteCredential(credential.get());
+        return ResponseEntity.noContent().build();
     }
-
-
 }

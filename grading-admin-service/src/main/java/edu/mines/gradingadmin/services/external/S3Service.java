@@ -1,4 +1,4 @@
-package edu.mines.gradingadmin.services;
+package edu.mines.gradingadmin.services.external;
 
 import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.models.User;
@@ -23,11 +23,15 @@ import java.util.UUID;
 @Slf4j
 public class S3Service {
 
-    private final MinioClient s3Client;
+    private MinioClient s3Client;
     private final ExternalServiceConfig.S3Config config;
 
     public S3Service(ExternalServiceConfig.S3Config config) throws MalformedURLException {
         this.config = config;
+
+        if (!config.isEnabled()){
+            return;
+        }
         s3Client = MinioClient.builder()
                 .endpoint(config.getEndpoint().toURL())
                 .credentials(config.getAccessKey(), config.getSecretKey())
@@ -36,6 +40,9 @@ public class S3Service {
 
 
     private boolean bucketExists(String bucket){
+        if (!config.isEnabled()){
+            throw new ExternalServiceDisabledException("S3 Service is disabled!");
+        }
         BucketExistsArgs args = BucketExistsArgs.builder()
                 .bucket(bucket)
                 .build();
@@ -50,6 +57,9 @@ public class S3Service {
     }
 
     private boolean objectExists(String bucket, String objectName){
+        if (!config.isEnabled()){
+            throw new ExternalServiceDisabledException("S3 Service is disabled!");
+        }
         StatObjectArgs args = StatObjectArgs.builder()
                 .bucket(bucket)
                 .object(objectName)
@@ -67,6 +77,9 @@ public class S3Service {
     }
 
     public Optional<String> createNewBucketForCourse(UUID courseId){
+        if (!config.isEnabled()){
+            throw new ExternalServiceDisabledException("S3 Service is disabled!");
+        }
         if (bucketExists(courseId.toString())){
             return Optional.of(courseId.toString());
         }
@@ -110,6 +123,9 @@ public class S3Service {
     }
 
     public Optional<String> uploadCourseWidePolicy(User creatingUser, UUID courseId, String filename, MultipartFile policyDocument){
+        if (!config.isEnabled()){
+            throw new ExternalServiceDisabledException("S3 Service is disabled!");
+        }
         if (!bucketExists(courseId.toString())){
             log.error("Failed to upload policy! Bucket for course '{}' does not exist!", courseId);
             return Optional.empty();

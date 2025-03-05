@@ -28,7 +28,8 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
               key={course.id}
               onClick={() => switchCourse(course.id as string, course.name)}
             >
-              {course.name} ({course.term})
+              {course.name} ({course.term}){" "}
+              {store$.id.get() == course.id && <>(selected)</>}
             </Button>
           ))}
           <Button

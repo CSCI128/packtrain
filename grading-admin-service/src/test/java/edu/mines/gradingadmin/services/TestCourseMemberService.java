@@ -4,7 +4,7 @@ import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
-import edu.mines.gradingadmin.models.tasks.UserImportTaskDef;
+import edu.mines.gradingadmin.models.tasks.UserSyncTaskDef;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.repositories.SectionRepo;
@@ -12,6 +12,7 @@ import edu.mines.gradingadmin.repositories.UserRepo;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
+import edu.mines.gradingadmin.services.external.CanvasService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
@@ -40,7 +41,7 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
     private SectionService sectionService;
 
     @Autowired
-    private ScheduledTaskRepo<UserImportTaskDef> scheduledTaskRepo;
+    private ScheduledTaskRepo<UserSyncTaskDef> scheduledTaskRepo;
 
     @Autowired
     private CourseService courseService;
@@ -68,7 +69,7 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
         // the sin of partial mocking
         canvasService = Mockito.spy(
                 new CanvasService(null,
-                new ExternalServiceConfig.CanvasConfig(URI.create("https://test.com"), "TeacherEnrollment", "StudentEnrollment", "TaEnrollmentEnrollment"))
+                new ExternalServiceConfig.CanvasConfig(true, URI.create("https://test.com"), "TeacherEnrollment", "StudentEnrollment", "TaEnrollmentEnrollment"))
         );
 
         courseMemberService = new CourseMemberService(
@@ -84,10 +85,7 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
 
     @AfterEach
     void tearDown(){
-        courseMemberRepo.deleteAll();
-        sectionRepo.deleteAll();
         courseSeeders.clearAll();
-        userSeeders.clearAll();
     }
 
     @Test
@@ -97,9 +95,9 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
 
         Section section = sectionService.createSection(course1Section1Id, "Section A", course).orElseThrow(AssertionError::new);
 
-
-        UserImportTaskDef task = new UserImportTaskDef();
+        UserSyncTaskDef task = new UserSyncTaskDef();
         task.setCreatedByUser(admin);
+        task.shouldAddNewUsers(true);
         task.setCourseToImport(course.getId());
 
         courseMemberService.syncCourseMembersTask(task);
@@ -117,9 +115,110 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
             Assertions.assertTrue(member.getSections().contains(section));
         }
 
-        // need to use an entity graph to get the lazy fields that we care about
-        // todo: eval if we need to do this
-//        Assertions.assertEquals(members.size(), section.getMembers().size());
+    }
+
+    @Test
+    void verifyDuplicatesAreIgnored(){
+        Course course = courseSeeders.course1(course1Id);
+        User admin = userSeeders.admin1();
+
+        sectionService.createSection(course1Section1Id, "Section A", course).orElseThrow(AssertionError::new);
+
+        UserSyncTaskDef task = new UserSyncTaskDef();
+        task.setCreatedByUser(admin);
+        task.shouldAddNewUsers(true);
+        task.setCourseToImport(course.getId());
+
+        courseMemberService.syncCourseMembersTask(task);
+
+        courseMemberService.syncCourseMembersTask(task);
+
+        Set<CourseMember> members = courseMemberRepo.getAllByCourse(course);
+
+        Assertions.assertEquals(course1Users.get().size(), members.size());
+    }
+
+    @Test
+    void verifyDuplicatesAreUpdated(){
+        Course course = courseSeeders.course1(course1Id);
+        User admin = userSeeders.admin1();
+
+        sectionService.createSection(course1Section1Id, "Section A", course).orElseThrow(AssertionError::new);
+
+        UserSyncTaskDef task = new UserSyncTaskDef();
+        task.setCreatedByUser(admin);
+        task.shouldAddNewUsers(true);
+        task.shouldUpdateExistingUsers(true);
+        task.setCourseToImport(course.getId());
+
+        courseMemberService.syncCourseMembersTask(task);
+
+        courseMemberService.syncCourseMembersTask(task);
+
+        Set<CourseMember> members = courseMemberRepo.getAllByCourse(course);
+
+        Assertions.assertEquals(course1Users.get().size(), members.size());
+    }
+
+    @Test
+    void verifyRemoveOldMembers(){
+        Course course = courseSeeders.course1(course1Id);
+        User admin = userSeeders.admin1();
+        User user = userSeeders.user(instructor2.get().getName(), instructor2.get().getEmail(), instructor2.get().getSisUserId());
+
+        sectionService.createSection(course1Section1Id, "Section A", course).orElseThrow(AssertionError::new);
+
+        courseMemberService.addMemberToCourse(course.getId().toString(), user.getCwid(), String.valueOf(instructor2.get().getId()), CourseRole.INSTRUCTOR);
+
+        Set<CourseMember> members = courseMemberRepo.getAllByCourse(course);
+
+        Assertions.assertEquals(1, members.size());
+
+        UserSyncTaskDef task = new UserSyncTaskDef();
+        task.setCreatedByUser(admin);
+        task.shouldRemoveOldUsers(true);
+        task.setCourseToImport(course.getId());
+
+        courseMemberService.syncCourseMembersTask(task);
+
+        members = courseMemberRepo.getAllByCourse(course);
+
+        Assertions.assertTrue(members.isEmpty());
+    }
+
+    @Test
+    void verifyRemoveMembership(){
+        Course course = courseSeeders.course1(course1Id);
+        User user = userSeeders.user(instructor2.get().getName(), instructor2.get().getEmail(), instructor2.get().getSisUserId());
+        courseMemberService.addMemberToCourse(course.getId().toString(), user.getCwid(), String.valueOf(instructor2.get().getId()), CourseRole.INSTRUCTOR);
+
+        Set<CourseMember> members = courseMemberRepo.getAllByCourse(course);
+
+        Assertions.assertEquals(1, members.size());
+
+        Assertions.assertTrue(courseMemberService.removeMembershipForUserAndCourse(user, course.getId().toString()));
+
+        members = courseMemberRepo.getAllByCourse(course);
+
+        Assertions.assertTrue(members.isEmpty());
+    }
+
+    @Test
+    void verifyCantRemoveOwner(){
+        Course course = courseSeeders.course1(course1Id);
+        User user = userSeeders.user(instructor2.get().getName(), instructor2.get().getEmail(), instructor2.get().getSisUserId());
+        courseMemberService.addMemberToCourse(course.getId().toString(), user.getCwid(), String.valueOf(instructor2.get().getId()), CourseRole.OWNER);
+
+        Set<CourseMember> members = courseMemberRepo.getAllByCourse(course);
+
+        Assertions.assertEquals(1, members.size());
+
+        Assertions.assertFalse(courseMemberService.removeMembershipForUserAndCourse(user, course.getId().toString()));
+
+        members = courseMemberRepo.getAllByCourse(course);
+
+        Assertions.assertFalse(members.isEmpty());
+
     }
 
     @Test

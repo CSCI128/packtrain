@@ -5,16 +5,14 @@ import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.User;
-import edu.mines.gradingadmin.models.tasks.CourseImportTaskDef;
+import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
 import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
-import edu.mines.gradingadmin.models.*;
-import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.CourseRepo;
-import edu.mines.gradingadmin.repositories.SectionRepo;
-import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
+import edu.mines.gradingadmin.services.external.CanvasService;
+import edu.mines.gradingadmin.services.external.S3Service;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.mockito.Mock;
@@ -23,8 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +52,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     private PolicyRepo policyRepo;
 
     @Autowired
-    private ScheduledTaskRepo<CourseImportTaskDef> scheduledTaskRepo;
+    private ScheduledTaskRepo<CourseSyncTaskDef> scheduledTaskRepo;
 
     @BeforeAll
     static void setupClass() {
@@ -133,13 +129,33 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     }
 
     @Test
+    void verifySyncCourseWithCanvas(){
+//        Course course = courseSeeders.course1();
+//        User admin = userSeeders.admin1();
+//
+//        SyncCourseTaskDef taskDef = new SyncCourseTaskDef();
+//        taskDef.setCreatedByUser(admin);
+//        taskDef.setCourseToImport(course.getId());
+//        taskDef.setCanvasId(course1Id);
+//        taskDef.setOverwriteCode(true);
+//        taskDef.setOverwriteName(true);
+//
+//        courseService.syncCourseTask(taskDef);
+//
+//        course = courseService.getCourse(course.getId()).orElseThrow(AssertionError::new);
+//
+//        Assertions.assertEquals(course1.get().getCourseCode(), course.getCode());
+//        Assertions.assertEquals(course1.get().getName(), course.getName());
+    }
+
+    @Test
     void verifyImportCourseFromCanvas(){
         Course course = courseSeeders.course1();
         User admin = userSeeders.admin1();
 
-        CourseImportTaskDef taskDef = new CourseImportTaskDef();
+        CourseSyncTaskDef taskDef = new CourseSyncTaskDef();
         taskDef.setCreatedByUser(admin);
-        taskDef.setCourseToImport(course.getId());
+        taskDef.setCourseToSync(course.getId());
         taskDef.setCanvasId(course1Id);
         taskDef.setOverwriteCode(true);
         taskDef.setOverwriteName(true);

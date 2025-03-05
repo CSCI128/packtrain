@@ -5,13 +5,14 @@ import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.CourseRole;
 import edu.mines.gradingadmin.models.User;
-import edu.mines.gradingadmin.models.tasks.UserImportTaskDef;
+import edu.mines.gradingadmin.models.tasks.UserSyncTaskDef;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.repositories.UserRepo;
 import edu.mines.gradingadmin.seeders.CanvasSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
+import edu.mines.gradingadmin.services.external.CanvasService;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,7 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
     private SectionService sectionService;
 
     @Autowired
-    private ScheduledTaskRepo<UserImportTaskDef> scheduledTaskRepo;
+    private ScheduledTaskRepo<UserSyncTaskDef> scheduledTaskRepo;
 
     @Autowired
     private CourseService courseService;
