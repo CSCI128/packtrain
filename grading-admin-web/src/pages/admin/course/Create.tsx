@@ -9,7 +9,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { $api, store$ } from "../../../api";
 import { components } from "../../../lib/api/v1";
@@ -85,48 +85,56 @@ export function CreatePage() {
     "/tasks/{task_id}"
   );
 
-  const pollTaskUntilComplete = async (taskId: number, delay = 5000) => {
-    while (true) {
-      try {
-        const response = await fetchTask({
-          params: { path: { task_id: taskId } },
-        });
+  const pollTaskUntilComplete = useCallback(
+    async (taskId: number, delay = 5000) => {
+      while (true) {
+        try {
+          const response = await fetchTask({
+            params: { path: { task_id: taskId } },
+          });
 
-        if (response.status === "COMPLETED") {
-          console.log(`Task ${taskId} is completed!`);
-          return response;
-        } else if (response.status === "FAILED") {
-          console.log(`Task ${taskId} failed`);
-          throw new Error("ERR");
-        } else {
-          console.log(
-            `Task ${taskId} is still in progress, retrying in ${delay}ms...`
-          );
-          await new Promise((res) => setTimeout(res, delay)); // Wait before retrying
+          if (response.status === "COMPLETED") {
+            console.log(`Task ${taskId} is completed!`);
+            return response;
+          } else if (response.status === "FAILED") {
+            console.log(`Task ${taskId} failed`);
+            throw new Error("ERR");
+          } else {
+            console.log(
+              `Task ${taskId} is still in progress, retrying in ${delay}ms...`
+            );
+            await new Promise((res) => setTimeout(res, delay)); // Wait before retrying
+          }
+        } catch (error) {
+          console.error(`Error fetching task ${taskId}:`, error);
         }
-      } catch (error) {
-        console.error(`Error fetching task ${taskId}:`, error);
       }
-    }
-  };
+    },
+    []
+  );
 
   useEffect(() => {
     if (outstandingTasks.length === 0) return;
 
-    Promise.all(outstandingTasks.map((task) => pollTaskUntilComplete(task.id)))
-      .then((results) => {
-        console.log("All tasks are completed:", results);
-        setAllTasksCompleted(true);
-        setImporting(false);
-        setOutstandingTasks([]);
-      })
-      .catch((error) => {
-        console.error("Some tasks failed:", error);
-      });
+    const pollTasks = async () => {
+      Promise.all(
+        outstandingTasks.map((task) => pollTaskUntilComplete(task.id))
+      )
+        .then((results) => {
+          console.log("All tasks are completed:", results);
+          setAllTasksCompleted(true);
+          setImporting(false);
+          setOutstandingTasks([]);
+        })
+        .catch((error) => {
+          console.error("Some tasks failed:", error);
+        });
+    };
 
-  }, [!!outstandingTasks.length, importing]);
+    pollTasks();
+  }, [outstandingTasks, pollTaskUntilComplete, importing]);
 
-  const { data, error, isLoading } = $api.useQuery(
+  const { data, error } = $api.useQuery(
     "get",
     "/admin/courses/{course_id}",
     {
@@ -194,6 +202,10 @@ export function CreatePage() {
         value.length < 1 ? "Course term must have at least 1 character" : null,
     },
   });
+
+  if (error) {
+    return <p>Error while querying created course!</p>; // TODO handle this error better!
+  }
 
   return (
     <>
