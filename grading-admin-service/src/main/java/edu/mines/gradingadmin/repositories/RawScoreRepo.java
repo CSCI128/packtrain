@@ -13,6 +13,6 @@ public interface RawScoreRepo extends CrudRepository<RawScore, UUID> {
     Optional<RawScore> getByCwid(String cwid);
     Optional<RawScore> getByAssignmentId(UUID assignmentId);
 
-    @Query("select r from raw_score r where r.cwid = ?1 and r.assignment_id = ?2")
-    Optional<RawScore> getByCwidandAssignmentId(String cwid, UUID assignmentId);
+    @Query("select r from raw_score r where r.cwid = ?1 and r.assignmentId = ?2")
+    Optional<RawScore> getByCwidAndAssignmentId(String cwid, UUID assignmentId);
 }

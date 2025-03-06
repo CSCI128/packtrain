@@ -71,7 +71,7 @@ public class RawScoreService {
     }
 
     public Optional<RawScore> createRawScore(UUID migrationId, UUID assignmentId, String cwid, SubmissionStatus submissionStatus){
-        RawScore newRawScore = rawScoreRepo.getByCwidandAssignmentId(cwid, assignmentId)
+        RawScore newRawScore = rawScoreRepo.getByCwidAndAssignmentId(cwid, assignmentId)
                 .map(score -> {
                     log.warn("Overwriting raw score for {} with user {}", score.getAssignmentId(), score.getCwid());
                     score.setSubmissionStatus(submissionStatus);
