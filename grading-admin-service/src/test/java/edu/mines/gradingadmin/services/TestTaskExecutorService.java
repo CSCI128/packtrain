@@ -61,6 +61,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
         var task = new TestTaskDef();
 
         task.setCreatedByUser(admin);
+        task.setTaskName("Test Task");
 
         task = testTaskRepo.save(task);
 
@@ -77,6 +78,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
         var task = new TestTaskDef();
 
         task.setCreatedByUser(admin);
+        task.setTaskName("Test Task");
 
         task = testTaskRepo.save(task);
 
@@ -98,6 +100,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
         var admin = userSeeders.admin1();
         var depTask = new TestTaskDef();
         depTask.setCreatedByUser(admin);
+        depTask.setTaskName("Test Task");
         depTask.setStatus(ScheduleStatus.COMPLETED);
 
         depTask = testTaskRepo.save(depTask);
@@ -105,6 +108,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
         var task = new TestTaskDef();
 
         task.setCreatedByUser(admin);
+        task.setTaskName("Test Task");
 
         task = testTaskRepo.save(task);
 
@@ -124,6 +128,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
         var admin = userSeeders.admin1();
         var failedTask = new TestTaskDef();
         failedTask.setCreatedByUser(admin);
+        failedTask.setTaskName("Test Task");
         failedTask.setStatus(ScheduleStatus.FAILED);
 
         failedTask = testTaskRepo.save(failedTask);
@@ -131,6 +136,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
         var task = new TestTaskDef();
 
         task.setCreatedByUser(admin);
+        task.setTaskName("Test Task");
 
         task = testTaskRepo.save(task);
 
@@ -150,6 +156,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
     void verifyTaskFailsIfException(){
         var admin = userSeeders.admin1();
         var task = new TestTaskDef();
+        task.setTaskName("Test Task");
 
         task.setCreatedByUser(admin);
 
@@ -180,12 +187,14 @@ public class TestTaskExecutorService implements PostgresTestContainer {
         var taskForUser1 = new TestTaskDef();
 
         taskForUser1.setCreatedByUser(user1);
+        taskForUser1.setTaskName("Test Task");
 
         taskForUser1 = testTaskRepo.save(taskForUser1);
 
         var taskForUser2 = new TestTaskDef();
 
         taskForUser2.setCreatedByUser(user2);
+        taskForUser2.setTaskName("Test Task");
 
         taskForUser2 = testTaskRepo.save(taskForUser2);
 
@@ -202,6 +211,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
 
         var taskForUser1 = new TestTaskDef();
 
+        taskForUser1.setTaskName("Test Task");
         taskForUser1.setCreatedByUser(user1);
 
         taskForUser1 = testTaskRepo.save(taskForUser1);
@@ -209,6 +219,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
         var taskForUser2 = new TestTaskDef();
 
         taskForUser2.setCreatedByUser(user2);
+        taskForUser2.setTaskName("Test Task");
 
         taskForUser2 = testTaskRepo.save(taskForUser2);
 
@@ -222,6 +233,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
         var user2 = userSeeders.user2();
 
         var taskForUser1 = new TestTaskDef();
+        taskForUser1.setTaskName("Test Task");
 
         taskForUser1.setCreatedByUser(user1);
 
@@ -230,6 +242,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
         var taskForUser2 = new TestTaskDef();
 
         taskForUser2.setCreatedByUser(user2);
+        taskForUser2.setTaskName("Test Task");
 
         taskForUser2 = testTaskRepo.save(taskForUser2);
 

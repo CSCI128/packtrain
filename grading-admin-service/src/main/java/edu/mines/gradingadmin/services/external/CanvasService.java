@@ -1,20 +1,17 @@
 package edu.mines.gradingadmin.services.external;
 
 
-import com.sun.jdi.request.InvalidRequestStateException;
 import edu.ksu.canvas.CanvasApiFactory;
-import edu.ksu.canvas.interfaces.CourseReader;
-import edu.ksu.canvas.interfaces.SectionReader;
-import edu.ksu.canvas.interfaces.UserReader;
+import edu.ksu.canvas.interfaces.*;
 import edu.ksu.canvas.model.Course;
 import edu.ksu.canvas.model.Enrollment;
 import edu.ksu.canvas.model.Section;
 import edu.ksu.canvas.model.User;
+import edu.ksu.canvas.model.assignment.Assignment;
+import edu.ksu.canvas.model.assignment.AssignmentGroup;
 import edu.ksu.canvas.oauth.NonRefreshableOauthToken;
 import edu.ksu.canvas.oauth.OauthToken;
-import edu.ksu.canvas.requestOptions.GetSingleCourseOptions;
-import edu.ksu.canvas.requestOptions.GetUsersInCourseOptions;
-import edu.ksu.canvas.requestOptions.ListCurrentUserCoursesOptions;
+import edu.ksu.canvas.requestOptions.*;
 import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.SecurityManager;
@@ -126,12 +123,53 @@ public class CanvasService {
             try {
                 sections = reader.listCourseSections(String.valueOf(id), List.of());
             } catch (IOException e){
-                log.error("Failed to get sections for course from Canvas");
+                log.error("Failed to get sections for course from Canvas", e);
             }
 
             log.info("Retrieved {} sections for course '{}'", sections.size(), id);
 
             return sections;
+        }
+
+        public Map<Long, String> getAssignmentGroups(long id){
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+            log.info("Retrieving Assignments Groups for course '{}'.", id);
+
+            AssignmentGroupReader reader = canvasApiFactory.getReader(AssignmentGroupReader.class, canvasToken);
+
+
+            Map<Long, String> assignmentGroups = Map.of();
+
+            try {
+                assignmentGroups = reader.listAssignmentGroup(new ListAssignmentGroupOptions(String.valueOf(id))).stream().collect(Collectors.toMap(AssignmentGroup::getId, AssignmentGroup::getName));
+
+            } catch (IOException e){
+                log.error("Failed to get assignment groups for course from Canvas", e);
+            }
+
+            log.info("Retrieved {} assignment groups for course '{}'", assignmentGroups.size(), id);
+
+            return assignmentGroups;
+        }
+
+        public List<Assignment> getCourseAssignments(long id){
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+            log.info("Retrieving Assignments for course '{}'. This will take a while depending on the number of assignments in the course.", id);
+
+            AssignmentReader reader = canvasApiFactory.getReader(AssignmentReader.class, canvasToken);
+
+            List<Assignment> assignments = List.of();
+
+            try {
+                // group category id is set iff it's a group assignment
+                assignments = reader.listCourseAssignments(new ListCourseAssignmentsOptions(String.valueOf(id)));
+            } catch (IOException e) {
+                log.error("Failed to get assignments for course from Canvas", e);
+            }
+
+            log.info("Retrieved {} assignments for course '{}'", assignments.size(), id);
+
+            return assignments;
         }
 
     }

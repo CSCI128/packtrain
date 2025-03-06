@@ -52,11 +52,18 @@ public class InstructorApiImpl implements InstructorApiDelegate {
                 .canvasId(course.get().getCanvasId())
                 .assignments(course.get().getAssignments().stream().map(assignment ->
                     new AssignmentDTO()
-                            .category(assignment.getCategory())
+                            .id(assignment.getId().toString())
+                            .name(assignment.getName())
+                            .canvasId(assignment.getCanvasId())
+                            .points(assignment.getPoints())
                             .dueDate(assignment.getDueDate())
                             .unlockDate(assignment.getUnlockDate())
+                            .category(assignment.getCategory())
+                            .groupAssignment(assignment.isGroupAssignment())
+                            .attentionRequired(assignment.isAttentionRequired())
+                            // need to add external source config
                             .enabled(assignment.isEnabled())
-                            .points(assignment.getPoints())).toList())
+                            ).toList())
                 .members(sections.stream().map(Section::getMembers).flatMap(Set::stream).map(member ->
                     new CourseMemberDTO()
                         .canvasId(member.getCanvasId())

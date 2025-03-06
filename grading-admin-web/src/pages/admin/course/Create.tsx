@@ -9,20 +9,20 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { $api, store$ } from "../../../api";
+import { components } from "../../../lib/api/v1";
 
 export function CreatePage() {
-  const POLLING_INTERVAL = 10000;
   const mutation = $api.useMutation("post", "/admin/courses");
-  const mutation2 = $api.useMutation(
+  const importMutation = $api.useMutation(
     "post",
     "/admin/courses/{course_id}/import"
   );
-  const [taskId, setTaskId] = useState(-1);
-  const [taskId2, setTaskId2] = useState(-1);
-  const [taskId3, setTaskId3] = useState(-1);
+  const [outstandingTasks, setOutstandingTasks] = useState<
+    components["schemas"]["Task"][]
+  >([]);
   const [canvasId, setCanvasId] = useState("");
   const [courseId, setCourseId] = useState("");
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
@@ -57,7 +57,7 @@ export function CreatePage() {
 
   const importCourse = () => {
     setImporting(true);
-    mutation2.mutate(
+    importMutation.mutate(
       {
         params: {
           path: {
@@ -67,125 +67,74 @@ export function CreatePage() {
         body: {
           canvas_id: Number(canvasId),
           overwrite_name: false,
-          overwrite_code: false,
+          overwrite_code: true,
           import_users: true,
           import_assignments: true,
         },
       },
       {
         onSuccess: (response) => {
-          setTaskId(response[0].id);
-          setTaskId2(response[1].id);
-          setTaskId3(response[2].id);
+          setOutstandingTasks(response);
         },
       }
     );
   };
 
-  const {
-    data: taskData,
-    error: taskError,
-    isLoading: taskIsLoading,
-    refetch,
-  } = $api.useQuery(
+  const { mutateAsync: fetchTask } = $api.useMutation(
     "get",
-    `/tasks/{task_id}`,
-    {
-      params: {
-        path: { task_id: taskId },
-      },
-    },
-    {
-      enabled: taskId != -1,
-    }
+    "/tasks/{task_id}"
   );
 
-  const {
-    data: taskData2,
-    error: taskError2,
-    isLoading: taskIsLoading2,
-    refetch: refetch2,
-  } = $api.useQuery(
-    "get",
-    `/tasks/{task_id}`,
-    {
-      params: {
-        path: { task_id: taskId2 },
-      },
-    },
-    {
-      enabled: taskId2 != -1,
-    }
-  );
+  const pollTaskUntilComplete = useCallback(
+    async (taskId: number, delay = 5000) => {
+      while (true) {
+        try {
+          const response = await fetchTask({
+            params: { path: { task_id: taskId } },
+          });
 
-  const {
-    data: taskData3,
-    error: taskError3,
-    isLoading: taskIsLoading3,
-    refetch: refetch3,
-  } = $api.useQuery(
-    "get",
-    `/tasks/{task_id}`,
-    {
-      params: {
-        path: { task_id: taskId3 },
-      },
+          if (response.status === "COMPLETED") {
+            console.log(`Task ${taskId} is completed!`);
+            return response;
+          } else if (response.status === "FAILED") {
+            console.log(`Task ${taskId} failed`);
+            throw new Error("ERR");
+          } else {
+            console.log(
+              `Task ${taskId} is still in progress, retrying in ${delay}ms...`
+            );
+            await new Promise((res) => setTimeout(res, delay)); // Wait before retrying
+          }
+        } catch (error) {
+          console.error(`Error fetching task ${taskId}:`, error);
+        }
+      }
     },
-    {
-      enabled: taskId3 != -1,
-    }
+    []
   );
 
   useEffect(() => {
-    if (allTasksCompleted) return;
+    if (outstandingTasks.length === 0) return;
 
-    let interval1: number, interval2: number, interval3: number;
-
-    const checkAllCompleted = () => {
-      const allCompleted =
-        taskData?.status === "COMPLETED" &&
-        taskData2?.status === "COMPLETED" &&
-        taskData3?.status === "COMPLETED";
-      if (allCompleted) {
-        setAllTasksCompleted(true);
-      }
+    const pollTasks = async () => {
+      Promise.all(
+        outstandingTasks.map((task) => pollTaskUntilComplete(task.id))
+      )
+        .then((results) => {
+          console.log("All tasks are completed:", results);
+          setAllTasksCompleted(true);
+          setImporting(false);
+          setOutstandingTasks([]);
+        })
+        .catch((error) => {
+          console.error("Some tasks failed:", error);
+        });
     };
 
-    if (taskData?.status !== "COMPLETED" && taskId != -1) {
-      interval1 = setInterval(() => {
-        refetch();
-      }, POLLING_INTERVAL);
-    }
+    pollTasks();
+  }, [outstandingTasks, pollTaskUntilComplete, importing]);
 
-    if (taskData2?.status !== "COMPLETED" && taskId2 != -1) {
-      interval2 = setInterval(() => {
-        refetch2();
-      }, POLLING_INTERVAL);
-    }
-
-    if (taskData3?.status !== "COMPLETED" && taskId3 != -1) {
-      interval3 = setInterval(() => {
-        refetch3();
-      }, POLLING_INTERVAL);
-    }
-
-    checkAllCompleted();
-
-    return () => {
-      if (interval1) clearInterval(interval1);
-      if (interval2) clearInterval(interval2);
-      if (interval3) clearInterval(interval3);
-    };
-  }, [
-    taskData?.status,
-    taskData2?.status,
-    taskData3?.status,
-    refetch,
-    refetch2,
-    refetch3,
-  ]);
-
-  const { data, error, isLoading } = $api.useQuery(
+  const { data, error } = $api.useQuery(
     "get",
     "/admin/courses/{course_id}",
     {
@@ -226,6 +175,7 @@ export function CreatePage() {
           setCanvasId(values.canvasId);
           setCourseId(response.id as string);
           setCourseCreated(true);
+          setAllTasksCompleted(false);
           store$.id.set(response.id as string);
           store$.name.set(response.name);
         },
@@ -252,6 +202,10 @@ export function CreatePage() {
         value.length < 1 ? "Course term must have at least 1 character" : null,
     },
   });
+
+  if (error) {
+    return <p>Error while querying created course!</p>; // TODO handle this error better!
+  }
 
   return (
     <>

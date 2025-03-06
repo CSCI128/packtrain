@@ -1,6 +1,8 @@
 import { Container, Divider, Table, Text } from "@mantine/core";
 import { $api, store$ } from "../../api";
 
+// I think this file should be moved under the admin page i think?
+// its calling the admin endpoint, not the instructor input
 export function AssignmentsPage() {
   const { data, error, isLoading } = $api.useQuery(
     "get",
@@ -15,10 +17,14 @@ export function AssignmentsPage() {
 
   if (isLoading || !data) return "Loading...";
 
-  if (error) return `An error occured: ${error}`;
+  if (error) return `An error occurred: ${error}`;
 
   console.log(data);
 
+  // need to add external service stuff - but that needs to be setup
+  // the attention required field means that the grades are coming from an external source in canvas
+  // and need to be setup
+  // Also - is there a better way to display this information?
   const rows = data.assignments?.map((element) => (
     <Table.Tr key={element.id}>
       <Table.Td>{element.name}</Table.Td>
@@ -26,7 +32,9 @@ export function AssignmentsPage() {
       <Table.Td>{element.points}</Table.Td>
       <Table.Td>{element.unlock_date}</Table.Td>
       <Table.Td>{element.due_date}</Table.Td>
-      <Table.Td>{element.enabled}</Table.Td>
+      <Table.Td>{element.enabled ? "Yes" : "No"}</Table.Td>
+      <Table.Td>{element.group_assignment ? "Yes" : "No"}</Table.Td>
+      <Table.Td>{element.attention_required ? "Yes" : "No"}</Table.Td>
     </Table.Tr>
   ));
 
@@ -47,6 +55,8 @@ export function AssignmentsPage() {
             <Table.Th>Unlock Date</Table.Th>
             <Table.Th>Due Date</Table.Th>
             <Table.Th>Enabled</Table.Th>
+            <Table.Th>Group Assignment</Table.Th>
+            <Table.Th>Attention Required</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>

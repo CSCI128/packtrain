@@ -105,7 +105,9 @@ public class CourseMemberService {
 
         if (task.shouldRemoveOldUsers()) {
             log.info("Deleting {} course memberships for '{}'", cwidsToRemove.size(), course.get().getCode());
-            courseMemberRepo.deleteByCourseAndCwid(course.get(), cwidsToRemove);
+            if (!cwidsToRemove.isEmpty()) {
+                courseMemberRepo.deleteByCourseAndCwid(course.get(), cwidsToRemove);
+            }
         }
 
         if (task.shouldUpdateExistingUsers()) {
@@ -207,6 +209,7 @@ public class CourseMemberService {
     public Optional<ScheduledTaskDef> syncMembersFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean updateExisting, boolean removeOld, boolean addNew) {
         UserSyncTaskDef task = new UserSyncTaskDef();
         task.setCreatedByUser(actingUser);
+        task.setTaskName(String.format("Sync Course '%s': Course Members", courseId));
         task.setCourseToImport(courseId);
         task.shouldUpdateExistingUsers(updateExisting);
         task.shouldAddNewUsers(addNew);

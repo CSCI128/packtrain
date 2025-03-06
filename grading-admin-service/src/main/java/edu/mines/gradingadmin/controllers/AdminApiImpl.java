@@ -94,7 +94,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        tasks.add(courseTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        tasks.add(courseTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
 
         Optional<ScheduledTaskDef> sectionTask = sectionService.createSectionsFromCanvas(
                 securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
@@ -103,7 +103,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
 
         if (courseSyncTaskDTO.getImportUsers()){
             Optional<ScheduledTaskDef> importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID, true, true, true);
@@ -112,7 +112,17 @@ public class AdminApiImpl implements AdminApiDelegate {
                 return ResponseEntity.badRequest().build();
             }
 
-            tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+            tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        }
+
+        if (courseSyncTaskDTO.getImportAssignments()){
+            // currently not doing the update because oh god reconciling that seems like a pain
+            Optional<ScheduledTaskDef> importAssignmentsTask = assignmentService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.get().getId()), courseUUID, true, true, false);
+            if (importAssignmentsTask.isEmpty()){
+                return ResponseEntity.badRequest().build();
+            }
+
+            tasks.add(importAssignmentsTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(tasks);
@@ -131,7 +141,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        tasks.add(courseTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        tasks.add(courseTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
 
         Optional<ScheduledTaskDef> sectionTask = sectionService.createSectionsFromCanvas(
                 securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
@@ -141,7 +151,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
 
         if (courseSyncTaskDTO.getImportUsers()) {
             Optional<ScheduledTaskDef> importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID, true, true, true);
@@ -150,7 +160,17 @@ public class AdminApiImpl implements AdminApiDelegate {
                 return ResponseEntity.badRequest().build();
             }
 
-            tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+            tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        }
+
+        if (courseSyncTaskDTO.getImportAssignments()){
+            // currently not doing the update because oh god reconciling that seems like a pain
+            Optional<ScheduledTaskDef> importAssignmentsTask = assignmentService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.get().getId()), courseUUID, true, true, false);
+            if (importAssignmentsTask.isEmpty()){
+                return ResponseEntity.badRequest().build();
+            }
+
+            tasks.add(importAssignmentsTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(tasks);
@@ -219,11 +239,17 @@ public class AdminApiImpl implements AdminApiDelegate {
         if (include.contains("assignments")) {
             courseDto.setAssignments(course.get().getAssignments().stream().map(assignment ->
                     new AssignmentDTO()
-                            .category(assignment.getCategory())
-                            .dueDate(assignment.getDueDate())
-                            .unlockDate(assignment.getUnlockDate())
-                            .enabled(assignment.isEnabled())
-                            .points(assignment.getPoints())
+                        .id(assignment.getId().toString())
+                        .name(assignment.getName())
+                        .canvasId(assignment.getCanvasId())
+                        .points(assignment.getPoints())
+                        .dueDate(assignment.getDueDate())
+                        .unlockDate(assignment.getUnlockDate())
+                        .category(assignment.getCategory())
+                        .groupAssignment(assignment.isGroupAssignment())
+                        .attentionRequired(assignment.isAttentionRequired())
+                    // need to add external source config
+                    .enabled(assignment.isEnabled())
             ).toList());
         }
 

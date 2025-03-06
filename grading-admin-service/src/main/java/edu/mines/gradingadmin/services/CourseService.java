@@ -81,9 +81,9 @@ public class CourseService {
         }
 
         toUpdate.get().setCanvasId(canvasCourse.getId());
-        if (task.isOverwriteCode())
+        if (task.shouldOverwriteCode())
             toUpdate.get().setCode(canvasCourse.getCourseCode());
-        if (task.isOverwriteName())
+        if (task.shouldOverwriteName())
             toUpdate.get().setName(canvasCourse.getName());
 
         courseRepo.save(toUpdate.get());
@@ -97,11 +97,12 @@ public class CourseService {
         }
 
         CourseSyncTaskDef task = new CourseSyncTaskDef();
+        task.setTaskName(String.format("Sync Course '%s': Course Data", courseId));
         task.setCreatedByUser(actingUser);
         task.setCourseToSync(courseId);
         task.setCanvasId(canvasId);
-        task.setOverwriteName(overwriteName);
-        task.setOverwriteCode(overwriteCode);
+        task.shouldOverwriteName(overwriteName);
+        task.shouldOverwriteCode(overwriteCode);
 
         task = taskRepo.save(task);
 

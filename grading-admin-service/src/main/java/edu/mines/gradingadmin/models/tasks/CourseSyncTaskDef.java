@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 import java.util.UUID;
 
@@ -20,8 +21,10 @@ public class CourseSyncTaskDef extends ScheduledTaskDef {
     private long canvasId;
 
     @Column(name = "overwrite_name")
-    private boolean overwriteName = false;
+    @Accessors(fluent = true)
+    private boolean shouldOverwriteName = false;
 
     @Column(name = "overwrite_code")
-    private boolean overwriteCode = false;
+    @Accessors(fluent = true)
+    private boolean shouldOverwriteCode = false;
 }
