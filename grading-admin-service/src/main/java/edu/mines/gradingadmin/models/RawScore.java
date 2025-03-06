@@ -15,10 +15,10 @@ public class RawScore {
     private UUID id;
 
     @Column(name = "migration_id", unique = true, nullable = false)
-    private UUID migration_id;
+    private UUID migrationId;
 
     @Column(name = "assignment_id", unique = true, nullable = false)
-    private UUID assignment_id;
+    private UUID assignmentId;
 
     @Column(name = "cwid", unique = true, nullable = false)
     private String cwid;
@@ -27,10 +27,10 @@ public class RawScore {
     private double score;
 
     @Column(name = "submission_time")
-    private Instant submission_time;
+    private Instant submissionTime;
 
     @Column(name = "hours_late")
-    private Instant hours_late;
+    private Instant hoursLate;
 
     @Column(name = "submission_status", nullable = false)
     private SubmissionStatus submissionStatus;

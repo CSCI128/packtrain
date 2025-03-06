@@ -8,14 +8,14 @@ import edu.mines.gradingadmin.repositories.RawScoreRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -27,26 +27,32 @@ public class RawScoreService {
         this.rawScoreRepo = rawScoreRepo;
     }
 
-    public List<RawScore> uploadRawScores(Path filePath) throws Exception {
+    public List<RawScore> uploadRawScores(MultipartFile file) throws Exception {
         List<RawScore> scores = new LinkedList<>();
 
-        if (!Files.exists(filePath)){
-            log.warn("Failed to find the file {}", filePath.toString());
+        if (!file.isEmpty()){
+            log.warn("Failed to find the file {}", file.getName());
             return scores;
         }
-        if (!FilenameUtils.getExtension(filePath.toString()).equals("csv")){
-            log.warn("File extension is not .csv for the file {}", filePath.toString());
+        if(file.getContentType() == null){
+            log.warn("File content type not defined for file {}", file.getName());
+            return scores;
+        }
+        if (!file.getContentType().equals("application/csv")){
+            log.warn("File extension is not .csv for the file {}", file.getName());
             return scores;
         }
 
-        try (Reader reader = Files.newBufferedReader(filePath)) {
-            try(CSVReader csvReader = new CSVReaderBuilder(reader)
+        try (InputStream inputStream = file.getInputStream()) {
+            try(CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(inputStream))
                     .withSkipLines(1)
                     .build()){
                 String[] line;
                 while((line = csvReader.readNext()) != null){
                     String cwid = line[2];
                     String status = line[8].trim().toUpperCase();
+
+                    System.out.println(Arrays.toString(line));
 
                     SubmissionStatus submissionStatus;
                     try {
@@ -67,15 +73,15 @@ public class RawScoreService {
     public Optional<RawScore> createRawScore(UUID migrationId, UUID assignmentId, String cwid, SubmissionStatus submissionStatus){
         RawScore newRawScore = rawScoreRepo.getByCwidandAssignmentId(cwid, assignmentId)
                 .map(score -> {
-                    log.warn("Overwriting raw score for {} with user {}", score.getAssignment_id(), score.getCwid());
+                    log.warn("Overwriting raw score for {} with user {}", score.getAssignmentId(), score.getCwid());
                     score.setSubmissionStatus(submissionStatus);
-                    score.setMigration_id(migrationId);
+                    score.setMigrationId(migrationId);
                     return score;
                 })
                 .orElseGet(() -> {
                     RawScore newScore = new RawScore();
-                    newScore.setMigration_id(migrationId);
-                    newScore.setAssignment_id(assignmentId);
+                    newScore.setMigrationId(migrationId);
+                    newScore.setAssignmentId(assignmentId);
                     newScore.setCwid(cwid);
                     newScore.setSubmissionStatus(submissionStatus);
                     return newScore;
