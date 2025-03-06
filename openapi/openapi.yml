@@ -1704,6 +1704,51 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
+  /instructor/courses/{course_id}/migrations/{migration_id}:
+    put:
+      tags:
+        - instructor
+      operationId: update_grade
+      summary: Updates the grade for a migration for the user. Must include a reason for updating the grade.
+      description: |
+        Updates the grade for a migration for the user.
+      security:
+        - openIDC: [ instructor:write ]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: migration_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+      responses:
+        202:
+          description: "Accepted"
+        400:
+          description: "Failed to update grade"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to update grade for migration for user"
+        404:
+          description: "Migration not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "Failed to update grade for migration for user"
+
 components:
   securitySchemes:
     OpenIDC:
