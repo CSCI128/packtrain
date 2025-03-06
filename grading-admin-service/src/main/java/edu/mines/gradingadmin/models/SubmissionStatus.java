@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.models;
 import java.util.stream.Stream;
 
 public enum SubmissionStatus {
+    GRADED("graded"),
     ONTIME("ontime"),
     LATE("late"),
     MISSING("missing"),

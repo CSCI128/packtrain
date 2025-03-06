@@ -27,10 +27,10 @@ public class RawScoreService {
         this.rawScoreRepo = rawScoreRepo;
     }
 
-    public List<RawScore> uploadRawScores(MultipartFile file) throws Exception {
+    public List<RawScore> uploadRawScores(MultipartFile file, UUID assignmentId, UUID migrationID) throws Exception {
         List<RawScore> scores = new LinkedList<>();
 
-        if (!file.isEmpty()){
+        if (file.isEmpty()){
             log.warn("Failed to find the file {}", file.getName());
             return scores;
         }
@@ -49,18 +49,33 @@ public class RawScoreService {
                     .build()){
                 String[] line;
                 while((line = csvReader.readNext()) != null){
-                    String cwid = line[2];
-                    String status = line[8].trim().toUpperCase();
+                    try{
+                        String cwid = line[2];
+                        String status = line[8].trim().toUpperCase();
 
-                    System.out.println(Arrays.toString(line));
+                        System.out.println(Arrays.toString(line));
 
-                    SubmissionStatus submissionStatus;
-                    try {
-                        submissionStatus = SubmissionStatus.valueOf(status);
+                        SubmissionStatus submissionStatus;
+                        try {
+                            submissionStatus = SubmissionStatus.valueOf(status);
+                        }
+                        catch (IllegalArgumentException e) {
+                            log.warn("Invalid submission status {} for cwid {}. Skipping this raw score", status, cwid);
+                            continue;
+                        }
+
+                        Optional<RawScore> score = createRawScore(migrationID, assignmentId, cwid, submissionStatus);
+
+                        if(score.isEmpty()){
+                            log.warn("Could not create raw score for {} on assignment {}", cwid, assignmentId);
+                            continue;
+                        }
+
+                        scores.add(score.get());
+
                     }
-                    catch (IllegalArgumentException e) {
-                        log.warn("Invalid submission status {} for cwid {}. Skipping this raw score", status, cwid);
-                        continue;
+                    catch (Exception e){
+                        log.warn("Wrong input format for the csv");
                     }
 
                 }
