@@ -43,7 +43,6 @@ export function EditCourse() {
     });
   };
 
-  // TODO await useForm/useEffect
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {

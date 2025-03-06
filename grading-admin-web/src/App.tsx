@@ -22,6 +22,7 @@ import { AssignmentsPage } from "./pages/instructor/Assignments";
 import { MembersPage } from "./pages/instructor/Members";
 import { MigrationsPage } from "./pages/instructor/Migrations";
 import { ProfilePage } from "./pages/Profile";
+import { ExtensionForm } from "./pages/student/ExtensionForm";
 import ProtectedRoute from "./ProtectedRoute";
 import Root from "./templates/Root";
 
@@ -103,6 +104,10 @@ const router = createBrowserRouter([
           {
             path: "/callback",
             element: <CallbackPage />,
+          },
+          {
+            path: "/extension",
+            element: <ExtensionForm />,
           },
           {
             path: "/admin/home",
