@@ -15,7 +15,6 @@ import { $api, store$ } from "../../../api";
 import { components } from "../../../lib/api/v1";
 
 export function CreatePage() {
-  const POLLING_INTERVAL = 10000;
   const mutation = $api.useMutation("post", "/admin/courses");
   const importMutation = $api.useMutation(
     "post",
@@ -125,22 +124,6 @@ export function CreatePage() {
         console.error("Some tasks failed:", error);
       });
 
-    // waitForTaskCompletion(
-    //   outstandingTasks,
-    //   () => {
-    //     console.log("javascript is bad");
-    //     setAllTasksCompleted(true);
-    //     setImporting(false);
-    //     setOutstandingTasks([]);
-    //   },
-    //   (name, msg) => console.error(`Failed to import ${name}: ${msg}`),
-    //   (msg) => {
-    //     console.log(`Completed: ${msg}`);
-    //   },
-    //   taskData
-    // ).then(() => {
-    //   console.log("yap");
-    // });
   }, [!!outstandingTasks.length, importing]);
 
   const { data, error, isLoading } = $api.useQuery(
