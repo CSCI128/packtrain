@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.models.RawScore;
+import edu.mines.gradingadmin.models.SubmissionStatus;
 import edu.mines.gradingadmin.repositories.RawScoreRepo;
 import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @SpringBootTest
@@ -50,10 +52,19 @@ public class TestRawScoreService implements PostgresTestContainer {
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "application/csv", fileContent.getBytes());
+        UUID testId = UUID.fromString("790f7d2a-97c5-4680-9e61-7681f750e320");
 
-        List<RawScore> scores = rawScoreService.uploadRawScores(file, UUID.fromString("790f7d2a-97c5-4680-9e61-7681f750e320"), UUID.fromString("790f7d2a-97c5-4680-9e61-7681f750e320"));
+        // Should add scores to the list that were properly saved
+        List<RawScore> scores = rawScoreService.uploadRawScores(file, testId, testId);
+        Assertions.assertFalse(scores.isEmpty());
 
-        //Assertions.assertFalse(scores.isEmpty());
+        // Test to skip the first line of the csv
+        Assertions.assertEquals(Optional.empty(), rawScoreService.getRawScoreFromCwidAndAssignmentId("SID", testId));
+
+        // Singular test get on saved score
+        Optional<RawScore> score = rawScoreService.getRawScoreFromCwidAndAssignmentId("10866111", testId);
+        Assertions.assertFalse(score.isEmpty());
+        Assertions.assertEquals(SubmissionStatus.GRADED, score.get().getSubmissionStatus());
 
     }
 

@@ -105,4 +105,13 @@ public class RawScoreService {
         return Optional.of(rawScoreRepo.save(newRawScore));
     }
 
+    public Optional<RawScore> getRawScoreFromCwidAndAssignmentId(String cwid, UUID assignmentId){
+        Optional<RawScore> score = rawScoreRepo.getByCwidAndAssignmentId(cwid, assignmentId);
+        if(score.isEmpty()){
+            log.warn("Could not find raw score for cwid {} on assignment {}", cwid, assignmentId);
+            return Optional.empty();
+        }
+        return score;
+    }
+
 }

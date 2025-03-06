@@ -11,16 +11,17 @@ import java.util.UUID;
 @Table(name = "raw_scores")
 public class RawScore {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", unique = true, nullable = false)
     private UUID id;
 
-    @Column(name = "migration_id", unique = true, nullable = false)
+    @Column(name = "migration_id", nullable = false)
     private UUID migrationId;
 
-    @Column(name = "assignment_id", unique = true, nullable = false)
+    @Column(name = "assignment_id", nullable = false)
     private UUID assignmentId;
 
-    @Column(name = "cwid", unique = true, nullable = false)
+    @Column(name = "cwid", nullable = false)
     private String cwid;
 
     @Column(name = "score")
