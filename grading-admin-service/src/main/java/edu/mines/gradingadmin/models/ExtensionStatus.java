@@ -15,8 +15,4 @@ public enum ExtensionStatus {
     ExtensionStatus(String status){
         this.status = status;
     }
-
-    public static ExtensionStatus fromString(String type){
-        return Stream.of(ExtensionStatus.values()).filter(r -> r.status.equals(type)).findFirst().orElseThrow(RuntimeException::new);
-    }
 }

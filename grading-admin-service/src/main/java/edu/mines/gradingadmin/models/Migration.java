@@ -20,12 +20,12 @@ public class Migration {
     @ManyToOne()
     @JoinColumn(name = "policy", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
-    protected Policy policy;
+    private Policy policy;
 
     @ManyToOne()
     @JoinColumn(name = "master_migration", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
-    protected MasterMigration master_migration;
+    private MasterMigration masterMigration;
 
     // for now this relationship is one to one, later on this will be one to many
     // for now this relationship is one to one, later on this will be one to many
@@ -33,7 +33,7 @@ public class Migration {
     @OneToOne()
     @JoinColumn(name = "assignment", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
-    protected Assignment assignment;
+    private Assignment assignment;
 
     // TO-DO: once raw shore sheet is created pull from that here too
     // many to one with a migration

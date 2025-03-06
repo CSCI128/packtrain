@@ -20,13 +20,12 @@ public class AssignmentExtensions {
     @OneToMany()
     @JoinColumn(name = "extension", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
-    protected List<Extension> extensions;
+    private List<Extension> extensions;
 
-    // one to one for both sides
     @OneToOne()
     @JoinColumn(name = "assignment", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
-    protected Assignment assignment;
+    private Assignment assignment;
 
 
 }

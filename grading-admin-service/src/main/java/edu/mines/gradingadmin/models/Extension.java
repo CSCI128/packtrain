@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -21,17 +22,17 @@ public class Extension {
     private ExtensionStatus status;
 
     @Column(name = "assignment_id")
-    private String assignment_id;
+    private String assignmentId;
 
     @ManyToOne()
     @JoinColumn(name = "migration", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
-    protected Migration migration;
+    private Migration migration;
 
     @ManyToOne()
     @JoinColumn(name = "extensions", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
-    protected AssignmentExtensions extension_list;
+    private AssignmentExtensions assignmentExtension;
 
 
 

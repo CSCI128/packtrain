@@ -33,7 +33,7 @@ public class MasterMigration {
     private int num_students;
 
     @Column(name = "num_extensions")
-    private int num_extensions;
+    private int numExtensions;
 
     @OneToMany()
     @JoinColumn(name = "migrations", referencedColumnName = "id")
@@ -43,13 +43,13 @@ public class MasterMigration {
     @ManyToOne()
     @JoinColumn(name = "user_id", referencedColumnName = "cwid")
     @EqualsAndHashCode.Exclude
-    protected User createdByUser;
+    private User createdByUser;
 
 
     @ManyToOne()
     @JoinColumn(name = "course_id", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
-    protected Course course;
+    private Course course;
 
 
 }
