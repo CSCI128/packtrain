@@ -21,16 +21,16 @@ public class MasterMigration {
     private UUID id;
 
     @Column(name = "date_started")
-    private Date date_started;
+    private Date dateStarted;
 
     @Column(name = "num_unapproved_extensions")
-    private int num_unapproved_extensions;
+    private int numUnapprovedExtensions;
 
     @Column(name = "num_late_submissions")
-    private int num_late_submissions;
+    private int numLateSubmissions;
 
     @Column(name = "num_students")
-    private int num_students;
+    private int numStudents;
 
     @Column(name = "num_extensions")
     private int numExtensions;
