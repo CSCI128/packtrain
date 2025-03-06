@@ -1441,7 +1441,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructors/courses/{course_id}/assignments/{assignment_id}/extensions/{extension_id}:
+  /instructor/courses/{course_id}/assignments/{assignment_id}/extensions/{extension_id}:
     get:
       tags:
         - instructor
@@ -1501,7 +1501,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructors/courses/{course_id}/users/{user_id}/extensions/{extension_id}:
+  /instructor/courses/{course_id}/users/{user_id}/extensions/{extension_id}:
     get:
       tags:
         - instructor
@@ -1561,7 +1561,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructors/courses/{course_id}/sections/{section_id}/extensions/{extension_id}:
+  /instructor/courses/{course_id}/sections/{section_id}/extensions/{extension_id}:
     get:
       tags:
         - instructor
@@ -1656,7 +1656,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ErrorResponse"
+                  $ref: "#/components/schemas/Extension"
         404:
           description: "Extension not found"
           content:
@@ -1667,6 +1667,44 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
+  /instructor/courses/{course_id}/migrations:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_master_migrations_for_course
+      summary: Get all the master migrations for the course
+      description: |
+        This endpoint gets all master migrations for a given course
+      security:
+        - openIDC: [ admin:read ]
+      parameters:
+       - name: course_id
+         required: true
+         description: "The course ID"
+         in: path
+         schema:
+           type: string
+           example: "999-9999-9999-99"
+      responses:
+        200:
+            description: "OK"
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/MasterMigration"
+        404:
+            description: "Migration not found"
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ErrorResponse"
+                example:
+                  error_source: "User Service"
+                  error_message: "Error: migration not found"
+                
+          
   /student/courses/{course_id}/extensions:
     post:
       tags:
@@ -1680,13 +1718,13 @@ paths:
       security:
         - openIDC: [student:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+       - name: course_id
+         required: true
+         description: "The course ID"
+         in: path
+         schema:
+           type: string
+           example: "999-9999-9999-99"
       responses:
         201:
           description: "An extension request has been created"
@@ -2078,3 +2116,53 @@ components:
         response_to_requester:
           type: string
           example: "Your 3 day extension for illness is approved"
+
+    MasterMigration:
+      description: "The master migration that contains to the list of migration objects"
+      type: object
+      required:
+        - migration_list
+      properties:
+        migration_list:
+          type: array
+          items:
+            $ref: "#/components/schemas/Migration"
+
+    MasterMigrationStatistics:
+      description: "The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit"
+      type: object
+      required:
+        - missing
+        - extensions_applied
+        - no_credit
+        - late_penalties
+      properties:
+        missing:
+          type: integer
+          example: 2
+        extensions_applied:
+          type: integer
+          example: 12
+        no_credit:
+          type: integer
+          example: 1
+        late_penalties:
+          type: integer
+          example: 5
+
+    Migration:
+      description: "Migration object that has a single assignment and a policy"
+      type: object
+      required:
+        - assignment
+        - policy
+      properties:
+        assignment:
+            $ref: "#/components/schemas/Assignment"
+        policy:
+            $ref: "#/components/schemas/Policy"
+
+
+
+
+
