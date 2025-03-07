@@ -12,11 +12,14 @@ import {
   Textarea,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useState } from "react";
 import { useAuth } from "react-oidc-context";
 import { Link } from "react-router-dom";
 
 export function ExtensionForm() {
   const auth = useAuth();
+
+  const [originalDate, setOriginalDate] = useState<Date>(new Date());
 
   const extensionForm = useForm({
     mode: "uncontrolled",
@@ -52,6 +55,8 @@ export function ExtensionForm() {
   const submitLatePass = (values: typeof latePassForm.values) => {};
 
   // TODO call user/member endpoint
+
+  // TODO set originalDate
 
   return (
     <Container size="md">
@@ -114,12 +119,15 @@ export function ExtensionForm() {
           <Textarea label="Comments/Explanation" placeholder="Comments" />
 
           <Text c="gray">
-            Original Due Date: <strong>TODO ORIGINAL DUE DATE</strong>.
+            Original Due Date: <strong>{originalDate.toLocaleString()}</strong>.
           </Text>
 
           <Text>
-            <strong>If approved</strong>, the assignment will be due TODO NEW
-            DUE DATE.
+            <strong>If approved</strong>, the assignment will be due{" "}
+            <strong>
+              {new Date(originalDate.getTime() + 1 * 86400000).toLocaleString()}
+            </strong>
+            .
           </Text>
         </Stack>
 
