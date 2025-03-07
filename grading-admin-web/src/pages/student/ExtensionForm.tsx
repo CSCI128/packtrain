@@ -96,6 +96,7 @@ export function ExtensionForm() {
           </Text>
 
           <Group>
+            {/* more validation on this */}
             <NumberInput label="Days Requested" defaultValue={1} />
 
             <Select
@@ -110,7 +111,7 @@ export function ExtensionForm() {
             />
           </Group>
 
-          <Textarea label="Comments/Explanation" placeholder="Comments.." />
+          <Textarea label="Comments/Explanation" placeholder="Comments" />
 
           <Text c="gray">
             Original Due Date: <strong>TODO ORIGINAL DUE DATE</strong>.
