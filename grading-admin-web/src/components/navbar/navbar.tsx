@@ -34,21 +34,27 @@ export function Navbar() {
           <Group justify="space-between" h="100%">
             <Group h="100%" gap={0} visibleFrom="sm">
               <p onClick={() => navigate("/")}>Grading Admin</p>
-              <a href="/instructor/migrate" className={classes.link}>
-                Migrate
-              </a>
-              <a href="/admin/home" className={classes.link}>
-                Course
-              </a>
-              <a href="/admin/assignments" className={classes.link}>
-                Assignments
-              </a>
-              <a href="/admin/members" className={classes.link}>
-                Members
-              </a>
-              <a href="/admin/users" className={classes.link}>
-                Users
-              </a>
+              {auth.user?.profile.is_admin ? (
+                <>
+                  <a href="/instructor/migrate" className={classes.link}>
+                    Migrate
+                  </a>
+                  <a href="/admin/home" className={classes.link}>
+                    Course
+                  </a>
+                  <a href="/admin/assignments" className={classes.link}>
+                    Assignments
+                  </a>
+                  <a href="/admin/members" className={classes.link}>
+                    Members
+                  </a>
+                  <a href="/admin/users" className={classes.link}>
+                    Users
+                  </a>
+                </>
+              ) : (
+                <></>
+              )}
             </Group>
 
             <Burger
@@ -95,6 +101,7 @@ export function Navbar() {
                 </Menu>
               )}
 
+              {/* TODO check for either instructor or admin role here */}
               {auth.isAuthenticated && (
                 <Button variant="default" onClick={open}>
                   {store$.name.get() || "Select Class"}
@@ -113,7 +120,7 @@ export function Navbar() {
             hiddenFrom="sm"
             zIndex={1000000}
           >
-            <ScrollArea h="calc(100vh - 80px" mx="-md">
+            <ScrollArea h="calc(100vh - 80px)" mx="-md">
               <Divider my="sm" />
 
               <a href="#" className={classes.link}>
