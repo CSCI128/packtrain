@@ -22,6 +22,7 @@ export function ExtensionForm() {
   const [originalDate, setOriginalDate] = useState<Date>(new Date());
   const [extensionDays, setExtensionDays] = useState<number>(1);
   const [latePassView, setLatePassView] = useState<boolean>(true);
+  const [latePassesRemaining, setLatePassesRemaining] = useState<boolean>(true);
 
   const extensionForm = useForm({
     mode: "uncontrolled",
@@ -111,6 +112,18 @@ export function ExtensionForm() {
               </Text>
             </Group>
           </Stack>
+
+          <Group justify="flex-end" mt="md">
+            <Button component={Link} to="/" type="submit" color="gray">
+              Cancel
+            </Button>
+
+            {latePassesRemaining && (
+              <Button component={Link} to="/admin/home" type="submit">
+                Submit
+              </Button>
+            )}
+          </Group>
         </form>
       ) : (
         <form onSubmit={extensionForm.onSubmit(submitExtension)}>
