@@ -24,6 +24,8 @@ export function ExtensionForm() {
   const [latePassView, setLatePassView] = useState<boolean>(true);
   const [latePassesRemaining, setLatePassesRemaining] = useState<boolean>(true);
 
+  // query student/enrollments
+
   const extensionForm = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -114,7 +116,7 @@ export function ExtensionForm() {
           </Stack>
 
           <Group justify="flex-end" mt="md">
-            <Button component={Link} to="/" type="submit" color="gray">
+            <Button component={Link} to="/requests" color="gray">
               Cancel
             </Button>
 
@@ -184,7 +186,7 @@ export function ExtensionForm() {
           </Stack>
 
           <Group justify="flex-end" mt="md">
-            <Button component={Link} to="/" type="submit" color="gray">
+            <Button component={Link} to="/requests" color="gray">
               Cancel
             </Button>
             <Button component={Link} to="/admin/home" type="submit">

@@ -876,6 +876,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/instructor/courses/{course_id}/migrations/{migration_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Updates the grade for a migration for the user. Must include a reason for updating the grade.
+         * @description Updates the grade for a migration for the user.
+         *
+         */
+        put: operations["update_grade"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1118,6 +1139,26 @@ export interface components {
             comments: string;
             /** @example Your 3 day extension for illness is approved */
             response_to_requester: string;
+        };
+        /** @description The master migration that contains to the list of migration objects */
+        MasterMigration: {
+            migration_list: components["schemas"]["Migration"][];
+        };
+        /** @description The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit */
+        MasterMigrationStatistics: {
+            /** @example 2 */
+            missing: number;
+            /** @example 12 */
+            extensions_applied: number;
+            /** @example 1 */
+            no_credit: number;
+            /** @example 5 */
+            late_penalties: number;
+        };
+        /** @description Migration object that has a single assignment and a policy */
+        Migration: {
+            assignment: components["schemas"]["Assignment"];
+            policy: components["schemas"]["Policy"];
         };
         /** @description The master migration that contains to the list of migration objects */
         MasterMigration: {
@@ -2534,6 +2575,41 @@ export interface operations {
         };
     };
     get_all_master_migrations_for_course: {
+<<<<<<< HEAD
+=======
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MasterMigration"][];
+                };
+            };
+            /** @description Migration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    extension_request: {
+>>>>>>> e517953 (add all requests screen)
         parameters: {
             query?: never;
             header?: never;
@@ -2597,6 +2673,7 @@ export interface operations {
             };
         };
     };
+<<<<<<< HEAD
     create_extension_request: {
         parameters: {
             query?: never;
@@ -2633,6 +2710,8 @@ export interface operations {
             };
         };
     };
+=======
+>>>>>>> e517953 (add all requests screen)
     update_grade: {
         parameters: {
             query?: never;
