@@ -19,12 +19,12 @@ export function AssignmentsPage() {
 
   if (error) return `An error occurred: ${error}`;
 
+  // DELETE THIS
   console.log(data);
 
   // need to add external service stuff - but that needs to be setup
   // the attention required field means that the grades are coming from an external source in canvas
   // and need to be setup
-  // Also - is there a better way to display this information?
   const rows = data.assignments?.map((element) => (
     <Table.Tr key={element.id}>
       <Table.Td>{element.name}</Table.Td>

@@ -70,6 +70,35 @@ export function EditCourse() {
     },
   });
 
+  const syncAssignmentsMutation = $api.useMutation(
+    "post",
+    "/admin/courses/{course_id}/sync"
+  );
+
+  const syncAssignments = () => {
+    syncAssignmentsMutation.mutate(
+      {
+        params: {
+          path: {
+            course_id: "1",
+          },
+        },
+        body: {
+          canvas_id: 1,
+          overwrite_name: false,
+          overwrite_code: false,
+          import_users: true,
+          import_assignments: true,
+        },
+      },
+      {
+        onSuccess: (response) => {
+          console.log(response);
+        },
+      }
+    );
+  };
+
   if (isLoading || !data) return "Loading...";
 
   if (error) return `An error occured: ${error}`;
@@ -130,6 +159,10 @@ export function EditCourse() {
           </Chip.Group>
 
           <Group justify="flex-end" mt="md">
+            <Button onClick={syncAssignments} variant="filled">
+              Sync Assignments
+            </Button>
+
             {/* TODO maybe make this another button once external services are added */}
             <Button component={Link} to="/admin/home" type="submit">
               Save
