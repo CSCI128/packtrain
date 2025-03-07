@@ -20,6 +20,7 @@ export function ExtensionForm() {
   const auth = useAuth();
 
   const [originalDate, setOriginalDate] = useState<Date>(new Date());
+  const [extensionDays, setExtensionDays] = useState<number>(1);
 
   const extensionForm = useForm({
     mode: "uncontrolled",
@@ -101,8 +102,14 @@ export function ExtensionForm() {
           </Text>
 
           <Group>
-            {/* more validation on this */}
-            <NumberInput label="Days Requested" defaultValue={1} />
+            {/* TODO more validation on this: maximums */}
+            <NumberInput
+              label="Days Requested"
+              defaultValue={1}
+              onChange={() => setExtensionDays}
+              max={5}
+              min={1}
+            />
 
             <Select
               label="Extension Reason"
@@ -125,7 +132,10 @@ export function ExtensionForm() {
           <Text>
             <strong>If approved</strong>, the assignment will be due{" "}
             <strong>
-              {new Date(originalDate.getTime() + 1 * 86400000).toLocaleString()}
+              {/* TODO update this when extensionDays updates */}
+              {new Date(
+                originalDate.getTime() + extensionDays * 86400000
+              ).toLocaleString()}
             </strong>
             .
           </Text>
