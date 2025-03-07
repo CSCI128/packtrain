@@ -3,16 +3,10 @@ package edu.mines.gradingadmin.controllers;
 import edu.mines.gradingadmin.api.StudentApiDelegate;
 import edu.mines.gradingadmin.data.AssignmentDTO;
 import edu.mines.gradingadmin.data.CourseDTO;
+import edu.mines.gradingadmin.data.ExtensionDTO;
 import edu.mines.gradingadmin.managers.SecurityManager;
-import edu.mines.gradingadmin.models.Assignment;
-import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.Section;
-import edu.mines.gradingadmin.models.User;
-import edu.mines.gradingadmin.services.AssignmentService;
-import edu.mines.gradingadmin.services.CourseMemberService;
-import edu.mines.gradingadmin.services.CourseService;
-import edu.mines.gradingadmin.services.SectionService;
-import edu.mines.gradingadmin.services.UserService;
+import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.services.*;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -25,14 +19,16 @@ public class StudentApiImpl implements StudentApiDelegate {
     private final UserService userService;
     private final CourseService courseService;
     private final SectionService sectionService;
+    private final ExtensionService extensionService;
     private final CourseMemberService courseMemberService;
     private final AssignmentService assignmentService;
     private final SecurityManager securityManager;
 
-    public StudentApiImpl(UserService userService, CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager) {
+    public StudentApiImpl(UserService userService, CourseService courseService, SectionService sectionService, ExtensionService extensionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager) {
         this.userService = userService;
         this.courseService = courseService;
         this.sectionService = sectionService;
+        this.extensionService = extensionService;
         this.courseMemberService = courseMemberService;
         this.assignmentService = assignmentService;
         this.securityManager = securityManager;
@@ -94,6 +90,16 @@ public class StudentApiImpl implements StudentApiDelegate {
                         .category(a.getCategory())
                 )
                 .toList());
+    }
+
+    @Override
+    public ResponseEntity<List<ExtensionDTO>> getAllExtensions(String courseId) {
+        List<Extension> extensions = extensionService.getAllExtensions(courseId);
+
+        return ResponseEntity.ok(extensions.stream().map(extension -> new ExtensionDTO()
+            .id(extension.getId().toString())
+            .status(ExtensionDTO.StatusEnum.fromValue(extension.getStatus().toString()))
+        ).toList());
     }
 }
 

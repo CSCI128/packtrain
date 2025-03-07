@@ -1676,36 +1676,71 @@ paths:
       description: |
         This endpoint gets all master migrations for a given course
       security:
-        - openIDC: [ admin:read ]
+        - openIDC: [admin:read]
       parameters:
-       - name: course_id
-         required: true
-         description: "The course ID"
-         in: path
-         schema:
-           type: string
-           example: "999-9999-9999-99"
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
       responses:
         200:
-            description: "OK"
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/MasterMigration"
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MasterMigration"
         404:
-            description: "Migration not found"
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ErrorResponse"
-                example:
-                  error_source: "User Service"
-                  error_message: "Error: migration not found"
-                
-          
+          description: "Migration not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: migration not found"
+
   /student/courses/{course_id}/extensions:
+    get:
+      tags:
+        - student
+      operationId: get_all_extensions
+      summary: "Get all extensions for a student"
+      description: |
+        Gets all extensions a student has submitted, regardless
+        of status.
+      security:
+        - openIDC: [student:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Extension"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
     post:
       tags:
         - student
@@ -1718,13 +1753,13 @@ paths:
       security:
         - openIDC: [student:write]
       parameters:
-       - name: course_id
-         required: true
-         description: "The course ID"
-         in: path
-         schema:
-           type: string
-           example: "999-9999-9999-99"
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
       responses:
         201:
           description: "An extension request has been created"
@@ -1751,7 +1786,7 @@ paths:
       description: |
         Updates the grade for a migration for the user.
       security:
-        - openIDC: [ instructor:write ]
+        - openIDC: [instructor:write]
       parameters:
         - name: course_id
           in: path
@@ -2168,11 +2203,6 @@ components:
         - policy
       properties:
         assignment:
-            $ref: "#/components/schemas/Assignment"
+          $ref: "#/components/schemas/Assignment"
         policy:
-            $ref: "#/components/schemas/Policy"
-
-
-
-
-
+          $ref: "#/components/schemas/Policy"
