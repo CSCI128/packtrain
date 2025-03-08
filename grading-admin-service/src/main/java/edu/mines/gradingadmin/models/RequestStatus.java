@@ -1,13 +1,13 @@
 package edu.mines.gradingadmin.models;
 
-public enum ExtensionStatus {
+public enum RequestStatus {
     APPROVED("approved"),
     DENIED("denied"),
     PENDING("pending");
 
     private final String status;
 
-    ExtensionStatus(String status){
+    RequestStatus(String status){
         this.status = status;
     }
 }

@@ -24,10 +24,6 @@ public class Extension {
     private LateRequest lateRequest;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private ExtensionStatus status;
-
-    @Enumerated(EnumType.STRING)
     @Column(name = "reason")
     private ExtensionReason reason;
 

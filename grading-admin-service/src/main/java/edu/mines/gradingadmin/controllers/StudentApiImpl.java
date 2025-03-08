@@ -102,16 +102,26 @@ public class StudentApiImpl implements StudentApiDelegate {
 
     @Override
     public ResponseEntity<List<ExtensionDTO>> getAllExtensions(String courseId) {
-        List<Extension> extensions = extensionService.getAllExtensionsForStudent(courseId);
+        User user = securityManager.getUser();
 
-        return ResponseEntity.ok(extensions.stream().map(extension -> new ExtensionDTO()
-            .id(extension.getId().toString())
-            .status(ExtensionDTO.StatusEnum.fromValue(extension.getStatus().toString()))
-            .reason(extension.getReason().toString())
+        List<LateRequest> extensions = extensionService.getAllLateRequestsForStudent(user.getCwid());
+
+        Optional<List<Course>> enrollments = userService.getEnrollments(user.getCwid());
+        if(enrollments.isPresent()) {
+            Course course = enrollments.get().stream().filter(x -> x.getId() == UUID.fromString(courseId)).findFirst().get();
+
+            // TODO should extensions be linked to a course?
+        }
+
+        return ResponseEntity.ok(List.of());
+//        return ResponseEntity.ok(extensions.stream().map(extension -> new ExtensionDTO()
+//            .id(extension.getId().toString())
+//            .status(ExtensionDTO.StatusEnum.fromValue(extension.getStatus().toString()))
+//            .reason(extension.getReason().toString())
 //            .dateSubmitted(extension.getSubmissionDate())
 //            .numDaysRequested(extension.getDaysExtended())
 //            .requestType(ExtensionDTO.RequestTypeEnum.fromValue(extension.getExtensionType().toString()))
-        ).toList());
+//        ).toList());
     }
 }
 

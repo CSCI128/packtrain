@@ -24,6 +24,10 @@ public class LateRequest {
     @Column(name = "request_type")
     private RequestType requestType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private RequestStatus status;
+
     @Column(name = "submission_date")
     private Instant submissionDate;
 

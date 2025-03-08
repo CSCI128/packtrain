@@ -2129,6 +2129,47 @@ components:
         course:
           $ref: "#/components/schemas/Course"
 
+    LateRequest:
+      description: "A generic request for extending work deadlines"
+      type: object
+      required:
+        - assignments
+        - date_submitted
+        - num_days_requested
+        - user_requester
+      properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
+        assignments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Assignment"
+        date_submitted:
+          type: string
+          format: date-time
+          example: "2020-01-01T12:00:00.000Z"
+        num_days_requested:
+          type: integer
+          example: 2
+        user_requester:
+          type: string
+          items:
+            $ref: "#/components/schemas/CourseMember"
+        status:
+          type: string
+          enum:
+            - pending
+            - approved
+            - rejected
+          example: "Extension pending instructor approval"
+        request_type:
+          type: string
+          enum:
+            - extension
+            - late_pass
+          example: "Late Pass"
+
     Extension:
       description: "An extension for an assignment"
       type: object

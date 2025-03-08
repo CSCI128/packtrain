@@ -1,6 +1,7 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.models.Extension;
+import edu.mines.gradingadmin.models.LateRequest;
 import edu.mines.gradingadmin.repositories.ExtensionRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,12 +19,10 @@ public class ExtensionService {
     }
 
     public List<Extension> getExtensionsByMigrationId(String migrationId) {
-        List<Extension> extensions = extensionRepo.getExtensionsByMigrationId(UUID.fromString(migrationId));
-        return extensions.stream().toList();
+        return extensionRepo.getExtensionsByMigrationId(UUID.fromString(migrationId));
     }
 
-    public List<Extension> getAllExtensionsForStudent(String studentId) {
-        List<Extension> extensions = extensionRepo.getAllExtensionsForStudent(UUID.fromString(studentId));
-        return extensions.stream().toList();
+    public List<LateRequest> getAllLateRequestsForStudent(String cwid) {
+        return extensionRepo.getAllLateRequestsForStudent(cwid);
     }
 }
