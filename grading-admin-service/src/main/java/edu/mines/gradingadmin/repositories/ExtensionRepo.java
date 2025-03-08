@@ -9,11 +9,8 @@ import java.util.UUID;
 import java.util.List;
 
 public interface ExtensionRepo extends CrudRepository<Extension, UUID> {
-    @Query("select l from late_request l where l.user.cwid like concat('%',?1,'%')")
-    List<LateRequest> getAllLateRequestsForStudent(String cwid);
-
-    @Query("select e from extension e where e.id = ?1")
-    List<Extension> getAllExtensionsForStudent();
+    @Query("select l from late_request l where l.assignment.course.id = ?1 and l.user.cwid like concat('%',?1,'%')")
+    List<LateRequest> getAllLateRequestsForStudent(UUID courseId, String cwid);
 
     @Query("select e from extension e where e.id = ?1")
     List<Extension> getExtensionsByMigrationId(UUID migrationId);

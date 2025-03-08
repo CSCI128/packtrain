@@ -31,8 +31,10 @@ public class LateRequest {
     @Column(name = "submission_date")
     private Instant submissionDate;
 
-    @Column(name = "new_due_date")
-    private Instant newDueDate;
+    @OneToOne()
+    @JoinColumn(name = "extension", referencedColumnName = "id")
+    @EqualsAndHashCode.Exclude
+    private Extension extension;
 
     @ManyToOne()
     @JoinColumn(name = "assignment", referencedColumnName = "id")

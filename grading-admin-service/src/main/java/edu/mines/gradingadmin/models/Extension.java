@@ -18,11 +18,6 @@ public class Extension {
     @Column(name = "id")
     private UUID id;
 
-    @ManyToOne()
-    @JoinColumn(name = "late_request", referencedColumnName = "id")
-    @EqualsAndHashCode.Exclude
-    private LateRequest lateRequest;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "reason")
     private ExtensionReason reason;

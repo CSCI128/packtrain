@@ -1731,7 +1731,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Extension"
+                  $ref: "#/components/schemas/LateRequest"
         404:
           description: "Extension not found"
           content:
@@ -2137,6 +2137,8 @@ components:
         - date_submitted
         - num_days_requested
         - user_requester
+        - status
+        - request_type
       properties:
         id:
           type: string
@@ -2152,6 +2154,10 @@ components:
         num_days_requested:
           type: integer
           example: 2
+        extension:
+          type: string
+          items:
+            $ref: "#/components/schemas/Extension"
         user_requester:
           type: string
           items:
@@ -2174,42 +2180,22 @@ components:
       description: "An extension for an assignment"
       type: object
       required:
-        - assignments
-        - date_submitted
-        - num_days_requested
-        - user_requester
+        - reason
+        - user_reviewer
+        - response_timestamp
+        - comments
+        - response_to_requester
       properties:
         id:
           type: string
           example: "999-9999-9999-99"
-        assignments:
-          type: array
-          items:
-            $ref: "#/components/schemas/Assignment"
-        date_submitted:
-          type: string
-          format: date-time
-          example: "2020-01-01T12:00:00.000Z"
-        num_days_requested:
-          type: integer
-          example: 2
-        user_requester:
-          type: string
-          items:
-            $ref: "#/components/schemas/CourseMember"
-        status:
+        reason:
           type: string
           enum:
-            - pending
-            - approved
-            - rejected
-          example: "Extension pending instructor approval"
-        request_type:
-          type: string
-          enum:
-            - extension
-            - late_pass
-          example: "Late Pass"
+            - health
+            - tech
+            - family
+            - personal
         user_reviewer:
           type: string
           items:
@@ -2218,9 +2204,9 @@ components:
           type: string
           format: date-time
           example: "2020-01-01T12:00:00.000Z"
-        reason:
+        comments:
           type: string
-          example: "Excused absence"
+          example: "Some comment about the work"
         response_to_requester:
           type: string
           example: "Your 3 day extension for illness is approved"

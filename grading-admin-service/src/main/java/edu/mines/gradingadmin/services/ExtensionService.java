@@ -22,7 +22,7 @@ public class ExtensionService {
         return extensionRepo.getExtensionsByMigrationId(UUID.fromString(migrationId));
     }
 
-    public List<LateRequest> getAllLateRequestsForStudent(String cwid) {
-        return extensionRepo.getAllLateRequestsForStudent(cwid);
+    public List<LateRequest> getAllLateRequestsForStudent(String courseId, String cwid) {
+        return extensionRepo.getAllLateRequestsForStudent(UUID.fromString(courseId), cwid);
     }
 }

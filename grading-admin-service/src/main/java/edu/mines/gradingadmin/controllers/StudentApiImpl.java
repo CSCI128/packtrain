@@ -1,10 +1,7 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.StudentApiDelegate;
-import edu.mines.gradingadmin.data.AssignmentDTO;
-import edu.mines.gradingadmin.data.CourseDTO;
-import edu.mines.gradingadmin.data.ExtensionDTO;
-import edu.mines.gradingadmin.data.StudentInformationDTO;
+import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.services.*;
@@ -101,27 +98,27 @@ public class StudentApiImpl implements StudentApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<ExtensionDTO>> getAllExtensions(String courseId) {
+    public ResponseEntity<List<LateRequestDTO>> getAllExtensions(String courseId) {
         User user = securityManager.getUser();
 
-        List<LateRequest> extensions = extensionService.getAllLateRequestsForStudent(user.getCwid());
+        List<LateRequest> lateRequests = extensionService.getAllLateRequestsForStudent(courseId, user.getCwid());
 
-        Optional<List<Course>> enrollments = userService.getEnrollments(user.getCwid());
-        if(enrollments.isPresent()) {
-            Course course = enrollments.get().stream().filter(x -> x.getId() == UUID.fromString(courseId)).findFirst().get();
-
-            // TODO should extensions be linked to a course?
-        }
-
-        return ResponseEntity.ok(List.of());
-//        return ResponseEntity.ok(extensions.stream().map(extension -> new ExtensionDTO()
-//            .id(extension.getId().toString())
-//            .status(ExtensionDTO.StatusEnum.fromValue(extension.getStatus().toString()))
-//            .reason(extension.getReason().toString())
-//            .dateSubmitted(extension.getSubmissionDate())
-//            .numDaysRequested(extension.getDaysExtended())
-//            .requestType(ExtensionDTO.RequestTypeEnum.fromValue(extension.getExtensionType().toString()))
-//        ).toList());
+        return ResponseEntity.ok(lateRequests.stream().map(lateRequest ->
+            new LateRequestDTO()
+                .id(lateRequest.getId().toString())
+                .numDaysRequested(lateRequest.getDaysRequested())
+                .requestType(LateRequestDTO.RequestTypeEnum.fromValue(lateRequest.getRequestType().name()))
+                .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name()))
+                .dateSubmitted(lateRequest.getSubmissionDate())
+                .extension(lateRequest.getExtension() != null ?
+                    List.of(new ExtensionDTO()
+                        .id(lateRequest.getExtension().getId().toString())
+                        .reason(ExtensionDTO.ReasonEnum.fromValue(lateRequest.getExtension().getReason().name()))
+                        .comments(lateRequest.getExtension().getComments())
+                        .responseToRequester(lateRequest.getExtension().getReviewerResponse())
+                        .responseTimestamp(lateRequest.getExtension().getReviewerResponseTimestamp())
+                    ) : null)
+        ).toList());
     }
 }
 
