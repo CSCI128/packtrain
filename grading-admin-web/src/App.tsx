@@ -12,13 +12,13 @@ import {
 } from "react-router-dom";
 import { store$, userManager } from "./api";
 import "./index.css";
+import { AssignmentsPage } from "./pages/admin/Assignments";
 import { CoursePage } from "./pages/admin/course/Course";
 import { CreatePage } from "./pages/admin/course/Create";
 import { EditCourse } from "./pages/admin/course/Edit";
 import { SelectClass } from "./pages/admin/course/Select";
 import { UsersPage } from "./pages/admin/Users";
 import { HomePage } from "./pages/Home";
-import { AssignmentsPage } from "./pages/instructor/Assignments";
 import { MembersPage } from "./pages/instructor/Members";
 import { MigrationsPage } from "./pages/instructor/Migrations";
 import { ProfilePage } from "./pages/Profile";
