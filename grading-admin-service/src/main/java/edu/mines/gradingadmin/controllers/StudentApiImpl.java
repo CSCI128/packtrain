@@ -101,7 +101,7 @@ public class StudentApiImpl implements StudentApiDelegate {
     public ResponseEntity<List<LateRequestDTO>> getAllExtensions(String courseId) {
         User user = securityManager.getUser();
 
-        List<LateRequest> lateRequests = extensionService.getAllLateRequestsForStudent(courseId, user.getCwid());
+        List<LateRequest> lateRequests = extensionService.getAllLateRequestsForStudent(courseId, user);
 
         return ResponseEntity.ok(lateRequests.stream().map(lateRequest ->
             new LateRequestDTO()
@@ -113,7 +113,7 @@ public class StudentApiImpl implements StudentApiDelegate {
                 .extension(lateRequest.getExtension() != null ?
                     List.of(new ExtensionDTO()
                         .id(lateRequest.getExtension().getId().toString())
-                        .reason(ExtensionDTO.ReasonEnum.fromValue(lateRequest.getExtension().getReason().name()))
+                        .reason(lateRequest.getExtension().getReason())
                         .comments(lateRequest.getExtension().getComments())
                         .responseToRequester(lateRequest.getExtension().getReviewerResponse())
                         .responseTimestamp(lateRequest.getExtension().getReviewerResponseTimestamp())

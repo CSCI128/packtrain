@@ -37,7 +37,7 @@ public class LateRequest {
     private Extension extension;
 
     @ManyToOne()
-    @JoinColumn(name = "assignment", referencedColumnName = "id")
+    @JoinColumn(name = "assignment", referencedColumnName = "id", nullable = false)
     @EqualsAndHashCode.Exclude
     private Assignment assignment;
 
@@ -49,5 +49,5 @@ public class LateRequest {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "cwid", nullable = false)
     @EqualsAndHashCode.Exclude
-    private User user;
+    private User requestingUser;
 }

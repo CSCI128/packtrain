@@ -2191,11 +2191,7 @@ components:
           example: "999-9999-9999-99"
         reason:
           type: string
-          enum:
-            - health
-            - tech
-            - family
-            - personal
+          example: "Tech Issues"
         user_reviewer:
           type: string
           items:

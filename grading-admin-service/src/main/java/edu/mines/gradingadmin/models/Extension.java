@@ -18,9 +18,8 @@ public class Extension {
     @Column(name = "id")
     private UUID id;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "reason")
-    private ExtensionReason reason;
+    private String reason;
 
     @Column(name = "comments")
     private String comments;
