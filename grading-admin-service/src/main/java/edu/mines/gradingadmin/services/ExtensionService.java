@@ -17,9 +17,13 @@ public class ExtensionService {
         this.extensionRepo = extensionRepo;
     }
 
-    public List<Extension> getAllExtensions(String migrationId){
+    public List<Extension> getExtensionsByMigrationId(String migrationId) {
         List<Extension> extensions = extensionRepo.getExtensionsByMigrationId(UUID.fromString(migrationId));
         return extensions.stream().toList();
     }
 
+    public List<Extension> getAllExtensionsForStudent(String studentId) {
+        List<Extension> extensions = extensionRepo.getAllExtensionsForStudent(UUID.fromString(studentId));
+        return extensions.stream().toList();
+    }
 }

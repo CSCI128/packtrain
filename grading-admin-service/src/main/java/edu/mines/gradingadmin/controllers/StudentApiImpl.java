@@ -4,6 +4,7 @@ import edu.mines.gradingadmin.api.StudentApiDelegate;
 import edu.mines.gradingadmin.data.AssignmentDTO;
 import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.data.ExtensionDTO;
+import edu.mines.gradingadmin.data.StudentInformationDTO;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.services.*;
@@ -55,7 +56,7 @@ public class StudentApiImpl implements StudentApiDelegate {
     }
 
     @Override
-    public ResponseEntity<CourseDTO> getCourseInformationStudent(String courseId) {
+    public ResponseEntity<StudentInformationDTO> getCourseInformationStudent(String courseId) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
 
         if(course.isEmpty()) {
@@ -64,6 +65,8 @@ public class StudentApiImpl implements StudentApiDelegate {
         }
 
         Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(securityManager.getUser(), course.get());
+
+        List<CourseRole> courseRoles = courseMemberService.getRolesForUserAndCourse(securityManager.getUser(), course.get().getId());
 
         CourseDTO courseDTO = new CourseDTO()
             .id(course.get().getId().toString())
@@ -74,7 +77,12 @@ public class StudentApiImpl implements StudentApiDelegate {
             .canvasId(course.get().getCanvasId())
             .sections(sections.stream().map(Section::getName).toList());
 
-        return ResponseEntity.ok(courseDTO);
+        StudentInformationDTO studentInformationDTO = new StudentInformationDTO()
+                .course(courseDTO)
+                .professor("TODO implement this")
+                .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRoles.stream().findFirst().get().name()));
+
+        return ResponseEntity.ok(studentInformationDTO);
     }
 
     @Override
@@ -94,11 +102,15 @@ public class StudentApiImpl implements StudentApiDelegate {
 
     @Override
     public ResponseEntity<List<ExtensionDTO>> getAllExtensions(String courseId) {
-        List<Extension> extensions = extensionService.getAllExtensions(courseId);
+        List<Extension> extensions = extensionService.getAllExtensionsForStudent(courseId);
 
         return ResponseEntity.ok(extensions.stream().map(extension -> new ExtensionDTO()
             .id(extension.getId().toString())
             .status(ExtensionDTO.StatusEnum.fromValue(extension.getStatus().toString()))
+            .reason(extension.getReason().toString())
+            .dateSubmitted(extension.getSubmissionDate())
+            .numDaysRequested(extension.getDaysExtended())
+            .requestType(ExtensionDTO.RequestTypeEnum.fromValue(extension.getExtensionType().toString()))
         ).toList());
     }
 }

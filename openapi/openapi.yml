@@ -1271,7 +1271,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Course"
+                $ref: "#/components/schemas/StudentInformation"
 
   /student/enrollments:
     get:
@@ -2106,6 +2106,28 @@ components:
             type: string
           example:
             - "fall.2020.excl.101.section.a"
+
+    StudentInformation:
+      description: "Information relevant to a student"
+      type: object
+      required:
+        - course_role
+        - professor
+        - course
+      properties:
+        course_role:
+          type: string
+          enum:
+            - student
+            - instructor
+            - ta
+            - owner
+          example: "student"
+        professor:
+          type: string
+          example: "Jane Doe"
+        course:
+          $ref: "#/components/schemas/Course"
 
     Extension:
       description: "An extension for an assignment"

@@ -22,9 +22,7 @@ public class Extension {
     @Column(name = "status")
     private ExtensionStatus status;
 
-    @Column(name = "assignment_id")
-    private String assignmentId;
-
+    @Enumerated(EnumType.STRING)
     @Column(name = "extension_type")
     private ExtensionType extensionType;
 
@@ -37,22 +35,25 @@ public class Extension {
     @Column(name = "new_due_date")
     private Instant newDueDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "reason")
-    private String reason; // TODO this should probably be an enum; or call this category
+    private ExtensionReason reason;
 
     @Column(name = "comments")
     private String comments;
+
+    @ManyToOne()
+    @JoinColumn(name = "assignment", referencedColumnName = "id")
+    @EqualsAndHashCode.Exclude
+    private Assignment assignment;
 
     @ManyToOne()
     @JoinColumn(name = "migration", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
     private Migration migration;
 
-    @ManyToOne()
-    @JoinColumn(name = "extensions", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "cwid", nullable = false)
     @EqualsAndHashCode.Exclude
-    private AssignmentExtensions assignmentExtension;
-
-
-
+    private User user;
 }
