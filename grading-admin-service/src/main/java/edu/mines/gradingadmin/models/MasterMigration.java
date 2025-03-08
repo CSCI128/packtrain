@@ -45,11 +45,8 @@ public class MasterMigration {
     @EqualsAndHashCode.Exclude
     private User createdByUser;
 
-
     @ManyToOne()
     @JoinColumn(name = "course_id", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
     private Course course;
-
-
 }

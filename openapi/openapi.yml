@@ -1271,7 +1271,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Course"
+                $ref: "#/components/schemas/StudentInformation"
 
   /student/enrollments:
     get:
@@ -1676,36 +1676,71 @@ paths:
       description: |
         This endpoint gets all master migrations for a given course
       security:
-        - openIDC: [ admin:read ]
+        - openIDC: [admin:read]
       parameters:
-       - name: course_id
-         required: true
-         description: "The course ID"
-         in: path
-         schema:
-           type: string
-           example: "999-9999-9999-99"
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
       responses:
         200:
-            description: "OK"
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/MasterMigration"
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MasterMigration"
         404:
-            description: "Migration not found"
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ErrorResponse"
-                example:
-                  error_source: "User Service"
-                  error_message: "Error: migration not found"
-                
-          
+          description: "Migration not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: migration not found"
+
   /student/courses/{course_id}/extensions:
+    get:
+      tags:
+        - student
+      operationId: get_all_extensions
+      summary: "Get all extensions for a student"
+      description: |
+        Gets all extensions a student has submitted, regardless
+        of status.
+      security:
+        - openIDC: [student:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LateRequest"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
     post:
       tags:
         - student
@@ -1718,13 +1753,13 @@ paths:
       security:
         - openIDC: [student:write]
       parameters:
-       - name: course_id
-         required: true
-         description: "The course ID"
-         in: path
-         schema:
-           type: string
-           example: "999-9999-9999-99"
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
       responses:
         201:
           description: "An extension request has been created"
@@ -1751,7 +1786,7 @@ paths:
       description: |
         Updates the grade for a migration for the user.
       security:
-        - openIDC: [ instructor:write ]
+        - openIDC: [instructor:write]
       parameters:
         - name: course_id
           in: path
@@ -2072,14 +2107,38 @@ components:
           example:
             - "fall.2020.excl.101.section.a"
 
-    Extension:
-      description: "An extension for an assignment"
+    StudentInformation:
+      description: "Information relevant to a student"
+      type: object
+      required:
+        - course_role
+        - professor
+        - course
+      properties:
+        course_role:
+          type: string
+          enum:
+            - student
+            - instructor
+            - ta
+            - owner
+          example: "student"
+        professor:
+          type: string
+          example: "Jane Doe"
+        course:
+          $ref: "#/components/schemas/Course"
+
+    LateRequest:
+      description: "A generic request for extending work deadlines"
       type: object
       required:
         - assignments
         - date_submitted
         - num_days_requested
         - user_requester
+        - status
+        - request_type
       properties:
         id:
           type: string
@@ -2095,6 +2154,10 @@ components:
         num_days_requested:
           type: integer
           example: 2
+        extension:
+          type: string
+          items:
+            $ref: "#/components/schemas/Extension"
         user_requester:
           type: string
           items:
@@ -2112,6 +2175,23 @@ components:
             - extension
             - late_pass
           example: "Late Pass"
+
+    Extension:
+      description: "An extension for an assignment"
+      type: object
+      required:
+        - reason
+        - user_reviewer
+        - response_timestamp
+        - comments
+        - response_to_requester
+      properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
+        reason:
+          type: string
+          example: "Tech Issues"
         user_reviewer:
           type: string
           items:
@@ -2120,9 +2200,9 @@ components:
           type: string
           format: date-time
           example: "2020-01-01T12:00:00.000Z"
-        reason:
+        comments:
           type: string
-          example: "Excused absence"
+          example: "Some comment about the work"
         response_to_requester:
           type: string
           example: "Your 3 day extension for illness is approved"
@@ -2168,11 +2248,6 @@ components:
         - policy
       properties:
         assignment:
-            $ref: "#/components/schemas/Assignment"
+          $ref: "#/components/schemas/Assignment"
         policy:
-            $ref: "#/components/schemas/Policy"
-
-
-
-
-
+          $ref: "#/components/schemas/Policy"

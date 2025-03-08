@@ -53,10 +53,4 @@ public class Assignment {
     @JoinColumn(name = "course_id", referencedColumnName = "id")
     @ToString.Exclude
     private Course course;
-
-    @OneToOne()
-    @JoinColumn(name = "assignment_extensions", referencedColumnName = "id")
-    @EqualsAndHashCode.Exclude
-    protected AssignmentExtensions assignmentExtensions;
-
 }

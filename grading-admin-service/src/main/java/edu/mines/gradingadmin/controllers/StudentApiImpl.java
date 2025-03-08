@@ -1,18 +1,10 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.StudentApiDelegate;
-import edu.mines.gradingadmin.data.AssignmentDTO;
-import edu.mines.gradingadmin.data.CourseDTO;
+import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.managers.SecurityManager;
-import edu.mines.gradingadmin.models.Assignment;
-import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.Section;
-import edu.mines.gradingadmin.models.User;
-import edu.mines.gradingadmin.services.AssignmentService;
-import edu.mines.gradingadmin.services.CourseMemberService;
-import edu.mines.gradingadmin.services.CourseService;
-import edu.mines.gradingadmin.services.SectionService;
-import edu.mines.gradingadmin.services.UserService;
+import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.services.*;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -25,14 +17,16 @@ public class StudentApiImpl implements StudentApiDelegate {
     private final UserService userService;
     private final CourseService courseService;
     private final SectionService sectionService;
+    private final ExtensionService extensionService;
     private final CourseMemberService courseMemberService;
     private final AssignmentService assignmentService;
     private final SecurityManager securityManager;
 
-    public StudentApiImpl(UserService userService, CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager) {
+    public StudentApiImpl(UserService userService, CourseService courseService, SectionService sectionService, ExtensionService extensionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager) {
         this.userService = userService;
         this.courseService = courseService;
         this.sectionService = sectionService;
+        this.extensionService = extensionService;
         this.courseMemberService = courseMemberService;
         this.assignmentService = assignmentService;
         this.securityManager = securityManager;
@@ -59,7 +53,7 @@ public class StudentApiImpl implements StudentApiDelegate {
     }
 
     @Override
-    public ResponseEntity<CourseDTO> getCourseInformationStudent(String courseId) {
+    public ResponseEntity<StudentInformationDTO> getCourseInformationStudent(String courseId) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
 
         if(course.isEmpty()) {
@@ -68,6 +62,8 @@ public class StudentApiImpl implements StudentApiDelegate {
         }
 
         Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(securityManager.getUser(), course.get());
+
+        List<CourseRole> courseRoles = courseMemberService.getRolesForUserAndCourse(securityManager.getUser(), course.get().getId());
 
         CourseDTO courseDTO = new CourseDTO()
             .id(course.get().getId().toString())
@@ -78,7 +74,12 @@ public class StudentApiImpl implements StudentApiDelegate {
             .canvasId(course.get().getCanvasId())
             .sections(sections.stream().map(Section::getName).toList());
 
-        return ResponseEntity.ok(courseDTO);
+        StudentInformationDTO studentInformationDTO = new StudentInformationDTO()
+                .course(courseDTO)
+                .professor("TODO implement this")
+                .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRoles.stream().findFirst().get().name()));
+
+        return ResponseEntity.ok(studentInformationDTO);
     }
 
     @Override
@@ -94,6 +95,30 @@ public class StudentApiImpl implements StudentApiDelegate {
                         .category(a.getCategory())
                 )
                 .toList());
+    }
+
+    @Override
+    public ResponseEntity<List<LateRequestDTO>> getAllExtensions(String courseId) {
+        User user = securityManager.getUser();
+
+        List<LateRequest> lateRequests = extensionService.getAllLateRequestsForStudent(courseId, user);
+
+        return ResponseEntity.ok(lateRequests.stream().map(lateRequest ->
+            new LateRequestDTO()
+                .id(lateRequest.getId().toString())
+                .numDaysRequested(lateRequest.getDaysRequested())
+                .requestType(LateRequestDTO.RequestTypeEnum.fromValue(lateRequest.getRequestType().name()))
+                .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name()))
+                .dateSubmitted(lateRequest.getSubmissionDate())
+                .extension(lateRequest.getExtension() != null ?
+                    List.of(new ExtensionDTO()
+                        .id(lateRequest.getExtension().getId().toString())
+                        .reason(lateRequest.getExtension().getReason())
+                        .comments(lateRequest.getExtension().getComments())
+                        .responseToRequester(lateRequest.getExtension().getReviewerResponse())
+                        .responseTimestamp(lateRequest.getExtension().getReviewerResponseTimestamp())
+                    ) : null)
+        ).toList());
     }
 }
 
