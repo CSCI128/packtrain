@@ -18,22 +18,14 @@ public class Extension {
     @Column(name = "id")
     private UUID id;
 
+    @ManyToOne()
+    @JoinColumn(name = "late_request", referencedColumnName = "id")
+    @EqualsAndHashCode.Exclude
+    private LateRequest lateRequest;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private ExtensionStatus status;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "extension_type")
-    private ExtensionType extensionType;
-
-    @Column(name = "days_extended")
-    private int daysExtended;
-
-    @Column(name = "submission_date")
-    private Instant submissionDate;
-
-    @Column(name = "new_due_date")
-    private Instant newDueDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "reason")
@@ -42,18 +34,14 @@ public class Extension {
     @Column(name = "comments")
     private String comments;
 
-    @ManyToOne()
-    @JoinColumn(name = "assignment", referencedColumnName = "id")
-    @EqualsAndHashCode.Exclude
-    private Assignment assignment;
-
-    @ManyToOne()
-    @JoinColumn(name = "migration", referencedColumnName = "id")
-    @EqualsAndHashCode.Exclude
-    private Migration migration;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "cwid", nullable = false)
     @EqualsAndHashCode.Exclude
-    private User user;
+    private User reviewer;
+
+    @Column(name = "reviewer_response")
+    private String reviewerResponse;
+
+    @Column(name = "reviewer_response_timestamp")
+    private Instant reviewerResponseTimestamp;
 }

@@ -1,5 +1,5 @@
 package edu.mines.gradingadmin.models;
 
-public enum ExtensionType {
+public enum RequestType {
     LATE_PASS, EXTENSION
 }

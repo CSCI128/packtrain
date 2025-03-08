@@ -108,9 +108,9 @@ public class StudentApiImpl implements StudentApiDelegate {
             .id(extension.getId().toString())
             .status(ExtensionDTO.StatusEnum.fromValue(extension.getStatus().toString()))
             .reason(extension.getReason().toString())
-            .dateSubmitted(extension.getSubmissionDate())
-            .numDaysRequested(extension.getDaysExtended())
-            .requestType(ExtensionDTO.RequestTypeEnum.fromValue(extension.getExtensionType().toString()))
+//            .dateSubmitted(extension.getSubmissionDate())
+//            .numDaysRequested(extension.getDaysExtended())
+//            .requestType(ExtensionDTO.RequestTypeEnum.fromValue(extension.getExtensionType().toString()))
         ).toList());
     }
 }
