@@ -39,7 +39,7 @@ interface AssignmentRowData {
   status: string;
   group_assignment: boolean;
   attention_required: boolean;
-  locked: boolean;
+  frozen: boolean;
 }
 
 interface TableHeaderProps {
@@ -119,7 +119,7 @@ export function AssignmentsPage() {
       status: "Migrated",
       group_assignment: false,
       attention_required: false,
-      locked: false,
+      frozen: false,
     },
   ];
   // const { data, error, isLoading } = $api.useQuery(
@@ -200,7 +200,7 @@ export function AssignmentsPage() {
       <Table.Td>{element.enabled ? "Yes" : "No"}</Table.Td>
       <Table.Td>{element.group_assignment ? "Yes" : "No"}</Table.Td>
       <Table.Td>{element.attention_required ? "Yes" : "No"}</Table.Td>
-      <Table.Td>{element.locked ? "Yes" : "No"}</Table.Td>
+      <Table.Td>{element.frozen ? "Yes" : "No"}</Table.Td>
       <Table.Td>{element.status}</Table.Td>
       <Table.Td onClick={() => handleAssignmentEdit(element)}>
         <Center>
@@ -360,11 +360,11 @@ export function AssignmentsPage() {
                   Attention Required
                 </TableHeader>
                 <TableHeader
-                  sorted={sortBy === "locked"}
+                  sorted={sortBy === "frozen"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("locked")}
+                  onSort={() => setSorting("frozen")}
                 >
-                  Locked
+                  Frozen
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "status"}
