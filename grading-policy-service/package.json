@@ -15,12 +15,14 @@
     "amqplib": "^0.10.5",
     "axios": "^1.7.9",
     "express": "^4.21.2",
+    "minio": "^8.0.4",
     "systemjs": "^6.15.1",
     "uuid": "^11.1.0",
     "yaml": "^2.7.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@testcontainers/minio": "^10.18.0",
     "@testcontainers/rabbitmq": "^10.18.0",
     "@types/amqplib": "^0.10.6",
     "@types/express": "^5.0.0",

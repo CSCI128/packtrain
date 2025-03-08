@@ -13,6 +13,7 @@ import {
     ApplyPolicyFunctionSig,
     downloadAndVerifyPolicy,
 } from "./policyService";
+import ScoredDTO from "../data/ScoredDTO";
 
 export interface ConsumerChannel {
     channel: Channel;
@@ -84,7 +85,7 @@ export async function startMigration(
     }
 
     const policy = overridePolicy
-        ? (Function(overridePolicy) as ApplyPolicyFunctionSig)
+        ? (Function("rawScore", overridePolicy) as ApplyPolicyFunctionSig)
         : await downloadAndVerifyPolicy(start.policyURI);
 
     const publishChannel: Channel = await connection
@@ -161,12 +162,25 @@ function onRawScoreReceive(
     rawScore.initialDueDate = assignmentMetadata.initialDueDate;
 
     try {
-        const score = policy(rawScore);
+        const policyScored = policy(rawScore);
+        const scored = new ScoredDTO();
+        scored.cwid = rawScore.cwid;
+        scored.extensionId = rawScore.extensionId;
+        scored.assignmentId = rawScore.assignmentId;
+        scored.rawScore = rawScore.rawScore;
+        scored.finalScore = policyScored.finalScore;
+        scored.adjustedSubmissionTime = policyScored.adjustedSubmissionDate;
+        scored.hoursLate = policyScored.adjustedHoursLate;
+        scored.submissionStatus = policyScored.submissionStatus;
+        scored.extensionStatus = policyScored.extensionStatus;
+        scored.extensionMessage = policyScored.extensionMessage ?? "";
+        scored.submissionMessage = policyScored.submissionMessage ?? "";
+
 
         publishChannel.publish(
             exchange,
             routingKey,
-            Buffer.from(JSON.stringify(score)),
+            Buffer.from(JSON.stringify(scored)),
             {
                 contentType: "application/json",
                 type: "grade.scored",
