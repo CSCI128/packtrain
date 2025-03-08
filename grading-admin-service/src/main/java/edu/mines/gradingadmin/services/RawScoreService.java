@@ -15,6 +15,10 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -53,7 +57,22 @@ public class RawScoreService {
                         String cwid = line[2];
                         String status = line[8].trim().toUpperCase();
 
-                        System.out.println(Arrays.toString(line));
+                        Double score = null;
+                        if(!line[6].isEmpty()){
+                            score = Double.parseDouble(line[6]);
+                        }
+
+                        Instant submissionTime = null;
+                        if(!line[10].isEmpty()) {
+                            DateTimeFormatter submissionTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z");
+                            OffsetDateTime offsetSubmissionTime = OffsetDateTime.parse(line[10], submissionTimeFormatter);
+                            submissionTime = offsetSubmissionTime.toInstant();
+                        }
+
+                        LocalTime hoursLate = null;
+                        if(!line[11].isEmpty()){
+                            hoursLate = LocalTime.parse(line[11]);
+                        }
 
                         SubmissionStatus submissionStatus;
                         try {
@@ -64,17 +83,18 @@ public class RawScoreService {
                             continue;
                         }
 
-                        Optional<RawScore> score = createRawScore(migrationID, assignmentId, cwid, submissionStatus);
+                        Optional<RawScore> rawScore = createRawScore(migrationID, assignmentId, cwid, score, submissionTime, hoursLate, submissionStatus);
 
-                        if(score.isEmpty()){
+                        if(rawScore.isEmpty()){
                             log.warn("Could not create raw score for {} on assignment {}", cwid, assignmentId);
                             continue;
                         }
 
-                        scores.add(score.get());
+                        scores.add(rawScore.get());
 
                     }
                     catch (Exception e){
+                        log.warn(e.getMessage());
                         log.warn("Wrong input format for the csv");
                     }
 
@@ -85,19 +105,27 @@ public class RawScoreService {
         return scores;
     }
 
-    public Optional<RawScore> createRawScore(UUID migrationId, UUID assignmentId, String cwid, SubmissionStatus submissionStatus){
+    public Optional<RawScore> createRawScore(UUID migrationId, UUID assignmentId, String cwid, Double score, Instant submissionTime, LocalTime hoursLate, SubmissionStatus submissionStatus){
         RawScore newRawScore = rawScoreRepo.getByCwidAndAssignmentId(cwid, assignmentId)
-                .map(score -> {
-                    log.warn("Overwriting raw score for {} with user {}", score.getAssignmentId(), score.getCwid());
-                    score.setSubmissionStatus(submissionStatus);
-                    score.setMigrationId(migrationId);
-                    return score;
+                .map(rawScore -> {
+                    log.warn("Overwriting raw score for {} with user {}", rawScore.getAssignmentId(), rawScore.getCwid());
+                    rawScore.setSubmissionStatus(submissionStatus);
+                    rawScore.setMigrationId(migrationId);
+                    rawScore.setCwid(cwid);
+                    rawScore.setScore(score);
+                    rawScore.setSubmissionTime(submissionTime);
+                    rawScore.setHoursLate(hoursLate);
+                    rawScore.setSubmissionStatus(submissionStatus);
+                    return rawScore;
                 })
                 .orElseGet(() -> {
                     RawScore newScore = new RawScore();
                     newScore.setMigrationId(migrationId);
                     newScore.setAssignmentId(assignmentId);
                     newScore.setCwid(cwid);
+                    newScore.setScore(score);
+                    newScore.setSubmissionTime(submissionTime);
+                    newScore.setHoursLate(hoursLate);
                     newScore.setSubmissionStatus(submissionStatus);
                     return newScore;
                 });

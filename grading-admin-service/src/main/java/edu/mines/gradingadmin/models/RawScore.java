@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.Instant;
+import java.time.LocalTime;
 import java.util.UUID;
 
 @Data
@@ -25,13 +26,13 @@ public class RawScore {
     private String cwid;
 
     @Column(name = "score")
-    private double score;
+    private Double score;
 
     @Column(name = "submission_time")
     private Instant submissionTime;
 
     @Column(name = "hours_late")
-    private Instant hoursLate;
+    private LocalTime hoursLate;
 
     @Column(name = "submission_status", nullable = false)
     private SubmissionStatus submissionStatus;
