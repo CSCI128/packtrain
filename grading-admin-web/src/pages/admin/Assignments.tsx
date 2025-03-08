@@ -270,20 +270,22 @@ export function AssignmentsPage() {
       </Modal>
 
       <Container size="lg">
-        <Text size="xl" fw={700}>
-          Assignments
-        </Text>
+        <Group>
+          <Text size="xl" fw={700}>
+            Assignments
+          </Text>
 
-        <Divider my="sm" />
-
-        <ScrollArea h={750}>
           <TextInput
             placeholder="Search by any field"
-            mb="md"
             leftSection={<IconSearch size={16} stroke={1.5} />}
             value={search}
             onChange={handleSearchChange}
           />
+        </Group>
+
+        <Divider my="sm" />
+
+        <ScrollArea h={750}>
           <Table horizontalSpacing="md" verticalSpacing="xs" miw={700}>
             <Table.Tbody>
               <Table.Tr>
