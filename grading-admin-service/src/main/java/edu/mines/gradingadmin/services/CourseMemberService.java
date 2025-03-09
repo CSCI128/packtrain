@@ -43,7 +43,7 @@ public class CourseMemberService {
     }
 
     public Optional<CourseMember> getFirstSectionInstructor(Section section) {
-        return section.getMembers().stream().filter(x -> x.getRole() == CourseRole.INSTRUCTOR).findFirst();
+        return section.getMembers().stream().filter(member -> member.getRole() == CourseRole.INSTRUCTOR).findFirst();
     }
 
     public List<CourseMember> searchCourseMembers(Course course, List<CourseRole> roles, String name, String cwid) {
