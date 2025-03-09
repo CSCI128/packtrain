@@ -2139,7 +2139,7 @@ components:
       description: "A generic request for extending work deadlines"
       type: object
       required:
-        - assignments
+        - assignment
         - date_submitted
         - num_days_requested
         - user_requester
@@ -2149,10 +2149,8 @@ components:
         id:
           type: string
           example: "999-9999-9999-99"
-        assignments:
-          type: array
-          items:
-            $ref: "#/components/schemas/Assignment"
+        assignment:
+          $ref: "#/components/schemas/Assignment"
         date_submitted:
           type: string
           format: date-time
@@ -2195,9 +2193,7 @@ components:
           type: string
           example: "Tech Issues"
         user_reviewer:
-          type: string
-          items:
-            $ref: "#/components/schemas/CourseMember"
+          $ref: "#/components/schemas/CourseMember"
         response_timestamp:
           type: string
           format: date-time

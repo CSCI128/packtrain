@@ -124,13 +124,17 @@ public class StudentApiImpl implements StudentApiDelegate {
 
     @Override
     public ResponseEntity<LateRequestDTO> createExtensionRequest(String courseId, LateRequestDTO lateRequestDTO) {
+        User user = securityManager.getUser();
+
         LateRequest lateRequest = extensionService.createLateRequest(
-                lateRequestDTO.getRequestType(),
-                lateRequestDTO.getUserRequester(),
-                lateRequestDTO.getNumDaysRequested(),
-                lateRequestDTO.getAssignments(),
-                lateRequestDTO.getStatus(),
-                lateRequestDTO.getExtension());
+            courseId,
+            user,
+            lateRequestDTO.getRequestType(),
+            lateRequestDTO.getNumDaysRequested(),
+            lateRequestDTO.getDateSubmitted(),
+            lateRequestDTO.getAssignment(),
+            lateRequestDTO.getStatus(),
+            lateRequestDTO.getExtension());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new LateRequestDTO()
             .id(lateRequest.getId().toString())
@@ -139,13 +143,13 @@ public class StudentApiImpl implements StudentApiDelegate {
             .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name()))
             .dateSubmitted(lateRequest.getSubmissionDate())
             .extension(lateRequest.getExtension() != null ?
-                    new ExtensionDTO()
-                            .id(lateRequest.getExtension().getId().toString())
-                            .reason(lateRequest.getExtension().getReason())
-                            .comments(lateRequest.getExtension().getComments())
-                            .responseToRequester(lateRequest.getExtension().getReviewerResponse())
-                            .responseTimestamp(lateRequest.getExtension().getReviewerResponseTimestamp())
-                    : null));
+                new ExtensionDTO()
+                    .id(lateRequest.getExtension().getId().toString())
+                    .reason(lateRequest.getExtension().getReason())
+                    .comments(lateRequest.getExtension().getComments())
+                    .responseToRequester(lateRequest.getExtension().getReviewerResponse())
+                    .responseTimestamp(lateRequest.getExtension().getReviewerResponseTimestamp())
+                : null));
     }
 }
 
