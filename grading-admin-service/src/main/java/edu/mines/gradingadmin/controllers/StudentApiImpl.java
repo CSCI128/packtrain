@@ -6,6 +6,7 @@ import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.services.*;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
@@ -111,14 +112,40 @@ public class StudentApiImpl implements StudentApiDelegate {
                 .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name()))
                 .dateSubmitted(lateRequest.getSubmissionDate())
                 .extension(lateRequest.getExtension() != null ?
-                    List.of(new ExtensionDTO()
+                    new ExtensionDTO()
                         .id(lateRequest.getExtension().getId().toString())
                         .reason(lateRequest.getExtension().getReason())
                         .comments(lateRequest.getExtension().getComments())
                         .responseToRequester(lateRequest.getExtension().getReviewerResponse())
                         .responseTimestamp(lateRequest.getExtension().getReviewerResponseTimestamp())
-                    ) : null)
+                    : null)
         ).toList());
+    }
+
+    @Override
+    public ResponseEntity<LateRequestDTO> createExtensionRequest(String courseId, LateRequestDTO lateRequestDTO) {
+        LateRequest lateRequest = extensionService.createLateRequest(
+                lateRequestDTO.getRequestType(),
+                lateRequestDTO.getUserRequester(),
+                lateRequestDTO.getNumDaysRequested(),
+                lateRequestDTO.getAssignments(),
+                lateRequestDTO.getStatus(),
+                lateRequestDTO.getExtension());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(new LateRequestDTO()
+            .id(lateRequest.getId().toString())
+            .numDaysRequested(lateRequest.getDaysRequested())
+            .requestType(LateRequestDTO.RequestTypeEnum.fromValue(lateRequest.getRequestType().name()))
+            .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name()))
+            .dateSubmitted(lateRequest.getSubmissionDate())
+            .extension(lateRequest.getExtension() != null ?
+                    new ExtensionDTO()
+                            .id(lateRequest.getExtension().getId().toString())
+                            .reason(lateRequest.getExtension().getReason())
+                            .comments(lateRequest.getExtension().getComments())
+                            .responseToRequester(lateRequest.getExtension().getReviewerResponse())
+                            .responseTimestamp(lateRequest.getExtension().getReviewerResponseTimestamp())
+                    : null));
     }
 }
 

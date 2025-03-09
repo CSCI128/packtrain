@@ -1744,7 +1744,7 @@ paths:
     post:
       tags:
         - student
-      operationId: extension_request
+      operationId: create_extension_request
       summary: "Student Extension request"
       description: |
         Create a new extension request for a student.
@@ -1760,13 +1760,19 @@ paths:
           schema:
             type: string
             example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LateRequest"
       responses:
         201:
           description: "An extension request has been created"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Extension"
+                $ref: "#/components/schemas/LateRequest"
         404:
           description: "Extension not found"
           content:
@@ -2155,13 +2161,9 @@ components:
           type: integer
           example: 2
         extension:
-          type: string
-          items:
-            $ref: "#/components/schemas/Extension"
+          $ref: "#/components/schemas/Extension"
         user_requester:
-          type: string
-          items:
-            $ref: "#/components/schemas/CourseMember"
+          $ref: "#/components/schemas/CourseMember"
         status:
           type: string
           enum:
