@@ -1081,7 +1081,7 @@ export interface components {
         LateRequest: {
             /** @example 999-9999-9999-99 */
             id?: string;
-            assignments: components["schemas"]["Assignment"][];
+            assignment: components["schemas"]["Assignment"];
             /**
              * Format: date-time
              * @example 2020-01-01T12:00:00.000Z
@@ -1089,8 +1089,8 @@ export interface components {
             date_submitted: string;
             /** @example 2 */
             num_days_requested: number;
-            extension?: string;
-            user_requester: string;
+            extension?: components["schemas"]["Extension"];
+            user_requester: components["schemas"]["CourseMember"];
             /**
              * @example Extension pending instructor approval
              * @enum {string}
@@ -1108,7 +1108,7 @@ export interface components {
             id?: string;
             /** @example Tech Issues */
             reason: string;
-            user_reviewer: string;
+            user_reviewer: components["schemas"]["CourseMember"];
             /**
              * Format: date-time
              * @example 2020-01-01T12:00:00.000Z

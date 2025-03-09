@@ -42,6 +42,10 @@ public class CourseMemberService {
         this.impersonationManager = impersonationManager;
     }
 
+    public Optional<CourseMember> getFirstSectionInstructor(Section section) {
+        return section.getMembers().stream().filter(x -> x.getRole() == CourseRole.INSTRUCTOR).findFirst();
+    }
+
     public List<CourseMember> searchCourseMembers(Course course, List<CourseRole> roles, String name, String cwid) {
         if(name != null) {
             return courseMemberRepo.findAllByCourseByUserName(course, name).stream().filter(x -> roles.contains(x.getRole())).toList();

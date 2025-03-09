@@ -4,7 +4,6 @@ import edu.mines.gradingadmin.data.AssignmentDTO;
 import edu.mines.gradingadmin.data.ExtensionDTO;
 import edu.mines.gradingadmin.data.LateRequestDTO;
 import edu.mines.gradingadmin.models.*;
-import edu.mines.gradingadmin.repositories.AssignmentRepo;
 import edu.mines.gradingadmin.repositories.ExtensionRepo;
 import edu.mines.gradingadmin.repositories.LateRequestRepo;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -21,14 +19,14 @@ import java.util.UUID;
 public class ExtensionService {
     private final ExtensionRepo extensionRepo;
     private final LateRequestRepo lateRequestRepo;
-    private final AssignmentRepo assignmentRepo;
+    private final AssignmentService assignmentService;
     private final CourseMemberService courseMemberService;
     private final CourseService courseService;
 
-    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo, AssignmentRepo assignmentRepo, CourseMemberService courseMemberService, CourseService courseService) {
+    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo, AssignmentService assignmentService, CourseMemberService courseMemberService, CourseService courseService) {
         this.extensionRepo = extensionRepo;
         this.lateRequestRepo = lateRequestRepo;
-        this.assignmentRepo = assignmentRepo;
+        this.assignmentService = assignmentService;
         this.courseMemberService = courseMemberService;
         this.courseService = courseService;
     }
@@ -40,6 +38,28 @@ public class ExtensionService {
     public List<LateRequest> getAllLateRequestsForStudent(String courseId, User user) {
         return extensionRepo.getAllLateRequestsForStudent(UUID.fromString(courseId), user);
     }
+
+    public Extension createExtensionFromDTO(String courseId, User user, ExtensionDTO extensionDTO) {
+        Extension newExtension = new Extension();
+        newExtension.setReason(extensionDTO.getReason());
+        newExtension.setComments(extensionDTO.getComments());
+
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+        if(course.isPresent()) {
+            Optional<Section> userSection = courseMemberService.getSectionsForUserAndCourse(user, course.get()).stream().findFirst();
+            if(userSection.isPresent()) {
+                Optional<CourseMember> instructor = courseMemberService.getFirstSectionInstructor(userSection.get());
+                if(instructor.isPresent()) {
+                    newExtension.setReviewer(instructor.get().getUser());
+                }
+            }
+        }
+
+        newExtension.setReviewerResponse(extensionDTO.getResponseToRequester());
+        newExtension.setReviewerResponseTimestamp(extensionDTO.getResponseTimestamp());
+        return extensionRepo.save(newExtension);
+    }
+
 
     public LateRequest createLateRequest(String courseId,
                                          User user,
@@ -55,28 +75,10 @@ public class ExtensionService {
         lateRequest.setStatus(RequestStatus.valueOf(status.name()));
         lateRequest.setSubmissionDate(submissionDate);
         if(extension != null) {
-            Extension newExtension = new Extension();
-            newExtension.setReason(extension.getReason());
-            newExtension.setComments(extension.getComments());
-
-            Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-            if(course.isPresent()) {
-                Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(user, course.get());
-                Optional<Section> userSection = sections.stream().findFirst();
-                if(userSection.isPresent()) {
-                    Optional<CourseMember> instructor = sections.stream().findFirst().get().getMembers().stream().filter(x -> x.getRole() == CourseRole.INSTRUCTOR).findFirst();
-                    if(instructor.isPresent()) {
-                        newExtension.setReviewer(instructor.get().getUser());
-                    }
-                }
-            }
-
-            newExtension.setReviewerResponse(extension.getResponseToRequester());
-            newExtension.setReviewerResponseTimestamp(extension.getResponseTimestamp());
-            newExtension = extensionRepo.save(newExtension);
+            Extension newExtension = createExtensionFromDTO(courseId, user, extension);
             lateRequest.setExtension(newExtension);
         }
-        Optional<Assignment> foundAssignment = assignmentRepo.getAssignmentById(UUID.fromString(assignment.getId()));
+        Optional<Assignment> foundAssignment = assignmentService.getAssignmentById(assignment.getId());
         foundAssignment.ifPresent(lateRequest::setAssignment);
         lateRequest.setRequestingUser(user);
         return lateRequestRepo.save(lateRequest);
