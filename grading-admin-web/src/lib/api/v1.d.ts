@@ -721,7 +721,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/instructors/courses/{course_id}/assignments/{assignment_id}/extensions/{extension_id}": {
+    "/instructor/courses/{course_id}/assignments/{assignment_id}/extensions/{extension_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -742,7 +742,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/instructors/courses/{course_id}/users/{user_id}/extensions/{extension_id}": {
+    "/instructor/courses/{course_id}/users/{user_id}/extensions/{extension_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -763,7 +763,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/instructors/courses/{course_id}/sections/{section_id}/extensions/{extension_id}": {
+    "/instructor/courses/{course_id}/sections/{section_id}/extensions/{extension_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -805,6 +805,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/instructor/courses/{course_id}/migrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all the master migrations for the course
+         * @description This endpoint gets all master migrations for a given course
+         *
+         */
+        get: operations["get_all_master_migrations_for_course"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/student/courses/{course_id}/extensions": {
         parameters: {
             query?: never;
@@ -812,7 +833,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get all extensions for a student
+         * @description Gets all extensions a student has submitted, regardless
+         *     of status.
+         *
+         */
+        get: operations["get_all_extensions"];
         put?: never;
         /**
          * Student Extension request
@@ -821,7 +848,28 @@ export interface paths {
          *     status, and reason for extension.
          *
          */
-        post: operations["extension_request"];
+        post: operations["create_extension_request"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses/{course_id}/migrations/{migration_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Updates the grade for a migration for the user. Must include a reason for updating the grade.
+         * @description Updates the grade for a migration for the user.
+         *
+         */
+        put: operations["update_grade"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1018,11 +1066,22 @@ export interface components {
              *     ] */
             sections?: string[];
         };
-        /** @description An extension for an assignment */
-        Extension: {
+        /** @description Information relevant to a student */
+        StudentInformation: {
+            /**
+             * @example student
+             * @enum {string}
+             */
+            course_role: "student" | "instructor" | "ta" | "owner";
+            /** @example Jane Doe */
+            professor: string;
+            course: components["schemas"]["Course"];
+        };
+        /** @description A generic request for extending work deadlines */
+        LateRequest: {
             /** @example 999-9999-9999-99 */
             id?: string;
-            assignments: components["schemas"]["Assignment"][];
+            assignment: components["schemas"]["Assignment"];
             /**
              * Format: date-time
              * @example 2020-01-01T12:00:00.000Z
@@ -1030,27 +1089,55 @@ export interface components {
             date_submitted: string;
             /** @example 2 */
             num_days_requested: number;
-            user_requester: string;
+            extension?: components["schemas"]["Extension"];
+            user_requester: components["schemas"]["CourseMember"];
             /**
              * @example Extension pending instructor approval
              * @enum {string}
              */
-            status?: "pending" | "approved" | "rejected";
+            status: "pending" | "approved" | "rejected";
             /**
              * @example Late Pass
              * @enum {string}
              */
-            request_type?: "extension" | "late_pass";
-            user_reviewer?: string;
+            request_type: "extension" | "late_pass";
+        };
+        /** @description An extension for an assignment */
+        Extension: {
+            /** @example 999-9999-9999-99 */
+            id?: string;
+            /** @example Tech Issues */
+            reason: string;
+            user_reviewer: components["schemas"]["CourseMember"];
             /**
              * Format: date-time
              * @example 2020-01-01T12:00:00.000Z
              */
-            response_timestamp?: string;
-            /** @example Excused absence */
-            reason?: string;
+            response_timestamp: string;
+            /** @example Some comment about the work */
+            comments: string;
             /** @example Your 3 day extension for illness is approved */
-            response_to_requester?: string;
+            response_to_requester: string;
+        };
+        /** @description The master migration that contains to the list of migration objects */
+        MasterMigration: {
+            migration_list: components["schemas"]["Migration"][];
+        };
+        /** @description The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit */
+        MasterMigrationStatistics: {
+            /** @example 2 */
+            missing: number;
+            /** @example 12 */
+            extensions_applied: number;
+            /** @example 1 */
+            no_credit: number;
+            /** @example 5 */
+            late_penalties: number;
+        };
+        /** @description Migration object that has a single assignment and a policy */
+        Migration: {
+            assignment: components["schemas"]["Assignment"];
+            policy: components["schemas"]["Policy"];
         };
     };
     responses: never;
@@ -2153,7 +2240,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Course"];
+                    "application/json": components["schemas"]["StudentInformation"];
                 };
             };
         };
@@ -2432,7 +2519,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"][];
+                    "application/json": components["schemas"]["Extension"][];
                 };
             };
             /** @description Extension not found */
@@ -2446,7 +2533,7 @@ export interface operations {
             };
         };
     };
-    extension_request: {
+    get_all_master_migrations_for_course: {
         parameters: {
             query?: never;
             header?: never;
@@ -2458,16 +2545,123 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MasterMigration"][];
+                };
+            };
+            /** @description Migration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_all_extensions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LateRequest"][];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_extension_request: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LateRequest"];
+            };
+        };
+        responses: {
             /** @description An extension request has been created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Extension"];
+                    "application/json": components["schemas"]["LateRequest"];
                 };
             };
             /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_grade: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+                migration_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Failed to update grade */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Migration not found */
             404: {
                 headers: {
                     [name: string]: unknown;
