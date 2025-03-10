@@ -1,13 +1,14 @@
 package edu.mines.gradingadmin.models;
 
+import lombok.Getter;
+
 import java.util.stream.Stream;
 
 public enum SubmissionStatus {
-    GRADED("graded"),
-    ONTIME("ontime"),
-    LATE("late"),
-    MISSING("missing"),
-    UNKNOWN("unkown");
+    GRADED("Graded"),
+    UNGRADED("Ungraded"),
+    MISSING("Missing"),
+    UNKNOWN("Unknown");
 
     private final String type;
 

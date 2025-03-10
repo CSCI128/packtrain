@@ -13,27 +13,25 @@ import java.util.UUID;
 public class RawScore {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", unique = true, nullable = false)
+    @Column(name = "id")
     private UUID id;
 
     @Column(name = "migration_id", nullable = false)
     private UUID migrationId;
 
-    @Column(name = "assignment_id", nullable = false)
-    private UUID assignmentId;
-
     @Column(name = "cwid", nullable = false)
     private String cwid;
 
     @Column(name = "score")
-    private Double score;
+    private double score;
 
     @Column(name = "submission_time")
     private Instant submissionTime;
 
     @Column(name = "hours_late")
-    private LocalTime hoursLate;
+    private double hoursLate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "submission_status", nullable = false)
     private SubmissionStatus submissionStatus;
 }

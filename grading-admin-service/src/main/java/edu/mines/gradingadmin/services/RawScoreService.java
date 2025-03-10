@@ -6,18 +6,12 @@ import edu.mines.gradingadmin.models.RawScore;
 import edu.mines.gradingadmin.models.SubmissionStatus;
 import edu.mines.gradingadmin.repositories.RawScoreRepo;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Instant;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -25,72 +19,74 @@ import java.util.*;
 @Slf4j
 public class RawScoreService {
 
+    private static final int CWID_IDX = 2;
+    private static final int SCORE_IDX = 6;
+    private static final int STATUS_IDX = 8;
+    private static final int SUBMISSION_TIME_IDX = 10;
+    private static final int HOURS_LATE_IDX = 11;
+
     private final RawScoreRepo rawScoreRepo;
 
     public RawScoreService(RawScoreRepo rawScoreRepo){
         this.rawScoreRepo = rawScoreRepo;
     }
 
-    public List<RawScore> uploadRawScores(MultipartFile file, UUID assignmentId, UUID migrationID) throws Exception {
+    public List<RawScore> uploadCSV(MultipartFile file, UUID migrationId) throws Exception {
         List<RawScore> scores = new LinkedList<>();
 
         if (file.isEmpty()){
-            log.warn("Failed to find the file {}", file.getName());
+            log.warn("Provided file {} is empty", file.getName());
             return scores;
         }
         if(file.getContentType() == null){
             log.warn("File content type not defined for file {}", file.getName());
             return scores;
         }
-        if (!file.getContentType().equals("application/csv")){
-            log.warn("File extension is not .csv for the file {}", file.getName());
+        if (!file.getContentType().equals("text/csv")){
+            log.warn("File MIME type is not test/csv for the file {}", file.getName());
             return scores;
         }
 
-        try (InputStream inputStream = file.getInputStream()) {
-            try(CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(inputStream))
-                    .withSkipLines(1)
-                    .build()){
+        try (InputStream inputStream = file.getInputStream();
+             CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(inputStream))
+                .withSkipLines(1)
+                .build()) {
+
                 String[] line;
                 while((line = csvReader.readNext()) != null){
                     try{
-                        String cwid = line[2];
-                        String status = line[8].trim().toUpperCase();
+                        String cwid = line[CWID_IDX];
 
-                        Double score = null;
-                        if(!line[6].isEmpty()){
-                            score = Double.parseDouble(line[6]);
+                        // TODO: Need to follow the example from CourseRole here
+                        String status = line[STATUS_IDX].trim().toUpperCase();
+                        SubmissionStatus submissionStatus;
+                        submissionStatus = SubmissionStatus.valueOf(status);
+
+                        // TODO: Less checking for null, and work based on submission status
+                        double score = 0.0;
+                        if(Double.parseDouble(line[SCORE_IDX]) != 0.0){
+                            score = Double.parseDouble(line[SCORE_IDX]);
                         }
 
                         Instant submissionTime = null;
-                        if(!line[10].isEmpty()) {
-                            DateTimeFormatter submissionTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z");
-                            OffsetDateTime offsetSubmissionTime = OffsetDateTime.parse(line[10], submissionTimeFormatter);
-                            submissionTime = offsetSubmissionTime.toInstant();
+                        if(!line[SUBMISSION_TIME_IDX].isEmpty()) {
+                            submissionTime = LocalDateTime.parse(
+                                    line[SUBMISSION_TIME_IDX],
+                                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z", Locale.US)
+                            ).atZone(
+                                    ZoneId.of("America/Denver")
+                            ).toInstant();
                         }
 
-                        LocalTime hoursLate = null;
-                        if(!line[11].isEmpty()){
-                            hoursLate = LocalTime.parse(line[11]);
+                        double hoursLate = 0.0;
+                        if(!line[HOURS_LATE_IDX].isEmpty()){
+                            // TODO: Convert from time to hours
                         }
 
-                        SubmissionStatus submissionStatus;
-                        try {
-                            submissionStatus = SubmissionStatus.valueOf(status);
-                        }
-                        catch (IllegalArgumentException e) {
-                            log.warn("Invalid submission status {} for cwid {}. Skipping this raw score", status, cwid);
-                            continue;
-                        }
 
-                        Optional<RawScore> rawScore = createRawScore(migrationID, assignmentId, cwid, score, submissionTime, hoursLate, submissionStatus);
 
-                        if(rawScore.isEmpty()){
-                            log.warn("Could not create raw score for {} on assignment {}", cwid, assignmentId);
-                            continue;
-                        }
-
-                        scores.add(rawScore.get());
+                        RawScore rawScore = createOrUpdateRawScore(migrationId, cwid, score, submissionTime, hoursLate, submissionStatus);
+                        scores.add(rawScore);
 
                     }
                     catch (Exception e){
@@ -100,43 +96,53 @@ public class RawScoreService {
 
                 }
             }
-        }
 
         return scores;
     }
 
-    public Optional<RawScore> createRawScore(UUID migrationId, UUID assignmentId, String cwid, Double score, Instant submissionTime, LocalTime hoursLate, SubmissionStatus submissionStatus){
-        RawScore newRawScore = rawScoreRepo.getByCwidAndAssignmentId(cwid, assignmentId)
-                .map(rawScore -> {
-                    log.warn("Overwriting raw score for {} with user {}", rawScore.getAssignmentId(), rawScore.getCwid());
-                    rawScore.setSubmissionStatus(submissionStatus);
-                    rawScore.setMigrationId(migrationId);
-                    rawScore.setCwid(cwid);
-                    rawScore.setScore(score);
-                    rawScore.setSubmissionTime(submissionTime);
-                    rawScore.setHoursLate(hoursLate);
-                    rawScore.setSubmissionStatus(submissionStatus);
-                    return rawScore;
-                })
-                .orElseGet(() -> {
-                    RawScore newScore = new RawScore();
-                    newScore.setMigrationId(migrationId);
-                    newScore.setAssignmentId(assignmentId);
-                    newScore.setCwid(cwid);
-                    newScore.setScore(score);
-                    newScore.setSubmissionTime(submissionTime);
-                    newScore.setHoursLate(hoursLate);
-                    newScore.setSubmissionStatus(submissionStatus);
-                    return newScore;
-                });
+    public RawScore createOrUpdateRawScore(UUID migrationId, String cwid, double score, Instant submissionTime, double hoursLate, SubmissionStatus submissionStatus){
+        Optional<RawScore> newRawScore = rawScoreRepo.getByCwidAndMigrationId(cwid, migrationId);
+        RawScore rawScore;
+        if(newRawScore.isEmpty()){
+            rawScore = newRawScore(migrationId, cwid, score, submissionTime, hoursLate, submissionStatus);
+        }
+        else{
+            rawScore = updateRawScore(newRawScore.get(), score, submissionTime, hoursLate, submissionStatus);
+        }
 
-        return Optional.of(rawScoreRepo.save(newRawScore));
+        return rawScoreRepo.save(rawScore);
     }
 
-    public Optional<RawScore> getRawScoreFromCwidAndAssignmentId(String cwid, UUID assignmentId){
-        Optional<RawScore> score = rawScoreRepo.getByCwidAndAssignmentId(cwid, assignmentId);
+    private RawScore updateRawScore(RawScore rawScore, double score, Instant submissionTime, double hoursLate, SubmissionStatus submissionStatus){
+        UUID migrationId = rawScore.getMigrationId();
+        String cwid = rawScore.getCwid();
+
+        log.warn("Overwriting raw score for migration {} with user {}", migrationId, cwid);
+        rawScore.setSubmissionStatus(submissionStatus);
+        rawScore.setMigrationId(migrationId);
+        rawScore.setCwid(cwid);
+        rawScore.setScore(score);
+        rawScore.setSubmissionTime(submissionTime);
+        rawScore.setHoursLate(hoursLate);
+        rawScore.setSubmissionStatus(submissionStatus);
+        return rawScore;
+    }
+
+    private RawScore newRawScore(UUID migrationId, String cwid, double score, Instant submissionTime, double hoursLate, SubmissionStatus submissionStatus){
+        RawScore newScore = new RawScore();
+        newScore.setMigrationId(migrationId);
+        newScore.setCwid(cwid);
+        newScore.setScore(score);
+        newScore.setSubmissionTime(submissionTime);
+        newScore.setHoursLate(hoursLate);
+        newScore.setSubmissionStatus(submissionStatus);
+        return newScore;
+    }
+
+    public Optional<RawScore> getRawScoreFromCwidAndAssignmentId(String cwid, UUID migrationId){
+        Optional<RawScore> score = rawScoreRepo.getByCwidAndMigrationId(cwid, migrationId);
         if(score.isEmpty()){
-            log.warn("Could not find raw score for cwid {} on assignment {}", cwid, assignmentId);
+            log.warn("Could not find raw score for cwid {} on migration id {}", cwid, migrationId);
             return Optional.empty();
         }
         return score;
