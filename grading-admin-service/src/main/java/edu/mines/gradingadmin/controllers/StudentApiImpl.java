@@ -15,6 +15,7 @@ import java.util.*;
 
 @Transactional
 @Controller
+@Slf4j
 public class StudentApiImpl implements StudentApiDelegate {
     private final UserService userService;
     private final CourseService courseService;
@@ -91,7 +92,7 @@ public class StudentApiImpl implements StudentApiDelegate {
             .enabled(course.get().isEnabled())
             .canvasId(course.get().getCanvasId())
             .assignments(course.get().getAssignments().stream().filter(Assignment::isEnabled).map(assignment ->
-                // "slim" assignmentdto, not all info is needed
+                // "slim" assignmentdto, not all info is needed; convert this one separately in DTOFactory
                 new AssignmentDTO()
                     .id(assignment.getId().toString())
                     .name(assignment.getName())
@@ -103,8 +104,20 @@ public class StudentApiImpl implements StudentApiDelegate {
 
         StudentInformationDTO studentInformationDTO = new StudentInformationDTO()
                 .course(courseDTO)
-                .professor("TODO implement this")
                 .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRoles.stream().findFirst().get().name().toLowerCase()));
+
+        // TODO fix some unsafe/presumptive checks here about sections; basically just using the first
+        Optional<Section> section = sections.stream().findFirst();
+        if(section.isPresent()) {
+            Optional<CourseMember> instructor = courseMemberService.getFirstSectionInstructor(section.get());
+            if(instructor.isEmpty()) {
+                studentInformationDTO.setProfessor("");
+                log.error("Could not find professor for section: {}", section.get().getId());
+            }
+            else {
+                studentInformationDTO.setProfessor(instructor.get().getUser().getName());
+            }
+        }
 
         return ResponseEntity.ok(studentInformationDTO);
     }
