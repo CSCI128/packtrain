@@ -141,6 +141,44 @@ export function ExtensionForm() {
 
   if (error) return `An error occured: ${error}`;
 
+  function CalculatedDate() {
+    return (
+      <>
+        {/* TODO only show if selectedassignment */}
+        {/* updatedDate component or something- TODO put this in the other form too */}
+
+        <Text c="gray">
+          Original Due Date:{" "}
+          <strong>
+            {formattedDate(
+              new Date(
+                Date.parse(getAssignmentDueDate(selectedAssignmentId) || "")
+              )
+            )}
+          </strong>
+          .
+        </Text>
+        <Text>
+          <strong>If approved</strong>, the assignment will be due{" "}
+          <strong>
+            {/* TODO update this when extensionDays updates */}
+            {formattedDate(
+              new Date(
+                calculateNewDueDate(
+                  new Date(
+                    Date.parse(getAssignmentDueDate(selectedAssignmentId) || "")
+                  ),
+                  numDaysRequested
+                )
+              )
+            )}
+          </strong>
+          .
+        </Text>
+      </>
+    );
+  }
+
   return (
     <Container size="md">
       <Text size="xl" fw={700}>
@@ -217,6 +255,8 @@ export function ExtensionForm() {
                 after)
               </Text>
             </Group>
+
+            <CalculatedDate />
           </Stack>
 
           <Group justify="flex-end" mt="md">
@@ -291,38 +331,7 @@ export function ExtensionForm() {
               {...extensionForm.getInputProps("comments")}
             />
 
-            {/* TODO only show if selectedassignment */}
-            {/* updatedDate component or something- TODO put this in the other form too */}
-            <Text c="gray">
-              Original Due Date:{" "}
-              <strong>
-                {formattedDate(
-                  new Date(
-                    Date.parse(getAssignmentDueDate(selectedAssignmentId) || "")
-                  )
-                )}
-              </strong>
-              .
-            </Text>
-            <Text>
-              <strong>If approved</strong>, the assignment will be due{" "}
-              <strong>
-                {/* TODO update this when extensionDays updates */}
-                {formattedDate(
-                  new Date(
-                    calculateNewDueDate(
-                      new Date(
-                        Date.parse(
-                          getAssignmentDueDate(selectedAssignmentId) || ""
-                        )
-                      ),
-                      numDaysRequested
-                    )
-                  )
-                )}
-              </strong>
-              .
-            </Text>
+            <CalculatedDate />
           </Stack>
 
           <Group justify="flex-end" mt="md">
