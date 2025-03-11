@@ -7,6 +7,7 @@ import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.repositories.ExtensionRepo;
 import edu.mines.gradingadmin.repositories.LateRequestRepo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -82,5 +83,12 @@ public class ExtensionService {
         foundAssignment.ifPresent(lateRequest::setAssignment);
         lateRequest.setRequestingUser(user);
         return lateRequestRepo.save(lateRequest);
+    }
+
+    public Optional<LateRequest> getLateRequest(@Nullable UUID id){
+        if (id == null){
+            return Optional.empty();
+        }
+        return Optional.ofNullable(lateRequestRepo.getLateRequestById(id));
     }
 }
