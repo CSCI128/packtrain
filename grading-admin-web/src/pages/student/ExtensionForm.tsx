@@ -144,37 +144,40 @@ export function ExtensionForm() {
   function CalculatedDate() {
     return (
       <>
-        {/* TODO only show if selectedassignment */}
-        {/* updatedDate component or something- TODO put this in the other form too */}
-
-        <Text c="gray">
-          Original Due Date:{" "}
-          <strong>
-            {formattedDate(
-              new Date(
-                Date.parse(getAssignmentDueDate(selectedAssignmentId) || "")
-              )
-            )}
-          </strong>
-          .
-        </Text>
-        <Text>
-          <strong>If approved</strong>, the assignment will be due{" "}
-          <strong>
-            {/* TODO update this when extensionDays updates */}
-            {formattedDate(
-              new Date(
-                calculateNewDueDate(
+        {selectedAssignmentId && (
+          <>
+            <Text c="gray">
+              Original Due Date:{" "}
+              <strong>
+                {formattedDate(
                   new Date(
                     Date.parse(getAssignmentDueDate(selectedAssignmentId) || "")
-                  ),
-                  numDaysRequested
-                )
-              )
-            )}
-          </strong>
-          .
-        </Text>
+                  )
+                )}
+              </strong>
+              .
+            </Text>
+            <Text>
+              <strong>If approved</strong>, the assignment will be due{" "}
+              <strong>
+                {/* TODO update this when extensionDays updates */}
+                {formattedDate(
+                  new Date(
+                    calculateNewDueDate(
+                      new Date(
+                        Date.parse(
+                          getAssignmentDueDate(selectedAssignmentId) || ""
+                        )
+                      ),
+                      numDaysRequested
+                    )
+                  )
+                )}
+              </strong>
+              .
+            </Text>
+          </>
+        )}
       </>
     );
   }
