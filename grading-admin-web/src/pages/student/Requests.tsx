@@ -140,20 +140,46 @@ export function Requests() {
     );
   };
 
+  const formattedDate = (date: Date) => {
+    return date
+      .toLocaleString("en-US", {
+        month: "long",
+        day: "2-digit",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+      .replace(" at ", ", ");
+  };
+
+  const calculateNewDueDate = (date: Date, days: number) => {
+    return new Date(date).setDate(date.getDate() + days);
+  };
+
   const rows = sortedData.map((row) => (
     <Table.Tr key={row.id}>
-      <Table.Td>{row.date_submitted}</Table.Td>
-      <Table.Td>{row.request_type}</Table.Td>
-      <Table.Td>{row.assignment_name}</Table.Td>
+      <Table.Td>{formattedDate(new Date(row.date_submitted))}</Table.Td>
       <Table.Td>
-        {row.date_submitted + row.num_days_requested * 86400000}
+        {formattedDate(
+          new Date(
+            calculateNewDueDate(
+              new Date(Date.parse(row.date_submitted)),
+              row.num_days_requested
+            )
+          )
+        )}
       </Table.Td>
+      <Table.Td>
+        {row.request_type === "late_pass" ? "Late Pass" : "Extension"}
+      </Table.Td>
+      <Table.Td>{row.assignment_name}</Table.Td>
       <Table.Td>{row.status}</Table.Td>
     </Table.Tr>
   ));
 
   return (
-    <Container>
+    <Container size="lg">
       <Group justify="space-between">
         <Text size="xl" fw={700}>
           All Requests
@@ -189,6 +215,15 @@ export function Requests() {
                 Request Date
               </TableHeader>
               <TableHeader
+                sorted={false}
+                // sorted={sortBy === "new_due_date"}
+                reversed={reverseSortDirection}
+                // onSort={() => setSorting("new_due_date")}
+                onSort={() => {}}
+              >
+                New Due Date
+              </TableHeader>
+              <TableHeader
                 sorted={sortBy === "request_type"}
                 reversed={reverseSortDirection}
                 onSort={() => setSorting("request_type")}
@@ -201,15 +236,6 @@ export function Requests() {
                 onSort={() => setSorting("assignment_name")}
               >
                 Assignment(s)
-              </TableHeader>
-              <TableHeader
-                sorted={false}
-                // sorted={sortBy === "new_due_date"}
-                reversed={reverseSortDirection}
-                // onSort={() => setSorting("new_due_date")}
-                onSort={() => {}}
-              >
-                New Due Date
               </TableHeader>
               <TableHeader
                 sorted={sortBy === "status"}

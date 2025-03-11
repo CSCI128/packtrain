@@ -70,6 +70,8 @@ export function ExtensionForm() {
     },
   });
 
+  // TODO might want to send back remaining extensions here
+
   const postForm = $api.useMutation(
     "post",
     "/student/courses/{course_id}/extensions"
@@ -196,7 +198,7 @@ export function ExtensionForm() {
               />
 
               <Text>
-                (<strong>X remaining</strong> after)
+                (<strong>{extensionDays} remaining</strong> after)
               </Text>
             </Group>
           </Stack>
