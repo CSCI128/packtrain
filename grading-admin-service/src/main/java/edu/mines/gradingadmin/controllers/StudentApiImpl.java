@@ -6,6 +6,7 @@ import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.services.*;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -14,6 +15,7 @@ import java.util.*;
 
 @Transactional
 @Controller
+@Slf4j
 public class StudentApiImpl implements StudentApiDelegate {
     private final UserService userService;
     private final CourseService courseService;
@@ -31,6 +33,22 @@ public class StudentApiImpl implements StudentApiDelegate {
         this.courseMemberService = courseMemberService;
         this.assignmentService = assignmentService;
         this.securityManager = securityManager;
+    }
+
+    @Override
+    public ResponseEntity<List<CourseDTO>> getCoursesStudent() {
+        List<Course> courses = courseService.getCourses(true);
+
+        List<CourseDTO> coursesResponse = courses.stream().map(course ->
+                new CourseDTO()
+                        .id(course.getId().toString())
+                        .term(course.getTerm())
+                        .enabled(course.isEnabled())
+                        .name(course.getName())
+                        .code(course.getCode())
+        ).toList();
+
+        return ResponseEntity.ok(coursesResponse);
     }
 
     @Override
@@ -73,12 +91,33 @@ public class StudentApiImpl implements StudentApiDelegate {
             .term(course.get().getTerm())
             .enabled(course.get().isEnabled())
             .canvasId(course.get().getCanvasId())
+            .assignments(course.get().getAssignments().stream().filter(Assignment::isEnabled).map(assignment ->
+                // "slim" assignmentdto, not all info is needed; convert this one separately in DTOFactory
+                new AssignmentDTO()
+                    .id(assignment.getId().toString())
+                    .name(assignment.getName())
+                    .dueDate(assignment.getDueDate())
+                    .unlockDate(assignment.getUnlockDate())
+                    .enabled(assignment.isEnabled())
+                ).toList())
             .sections(sections.stream().map(Section::getName).toList());
 
         StudentInformationDTO studentInformationDTO = new StudentInformationDTO()
                 .course(courseDTO)
-                .professor("TODO implement this")
-                .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRoles.stream().findFirst().get().name()));
+                .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRoles.stream().findFirst().get().name().toLowerCase()));
+
+        // TODO fix some unsafe/presumptive checks here about sections; basically just using the first
+        Optional<Section> section = sections.stream().findFirst();
+        if(section.isPresent()) {
+            Optional<CourseMember> instructor = courseMemberService.getFirstSectionInstructor(section.get());
+            if(instructor.isEmpty()) {
+                studentInformationDTO.setProfessor("");
+                log.error("Could not find professor for section: {}", section.get().getId());
+            }
+            else {
+                studentInformationDTO.setProfessor(instructor.get().getUser().getName());
+            }
+        }
 
         return ResponseEntity.ok(studentInformationDTO);
     }
@@ -86,7 +125,6 @@ public class StudentApiImpl implements StudentApiDelegate {
     @Override
     public ResponseEntity<List<AssignmentDTO>> getCourseAssignmentsStudent(String courseId) {
         List<Assignment> assignments = assignmentService.getAllUnlockedAssignments(courseId);
-
 
         return ResponseEntity.ok(assignments.stream()
                 .map(a -> new AssignmentDTO()
@@ -108,9 +146,11 @@ public class StudentApiImpl implements StudentApiDelegate {
             new LateRequestDTO()
                 .id(lateRequest.getId().toString())
                 .numDaysRequested(lateRequest.getDaysRequested())
-                .requestType(LateRequestDTO.RequestTypeEnum.fromValue(lateRequest.getRequestType().name()))
-                .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name()))
+                .requestType(LateRequestDTO.RequestTypeEnum.fromValue(lateRequest.getRequestType().name().toLowerCase()))
+                .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name().toLowerCase()))
                 .dateSubmitted(lateRequest.getSubmissionDate())
+                .assignmentId(lateRequest.getAssignment().getId().toString())
+                .assignmentName(lateRequest.getAssignment().getName())
                 .extension(lateRequest.getExtension() != null ?
                     new ExtensionDTO()
                         .id(lateRequest.getExtension().getId().toString())
@@ -132,15 +172,15 @@ public class StudentApiImpl implements StudentApiDelegate {
             lateRequestDTO.getRequestType(),
             lateRequestDTO.getNumDaysRequested(),
             lateRequestDTO.getDateSubmitted(),
-            lateRequestDTO.getAssignment(),
+            lateRequestDTO.getAssignmentId(),
             lateRequestDTO.getStatus(),
             lateRequestDTO.getExtension());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new LateRequestDTO()
             .id(lateRequest.getId().toString())
             .numDaysRequested(lateRequest.getDaysRequested())
-            .requestType(LateRequestDTO.RequestTypeEnum.fromValue(lateRequest.getRequestType().name()))
-            .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name()))
+            .requestType(LateRequestDTO.RequestTypeEnum.fromValue(lateRequest.getRequestType().name().toLowerCase()))
+            .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name().toLowerCase()))
             .dateSubmitted(lateRequest.getSubmissionDate())
             .extension(lateRequest.getExtension() != null ?
                 new ExtensionDTO()

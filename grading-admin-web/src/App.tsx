@@ -22,6 +22,8 @@ import { AssignmentsPage } from "./pages/instructor/Assignments";
 import { MembersPage } from "./pages/instructor/Members";
 import { MigrationsPage } from "./pages/instructor/Migrations";
 import { ProfilePage } from "./pages/Profile";
+import { ExtensionForm } from "./pages/student/ExtensionForm";
+import { Requests } from "./pages/student/Requests";
 import ProtectedRoute from "./ProtectedRoute";
 import Root from "./templates/Root";
 
@@ -52,7 +54,7 @@ const MiddlewareLayout = () => {
     const fetchData = async () => {
       try {
         const user = await userManager.getUser();
-        if (!isAuthenticated && user) {
+        if (!isAuthenticated && user && user.profile.is_admin) {
           navigate("/select");
         }
       } catch (error) {
@@ -103,6 +105,14 @@ const router = createBrowserRouter([
           {
             path: "/callback",
             element: <CallbackPage />,
+          },
+          {
+            path: "/requests",
+            element: <Requests />,
+          },
+          {
+            path: "/extension",
+            element: <ExtensionForm />,
           },
           {
             path: "/admin/home",

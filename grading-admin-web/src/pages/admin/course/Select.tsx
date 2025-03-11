@@ -1,9 +1,16 @@
 import { Button, Center, Container, Stack } from "@mantine/core";
+import { useAuth } from "react-oidc-context";
 import { Link, useNavigate } from "react-router-dom";
 import { $api, store$ } from "../../../api";
 
 export const SelectClass = ({ close }: { close?: () => void }) => {
-  const { data, error, isLoading } = $api.useQuery("get", "/admin/courses");
+  const auth = useAuth();
+  const { data, error, isLoading } = $api.useQuery(
+    "get",
+    auth.isAuthenticated && auth.user?.profile.is_admin
+      ? "/admin/courses"
+      : "/student/courses"
+  );
   const navigate = useNavigate();
 
   const switchCourse = (id: string, name: string) => {
@@ -12,7 +19,12 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     if (close) {
       close();
     }
-    navigate("/admin/home");
+
+    if (auth.isAuthenticated && auth.user?.profile.is_admin) {
+      navigate("/admin/home");
+    } else {
+      navigate("/requests");
+    }
   };
 
   if (isLoading || !data) return "Loading...";

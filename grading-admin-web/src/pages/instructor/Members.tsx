@@ -18,7 +18,7 @@ import {
 } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 import { $api, store$ } from "../../api";
-import classes from "../admin/Table.module.scss";
+import classes from "../../components/table/Table.module.scss";
 
 interface MemberRowData {
   cwid: string;

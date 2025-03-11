@@ -1,6 +1,5 @@
 package edu.mines.gradingadmin.services;
 
-import edu.mines.gradingadmin.data.AssignmentDTO;
 import edu.mines.gradingadmin.data.ExtensionDTO;
 import edu.mines.gradingadmin.data.LateRequestDTO;
 import edu.mines.gradingadmin.models.*;
@@ -67,7 +66,7 @@ public class ExtensionService {
                                          LateRequestDTO.RequestTypeEnum requestType,
                                          int daysRequested,
                                          Instant submissionDate,
-                                         AssignmentDTO assignment,
+                                         String assignmentId,
                                          LateRequestDTO.StatusEnum status,
                                          ExtensionDTO extension) {
         LateRequest lateRequest = new LateRequest();
@@ -79,7 +78,7 @@ public class ExtensionService {
             Extension newExtension = createExtensionFromDTO(courseId, user, extension);
             lateRequest.setExtension(newExtension);
         }
-        Optional<Assignment> foundAssignment = assignmentService.getAssignmentById(assignment.getId());
+        Optional<Assignment> foundAssignment = assignmentService.getAssignmentById(assignmentId);
         foundAssignment.ifPresent(lateRequest::setAssignment);
         lateRequest.setRequestingUser(user);
         return lateRequestRepo.save(lateRequest);
