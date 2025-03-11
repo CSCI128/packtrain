@@ -23,6 +23,7 @@ import { Link } from "react-router-dom";
 import { $api, store$ } from "../../api";
 import classes from "../../components/table/Table.module.scss";
 import { components } from "../../lib/api/v1";
+import { calculateNewDueDate, formattedDate } from "../../utils/DateUtil";
 
 interface RequestRowData {
   id?: string;
@@ -138,23 +139,6 @@ export function Requests() {
     setSortedData(
       sortData(data, { sortBy, reversed: reverseSortDirection, search: value })
     );
-  };
-
-  const formattedDate = (date: Date) => {
-    return date
-      .toLocaleString("en-US", {
-        month: "long",
-        day: "2-digit",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
-      .replace(" at ", ", ");
-  };
-
-  const calculateNewDueDate = (date: Date, days: number) => {
-    return new Date(date).setDate(date.getDate() + days);
   };
 
   const rows = sortedData.map((row) => (

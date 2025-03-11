@@ -16,17 +16,19 @@ import { useState } from "react";
 import { useAuth } from "react-oidc-context";
 import { Link, useNavigate } from "react-router-dom";
 import { $api, store$ } from "../../api";
+import { calculateNewDueDate, formattedDate } from "../../utils/DateUtil";
 
 export function ExtensionForm() {
   const auth = useAuth();
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
-  const [originalDate, setOriginalDate] = useState<Date>(new Date());
-  const [extensionDays, setExtensionDays] = useState<number>(1);
   const [latePassView, setLatePassView] = useState<boolean>(true);
   const [latePassesRemaining, setLatePassesRemaining] = useState<boolean>(true);
+  const [numDaysRequested, setNumDaysRequested] = useState<number>(1);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>("");
 
   // TODO validate assignmentId/selected ID in <select>
+
   const extensionForm = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -37,7 +39,7 @@ export function ExtensionForm() {
     },
     validate: {
       daysRequested: (value) =>
-        value < 0 && value > 5
+        value < 0 || value > 5
           ? "Days requested must be greater than zero and less than or equal to 5."
           : null,
     },
@@ -51,7 +53,7 @@ export function ExtensionForm() {
     },
     validate: {
       daysRequested: (value) =>
-        value < 0 && value > 5
+        value < 0 || value > 5
           ? "Days requested must be greater than zero and less than or equal to 5."
           : null,
     },
@@ -70,13 +72,18 @@ export function ExtensionForm() {
     },
   });
 
+  const getAssignmentDueDate = (assignmentId: string) => {
+    return courseData?.course.assignments
+      ?.filter((x) => x.id === assignmentId)
+      .at(0)?.due_date;
+  };
+
   const postForm = $api.useMutation(
     "post",
     "/student/courses/{course_id}/extensions"
   );
 
   const submitExtension = (values: typeof extensionForm.values) => {
-    console.log(values);
     postForm.mutate(
       {
         params: {
@@ -189,17 +196,20 @@ export function ExtensionForm() {
               }
               key={latePassForm.key("assignmentId")}
               {...latePassForm.getInputProps("assignmentId")}
+              onChange={(_value, _) => setSelectedAssignmentId(_value ?? "")}
             />
 
             <Group>
               <NumberInput
                 label="Days to extend:"
                 defaultValue={1}
-                onChange={() => setExtensionDays}
                 max={5}
                 min={1}
                 key={latePassForm.key("daysRequested")}
-                // {...latePassForm.getInputProps("daysRequested")}
+                {...latePassForm.getInputProps("daysRequested")}
+                onChange={(value) => {
+                  setNumDaysRequested(parseInt(value as string));
+                }}
               />
 
               <Text>
@@ -237,6 +247,7 @@ export function ExtensionForm() {
               }
               key={extensionForm.key("assignmentId")}
               {...extensionForm.getInputProps("assignmentId")}
+              onChange={(_value, _) => setSelectedAssignmentId(_value ?? "")}
             />
             <Text>
               Extensions are <strong>only</strong> for medical, excused or
@@ -250,11 +261,13 @@ export function ExtensionForm() {
               <NumberInput
                 label="Days Requested"
                 defaultValue={1}
-                onChange={() => setExtensionDays}
                 max={5}
                 min={1}
                 key={extensionForm.key("daysRequested")}
-                // {...extensionForm.getInputProps("assignmentId")}
+                {...extensionForm.getInputProps("daysRequested")}
+                onChange={(value) => {
+                  setNumDaysRequested(parseInt(value as string));
+                }}
               />
 
               <Select
@@ -277,17 +290,36 @@ export function ExtensionForm() {
               key={extensionForm.key("comments")}
               {...extensionForm.getInputProps("comments")}
             />
+
+            {/* TODO only show if selectedassignment */}
+            {/* updatedDate component or something- TODO put this in the other form too */}
             <Text c="gray">
               Original Due Date:{" "}
-              <strong>{originalDate.toLocaleString()}</strong>.
+              <strong>
+                {formattedDate(
+                  new Date(
+                    Date.parse(getAssignmentDueDate(selectedAssignmentId) || "")
+                  )
+                )}
+              </strong>
+              .
             </Text>
             <Text>
               <strong>If approved</strong>, the assignment will be due{" "}
               <strong>
                 {/* TODO update this when extensionDays updates */}
-                {new Date(
-                  originalDate.getTime() + extensionDays * 86400000
-                ).toLocaleString()}
+                {formattedDate(
+                  new Date(
+                    calculateNewDueDate(
+                      new Date(
+                        Date.parse(
+                          getAssignmentDueDate(selectedAssignmentId) || ""
+                        )
+                      ),
+                      numDaysRequested
+                    )
+                  )
+                )}
               </strong>
               .
             </Text>
