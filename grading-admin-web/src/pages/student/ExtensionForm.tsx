@@ -155,7 +155,6 @@ export function ExtensionForm() {
                   )
                 )}
               </strong>
-              .
             </Text>
             <Text>
               <strong>If approved</strong>, the assignment will be due{" "}
@@ -205,8 +204,11 @@ export function ExtensionForm() {
       <InputWrapper label="Extension Type:">
         <SegmentedControl
           ml={5}
-          onChange={() => setLatePassView(!latePassView)}
-          // TODO onswitch reset search val/assignment val?
+          onChange={() => {
+            setLatePassView(!latePassView);
+            setSearchValue("");
+            setSelectedAssignmentId("");
+          }}
           data={["Late Pass", "Extension"]}
         />
       </InputWrapper>
