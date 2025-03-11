@@ -102,11 +102,9 @@ export function Navbar() {
               )}
 
               {/* TODO check for either instructor or admin role here */}
-              {auth.isAuthenticated && (
-                <Button variant="default" onClick={open}>
-                  {store$.name.get() || "Select Class"}
-                </Button>
-              )}
+              <Button variant="default" onClick={open}>
+                {store$.name.get() || "Select Class"}
+              </Button>
             </Group>
           </Group>
 

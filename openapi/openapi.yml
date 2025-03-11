@@ -1257,7 +1257,7 @@ paths:
         assignments are not returned but the
         section the student is in is returned.
       security:
-        - openIDC: [student:read]
+        - openIDC: [user:read]
       parameters:
         - name: course_id
           in: path
@@ -1272,6 +1272,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StudentInformation"
+
+  /student/courses:
+    get:
+      tags:
+        - student
+      operationId: get_courses_student
+      summary: "Get all courses"
+      description: |
+        Get all active courses for a student
+      security:
+        - openIDC: [user:read]
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
 
   /student/enrollments:
     get:
@@ -1312,7 +1332,7 @@ paths:
       description: |
         Get currently released assignments for course
       security:
-        - openIDC: [student:read]
+        - openIDC: [user:read]
       parameters:
         - name: course_id
           in: path
@@ -2149,8 +2169,12 @@ components:
         id:
           type: string
           example: "999-9999-9999-99"
-        assignment:
-          $ref: "#/components/schemas/Assignment"
+        assignment_id:
+          type: string
+          example: "999-9999-9999-99"
+        assignment_name:
+          type: string
+          example: "999-9999-9999-99"
         date_submitted:
           type: string
           format: date-time
@@ -2160,8 +2184,9 @@ components:
           example: 2
         extension:
           $ref: "#/components/schemas/Extension"
-        user_requester:
-          $ref: "#/components/schemas/CourseMember"
+        user_requester_id:
+          type: string
+          example: "999-9999-9999-99"
         status:
           type: string
           enum:
@@ -2181,10 +2206,7 @@ components:
       type: object
       required:
         - reason
-        - user_reviewer
-        - response_timestamp
         - comments
-        - response_to_requester
       properties:
         id:
           type: string

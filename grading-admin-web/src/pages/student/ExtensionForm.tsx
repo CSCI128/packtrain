@@ -14,27 +14,32 @@ import {
 import { useForm } from "@mantine/form";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { $api, store$ } from "../../api";
 
 export function ExtensionForm() {
   const auth = useAuth();
-
+  const navigate = useNavigate();
+  const [searchValue, setSearchValue] = useState("");
   const [originalDate, setOriginalDate] = useState<Date>(new Date());
   const [extensionDays, setExtensionDays] = useState<number>(1);
   const [latePassView, setLatePassView] = useState<boolean>(true);
   const [latePassesRemaining, setLatePassesRemaining] = useState<boolean>(true);
 
-  // query student/enrollments
+  // TODO validate assignmentId/selected ID in <select>
 
   const extensionForm = useForm({
     mode: "uncontrolled",
     initialValues: {
-      courseName: "",
+      assignmentId: "",
+      daysRequested: 1,
+      extensionReason: "",
+      comments: "",
     },
     validate: {
-      courseName: (value) =>
-        value && value.length < 1
-          ? "Course name must have at least 1 character"
+      daysRequested: (value) =>
+        value < 0 && value > 5
+          ? "Days requested must be greater than zero and less than or equal to 5."
           : null,
     },
   });
@@ -42,26 +47,86 @@ export function ExtensionForm() {
   const latePassForm = useForm({
     mode: "uncontrolled",
     initialValues: {
-      courseName: "",
+      assignmentId: "",
+      daysRequested: 1,
     },
     validate: {
-      courseName: (value) =>
-        value && value.length < 1
-          ? "Course name must have at least 1 character"
+      daysRequested: (value) =>
+        value < 0 && value > 5
+          ? "Days requested must be greater than zero and less than or equal to 5."
           : null,
     },
   });
 
-  // /admin/courses/{course_id}/members
-  // const { data, error, isLoading } = $api.useQuery("get", "/user");
+  const {
+    data: courseData,
+    isLoading,
+    error,
+  } = $api.useQuery("get", "/student/courses/{course_id}", {
+    params: {
+      path: {
+        course_id: store$.id.get() as string,
+      },
+    },
+  });
 
-  const submitExtension = (values: typeof extensionForm.values) => {};
+  const postForm = $api.useMutation(
+    "post",
+    "/student/courses/{course_id}/extensions"
+  );
 
-  const submitLatePass = (values: typeof latePassForm.values) => {};
+  const submitExtension = (values: typeof extensionForm.values) => {
+    postForm.mutate({
+      params: {
+        path: {
+          course_id: store$.id.get() as string,
+        },
+      },
+      body: {
+        user_requester_id: auth.user?.profile.id as string,
+        assignment_id: values.assignmentId,
+        date_submitted: Date.now().toString(),
+        num_days_requested: values.daysRequested,
+        request_type: "extension",
+        status: "pending",
+        extension: {
+          comments: values.comments,
+          reason: values.extensionReason,
+        },
+      },
+    });
+  };
 
-  // TODO call user/member endpoint
+  const submitLatePass = (values: typeof latePassForm.values) => {
+    console.log("submitting late pass");
+    console.log(values.assignmentId);
+    postForm.mutate(
+      {
+        params: {
+          path: {
+            course_id: store$.id.get() as string,
+          },
+        },
+        body: {
+          user_requester_id: auth.user?.profile.id as string,
+          assignment_id: values.assignmentId,
+          date_submitted: Date.now().toString(),
+          num_days_requested: values.daysRequested,
+          request_type: "late_pass",
+          status: "pending",
+        },
+      },
+      {
+        onSuccess: () => {
+          navigate("/requests");
+        },
+      }
+    );
+  };
 
-  // TODO set originalDate
+  if (isLoading || !courseData) return "Loading...";
+
+  if (error) return `An error occured: ${error}`;
 
   return (
     <Container size="md">
@@ -100,6 +165,25 @@ export function ExtensionForm() {
               your work.
             </Text>
 
+            <Select
+              searchable
+              searchValue={searchValue}
+              onSearchChange={setSearchValue}
+              label="Assignment"
+              placeholder="Pick value"
+              data={
+                courseData.course.assignments &&
+                courseData.course.assignments.flatMap((x) => [
+                  {
+                    label: x.name,
+                    value: x.id,
+                  },
+                ])
+              }
+              key={latePassForm.key("assignmentId")}
+              {...latePassForm.getInputProps("assignmentId")}
+            />
+
             <Group>
               <NumberInput
                 label="Days to extend:"
@@ -107,6 +191,8 @@ export function ExtensionForm() {
                 onChange={() => setExtensionDays}
                 max={5}
                 min={1}
+                key={latePassForm.key("daysRequested")}
+                // {...latePassForm.getInputProps("daysRequested")}
               />
 
               <Text>
@@ -120,20 +206,29 @@ export function ExtensionForm() {
               Cancel
             </Button>
 
-            {latePassesRemaining && (
-              <Button component={Link} to="/admin/home" type="submit">
-                Submit
-              </Button>
-            )}
+            {latePassesRemaining && <Button type="submit">Submit</Button>}
           </Group>
         </form>
       ) : (
         <form onSubmit={extensionForm.onSubmit(submitExtension)}>
           <Stack>
             <Select
+              searchable
+              searchValue={searchValue}
+              onSearchChange={setSearchValue}
               label="Assignment"
               placeholder="Pick value"
-              data={["Test"]}
+              data={
+                courseData.course.assignments &&
+                courseData.course.assignments.flatMap((x) => [
+                  {
+                    label: x.name,
+                    value: x.id,
+                  },
+                ])
+              }
+              key={latePassForm.key("assignmentId")}
+              {...latePassForm.getInputProps("assignmentId")}
             />
 
             <Text>
@@ -142,7 +237,7 @@ export function ExtensionForm() {
             </Text>
             <Text>
               This request will be sent to and reviewed by{" "}
-              <strong>Professor TODO</strong>.
+              <strong>Professor {courseData.professor}</strong>.
             </Text>
 
             <Group>
@@ -152,6 +247,8 @@ export function ExtensionForm() {
                 onChange={() => setExtensionDays}
                 max={5}
                 min={1}
+                key={latePassForm.key("daysRequested")}
+                // {...latePassForm.getInputProps("assignmentId")}
               />
 
               <Select
@@ -163,10 +260,17 @@ export function ExtensionForm() {
                   "Family Emergency",
                   "Personal",
                 ]}
+                key={latePassForm.key("extensionReason")}
+                {...latePassForm.getInputProps("extensionReason")}
               />
             </Group>
 
-            <Textarea label="Comments/Explanation" placeholder="Comments" />
+            <Textarea
+              label="Comments/Explanation"
+              placeholder="Comments"
+              key={latePassForm.key("comments")}
+              {...latePassForm.getInputProps("comments")}
+            />
 
             <Text c="gray">
               Original Due Date:{" "}
@@ -189,7 +293,7 @@ export function ExtensionForm() {
             <Button component={Link} to="/requests" color="gray">
               Cancel
             </Button>
-            <Button component={Link} to="/admin/home" type="submit">
+            <Button component={Link} to="/requests" type="submit">
               Submit
             </Button>
           </Group>

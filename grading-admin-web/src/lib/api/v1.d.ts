@@ -614,6 +614,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/student/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all courses
+         * @description Get all active courses for a student
+         *
+         */
+        get: operations["get_courses_student"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/student/enrollments": {
         parameters: {
             query?: never;
@@ -876,27 +897,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/instructor/courses/{course_id}/migrations/{migration_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Updates the grade for a migration for the user. Must include a reason for updating the grade.
-         * @description Updates the grade for a migration for the user.
-         *
-         */
-        put: operations["update_grade"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1102,7 +1102,10 @@ export interface components {
         LateRequest: {
             /** @example 999-9999-9999-99 */
             id?: string;
-            assignment: components["schemas"]["Assignment"];
+            /** @example 999-9999-9999-99 */
+            assignment_id?: string;
+            /** @example 999-9999-9999-99 */
+            assignment_name?: string;
             /**
              * Format: date-time
              * @example 2020-01-01T12:00:00.000Z
@@ -1111,7 +1114,8 @@ export interface components {
             /** @example 2 */
             num_days_requested: number;
             extension?: components["schemas"]["Extension"];
-            user_requester: components["schemas"]["CourseMember"];
+            /** @example 999-9999-9999-99 */
+            user_requester_id?: string;
             /**
              * @example Extension pending instructor approval
              * @enum {string}
@@ -1129,36 +1133,16 @@ export interface components {
             id?: string;
             /** @example Tech Issues */
             reason: string;
-            user_reviewer: components["schemas"]["CourseMember"];
+            user_reviewer?: components["schemas"]["CourseMember"];
             /**
              * Format: date-time
              * @example 2020-01-01T12:00:00.000Z
              */
-            response_timestamp: string;
+            response_timestamp?: string;
             /** @example Some comment about the work */
             comments: string;
             /** @example Your 3 day extension for illness is approved */
-            response_to_requester: string;
-        };
-        /** @description The master migration that contains to the list of migration objects */
-        MasterMigration: {
-            migration_list: components["schemas"]["Migration"][];
-        };
-        /** @description The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit */
-        MasterMigrationStatistics: {
-            /** @example 2 */
-            missing: number;
-            /** @example 12 */
-            extensions_applied: number;
-            /** @example 1 */
-            no_credit: number;
-            /** @example 5 */
-            late_penalties: number;
-        };
-        /** @description Migration object that has a single assignment and a policy */
-        Migration: {
-            assignment: components["schemas"]["Assignment"];
-            policy: components["schemas"]["Policy"];
+            response_to_requester?: string;
         };
         /** @description The master migration that contains to the list of migration objects */
         MasterMigration: {
@@ -2286,6 +2270,26 @@ export interface operations {
             };
         };
     };
+    get_courses_student: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Course"][];
+                };
+            };
+        };
+    };
     get_enrollments: {
         parameters: {
             query?: never;
@@ -2575,41 +2579,6 @@ export interface operations {
         };
     };
     get_all_master_migrations_for_course: {
-<<<<<<< HEAD
-=======
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description The course ID */
-                course_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MasterMigration"][];
-                };
-            };
-            /** @description Migration not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    extension_request: {
->>>>>>> e517953 (add all requests screen)
         parameters: {
             query?: never;
             header?: never;
@@ -2673,7 +2642,6 @@ export interface operations {
             };
         };
     };
-<<<<<<< HEAD
     create_extension_request: {
         parameters: {
             query?: never;
@@ -2710,8 +2678,6 @@ export interface operations {
             };
         };
     };
-=======
->>>>>>> e517953 (add all requests screen)
     update_grade: {
         parameters: {
             query?: never;

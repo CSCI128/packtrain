@@ -18,17 +18,22 @@ import {
   IconSearch,
   IconSelector,
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { $api, store$ } from "../../api";
 import classes from "../../components/table/Table.module.scss";
+import { components } from "../../lib/api/v1";
 
 interface RequestRowData {
-  id: string;
-  requestDate: string;
-  type: string;
-  assignments: string;
-  newDueDate: string;
-  status: string;
+  id?: string;
+  date_submitted: string;
+  request_type: "extension" | "late_pass";
+  num_days_requested: number;
+  assignment_id?: string;
+  assignment_name?: string;
+  extension?: components["schemas"]["Extension"];
+  user_requester_id?: string;
+  status: "pending" | "approved" | "rejected";
 }
 
 interface TableHeaderProps {
@@ -94,21 +99,31 @@ function sortData(
 }
 
 export function Requests() {
-  const data: RequestRowData[] = [
+  const { data, error, isLoading } = $api.useQuery(
+    "get",
+    "/student/courses/{course_id}/extensions",
     {
-      id: "1",
-      requestDate: "3/7/25",
-      type: "Extension",
-      assignments: "Studio 1",
-      newDueDate: "3/8/25",
-      status: "Pending",
-    },
-  ]; // TODO replace w/ query
+      params: {
+        path: { course_id: store$.id.get() as string },
+      },
+    }
+  );
 
   const [search, setSearch] = useState("");
   const [sortedData, setSortedData] = useState(data || []);
   const [sortBy, setSortBy] = useState<keyof RequestRowData | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
+
+  // sync sortedData with data
+  useEffect(() => {
+    if (data) {
+      setSortedData(data);
+    }
+  }, [data]);
+
+  if (isLoading || !data) return "Loading...";
+
+  if (error) return `An error occured: ${error}`;
 
   const setSorting = (field: keyof RequestRowData) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
@@ -127,10 +142,12 @@ export function Requests() {
 
   const rows = sortedData.map((row) => (
     <Table.Tr key={row.id}>
-      <Table.Td>{row.requestDate}</Table.Td>
-      <Table.Td>{row.type}</Table.Td>
-      <Table.Td>{row.assignments}</Table.Td>
-      <Table.Td>{row.newDueDate}</Table.Td>
+      <Table.Td>{row.date_submitted}</Table.Td>
+      <Table.Td>{row.request_type}</Table.Td>
+      <Table.Td>{row.assignment_name}</Table.Td>
+      <Table.Td>
+        {row.date_submitted + row.num_days_requested * 86400000}
+      </Table.Td>
       <Table.Td>{row.status}</Table.Td>
     </Table.Tr>
   ));
@@ -165,30 +182,32 @@ export function Requests() {
           <Table.Tbody>
             <Table.Tr>
               <TableHeader
-                sorted={sortBy === "requestDate"}
+                sorted={sortBy === "date_submitted"}
                 reversed={reverseSortDirection}
-                onSort={() => setSorting("requestDate")}
+                onSort={() => setSorting("date_submitted")}
               >
                 Request Date
               </TableHeader>
               <TableHeader
-                sorted={sortBy === "type"}
+                sorted={sortBy === "request_type"}
                 reversed={reverseSortDirection}
-                onSort={() => setSorting("type")}
+                onSort={() => setSorting("request_type")}
               >
                 Type
               </TableHeader>
               <TableHeader
-                sorted={sortBy === "assignments"}
+                sorted={sortBy === "assignment_name"}
                 reversed={reverseSortDirection}
-                onSort={() => setSorting("assignments")}
+                onSort={() => setSorting("assignment_name")}
               >
                 Assignment(s)
               </TableHeader>
               <TableHeader
-                sorted={sortBy === "newDueDate"}
+                sorted={false}
+                // sorted={sortBy === "new_due_date"}
                 reversed={reverseSortDirection}
-                onSort={() => setSorting("newDueDate")}
+                // onSort={() => setSorting("new_due_date")}
+                onSort={() => {}}
               >
                 New Due Date
               </TableHeader>
@@ -206,9 +225,9 @@ export function Requests() {
               rows
             ) : (
               <Table.Tr>
-                <Table.Td colSpan={Object.keys(data[0]).length}>
-                  <Text fw={500} ta="center">
-                    No users found
+                <Table.Td colSpan={data.length}>
+                  <Text fw={400} ta="center">
+                    No late requests found
                   </Text>
                 </Table.Td>
               </Table.Tr>
