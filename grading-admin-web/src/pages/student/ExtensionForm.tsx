@@ -211,12 +211,6 @@ export function ExtensionForm() {
       {latePassView ? (
         <form onSubmit={latePassForm.onSubmit(submitLatePass)}>
           <Stack>
-            <Text>
-              You have <strong>X</strong> late passes remaining. Late passes are
-              five, free passes to use over the course of the semester to extend
-              your work.
-            </Text>
-
             <Select
               searchable
               searchValue={searchValue}
@@ -236,6 +230,12 @@ export function ExtensionForm() {
               {...latePassForm.getInputProps("assignmentId")}
               onChange={(_value, _) => setSelectedAssignmentId(_value ?? "")}
             />
+
+            <Text>
+              You have <strong>X</strong> late passes remaining. Late passes are
+              five, free passes to use over the course of the semester to extend
+              your work.
+            </Text>
 
             <Group>
               <NumberInput
