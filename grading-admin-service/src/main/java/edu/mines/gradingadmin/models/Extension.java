@@ -25,7 +25,7 @@ public class Extension {
     private String comments;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "cwid", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "cwid")
     @EqualsAndHashCode.Exclude
     private User reviewer;
 

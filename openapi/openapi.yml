@@ -2159,7 +2159,6 @@ components:
       description: "A generic request for extending work deadlines"
       type: object
       required:
-        - assignment
         - date_submitted
         - num_days_requested
         - user_requester

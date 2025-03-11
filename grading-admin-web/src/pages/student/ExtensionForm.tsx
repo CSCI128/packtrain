@@ -27,7 +27,6 @@ export function ExtensionForm() {
   const [latePassesRemaining, setLatePassesRemaining] = useState<boolean>(true);
 
   // TODO validate assignmentId/selected ID in <select>
-
   const extensionForm = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -58,6 +57,7 @@ export function ExtensionForm() {
     },
   });
 
+  // TODO might want to send back remaining extensions here
   const {
     data: courseData,
     isLoading,
@@ -70,38 +70,13 @@ export function ExtensionForm() {
     },
   });
 
-  // TODO might want to send back remaining extensions here
-
   const postForm = $api.useMutation(
     "post",
     "/student/courses/{course_id}/extensions"
   );
 
   const submitExtension = (values: typeof extensionForm.values) => {
-    postForm.mutate({
-      params: {
-        path: {
-          course_id: store$.id.get() as string,
-        },
-      },
-      body: {
-        user_requester_id: auth.user?.profile.id as string,
-        assignment_id: values.assignmentId,
-        date_submitted: Date.now().toString(),
-        num_days_requested: values.daysRequested,
-        request_type: "extension",
-        status: "pending",
-        extension: {
-          comments: values.comments,
-          reason: values.extensionReason,
-        },
-      },
-    });
-  };
-
-  const submitLatePass = (values: typeof latePassForm.values) => {
-    console.log("submitting late pass");
-    console.log(values.assignmentId);
+    console.log(values);
     postForm.mutate(
       {
         params: {
@@ -112,7 +87,36 @@ export function ExtensionForm() {
         body: {
           user_requester_id: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
-          date_submitted: Date.now().toString(),
+          date_submitted: new Date().toISOString(),
+          num_days_requested: values.daysRequested,
+          request_type: "extension",
+          status: "pending",
+          extension: {
+            comments: values.comments,
+            reason: values.extensionReason,
+          },
+        },
+      },
+      {
+        onSuccess: () => {
+          navigate("/requests");
+        },
+      }
+    );
+  };
+
+  const submitLatePass = (values: typeof latePassForm.values) => {
+    postForm.mutate(
+      {
+        params: {
+          path: {
+            course_id: store$.id.get() as string,
+          },
+        },
+        body: {
+          user_requester_id: auth.user?.profile.id as string,
+          assignment_id: values.assignmentId,
+          date_submitted: new Date().toISOString(),
           num_days_requested: values.daysRequested,
           request_type: "late_pass",
           status: "pending",
@@ -154,6 +158,7 @@ export function ExtensionForm() {
         <SegmentedControl
           ml={5}
           onChange={() => setLatePassView(!latePassView)}
+          // TODO onswitch reset search val/assignment val?
           data={["Late Pass", "Extension"]}
         />
       </InputWrapper>
@@ -198,7 +203,8 @@ export function ExtensionForm() {
               />
 
               <Text>
-                (<strong>{extensionDays} remaining</strong> after)
+                {/* TODO update extensionDays */}(<strong>X remaining</strong>{" "}
+                after)
               </Text>
             </Group>
           </Stack>
@@ -229,10 +235,9 @@ export function ExtensionForm() {
                   },
                 ])
               }
-              key={latePassForm.key("assignmentId")}
-              {...latePassForm.getInputProps("assignmentId")}
+              key={extensionForm.key("assignmentId")}
+              {...extensionForm.getInputProps("assignmentId")}
             />
-
             <Text>
               Extensions are <strong>only</strong> for medical, excused or
               extenuating personal circumstances.
@@ -241,7 +246,6 @@ export function ExtensionForm() {
               This request will be sent to and reviewed by{" "}
               <strong>Professor {courseData.professor}</strong>.
             </Text>
-
             <Group>
               <NumberInput
                 label="Days Requested"
@@ -249,36 +253,34 @@ export function ExtensionForm() {
                 onChange={() => setExtensionDays}
                 max={5}
                 min={1}
-                key={latePassForm.key("daysRequested")}
-                // {...latePassForm.getInputProps("assignmentId")}
+                key={extensionForm.key("daysRequested")}
+                // {...extensionForm.getInputProps("assignmentId")}
               />
 
               <Select
                 label="Extension Reason"
                 placeholder="Pick value"
                 data={[
-                  "Tech Issues",
-                  "Health-Related",
-                  "Family Emergency",
-                  "Personal",
+                  { label: "Tech Issues", value: "TECH" },
+                  { label: "Health-Related", value: "HEALTH" },
+                  { label: "Family Emergency", value: "FAMILY" },
+                  { label: "Personal", value: "PERSONAL" },
                 ]}
-                key={latePassForm.key("extensionReason")}
-                {...latePassForm.getInputProps("extensionReason")}
+                key={extensionForm.key("extensionReason")}
+                {...extensionForm.getInputProps("extensionReason")}
               />
             </Group>
 
             <Textarea
               label="Comments/Explanation"
               placeholder="Comments"
-              key={latePassForm.key("comments")}
-              {...latePassForm.getInputProps("comments")}
+              key={extensionForm.key("comments")}
+              {...extensionForm.getInputProps("comments")}
             />
-
             <Text c="gray">
               Original Due Date:{" "}
               <strong>{originalDate.toLocaleString()}</strong>.
             </Text>
-
             <Text>
               <strong>If approved</strong>, the assignment will be due{" "}
               <strong>
@@ -295,9 +297,7 @@ export function ExtensionForm() {
             <Button component={Link} to="/requests" color="gray">
               Cancel
             </Button>
-            <Button component={Link} to="/requests" type="submit">
-              Submit
-            </Button>
+            <Button type="submit">Submit</Button>
           </Group>
         </form>
       )}

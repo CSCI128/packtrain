@@ -126,7 +126,6 @@ public class StudentApiImpl implements StudentApiDelegate {
     public ResponseEntity<List<AssignmentDTO>> getCourseAssignmentsStudent(String courseId) {
         List<Assignment> assignments = assignmentService.getAllUnlockedAssignments(courseId);
 
-
         return ResponseEntity.ok(assignments.stream()
                 .map(a -> new AssignmentDTO()
                         .points(a.getPoints())
