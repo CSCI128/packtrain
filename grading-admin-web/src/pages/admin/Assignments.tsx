@@ -181,6 +181,8 @@ export function AssignmentsPage() {
     );
   };
 
+  const editAssignment = (values: typeof form.values) => {};
+
   // if (isLoading || !data) return "Loading...";
 
   // if (error) return `An error occurred: ${error}`;
@@ -195,11 +197,11 @@ export function AssignmentsPage() {
       <Table.Td>{element.points}</Table.Td>
       <Table.Td>{element.externalService}</Table.Td>
       <Table.Td>{element.externalPoints}</Table.Td>
-      <Table.Td>{element.unlock_date}</Table.Td>
+      {/* <Table.Td>{element.unlock_date}</Table.Td> */}
       <Table.Td>{element.due_date}</Table.Td>
       <Table.Td>{element.enabled ? "Yes" : "No"}</Table.Td>
       <Table.Td>
-        {element.status} {element.attention_required && "Attention required!"}
+        {element.attention_required ? "Attention required!" : element.status}
       </Table.Td>
       <Table.Td onClick={() => handleAssignmentEdit(element)}>
         <Center>
@@ -215,7 +217,7 @@ export function AssignmentsPage() {
   return (
     <>
       <Modal opened={opened} onClose={close} title="Edit Assignment">
-        <form onSubmit={form.onSubmit(() => {})}>
+        <form onSubmit={form.onSubmit(editAssignment)}>
           <TextInput
             withAsterisk
             label="Name"
@@ -224,27 +226,53 @@ export function AssignmentsPage() {
           />
 
           <TextInput
+            withAsterisk
+            label="Category"
+            key={form.key("category")}
+            {...form.getInputProps("category")}
+          />
+
+          <TextInput
+            withAsterisk
+            label="Points"
+            key={form.key("points")}
+            {...form.getInputProps("points")}
+          />
+
+          <TextInput
+            withAsterisk
+            label="External Service"
+            key={form.key("externalService")}
+            {...form.getInputProps("externalService")}
+          />
+
+          <TextInput
+            withAsterisk
+            label="External Points"
+            key={form.key("externalPoints")}
+            {...form.getInputProps("externalPoints")}
+          />
+
+          <TextInput
+            withAsterisk
+            label="Due Date"
+            key={form.key("due_date")}
+            {...form.getInputProps("due_date")}
+          />
+
+          <TextInput
+            withAsterisk
+            label="Status"
+            key={form.key("status")}
+            {...form.getInputProps("status")}
+          />
+
+          {/* <TextInput
             disabled
             label="Email"
             key={form.key("email")}
             {...form.getInputProps("email")}
-          />
-
-          <TextInput
-            disabled
-            label="CWID"
-            key={form.key("cwid")}
-            {...form.getInputProps("cwid")}
-          />
-
-          <InputWrapper
-            withAsterisk
-            label="Admin User"
-            key={form.key("admin")}
-            {...form.getInputProps("admin")}
-          >
-            <Checkbox defaultChecked={false} />
-          </InputWrapper>
+          /> */}
 
           <InputWrapper
             withAsterisk
@@ -332,13 +360,13 @@ export function AssignmentsPage() {
                 >
                   External Points
                 </TableHeader>
-                <TableHeader
+                {/* <TableHeader
                   sorted={sortBy === "unlock_date"}
                   reversed={reverseSortDirection}
                   onSort={() => setSorting("unlock_date")}
                 >
                   Unlock Date
-                </TableHeader>
+                </TableHeader> */}
                 <TableHeader
                   sorted={sortBy === "due_date"}
                   reversed={reverseSortDirection}
