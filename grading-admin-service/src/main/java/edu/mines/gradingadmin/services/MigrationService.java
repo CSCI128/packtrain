@@ -1,5 +1,7 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.data.AssignmentDTO;
+import edu.mines.gradingadmin.data.PolicyDTO;
 import edu.mines.gradingadmin.data.messages.ScoredDTO;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
@@ -10,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -94,25 +98,45 @@ public class MigrationService {
         transactionLogRepo.save(entry);
     }
 
-    public MasterMigration createMasterMigration(String courseId){
+    public Optional<MasterMigration> createMasterMigration(String courseId){
         MasterMigration masterMigration = new MasterMigration();
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-        if (course.isPresent()){
-            masterMigration.setCourse(course.get());
+        if (course.isEmpty()) {
+            return Optional.empty();
         }
-        List<Migration> migrationList = new ArrayList<>();
-        masterMigration.setMigrations(migrationList);
-        return masterMigration;
+        masterMigration.setCourse(course.get());
+        return Optional.of(masterMigration);
     }
 
-    public MasterMigration addMigration(String masterMigrationId, Assignment assignment, Policy policy){
+    public Optional<MasterMigration> addMigration(String masterMigrationId, AssignmentDTO assignmentDTO, PolicyDTO policyDTO){
         MasterMigration masterMigration = masterMigrationRepo.getMasterMigrationByMasterMigrationId(UUID.fromString(masterMigrationId));
         Migration migration = new Migration();
-        migration.setPolicy(policy);
+        URI uri = null;
+
+        try {
+            uri = new URI(policyDTO.getUri());
+
+        } catch (URISyntaxException e){
+            // ask Greg is there is a better thing to put here
+            return Optional.empty();
+            }
+        Optional<Policy> policy = courseService.getPolicy(uri);
+        if (policy.isEmpty()){
+            return Optional.empty();
+        }
+        migration.setPolicy(policy.get());
+        Assignment assignment = new Assignment();
+        assignment.setName(assignmentDTO.getName());
+        assignment.setPoints(assignmentDTO.getPoints());
+        assignment.setCategory(assignmentDTO.getCategory());
+        assignment.setDueDate(assignmentDTO.getDueDate());
+        assignment.setUnlockDate(assignmentDTO.getUnlockDate());
+        assignment.setEnabled(assignmentDTO.getEnabled());
         migration.setAssignment(assignment);
         List<Migration> migrationList = masterMigration.getMigrations();
         migrationList.add(migration);
-        return masterMigration;
+        masterMigration.setMigrations(migrationList);
+        return Optional.of(masterMigration);
     }
 
 }

@@ -149,15 +149,22 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<MasterMigrationDTO> createMasterMigration(String courseId, MasterMigrationDTO masterMigrationDTO){
-        MasterMigration masterMigration = migrationService.createMasterMigration(courseId);
-        return ResponseEntity.ok(mastermigration -> new MasterMigrationDTO());
+        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(courseId);
+        if (masterMigration.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().migrationId(masterMigration.get().getId().toString()));
 
     }
 
     @ Override
-    public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(String courseId, String migrationId, MasterMigrationDTO masterMigrationDTO) {
-        // how will I get the assignments and policies to call addMigration(), should the parameter be a MigrationDTO instead?
-        MasterMigration masterMigration = migrationService.addMigration();
-        return
+    public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(String courseId, String masterMigrationId, MigrationDTO migrationDTO) {
+        AssignmentDTO assignment = migrationDTO.getAssignment();
+        PolicyDTO policy = migrationDTO.getPolicy();
+        Optional<MasterMigration> masterMigration = migrationService.addMigration(masterMigrationId, assignment, policy);
+        if (masterMigration.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().migrationId(masterMigration.get().getId().toString()));
     }
 }

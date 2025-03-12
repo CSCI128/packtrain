@@ -1843,7 +1843,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructor/courses/{course_id}/migrations/{migration_id}:
+  /instructor/courses/{course_id}/migrations/{master_migration_id}:
     put:
       tags:
         - instructor
@@ -1860,7 +1860,7 @@ paths:
           schema:
             type: string
             example: "99-9999-9999-99"
-        - name: migration_id
+        - name: master_migration_id
           in: path
           required: true
           schema:
@@ -1905,7 +1905,7 @@ paths:
           schema:
             type: string
             example: "999-9999-9999-99"
-        - name: migration_id
+        - name: master_migration_id
           required: true
           description: "The master migration ID"
           in: path
@@ -1917,7 +1917,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/MasterMigration"
+              $ref: "#/components/schemas/Migration"
       responses:
         201:
           description: "An Master Migration has been updated"
@@ -2323,6 +2323,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Migration"
+        migration_id:
+          type: string
+          example: "999-9999-9999-99"
+
+
 
     MasterMigrationStatistics:
       description: "The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit"
