@@ -25,7 +25,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { $api } from "../../api";
-import classes from "./Table.module.scss";
+import classes from "../../components/table/Table.module.scss";
 
 // adapted from https://ui.mantine.dev/category/tables/#table-sort
 interface User {

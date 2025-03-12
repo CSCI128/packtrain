@@ -1257,7 +1257,7 @@ paths:
         assignments are not returned but the
         section the student is in is returned.
       security:
-        - openIDC: [student:read]
+        - openIDC: [user:read]
       parameters:
         - name: course_id
           in: path
@@ -1271,7 +1271,27 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Course"
+                $ref: "#/components/schemas/StudentInformation"
+
+  /student/courses:
+    get:
+      tags:
+        - student
+      operationId: get_courses_student
+      summary: "Get all courses"
+      description: |
+        Get all active courses for a student
+      security:
+        - openIDC: [user:read]
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
 
   /student/enrollments:
     get:
@@ -1312,7 +1332,7 @@ paths:
       description: |
         Get currently released assignments for course
       security:
-        - openIDC: [student:read]
+        - openIDC: [user:read]
       parameters:
         - name: course_id
           in: path
@@ -1705,10 +1725,46 @@ paths:
                 error_message: "Error: migration not found"
 
   /student/courses/{course_id}/extensions:
+    get:
+      tags:
+        - student
+      operationId: get_all_extensions
+      summary: "Get all extensions for a student"
+      description: |
+        Gets all extensions a student has submitted, regardless
+        of status.
+      security:
+        - openIDC: [student:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LateRequest"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
     post:
       tags:
         - student
-      operationId: extension_request
+      operationId: create_extension_request
       summary: "Student Extension request"
       description: |
         Create a new extension request for a student.
@@ -1724,13 +1780,19 @@ paths:
           schema:
             type: string
             example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LateRequest"
       responses:
         201:
           description: "An extension request has been created"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Extension"
+                $ref: "#/components/schemas/LateRequest"
         404:
           description: "Extension not found"
           content:
@@ -2079,22 +2141,47 @@ components:
           example:
             - "fall.2020.excl.101.section.a"
 
-    Extension:
-      description: "An extension for an assignment"
+    StudentInformation:
+      description: "Information relevant to a student"
       type: object
       required:
-        - assignments
+        - course_role
+        - professor
+        - course
+      properties:
+        course_role:
+          type: string
+          enum:
+            - student
+            - instructor
+            - ta
+            - owner
+          example: "student"
+        professor:
+          type: string
+          example: "Jane Doe"
+        course:
+          $ref: "#/components/schemas/Course"
+
+    LateRequest:
+      description: "A generic request for extending work deadlines"
+      type: object
+      required:
         - date_submitted
         - num_days_requested
         - user_requester
+        - status
+        - request_type
       properties:
         id:
           type: string
           example: "999-9999-9999-99"
-        assignments:
-          type: array
-          items:
-            $ref: "#/components/schemas/Assignment"
+        assignment_id:
+          type: string
+          example: "999-9999-9999-99"
+        assignment_name:
+          type: string
+          example: "999-9999-9999-99"
         date_submitted:
           type: string
           format: date-time
@@ -2102,10 +2189,11 @@ components:
         num_days_requested:
           type: integer
           example: 2
-        user_requester:
+        extension:
+          $ref: "#/components/schemas/Extension"
+        user_requester_id:
           type: string
-          items:
-            $ref: "#/components/schemas/CourseMember"
+          example: "999-9999-9999-99"
         status:
           type: string
           enum:
@@ -2119,17 +2207,29 @@ components:
             - extension
             - late_pass
           example: "Late Pass"
-        user_reviewer:
+
+    Extension:
+      description: "An extension for an assignment"
+      type: object
+      required:
+        - reason
+        - comments
+      properties:
+        id:
           type: string
-          items:
-            $ref: "#/components/schemas/CourseMember"
+          example: "999-9999-9999-99"
+        reason:
+          type: string
+          example: "Tech Issues"
+        user_reviewer:
+          $ref: "#/components/schemas/CourseMember"
         response_timestamp:
           type: string
           format: date-time
           example: "2020-01-01T12:00:00.000Z"
-        reason:
+        comments:
           type: string
-          example: "Excused absence"
+          example: "Some comment about the work"
         response_to_requester:
           type: string
           example: "Your 3 day extension for illness is approved"

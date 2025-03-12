@@ -1,27 +1,15 @@
-enum ExtensionStatus {
-    IGNORED,
-    APPLIED,
-    REJECTED,
-}
-
-enum SubmissionStatus {
-    MISSING,
-    EXCUSED,
-    LATE,
-    EXTENDED,
-    ON_TIME,
-}
+import { AppliedExtensionStatus, SubmissionStatus } from "./common";
 
 export default class ScoredDTO {
     cwid!: string;
-    extensionId!: string;
+    extensionId?: string;
     assignmentId!: string;
     rawScore!: number;
     finalScore!: number;
     adjustedSubmissionTime!: Date;
     hoursLate!: number;
     submissionStatus!: SubmissionStatus;
-    extensionStatus!: ExtensionStatus;
+    extensionStatus!: AppliedExtensionStatus;
     extensionMessage!: string;
     submissionMessage!: string;
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,23 +18,20 @@ public class Extension {
     @Column(name = "id")
     private UUID id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private ExtensionStatus status;
+    @Column(name = "reason")
+    private String reason;
 
-    @Column(name = "assignment_id")
-    private String assignmentId;
+    @Column(name = "comments")
+    private String comments;
 
-    @ManyToOne()
-    @JoinColumn(name = "migration", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "cwid")
     @EqualsAndHashCode.Exclude
-    private Migration migration;
+    private User reviewer;
 
-    @ManyToOne()
-    @JoinColumn(name = "extensions", referencedColumnName = "id")
-    @EqualsAndHashCode.Exclude
-    private AssignmentExtensions assignmentExtension;
+    @Column(name = "reviewer_response")
+    private String reviewerResponse;
 
-
-
+    @Column(name = "reviewer_response_timestamp")
+    private Instant reviewerResponseTimestamp;
 }
