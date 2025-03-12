@@ -7,6 +7,7 @@ import edu.mines.gradingadmin.repositories.MigrationRepo;
 import edu.mines.gradingadmin.repositories.MigrationTransactionLogRepo;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,15 +22,17 @@ public class MigrationService {
     private final MasterMigrationRepo masterMigrationRepo;
     private final MigrationTransactionLogRepo transactionLogRepo;
     private final ExtensionService extensionService;
+    private final CourseService courseService;
 
-    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ExtensionService extensionService){
+    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ExtensionService extensionService, CourseService courseService){
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
         this.extensionService = extensionService;
+        this.courseService = courseService;
     }
 
-    public MasterMigration createMigrationForAssignment(Course course, List<Policy> policyList, List<Assignment> assignmentList){
+    public MasterMigration createMigrationForAssignments(Course course, List<Policy> policyList, List<Assignment> assignmentList){
         MasterMigration masterMigration = new MasterMigration();
         masterMigration.setCourse(course);
         List<Migration> migrations = new ArrayList<>();
@@ -89,6 +92,17 @@ public class MigrationService {
         }
 
         transactionLogRepo.save(entry);
+    }
+
+    public MasterMigration createMasterMigration(String courseId){
+        MasterMigration masterMigration = new MasterMigration();
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+        if (course.isPresent()){
+            masterMigration.setCourse(course.get());
+        }
+        List<Migration> migrationList = new ArrayList<>();
+        masterMigration.setMigrations(migrationList);
+        return masterMigration;
     }
 
 }

@@ -4,6 +4,7 @@ import edu.mines.gradingadmin.api.InstructorApiDelegate;
 import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
 import edu.mines.gradingadmin.services.MigrationService;
@@ -23,12 +24,14 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
     private final MigrationService migrationService;
+    private final MasterMigrationRepo masterMigrationRepo;
 
-    public InstructorApiImpl(CourseService courseService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService) {
+    public InstructorApiImpl(CourseService courseService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService, MasterMigrationRepo masterMigrationRepo) {
         this.courseService = courseService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
         this.migrationService = migrationService;
+        this.masterMigrationRepo = masterMigrationRepo;
     }
 
     @Override
@@ -144,5 +147,10 @@ public class InstructorApiImpl implements InstructorApiDelegate {
                 .toList());
     }
 
+    @Override
+    public ResponseEntity<MasterMigrationDTO> createMasterMigration(String courseId, MasterMigrationDTO masterMigrationDTO){
+        MasterMigration masterMigration = migrationService.createMasterMigration(courseId);
+        return 
 
+    }
 }

@@ -69,7 +69,7 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
         policy.setPolicyURI(filename);
         policyRepo.save(policy);
 
-        MasterMigration masterMigration = migrationService.createMigrationForAssignment(course1, List.of(policy), course1.getAssignments().stream().toList());
+        MasterMigration masterMigration = migrationService.createMigrationForAssignments(course1, List.of(policy), course1.getAssignments().stream().toList());
         Assertions.assertEquals(1, masterMigrationRepo.getMasterMigrationsByCourseId(course1.getId()).size());
         Assertions.assertEquals(masterMigration, masterMigrationRepo.getMasterMigrationsByCourseId(course1.getId()).get(0));
     }

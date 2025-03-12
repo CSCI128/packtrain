@@ -1723,6 +1723,46 @@ paths:
               example:
                 error_source: "User Service"
                 error_message: "Error: migration not found"
+    post:
+      tags:
+        - instructor
+      operationId: create_master_migration
+      summary: "Create master migration for a course"
+      description: |
+        Create a new master migration for a course.
+        Replies with a master migration for a course.
+      security:
+        - openIDC: [ instructor:write ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MasterMigration"
+      responses:
+        201:
+          description: "An master Migration has been created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasterMigration"
+        404:
+          description: "Migration not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: master migration not found"
 
   /student/courses/{course_id}/extensions:
     get:
