@@ -27,8 +27,8 @@ import {
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { $api, store$ } from "../../api";
+import classes from "../../components/table/Table.module.scss";
 import { components } from "../../lib/api/v1";
-import classes from "./Table.module.scss";
 
 interface AssignmentRowData {
   id: string;

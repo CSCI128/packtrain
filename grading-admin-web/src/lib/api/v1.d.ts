@@ -614,6 +614,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/student/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all courses
+         * @description Get all active courses for a student
+         *
+         */
+        get: operations["get_courses_student"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/student/enrollments": {
         parameters: {
             query?: never;
@@ -833,7 +854,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get all extensions for a student
+         * @description Gets all extensions a student has submitted, regardless
+         *     of status.
+         *
+         */
+        get: operations["get_all_extensions"];
         put?: never;
         /**
          * Student Extension request
@@ -842,7 +869,7 @@ export interface paths {
          *     status, and reason for extension.
          *
          */
-        post: operations["extension_request"];
+        post: operations["create_extension_request"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1066,11 +1093,25 @@ export interface components {
              *     ] */
             sections?: string[];
         };
-        /** @description An extension for an assignment */
-        Extension: {
+        /** @description Information relevant to a student */
+        StudentInformation: {
+            /**
+             * @example student
+             * @enum {string}
+             */
+            course_role: "student" | "instructor" | "ta" | "owner";
+            /** @example Jane Doe */
+            professor: string;
+            course: components["schemas"]["Course"];
+        };
+        /** @description A generic request for extending work deadlines */
+        LateRequest: {
             /** @example 999-9999-9999-99 */
             id?: string;
-            assignments: components["schemas"]["Assignment"][];
+            /** @example 999-9999-9999-99 */
+            assignment_id?: string;
+            /** @example 999-9999-9999-99 */
+            assignment_name?: string;
             /**
              * Format: date-time
              * @example 2020-01-01T12:00:00.000Z
@@ -1078,25 +1119,34 @@ export interface components {
             date_submitted: string;
             /** @example 2 */
             num_days_requested: number;
-            user_requester: string;
+            extension?: components["schemas"]["Extension"];
+            /** @example 999-9999-9999-99 */
+            user_requester_id?: string;
             /**
              * @example Extension pending instructor approval
              * @enum {string}
              */
-            status?: "pending" | "approved" | "rejected";
+            status: "pending" | "approved" | "rejected";
             /**
              * @example Late Pass
              * @enum {string}
              */
-            request_type?: "extension" | "late_pass";
-            user_reviewer?: string;
+            request_type: "extension" | "late_pass";
+        };
+        /** @description An extension for an assignment */
+        Extension: {
+            /** @example 999-9999-9999-99 */
+            id?: string;
+            /** @example Tech Issues */
+            reason: string;
+            user_reviewer?: components["schemas"]["CourseMember"];
             /**
              * Format: date-time
              * @example 2020-01-01T12:00:00.000Z
              */
             response_timestamp?: string;
-            /** @example Excused absence */
-            reason?: string;
+            /** @example Some comment about the work */
+            comments: string;
             /** @example Your 3 day extension for illness is approved */
             response_to_requester?: string;
         };
@@ -2221,7 +2271,27 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Course"];
+                    "application/json": components["schemas"]["StudentInformation"];
+                };
+            };
+        };
+    };
+    get_courses_student: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Course"][];
                 };
             };
         };
@@ -2546,7 +2616,7 @@ export interface operations {
             };
         };
     };
-    extension_request: {
+    get_all_extensions: {
         parameters: {
             query?: never;
             header?: never;
@@ -2558,13 +2628,49 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LateRequest"][];
+                };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_extension_request: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LateRequest"];
+            };
+        };
+        responses: {
             /** @description An extension request has been created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Extension"];
+                    "application/json": components["schemas"]["LateRequest"];
                 };
             };
             /** @description Extension not found */
