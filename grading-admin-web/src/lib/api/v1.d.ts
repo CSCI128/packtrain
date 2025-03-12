@@ -1019,6 +1019,10 @@ export interface components {
              * @example 15
              */
             points: number;
+            /** @example Gradescope */
+            external_service?: string;
+            /** @example 14 */
+            external_points?: number;
             /**
              * Format: date-time
              * @example 2020-01-15T12:00:00.000Z
@@ -1035,6 +1039,8 @@ export interface components {
             group_assignment?: boolean;
             /** @example false */
             attention_required?: boolean;
+            /** @example false */
+            frozen?: boolean;
         };
         /** @description A complete course */
         Course: {

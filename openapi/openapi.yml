@@ -2009,6 +2009,12 @@ components:
           type: number
           format: double
           example: 15.0
+        external_service:
+          type: string
+          example: "Gradescope"
+        external_points:
+          type: integer
+          example: 14
         due_date:
           type: string
           format: date-time
@@ -2024,6 +2030,9 @@ components:
           type: boolean
           example: false
         attention_required:
+          type: boolean
+          example: false
+        frozen:
           type: boolean
           example: false
     Course:

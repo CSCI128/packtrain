@@ -210,7 +210,7 @@ export function UsersPage() {
   const [sortBy, setSortBy] = useState<keyof UserRowData | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
-  // sync sortedData with data
+  // sync sortedData with data - TODO see if this is necessary
   useEffect(() => {
     if (data) {
       setSortedData(data);

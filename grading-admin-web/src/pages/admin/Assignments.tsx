@@ -24,9 +24,10 @@ import {
   IconSearch,
   IconSelector,
 } from "@tabler/icons-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { $api, store$ } from "../../api";
+import { components } from "../../lib/api/v1";
 import classes from "./Table.module.scss";
 
 interface AssignmentRowData {
@@ -109,40 +110,41 @@ function sortData(
 }
 
 export function AssignmentsPage() {
-  const data: AssignmentRowData[] = [
-    {
-      id: "1",
-      name: "Assessment 1",
-      category: "Assessments",
-      points: 14,
-      external_service: "GRADESCOPE",
-      external_points: 28,
-      unlock_date: "May 1 2025",
-      due_date: "May 8 2025",
-      enabled: true,
-      status: "Migrated",
-      canvas_id: 1,
-      group_assignment: false,
-      attention_required: false,
-      frozen: false,
-    },
-  ];
-  // const { data, error, isLoading } = $api.useQuery(
-  //   "get",
-  //   "/admin/courses/{course_id}",
+  // const data: AssignmentRowData[] = [
   //   {
-  //     params: {
-  //       path: { course_id: store$.id.get() as string },
-  //       query: { include: ["assignments"] },
-  //     },
-  //   }
-  // );
+  //     id: "1",
+  //     name: "Assessment 1",
+  //     category: "Assessments",
+  //     points: 14,
+  //     external_service: "GRADESCOPE",
+  //     external_points: 28,
+  //     unlock_date: "May 1 2025",
+  //     due_date: "May 8 2025",
+  //     enabled: true,
+  //     status: "Migrated",
+  //     canvas_id: 1,
+  //     group_assignment: false,
+  //     attention_required: false,
+  //     frozen: false,
+  //   },
+  // ];
+  const { data, error, isLoading, refetch } = $api.useQuery(
+    "get",
+    "/admin/courses/{course_id}",
+    {
+      params: {
+        path: { course_id: store$.id.get() as string },
+        query: { include: ["assignments"] },
+      },
+    }
+  );
 
   const [value, setValue] = useState<Date | null>(null);
   const [unlockDateValue, setUnlockDateValue] = useState<Date | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
-  const [selectedAssignment, setSelectedAssignment] =
-    useState<AssignmentRowData | null>(null); // TODO may not be necessary
+  const [selectedAssignment, setSelectedAssignment] = useState<
+    components["schemas"]["Assignment"] | null
+  >(null); // TODO may not be necessary
 
   const form = useForm({
     mode: "controlled",
@@ -169,7 +171,7 @@ export function AssignmentsPage() {
     },
   });
 
-  const handleAssignmentEdit = (row: AssignmentRowData) => {
+  const handleAssignmentEdit = (row: components["schemas"]["Assignment"]) => {
     setValue(new Date(row.due_date));
     setUnlockDateValue(new Date(row.unlock_date));
     setSelectedAssignment(row);
@@ -188,7 +190,7 @@ export function AssignmentsPage() {
   };
 
   const [search, setSearch] = useState("");
-  const [sortedData, setSortedData] = useState(data || []);
+  const [sortedData, setSortedData] = useState(data?.assignments || []);
   const [sortBy, setSortBy] = useState<keyof AssignmentRowData | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
@@ -196,19 +198,29 @@ export function AssignmentsPage() {
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
-    setSortedData(sortData(data, { sortBy: field, reversed, search }));
+    setSortedData(
+      sortData(data?.assignments as AssignmentRowData[], {
+        sortBy: field,
+        reversed,
+        search,
+      })
+    );
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.currentTarget;
     setSearch(value);
     setSortedData(
-      sortData(data, { sortBy, reversed: reverseSortDirection, search: value })
+      sortData(data?.assignments as AssignmentRowData[], {
+        sortBy,
+        reversed: reverseSortDirection,
+        search: value,
+      })
     );
   };
 
   const updateAssignment = $api.useMutation(
-    "post",
+    "put",
     "/admin/courses/{course_id}/assignments"
   );
 
@@ -221,6 +233,7 @@ export function AssignmentsPage() {
           },
         },
         body: {
+          id: selectedAssignment?.id,
           name: values.name,
           category: values.category,
           due_date: values.due_date.toISOString(),
@@ -233,17 +246,24 @@ export function AssignmentsPage() {
         },
       },
       {
-        onSuccess: (response) => {
-          console.log(response);
+        onSuccess: () => {
           close();
+          refetch();
         },
       }
     );
   };
 
-  // if (isLoading || !data) return "Loading...";
+  // sync sortedData with data - TODO see if this is necessary
+  useEffect(() => {
+    if (data?.assignments) {
+      setSortedData(data.assignments);
+    }
+  }, [data?.assignments]);
 
-  // if (error) return `An error occurred: ${error}`;
+  if (isLoading || !data) return "Loading...";
+
+  if (error) return `An error occurred: ${error}`;
 
   // need to add external service stuff - but that needs to be setup
   // the attention required field means that the grades are coming from an external source in canvas
@@ -257,9 +277,7 @@ export function AssignmentsPage() {
       <Table.Td>{element.external_points}</Table.Td>
       <Table.Td>{element.due_date}</Table.Td>
       <Table.Td>{element.enabled ? "Yes" : "No"}</Table.Td>
-      <Table.Td>
-        {element.attention_required ? "Attention required!" : element.status}
-      </Table.Td>
+      <Table.Td>{element.attention_required && "Attention required!"}</Table.Td>
       <Table.Td onClick={() => handleAssignmentEdit(element)}>
         <Center>
           <Text size="sm" pr={5}>
@@ -338,6 +356,7 @@ export function AssignmentsPage() {
             onChange={setValue}
           />
 
+          {/* TODO fix and prettify the boolean fields */}
           <InputWrapper
             withAsterisk
             label="Enabled"
@@ -455,7 +474,7 @@ export function AssignmentsPage() {
                 rows
               ) : (
                 <Table.Tr>
-                  <Table.Td colSpan={Object.keys(data[0]).length}>
+                  <Table.Td colSpan={data.assignments?.length}>
                     <Text fw={500} ta="center">
                       No assignments found
                     </Text>
