@@ -12,5 +12,7 @@ public interface MasterMigrationRepo extends CrudRepository<MasterMigration, UUI
     @Query("select a from master_migration a where a.course.id=?1")
     List<MasterMigration> getMasterMigrationsByCourseId(UUID courseId);
 
+    @Query("select a from master_migration a where a.id=?1")
+    MasterMigration getMasterMigrationByMasterMigrationId(UUID masterMigrationId);
 
 }

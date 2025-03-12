@@ -150,7 +150,14 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     @Override
     public ResponseEntity<MasterMigrationDTO> createMasterMigration(String courseId, MasterMigrationDTO masterMigrationDTO){
         MasterMigration masterMigration = migrationService.createMasterMigration(courseId);
-        return 
+        return ResponseEntity.ok(mastermigration -> new MasterMigrationDTO());
 
+    }
+
+    @ Override
+    public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(String courseId, String migrationId, MasterMigrationDTO masterMigrationDTO) {
+        // how will I get the assignments and policies to call addMigration(), should the parameter be a MigrationDTO instead?
+        MasterMigration masterMigration = migrationService.addMigration();
+        return
     }
 }

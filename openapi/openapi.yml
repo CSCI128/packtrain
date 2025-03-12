@@ -1887,6 +1887,53 @@ paths:
               example:
                 error_source: "update_user"
                 error_message: "Failed to update grade for migration for user"
+    post:
+      tags:
+        - instructor
+      operationId: create_migration_for_master_migration
+      summary: "Create migration for a master migration"
+      description: |
+        Create a new migration for a master migration.
+        Replies with an master migration including the list of migrations, one for each assignment and policy.
+      security:
+        - openIDC: [ instructor:write ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MasterMigration"
+      responses:
+        201:
+          description: "An Master Migration has been updated"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasterMigration"
+        404:
+          description: "Master Migration not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: Master Migration not found"
 
 components:
   securitySchemes:

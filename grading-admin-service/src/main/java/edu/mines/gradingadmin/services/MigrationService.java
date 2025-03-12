@@ -105,4 +105,14 @@ public class MigrationService {
         return masterMigration;
     }
 
+    public MasterMigration addMigration(String masterMigrationId, Assignment assignment, Policy policy){
+        MasterMigration masterMigration = masterMigrationRepo.getMasterMigrationByMasterMigrationId(UUID.fromString(masterMigrationId));
+        Migration migration = new Migration();
+        migration.setPolicy(policy);
+        migration.setAssignment(assignment);
+        List<Migration> migrationList = masterMigration.getMigrations();
+        migrationList.add(migration);
+        return masterMigration;
+    }
+
 }
