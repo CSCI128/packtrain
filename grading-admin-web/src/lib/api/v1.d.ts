@@ -1004,9 +1004,11 @@ export interface components {
         /** @description An assignment in a course */
         Assignment: {
             /** @example 999-9999-9999-99 */
-            id: string;
+            id?: string;
             /** @example Assessment 1 */
             name: string;
+            /** @example Quiz */
+            category: string;
             /**
              * Format: int64
              * @example 1245678
@@ -1033,8 +1035,6 @@ export interface components {
             group_assignment?: boolean;
             /** @example false */
             attention_required?: boolean;
-            /** @example Quiz */
-            category: string;
         };
         /** @description A complete course */
         Course: {

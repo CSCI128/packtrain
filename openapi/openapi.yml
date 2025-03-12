@@ -1676,35 +1676,34 @@ paths:
       description: |
         This endpoint gets all master migrations for a given course
       security:
-        - openIDC: [ admin:read ]
+        - openIDC: [admin:read]
       parameters:
-       - name: course_id
-         required: true
-         description: "The course ID"
-         in: path
-         schema:
-           type: string
-           example: "999-9999-9999-99"
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
       responses:
         200:
-            description: "OK"
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/MasterMigration"
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MasterMigration"
         404:
-            description: "Migration not found"
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ErrorResponse"
-                example:
-                  error_source: "User Service"
-                  error_message: "Error: migration not found"
-                
-          
+          description: "Migration not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: migration not found"
+
   /student/courses/{course_id}/extensions:
     post:
       tags:
@@ -1718,13 +1717,13 @@ paths:
       security:
         - openIDC: [student:write]
       parameters:
-       - name: course_id
-         required: true
-         description: "The course ID"
-         in: path
-         schema:
-           type: string
-           example: "999-9999-9999-99"
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
       responses:
         201:
           description: "An extension request has been created"
@@ -1751,7 +1750,7 @@ paths:
       description: |
         Updates the grade for a migration for the user.
       security:
-        - openIDC: [ instructor:write ]
+        - openIDC: [instructor:write]
       parameters:
         - name: course_id
           in: path
@@ -1985,7 +1984,6 @@ components:
       description: "An assignment in a course"
       type: object
       required:
-        - id
         - name
         - points
         - due_date
@@ -2000,6 +1998,9 @@ components:
         name:
           type: string
           example: "Assessment 1"
+        category:
+          type: string
+          example: "Quiz"
         canvas_id:
           type: integer
           format: int64
@@ -2025,9 +2026,6 @@ components:
         attention_required:
           type: boolean
           example: false
-        category:
-          type: string
-          example: "Quiz"
     Course:
       description: "A complete course"
       type: object
@@ -2168,11 +2166,6 @@ components:
         - policy
       properties:
         assignment:
-            $ref: "#/components/schemas/Assignment"
+          $ref: "#/components/schemas/Assignment"
         policy:
-            $ref: "#/components/schemas/Policy"
-
-
-
-
-
+          $ref: "#/components/schemas/Policy"

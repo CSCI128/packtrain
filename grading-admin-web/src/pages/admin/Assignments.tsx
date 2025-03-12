@@ -9,11 +9,13 @@ import {
   keys,
   Modal,
   ScrollArea,
+  Select,
   Table,
   Text,
   TextInput,
   UnstyledButton,
 } from "@mantine/core";
+import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -24,15 +26,17 @@ import {
 } from "@tabler/icons-react";
 import React, { useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
+import { $api, store$ } from "../../api";
 import classes from "./Table.module.scss";
 
 interface AssignmentRowData {
   id: string;
   name: string;
   category: string;
+  canvas_id: number;
   points: number;
-  externalService: string;
-  externalPoints: number;
+  external_service: string;
+  external_points: number;
   unlock_date: string;
   due_date: string;
   enabled: boolean;
@@ -111,12 +115,13 @@ export function AssignmentsPage() {
       name: "Assessment 1",
       category: "Assessments",
       points: 14,
-      externalService: "Gradescope",
-      externalPoints: 28,
-      unlock_date: "May 1",
-      due_date: "May 8",
+      external_service: "GRADESCOPE",
+      external_points: 28,
+      unlock_date: "May 1 2025",
+      due_date: "May 8 2025",
       enabled: true,
       status: "Migrated",
+      canvas_id: 1,
       group_assignment: false,
       attention_required: false,
       frozen: false,
@@ -133,31 +138,52 @@ export function AssignmentsPage() {
   //   }
   // );
 
+  const [value, setValue] = useState<Date | null>(null);
+  const [unlockDateValue, setUnlockDateValue] = useState<Date | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedAssignment, setSelectedAssignment] =
-    useState<AssignmentRowData | null>(null);
+    useState<AssignmentRowData | null>(null); // TODO may not be necessary
 
   const form = useForm({
     mode: "controlled",
     initialValues: {
       name: "",
-      email: "",
-      cwid: "",
-      admin: false,
+      category: "",
+      canvas_id: -1,
+      points: 0,
+      due_date: new Date(),
+      unlock_date: new Date(),
+      external_service: "",
+      external_points: 0,
       enabled: true,
+      group_assignment: true,
+      attention_required: true,
     },
     validate: {
+      // TODO validate stuff here
       name: (value) =>
         value && value.length < 1
           ? "Name must have at least 1 character"
           : null,
-      admin: () => null,
       enabled: () => null,
     },
   });
 
-  const handleAssignmentEdit = (row: any) => {
+  const handleAssignmentEdit = (row: AssignmentRowData) => {
+    setValue(new Date(row.due_date));
+    setUnlockDateValue(new Date(row.unlock_date));
     setSelectedAssignment(row);
+    form.setValues({
+      name: row.name,
+      category: row.category,
+      canvas_id: row.canvas_id,
+      points: row.points,
+      external_service: row.external_service,
+      external_points: row.external_points,
+      enabled: row.enabled,
+      group_assignment: row.group_assignment,
+      attention_required: row.attention_required,
+    });
     open();
   };
 
@@ -181,7 +207,39 @@ export function AssignmentsPage() {
     );
   };
 
-  const editAssignment = (values: typeof form.values) => {};
+  const updateAssignment = $api.useMutation(
+    "post",
+    "/admin/courses/{course_id}/assignments"
+  );
+
+  const editAssignment = (values: typeof form.values) => {
+    updateAssignment.mutate(
+      {
+        params: {
+          path: {
+            course_id: store$.id.get() as string,
+          },
+        },
+        body: {
+          name: values.name,
+          category: values.category,
+          due_date: values.due_date.toISOString(),
+          points: values.points,
+          unlock_date: values.unlock_date.toISOString(),
+          canvas_id: values.canvas_id,
+          enabled: values.enabled,
+          attention_required: values.attention_required,
+          group_assignment: values.group_assignment,
+        },
+      },
+      {
+        onSuccess: (response) => {
+          console.log(response);
+          close();
+        },
+      }
+    );
+  };
 
   // if (isLoading || !data) return "Loading...";
 
@@ -195,9 +253,8 @@ export function AssignmentsPage() {
       <Table.Td>{element.name}</Table.Td>
       <Table.Td>{element.category}</Table.Td>
       <Table.Td>{element.points}</Table.Td>
-      <Table.Td>{element.externalService}</Table.Td>
-      <Table.Td>{element.externalPoints}</Table.Td>
-      {/* <Table.Td>{element.unlock_date}</Table.Td> */}
+      <Table.Td>{element.external_service}</Table.Td>
+      <Table.Td>{element.external_points}</Table.Td>
       <Table.Td>{element.due_date}</Table.Td>
       <Table.Td>{element.enabled ? "Yes" : "No"}</Table.Td>
       <Table.Td>
@@ -233,38 +290,52 @@ export function AssignmentsPage() {
           />
 
           <TextInput
+            disabled
+            label="Canvas ID"
+            key={form.key("canvas_id")}
+            {...form.getInputProps("canvas_id")}
+          />
+
+          <TextInput
             withAsterisk
             label="Points"
             key={form.key("points")}
             {...form.getInputProps("points")}
           />
 
-          <TextInput
+          <Select
             withAsterisk
-            label="External Service"
-            key={form.key("externalService")}
-            {...form.getInputProps("externalService")}
+            label="External Service:"
+            placeholder="Pick value"
+            data={[
+              { value: "GRADESCOPE", label: "Gradescope" },
+              { value: "PRAIRIELEARN", label: "PrairieLearn" },
+              { value: "RUNESTONE", label: "Runestone" },
+            ]}
+            key={form.key("external_service")}
+            {...form.getInputProps("external_service")}
           />
 
           <TextInput
             withAsterisk
             label="External Points"
-            key={form.key("externalPoints")}
-            {...form.getInputProps("externalPoints")}
+            key={form.key("external_points")}
+            {...form.getInputProps("external_points")}
           />
 
-          <TextInput
-            withAsterisk
-            label="Due Date"
-            key={form.key("due_date")}
-            {...form.getInputProps("due_date")}
-          />
-
-          <TextInput
+          <DateInput
             disabled
-            label="Status"
-            key={form.key("status")}
-            {...form.getInputProps("status")}
+            label="Unlock Date"
+            placeholder="Pick date"
+            value={unlockDateValue}
+            onChange={setUnlockDateValue}
+          />
+
+          <DateInput
+            label="Due Date"
+            placeholder="Pick date"
+            value={value}
+            onChange={setValue}
           />
 
           <InputWrapper
@@ -340,26 +411,19 @@ export function AssignmentsPage() {
                   Points
                 </TableHeader>
                 <TableHeader
-                  sorted={sortBy === "externalService"}
+                  sorted={sortBy === "external_service"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("externalService")}
+                  onSort={() => setSorting("external_service")}
                 >
                   External Service
                 </TableHeader>
                 <TableHeader
-                  sorted={sortBy === "externalPoints"}
+                  sorted={sortBy === "external_points"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("externalPoints")}
+                  onSort={() => setSorting("external_points")}
                 >
                   External Points
                 </TableHeader>
-                {/* <TableHeader
-                  sorted={sortBy === "unlock_date"}
-                  reversed={reverseSortDirection}
-                  onSort={() => setSorting("unlock_date")}
-                >
-                  Unlock Date
-                </TableHeader> */}
                 <TableHeader
                   sorted={sortBy === "due_date"}
                   reversed={reverseSortDirection}
