@@ -198,10 +198,9 @@ export function AssignmentsPage() {
       <Table.Td>{element.unlock_date}</Table.Td>
       <Table.Td>{element.due_date}</Table.Td>
       <Table.Td>{element.enabled ? "Yes" : "No"}</Table.Td>
-      <Table.Td>{element.group_assignment ? "Yes" : "No"}</Table.Td>
-      <Table.Td>{element.attention_required ? "Yes" : "No"}</Table.Td>
-      <Table.Td>{element.frozen ? "Yes" : "No"}</Table.Td>
-      <Table.Td>{element.status}</Table.Td>
+      <Table.Td>
+        {element.status} {element.attention_required && "Attention required!"}
+      </Table.Td>
       <Table.Td onClick={() => handleAssignmentEdit(element)}>
         <Center>
           <Text size="sm" pr={5}>
@@ -255,6 +254,15 @@ export function AssignmentsPage() {
           >
             <Checkbox defaultChecked={false} />
           </InputWrapper>
+
+          <Text>
+            Group assignment:{" "}
+            {selectedAssignment?.group_assignment ? "Yes" : "No"}
+          </Text>
+
+          <Text>
+            Frozen from re-syncing: {selectedAssignment?.frozen ? "Yes" : "No"}
+          </Text>
 
           <br />
 
@@ -344,27 +352,6 @@ export function AssignmentsPage() {
                   onSort={() => setSorting("enabled")}
                 >
                   Enabled
-                </TableHeader>
-                <TableHeader
-                  sorted={sortBy === "group_assignment"}
-                  reversed={reverseSortDirection}
-                  onSort={() => setSorting("group_assignment")}
-                >
-                  Group Assignment
-                </TableHeader>
-                <TableHeader
-                  sorted={sortBy === "attention_required"}
-                  reversed={reverseSortDirection}
-                  onSort={() => setSorting("attention_required")}
-                >
-                  Attention Required
-                </TableHeader>
-                <TableHeader
-                  sorted={sortBy === "frozen"}
-                  reversed={reverseSortDirection}
-                  onSort={() => setSorting("frozen")}
-                >
-                  Frozen
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "status"}
