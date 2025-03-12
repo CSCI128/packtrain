@@ -53,6 +53,9 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
     @AfterEach
     void tearDown(){
         migrationRepo.deleteAll();
+
+        masterMigrationRepo.deleteAll();
+
     }
 
     @Test
@@ -72,6 +75,17 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
         MasterMigration masterMigration = migrationService.createMigrationForAssignments(course1, List.of(policy), course1.getAssignments().stream().toList());
         Assertions.assertEquals(1, masterMigrationRepo.getMasterMigrationsByCourseId(course1.getId()).size());
         Assertions.assertEquals(masterMigration, masterMigrationRepo.getMasterMigrationsByCourseId(course1.getId()).get(0));
+    }
+
+    @Test
+    void verifyCreateMasterMigration(){
+        Course course1 = courseSeeders.populatedCourse();
+
+        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course1.getId().toString());
+        Assertions.assertTrue(masterMigration.isPresent());
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        Assertions.assertEquals(0, migrationList.size());
+
     }
 
 

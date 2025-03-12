@@ -56,6 +56,7 @@ public class MigrationService {
 
     }
 
+
     public void handleScoreReceived(User asUser, Migration migration, ScoredDTO dto){
         MigrationTransactionLog entry = new MigrationTransactionLog();
         entry.setPerformedByUser(asUser);
@@ -105,6 +106,7 @@ public class MigrationService {
             return Optional.empty();
         }
         masterMigration.setCourse(course.get());
+        masterMigrationRepo.save(masterMigration);
         return Optional.of(masterMigration);
     }
 
@@ -136,7 +138,13 @@ public class MigrationService {
         List<Migration> migrationList = masterMigration.getMigrations();
         migrationList.add(migration);
         masterMigration.setMigrations(migrationList);
+        masterMigrationRepo.save(masterMigration);
         return Optional.of(masterMigration);
+    }
+
+    public List<Migration> getMigrationsByMasterMigration(String masterMigrationId){
+        return masterMigrationRepo.getMigrationListByMasterMigrationId(UUID.fromString(masterMigrationId));
+
     }
 
 }

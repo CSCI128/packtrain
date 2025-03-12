@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.repositories;
 
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.MasterMigration;
+import edu.mines.gradingadmin.models.Migration;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
@@ -14,5 +15,9 @@ public interface MasterMigrationRepo extends CrudRepository<MasterMigration, UUI
 
     @Query("select a from master_migration a where a.id=?1")
     MasterMigration getMasterMigrationByMasterMigrationId(UUID masterMigrationId);
+
+    @Query("select m from migration m where m.masterMigration.id=?1")
+    List<Migration> getMigrationListByMasterMigrationId(UUID masterMigrationId);
+
 
 }
