@@ -88,5 +88,10 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
 
     }
 
+    @Test
+    void verifyMigrationsCreated(){
+
+    }
+
 
 }
