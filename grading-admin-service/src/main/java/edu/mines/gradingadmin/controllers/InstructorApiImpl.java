@@ -158,7 +158,12 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<MigrationDTO> updatePolicy(String courseId, String migrationId, String assignmentId, PolicyDTO policyDTO){
-        Optional<Policy> policy = migrationService.updatePolicyForMigration(migrationId, );
+        MasterMigration masterMigration = new MasterMigration();
+        // use the get policy from uri that I wrote for the other ticket
+
+        //migrationService.updatePolicyForMigration(migrationId, );
+        return
+
     }
 
 
