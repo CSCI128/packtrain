@@ -135,11 +135,19 @@ const router = createBrowserRouter([
           },
           {
             path: "/admin/assignments",
-            element: <AssignmentsPage />,
+            element: (
+              <ProtectedRoute>
+                <AssignmentsPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "/admin/members",
-            element: <MembersPage />,
+            element: (
+              <ProtectedRoute>
+                <MembersPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "/admin/users",

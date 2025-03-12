@@ -261,18 +261,11 @@ export function AssignmentsPage() {
           />
 
           <TextInput
-            withAsterisk
+            disabled
             label="Status"
             key={form.key("status")}
             {...form.getInputProps("status")}
           />
-
-          {/* <TextInput
-            disabled
-            label="Email"
-            key={form.key("email")}
-            {...form.getInputProps("email")}
-          /> */}
 
           <InputWrapper
             withAsterisk
@@ -305,7 +298,7 @@ export function AssignmentsPage() {
         </form>
       </Modal>
 
-      <Container size="lg">
+      <Container fluid w="75%" p={35}>
         <Group>
           <Text size="xl" fw={700}>
             Assignments
@@ -321,7 +314,7 @@ export function AssignmentsPage() {
 
         <Divider my="sm" />
 
-        <ScrollArea h={750}>
+        <ScrollArea h={500}>
           <Table horizontalSpacing="md" verticalSpacing="xs" miw={700}>
             <Table.Tbody>
               <Table.Tr>
