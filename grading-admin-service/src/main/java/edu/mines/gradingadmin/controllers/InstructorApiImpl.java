@@ -157,7 +157,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     }
 
-    @ Override
+    @Override
     public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(String courseId, String masterMigrationId, MigrationDTO migrationDTO) {
         AssignmentDTO assignment = migrationDTO.getAssignment();
         PolicyDTO policy = migrationDTO.getPolicy();
