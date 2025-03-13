@@ -99,7 +99,7 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
     }
 
     @Test
-    void verifyMigrationsCreated() throws URISyntaxException {
+    void verifyUpdatePolicy(){
         Course course1 = courseSeeders.populatedCourse();
         Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course1.getId().toString());
         Assertions.assertTrue(masterMigration.isPresent());
@@ -124,5 +124,22 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
         Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
     }
 
+    @Test
+    void verifyMigrationsCreated() throws URISyntaxException {
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        Migration migration = migrationList.getFirst();
+        Assertions.assertEquals(1, migrationList.size());
+        Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
+        Policy updatedPolicy = new Policy();
+        updatedPolicy.setAssignment(assignment.get());
+        updatedPolicy.setPolicyName("updated_test_policy");
+        updatedPolicy.setPolicyURI(filename);
+        updatedPolicy.setCourse(course1);
+        updatedPolicy.setCreatedByUser(user);
+        policyRepo.save(updatedPolicy);
+        migrationService.updatePolicyForMigration(migration.getId().toString(), updatedPolicy);
+        Assertions.assertEquals(updatedPolicy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
+
+    }
 
 }

@@ -168,7 +168,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         if (newMigration.isEmpty()){
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok();
+        return ResponseEntity.accepted().build();
     }
 
 
