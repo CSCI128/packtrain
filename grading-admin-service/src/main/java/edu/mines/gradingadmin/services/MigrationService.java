@@ -119,7 +119,6 @@ public class MigrationService {
             uri = new URI(policyDTO.getUri());
 
         } catch (URISyntaxException e){
-            // ask Greg is there is a better thing to put here
             return Optional.empty();
             }
         Optional<Policy> policy = courseService.getPolicy(uri);

@@ -3,6 +3,9 @@ package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.MinioTestContainer;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.data.AssignmentDTO;
+import edu.mines.gradingadmin.data.CourseDTO;
+import edu.mines.gradingadmin.data.PolicyDTO;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.repositories.ExtensionRepo;
 import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
@@ -19,8 +22,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static edu.mines.gradingadmin.containers.PostgresTestContainer.postgres;
 
@@ -42,6 +49,7 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
     @Autowired
     private PolicyRepo policyRepo;
 
+
     @BeforeAll
     static void setupClass(){
         postgres.start();
@@ -53,9 +61,10 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
     @AfterEach
     void tearDown(){
         migrationRepo.deleteAll();
-
         masterMigrationRepo.deleteAll();
-
+        policyRepo.deleteAll();
+        courseSeeders.clearAll();
+        userSeeders.clearAll();
     }
 
     @Test
@@ -89,8 +98,34 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
     }
 
     @Test
-    void verifyMigrationsCreated(){
+    void verifyMigrationsCreated() throws URISyntaxException {
+        Course course1 = courseSeeders.populatedCourse();
+        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course1.getId().toString());
+        Assertions.assertTrue(masterMigration.isPresent());
 
+        AssignmentDTO assignment = new AssignmentDTO();
+        assignment.setName("test assignment");
+        assignment.setPoints(10.0);
+        assignment.setCategory("Worksheet");
+        assignment.setDueDate(Instant.parse("2024-03-12T16:30:00Z"));
+        assignment.setUnlockDate(Instant.parse("2024-03-12T16:30:00Z"));
+        assignment.setEnabled(true);
+        assignment.setCanvasId(course1.getCanvasId());
+        String filename = "file.js";
+        String expectedContent = "console.log(\"test\")";
+        MockMultipartFile file = new MockMultipartFile(filename, expectedContent.getBytes());
+        PolicyDTO policy = new PolicyDTO();
+        policy.setAssignment(assignment);
+        policy.setName("test_policy");
+        URI uri = new URI("http://localhost/file.js");
+        policy.setUri(uri.toString());
+        
+        migrationService.addMigration(masterMigration.get().getId().toString(), assignment, policy);
+
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        Assertions.assertEquals(1, migrationList.size());
+        Assertions.assertEquals(assignment.getId(), migrationList.getFirst().getAssignment().getId().toString());
+        Assertions.assertEquals(policy.getName(), migrationList.getFirst().getPolicy().getPolicyName());
     }
 
 
