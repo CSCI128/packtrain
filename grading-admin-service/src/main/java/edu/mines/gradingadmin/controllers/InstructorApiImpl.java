@@ -158,11 +158,14 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<MigrationDTO> updatePolicy(String courseId, String migrationId, String assignmentId, PolicyDTO policyDTO){
-        MasterMigration masterMigration = new MasterMigration();
-        // use the get policy from uri that I wrote for the other ticket
-
-        //migrationService.updatePolicyForMigration(migrationId, );
-        return
+        Migration migration = migrationService.getMigration(migrationId);
+        Policy policy = new Policy();
+        policy.setPolicyURI(policyDTO.getUri());
+        policy.setPolicyName(policyDTO.getName());
+        policy.setCourse(migration.getMasterMigration().getCourse());
+        policy.setAssignment(migration.getAssignment());
+        migrationService.updatePolicyForMigration(migrationId, );
+        return migration;
 
     }
 
