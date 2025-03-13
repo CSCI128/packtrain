@@ -261,18 +261,6 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
-    public ResponseEntity<Void> enableCourse(String courseId) {
-        courseService.enableCourse(UUID.fromString(courseId));
-        return ResponseEntity.accepted().build();
-    }
-
-    @Override
-    public ResponseEntity<Void> disableCourse(String courseId) {
-        courseService.disableCourse(UUID.fromString(courseId));
-        return ResponseEntity.accepted().build();
-    }
-
-    @Override
     public ResponseEntity<List<CourseMemberDTO>> getMembers(String courseId, List<String> enrollments, String name, String cwid) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
 
@@ -425,17 +413,6 @@ public class AdminApiImpl implements AdminApiDelegate {
 
         if (user.isEmpty()) {
             return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.accepted().build();
-    }
-
-    @Override
-    public ResponseEntity<Void> makeAdmin(String cwid) {
-        Optional<User> user = userService.makeAdmin(cwid);
-
-        if (user.isEmpty()) {
-            return ResponseEntity.badRequest().build();
         }
 
         return ResponseEntity.accepted().build();
