@@ -17,5 +17,6 @@ public interface RawScoreRepo extends CrudRepository<RawScore, UUID> {
     @Query("select r from raw_score r where r.cwid = ?1 and r.migrationId = ?2")
     Optional<RawScore> getByCwidAndMigrationId(String cwid, UUID migrationId);
 
-    // TODO: Write an existsByCwidAndMigrationId query
+    @Query("select count(r) > 0 from raw_score r where r.cwid = ?1 and r.migrationId = ?2")
+    boolean existsByCwidAndMigrationId(String cwid, UUID migrationId);
 }

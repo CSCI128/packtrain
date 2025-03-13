@@ -23,13 +23,13 @@ public class RawScore {
     private String cwid;
 
     @Column(name = "score")
-    private double score;
+    private Double score;
 
     @Column(name = "submission_time")
     private Instant submissionTime;
 
     @Column(name = "hours_late")
-    private double hoursLate;
+    private Double hoursLate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "submission_status", nullable = false)
