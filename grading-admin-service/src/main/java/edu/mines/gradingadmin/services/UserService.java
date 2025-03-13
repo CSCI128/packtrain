@@ -43,28 +43,12 @@ public class UserService {
     public Optional<User> updateUser(String cwid, String name, String email){
         Optional<User> user = getUserByCwid(cwid);
 
-        if (user.isEmpty()){
+        if (user.isEmpty()) {
             return Optional.empty();
         }
 
         user.get().setEmail(email);
         user.get().setName(name);
-
-
-        return Optional.of(userRepo.save(user.get()));
-    }
-
-    public Optional<User> adminUpdateUser(String cwid, String name, String email, boolean admin, boolean enabled){
-        Optional<User> user = getUserByCwid(cwid);
-
-        if (user.isEmpty()){
-            return Optional.empty();
-        }
-
-        user.get().setEmail(email);
-        user.get().setName(name);
-        user.get().setAdmin(admin);
-        user.get().setEnabled(enabled);
 
         return Optional.of(userRepo.save(user.get()));
     }

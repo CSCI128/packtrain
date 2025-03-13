@@ -360,64 +360,6 @@ paths:
                 error_source: "update_course"
                 error_message: "Course '999-9999-9999-99' does not exist"
 
-  /admin/courses/{course_id}/enable:
-    put:
-      tags:
-        - admin
-      operationId: enable_course
-      summary: "Enable the specified course."
-      description: |
-        Enable the specified course.
-      security:
-        - openIDC: [admin:write]
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      responses:
-        202:
-          description: "Accepted"
-        404:
-          description: Course Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_course"
-                error_message: "Course '999-9999-9999-99' does not exist"
-  /admin/courses/{course_id}/disable:
-    put:
-      tags:
-        - admin
-      operationId: disable_course
-      summary: "Disable the specified course."
-      description: |
-        Disable the specified course.
-      security:
-        - openIDC: [admin:write]
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      responses:
-        202:
-          description: "Accepted"
-        404:
-          description: Course Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_course"
-                error_message: "Course '999-9999-9999-99' does not exist"
   /admin/courses/{course_id}/assignment/{assignment_id}/disable:
     put:
       tags:
@@ -743,37 +685,6 @@ paths:
       responses:
         201:
           description: "Created"
-        404:
-          description: "User not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_user"
-                error_message: "Failed to update user"
-
-  /admin/users/{cwid}/admin:
-    put:
-      tags:
-        - admin
-      operationId: make_admin
-      summary: "Make a user an admin"
-      description: |
-        Make a user an admin.
-        This will fail if the account is disabled or if the requested user is enrolled as a student in any classes
-      security:
-        - openIDC: [admin:write]
-      parameters:
-        - name: cwid
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99999999"
-      responses:
-        202:
-          description: "Accepted"
         404:
           description: "User not found"
           content:
