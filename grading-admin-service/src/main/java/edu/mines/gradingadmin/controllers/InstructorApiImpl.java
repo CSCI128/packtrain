@@ -164,7 +164,12 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         policy.setPolicyName(policyDTO.getName());
         policy.setCourse(migration.getMasterMigration().getCourse());
         policy.setAssignment(migration.getAssignment());
-        migrationService.updatePolicyForMigration(migrationId, );
+        Migration newMigration = migrationService.updatePolicyForMigration(migrationId,policy);
+        if (newMigration.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MigrationDTO().migrationId(newMigration.get().getId().toString()));
+    }
         return migration;
 
     }
