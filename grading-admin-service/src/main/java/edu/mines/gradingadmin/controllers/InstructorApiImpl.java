@@ -161,7 +161,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(String courseId, String masterMigrationId, MigrationDTO migrationDTO) {
         AssignmentDTO assignment = migrationDTO.getAssignment();
         PolicyDTO policy = migrationDTO.getPolicy();
-        Optional<MasterMigration> masterMigration = migrationService.addMigration(masterMigrationId, assignment, policy);
+        Optional<MasterMigration> masterMigration = migrationService.addMigration(masterMigrationId, assignment.getId(), policy.getUri());
         if (masterMigration.isEmpty()){
             return ResponseEntity.notFound().build();
         }

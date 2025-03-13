@@ -14,6 +14,7 @@ import edu.mines.gradingadmin.repositories.PolicyRepo;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
 import jakarta.transaction.Transactional;
+import org.junit.experimental.theories.internal.Assignments;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -48,6 +49,8 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
     private MasterMigrationRepo masterMigrationRepo;
     @Autowired
     private PolicyRepo policyRepo;
+    @Autowired
+    private AssignmentService assignmentService;
 
 
     @BeforeAll
@@ -72,8 +75,6 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
         Course course1 = courseSeeders.populatedCourse();
         User user = userSeeders.user1();
         String filename = "file.js";
-        String expectedContent = "console.log(\"test\")";
-        MockMultipartFile file = new MockMultipartFile(filename, expectedContent.getBytes());
         Policy policy = new Policy();
         policy.setCreatedByUser(user);
         policy.setCourse(course1);
@@ -102,30 +103,25 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
         Course course1 = courseSeeders.populatedCourse();
         Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course1.getId().toString());
         Assertions.assertTrue(masterMigration.isPresent());
+        Optional<Assignment> assignment = course1.getAssignments().stream().findFirst();
+        Assertions.assertTrue(assignment.isPresent());
+        String filename = "http://file.js";
 
-        AssignmentDTO assignment = new AssignmentDTO();
-        assignment.setName("test assignment");
-        assignment.setPoints(10.0);
-        assignment.setCategory("Worksheet");
-        assignment.setDueDate(Instant.parse("2024-03-12T16:30:00Z"));
-        assignment.setUnlockDate(Instant.parse("2024-03-12T16:30:00Z"));
-        assignment.setEnabled(true);
-        assignment.setCanvasId(course1.getCanvasId());
-        String filename = "file.js";
-        String expectedContent = "console.log(\"test\")";
-        MockMultipartFile file = new MockMultipartFile(filename, expectedContent.getBytes());
-        PolicyDTO policy = new PolicyDTO();
-        policy.setAssignment(assignment);
-        policy.setName("test_policy");
-        URI uri = new URI("http://localhost/file.js");
-        policy.setUri(uri.toString());
-        
-        migrationService.addMigration(masterMigration.get().getId().toString(), assignment, policy);
+
+        Policy policy = new Policy();
+        policy.setAssignment(assignment.get());
+        policy.setPolicyName("test_policy");
+        policy.setPolicyURI(filename);
+        policy.setCourse(course1);
+        User user = userSeeders.user1();
+        policy.setCreatedByUser(user);
+        policyRepo.save(policy);
+        migrationService.addMigration(masterMigration.get().getId().toString(), assignment.get().getId().toString(), policy.getPolicyURI());
 
         List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
         Assertions.assertEquals(1, migrationList.size());
-        Assertions.assertEquals(assignment.getId(), migrationList.getFirst().getAssignment().getId().toString());
-        Assertions.assertEquals(policy.getName(), migrationList.getFirst().getPolicy().getPolicyName());
+        Assertions.assertEquals(assignment.get().getId().toString(), migrationList.getFirst().getAssignment().getId().toString());
+        Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
     }
 
 

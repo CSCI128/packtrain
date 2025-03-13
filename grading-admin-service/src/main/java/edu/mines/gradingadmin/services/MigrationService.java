@@ -27,13 +27,15 @@ public class MigrationService {
     private final MigrationTransactionLogRepo transactionLogRepo;
     private final ExtensionService extensionService;
     private final CourseService courseService;
+    private final AssignmentService assignmentService;
 
-    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ExtensionService extensionService, CourseService courseService){
+    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService){
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
         this.extensionService = extensionService;
         this.courseService = courseService;
+        this.assignmentService = assignmentService;
     }
 
     public MasterMigration createMigrationForAssignments(Course course, List<Policy> policyList, List<Assignment> assignmentList){
@@ -110,39 +112,39 @@ public class MigrationService {
         return Optional.of(masterMigration);
     }
 
-    public Optional<MasterMigration> addMigration(String masterMigrationId, AssignmentDTO assignmentDTO, PolicyDTO policyDTO){
+    @Transactional
+    public Optional<MasterMigration> addMigration(String masterMigrationId, String assignmentId, String policyUri){
         MasterMigration masterMigration = masterMigrationRepo.getMasterMigrationByMasterMigrationId(UUID.fromString(masterMigrationId));
         Migration migration = new Migration();
-        URI uri = null;
+        URI uri;
 
         try {
-            uri = new URI(policyDTO.getUri());
+            uri = new URI(policyUri);
 
         } catch (URISyntaxException e){
             return Optional.empty();
-            }
+        }
         Optional<Policy> policy = courseService.getPolicy(uri);
         if (policy.isEmpty()){
             return Optional.empty();
         }
         migration.setPolicy(policy.get());
-        Assignment assignment = new Assignment();
-        assignment.setName(assignmentDTO.getName());
-        assignment.setPoints(assignmentDTO.getPoints());
-        assignment.setCategory(assignmentDTO.getCategory());
-        assignment.setDueDate(assignmentDTO.getDueDate());
-        assignment.setUnlockDate(assignmentDTO.getUnlockDate());
-        assignment.setEnabled(assignmentDTO.getEnabled());
-        migration.setAssignment(assignment);
+        Optional<Assignment> assignment = assignmentService.getAssignmentById(assignmentId);
+       if (assignment.isEmpty()){
+           return Optional.empty();
+       }
+        migration.setAssignment(assignment.get());
         List<Migration> migrationList = masterMigration.getMigrations();
         migrationList.add(migration);
         masterMigration.setMigrations(migrationList);
+        migration.setMasterMigration(masterMigration);
+        migrationRepo.save(migration);
         masterMigrationRepo.save(masterMigration);
         return Optional.of(masterMigration);
     }
 
     public List<Migration> getMigrationsByMasterMigration(String masterMigrationId){
-        return masterMigrationRepo.getMigrationListByMasterMigrationId(UUID.fromString(masterMigrationId));
+        return migrationRepo.getMigrationListByMasterMigrationId(UUID.fromString(masterMigrationId));
 
     }
 

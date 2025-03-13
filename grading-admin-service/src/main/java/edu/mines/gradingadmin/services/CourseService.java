@@ -195,13 +195,13 @@ public class CourseService {
     }
 
     public Optional<Policy> getPolicy(URI policyURI){
-        Optional<Policy> policy = policyRepo.getPolicyByURI(policyURI);
+        Optional<Policy> policy = policyRepo.getPolicyByURI(policyURI.toString());
 
         if (policy.isEmpty()){
             return Optional.empty();
         }
 
-        return policyRepo.getPolicyByURI(policyURI);
+        return policy;
     }
 
 }
