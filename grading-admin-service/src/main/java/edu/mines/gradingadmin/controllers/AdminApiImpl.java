@@ -378,6 +378,27 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
+    public ResponseEntity<UserDTO> adminUpdateUser(UserDTO userDTO) {
+        Optional<User> user = userService.adminUpdateUser(
+                userDTO.getCwid(),
+                userDTO.getName(),
+                userDTO.getEmail(),
+                userDTO.getAdmin(),
+                userDTO.getEnabled());
+
+        if (user.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.accepted().body(new UserDTO()
+            .cwid(user.get().getCwid())
+            .email(user.get().getEmail())
+            .name(user.get().getName())
+            .admin(user.get().isAdmin())
+            .enabled(user.get().isEnabled()));
+    }
+
+    @Override
     public ResponseEntity<Void> enableUser(String cwid) {
         Optional<User> user = userService.enableUser(cwid);
 

@@ -670,6 +670,29 @@ paths:
                 error_source: "create_user"
                 error_message: "Failed to create new user"
 
+    put:
+      tags:
+        - admin
+      operationId: admin_update_user
+      security:
+        - openIDC: [admin:write]
+      summary: Updates a user's information, including admin and disabled/enabled status
+      description: |
+        Updates a user's information based on the User provided in body and provided JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        202:
+          description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
   /admin/users/{cwid}/enable:
     put:
       tags:
