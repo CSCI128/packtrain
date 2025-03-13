@@ -150,10 +150,11 @@ public class MigrationService {
         return migrationRepo.getMigrationById(UUID.fromString(migrationId));
     }
 
-    public Migration updatePolicyForMigration(String migrationId, Policy newPolicy){
+    public Optional<Migration> updatePolicyForMigration(String migrationId, Policy newPolicy){
         Migration updatedMigration = migrationRepo.getMigrationById(UUID.fromString(migrationId));
         updatedMigration.setPolicy(newPolicy);
-        return migrationRepo.save(updatedMigration);
+        migrationRepo.save(updatedMigration);
+        return Optional.of(updatedMigration);
     }
 
 }
