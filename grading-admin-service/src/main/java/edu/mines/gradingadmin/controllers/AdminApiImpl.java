@@ -39,16 +39,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<Void> updateAssignment(String courseId, AssignmentDTO assignmentDto) {
-        Optional<Assignment> assignment = assignmentService.updateAssignment(
-                courseId,
-                assignmentDto.getId(),
-                assignmentDto.getName(),
-                assignmentDto.getPoints(),
-                assignmentDto.getCategory(),
-                assignmentDto.getEnabled(),
-                assignmentDto.getDueDate(),
-                assignmentDto.getUnlockDate()
-        );
+        Optional<Assignment> assignment = assignmentService.updateAssignment(courseId, assignmentDto);
 
         if (assignment.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -59,14 +50,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<AssignmentDTO> addAssignment(String courseId, AssignmentDTO assignmentDto) {
-        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(
-                courseId,
-                assignmentDto.getName(),
-                assignmentDto.getPoints(),
-                assignmentDto.getCategory(),
-                assignmentDto.getDueDate(),
-                assignmentDto.getUnlockDate()
-        );
+        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(courseId, assignmentDto);
 
         if (assignment.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -172,7 +156,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<CourseDTO> newCourse(CourseDTO courseDTO) {
-        Optional<Course> course = courseService.createNewCourse(courseDTO.getName(), courseDTO.getTerm(), courseDTO.getCode());
+        Optional<Course> course = courseService.createNewCourse(courseDTO);
         if (course.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
@@ -265,9 +249,7 @@ public class AdminApiImpl implements AdminApiDelegate {
     @Override
     public ResponseEntity<Void> addCourseMember(String courseId, CourseMemberDTO courseMemberDTO) {
         Optional<CourseMember> courseMember = courseMemberService.addMemberToCourse(courseId,
-                courseMemberDTO.getCwid(),
-                courseMemberDTO.getCanvasId(),
-                CourseRole.fromString(courseMemberDTO.getCourseRole().getValue()));
+                courseMemberDTO);
 
         if (courseMember.isEmpty()) {
             // need to do this with error controller

@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.data.UserDTO;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.CourseRole;
@@ -40,16 +41,15 @@ public class UserService {
         return userRepo.getAll();
     }
 
-    public Optional<User> updateUser(String cwid, String name, String email){
-        Optional<User> user = getUserByCwid(cwid);
+    public Optional<User> updateUser(UserDTO userDTO){
+        Optional<User> user = getUserByCwid(userDTO.getCwid());
 
         if (user.isEmpty()){
             return Optional.empty();
         }
 
-        user.get().setEmail(email);
-        user.get().setName(name);
-
+        user.get().setEmail(userDTO.getEmail());
+        user.get().setName(userDTO.getName());
 
         return Optional.of(userRepo.save(user.get()));
     }

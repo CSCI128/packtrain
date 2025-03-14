@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
@@ -129,11 +130,11 @@ public class CourseService {
         }
     }
 
-    public Optional<Course> createNewCourse(String name, String term, String courseCode){
+    public Optional<Course> createNewCourse(CourseDTO courseDTO){
         Course newCourse = new Course();
-        newCourse.setName(name);
-        newCourse.setCode(courseCode);
-        newCourse.setTerm(term);
+        newCourse.setName(courseDTO.getName());
+        newCourse.setCode(courseDTO.getCode());
+        newCourse.setTerm(courseDTO.getTerm());
         newCourse.setEnabled(true);
         newCourse = courseRepo.save(newCourse);
 

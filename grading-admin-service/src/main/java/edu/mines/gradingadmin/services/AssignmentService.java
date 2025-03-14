@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.data.AssignmentDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
@@ -156,39 +157,40 @@ public class AssignmentService {
         return Optional.of(task);
     }
 
-    public Optional<Assignment> updateAssignment(String courseId, String assignmentId, String name, double points, String category, boolean enabled, Instant dueDate, Instant unlockDate) {
+    public Optional<Assignment> updateAssignment(String courseId, AssignmentDTO assignmentDTO) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if (course.isEmpty()) {
             return Optional.empty();
         }
 
-        Optional<Assignment> assignment = getAssignmentById(assignmentId);
+        Optional<Assignment> assignment = getAssignmentById(assignmentDTO.getId());
         if (assignment.isEmpty()) {
             return Optional.empty();
         }
-        assignment.get().setName(name);
-        assignment.get().setPoints(points);
-        assignment.get().setCategory(category);
-        assignment.get().setEnabled(enabled);
-        assignment.get().setDueDate(dueDate);
-        assignment.get().setUnlockDate(unlockDate);
+        assignment.get().setName(assignmentDTO.getName());
+        assignment.get().setPoints(assignmentDTO.getPoints());
+        assignment.get().setCategory(assignmentDTO.getCategory());
+        assignment.get().setEnabled(assignmentDTO.getEnabled());
+        assignment.get().setDueDate(assignmentDTO.getDueDate());
+        assignment.get().setUnlockDate(assignmentDTO.getUnlockDate());
         assignment.get().setCourse(course.get());
 
         return Optional.of(assignmentRepo.save(assignment.get()));
     }
 
-    public Optional<Assignment> addAssignmentToCourse(String courseId, String name, double points, String category, Instant dueDate, Instant unlockDate) {
+    public Optional<Assignment> addAssignmentToCourse(String courseId, AssignmentDTO assignmentDTO) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if(course.isEmpty()) {
             return Optional.empty();
         }
 
         Assignment assignment = new Assignment();
-        assignment.setName(name);
-        assignment.setPoints(points);
-        assignment.setCategory(category);
-        assignment.setDueDate(dueDate);
-        assignment.setUnlockDate(unlockDate);
+        assignment.setName(assignmentDTO.getName());
+        assignment.setPoints(assignmentDTO.getPoints());
+        assignment.setCategory(assignmentDTO.getCategory());
+        assignment.setEnabled(assignmentDTO.getEnabled());
+        assignment.setDueDate(assignmentDTO.getDueDate());
+        assignment.setUnlockDate(assignmentDTO.getUnlockDate());
         assignment.setEnabled(true);
         assignment.setCourse(course.get());
 

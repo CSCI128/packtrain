@@ -40,7 +40,7 @@ public class UserApiImpl implements UserApiDelegate {
 
     @Override
     public ResponseEntity<UserDTO> updateUser(UserDTO userDTO) {
-        Optional<User> user = userService.updateUser(userDTO.getCwid(), userDTO.getName(), userDTO.getEmail());
+        Optional<User> user = userService.updateUser(userDTO);
 
         if (user.isEmpty()){
             return ResponseEntity.notFound().build();
@@ -53,10 +53,7 @@ public class UserApiImpl implements UserApiDelegate {
     public ResponseEntity<CredentialDTO> newCredential(CredentialDTO credential) {
         User user = securityManager.getUser();
 
-        Optional<Credential> newCredential = credentialService.createNewCredentialForService(
-                user.getCwid(), credential.getName(),
-                credential.getApiKey(), CredentialType.fromString(credential.getService().toString())
-        );
+        Optional<Credential> newCredential = credentialService.createNewCredentialForService(user.getCwid(), credential);
 
         if (newCredential.isEmpty()) {
             // need to do this with error controller

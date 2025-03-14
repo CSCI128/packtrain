@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.MinioTestContainer;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.User;
@@ -170,28 +171,28 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @Test
     void verifyCourseDoesNotExist(){
-        Optional<Course> course = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
+        Optional<Course> course = courseService.createNewCourse(new CourseDTO().name("Test Course 1").term("Fall 2024").code("fall.2024.tc.1"));
         Assertions.assertTrue(course.isPresent());
         Assertions.assertNotNull(course.get().getId());
     }
 
     @Test
     void verifyNewCourseHasName(){
-        Optional<Course> course = courseService.createNewCourse("Another Test Course 1", "Spring 2025", "spring.2025.atc.1");
+        Optional<Course> course = courseService.createNewCourse(new CourseDTO().name("Another Test Course 1").term("Spring 2025").code("spring.2025.atc.1"));
         Assertions.assertTrue(course.isPresent());
         Assertions.assertEquals("Another Test Course 1", course.get().getName());
     }
 
     @Test
     void verifyNewCourseHasTerm(){
-        Optional<Course> course = courseService.createNewCourse("Another Test Course 1", "Spring 2025", "spring.2025.atc.1");
+        Optional<Course> course = courseService.createNewCourse(new CourseDTO().name("Another Test Course 1").term("Spring 2025").code("spring.2025.atc.1"));
         Assertions.assertTrue(course.isPresent());
         Assertions.assertEquals("Spring 2025", course.get().getTerm());
     }
 
     @Test
     void verifyNewCourseHasCode(){
-        Optional<Course> course = courseService.createNewCourse("Test Course 1", "Fall 2024", "fall.2024.tc.1");
+        Optional<Course> course = courseService.createNewCourse(new CourseDTO().name("Test Course 1").term("Fall 2024").code("fall.2024.tc.1"));
         Assertions.assertTrue(course.isPresent());
         Assertions.assertEquals("fall.2024.tc.1", course.get().getCode());
     }
