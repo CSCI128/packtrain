@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.data.CourseMemberDTO;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.UserSyncTaskDef;
@@ -168,7 +169,11 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
 
         sectionService.createSection(course1Section1Id, "Section A", course).orElseThrow(AssertionError::new);
 
-        courseMemberService.addMemberToCourse(course.getId().toString(), user.getCwid(), String.valueOf(instructor2.get().getId()), CourseRole.INSTRUCTOR);
+        courseMemberService.addMemberToCourse(course.getId().toString(),
+                new CourseMemberDTO()
+                        .cwid(user.getCwid())
+                        .canvasId(String.valueOf(instructor2.get().getId()))
+                        .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.INSTRUCTOR.getRole())));
 
         Set<CourseMember> members = courseMemberRepo.getAllByCourse(course);
 
@@ -190,7 +195,11 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
     void verifyRemoveMembership(){
         Course course = courseSeeders.course1(course1Id);
         User user = userSeeders.user(instructor2.get().getName(), instructor2.get().getEmail(), instructor2.get().getSisUserId());
-        courseMemberService.addMemberToCourse(course.getId().toString(), user.getCwid(), String.valueOf(instructor2.get().getId()), CourseRole.INSTRUCTOR);
+        courseMemberService.addMemberToCourse(course.getId().toString(),
+                new CourseMemberDTO()
+                        .cwid(user.getCwid())
+                        .canvasId(String.valueOf(instructor2.get().getId()))
+                        .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.INSTRUCTOR.getRole())));
 
         Set<CourseMember> members = courseMemberRepo.getAllByCourse(course);
 
@@ -207,7 +216,11 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
     void verifyCantRemoveOwner(){
         Course course = courseSeeders.course1(course1Id);
         User user = userSeeders.user(instructor2.get().getName(), instructor2.get().getEmail(), instructor2.get().getSisUserId());
-        courseMemberService.addMemberToCourse(course.getId().toString(), user.getCwid(), String.valueOf(instructor2.get().getId()), CourseRole.OWNER);
+        courseMemberService.addMemberToCourse(course.getId().toString(),
+                new CourseMemberDTO()
+                        .cwid(user.getCwid())
+                        .canvasId(String.valueOf(instructor2.get().getId()))
+                        .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.OWNER.getRole())));
 
         Set<CourseMember> members = courseMemberRepo.getAllByCourse(course);
 
@@ -313,7 +326,11 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
         Course course = courseSeeders.course1();
         User user = userSeeders.user1();
 
-        courseMemberService.addMemberToCourse(course.getId().toString(), user.getCwid(), "234989", CourseRole.STUDENT);
+        courseMemberService.addMemberToCourse(course.getId().toString(),
+                new CourseMemberDTO()
+                        .cwid(user.getCwid())
+                        .canvasId("234989")
+                        .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.STUDENT.getRole())));
 
         Set<CourseMember> foundMembers = courseMemberRepo.getAllByCourse(course);
         Assertions.assertEquals(1, foundMembers.size());

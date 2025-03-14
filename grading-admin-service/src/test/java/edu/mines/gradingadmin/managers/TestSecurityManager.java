@@ -1,6 +1,7 @@
 package edu.mines.gradingadmin.managers;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.data.CredentialDTO;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.CredentialRepo;
@@ -243,7 +244,7 @@ public class TestSecurityManager implements PostgresTestContainer {
 
         String credential = "supersecure";
 
-        credentialService.createNewCredentialForService(cwid, "canvas", credential, CredentialType.CANVAS);
+        credentialService.createNewCredentialForService(cwid, new CredentialDTO().name("canvas").apiKey(credential).service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
         HttpServletRequest request = requestFactory(token);
 

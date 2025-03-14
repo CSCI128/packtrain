@@ -1,6 +1,7 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.data.CourseMemberDTO;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.CourseRole;
@@ -156,7 +157,7 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
 
         Course course1 = courseSeeders.course1();
 
-        courseMemberService.addMemberToCourse(course1.getId().toString(), user1.getCwid(), "99999", CourseRole.INSTRUCTOR);
+        courseMemberService.addMemberToCourse(course1.getId().toString(), new CourseMemberDTO().cwid(user1.getCwid()).canvasId("99999").courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.INSTRUCTOR.getRole())));
 
         userService.makeAdmin(user1.getCwid());
 
@@ -173,7 +174,7 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
 
         Course course1 = courseSeeders.course1();
 
-        courseMemberService.addMemberToCourse(course1.getId().toString(), user1.getCwid(), "99999", CourseRole.STUDENT);
+        courseMemberService.addMemberToCourse(course1.getId().toString(), new CourseMemberDTO().cwid(user1.getCwid()).canvasId("99999").courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.STUDENT.getRole())));
 
         userService.makeAdmin(user1.getCwid());
 
@@ -190,8 +191,8 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
         Course course1 = courseSeeders.course1();
         Course course2 = courseSeeders.course2();
 
-        courseMemberService.addMemberToCourse(course1.getId().toString(), user1.getCwid(), "99999", CourseRole.STUDENT);
-        courseMemberService.addMemberToCourse(course2.getId().toString(), user1.getCwid(), "99991", CourseRole.STUDENT);
+        courseMemberService.addMemberToCourse(course1.getId().toString(), new CourseMemberDTO().cwid(user1.getCwid()).canvasId("99999").courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.STUDENT.getRole())));
+        courseMemberService.addMemberToCourse(course2.getId().toString(), new CourseMemberDTO().cwid(user1.getCwid()).canvasId("99991").courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.STUDENT.getRole())));
 
         Optional<List<Course>> enrollments = userService.getEnrollments(user1.getCwid());
         Assertions.assertTrue(enrollments.isPresent());

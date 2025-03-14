@@ -1,6 +1,7 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.data.CredentialDTO;
 import edu.mines.gradingadmin.models.Credential;
 import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.User;
@@ -50,7 +51,7 @@ class TestCredentialService implements PostgresTestContainer {
 
         Assertions.assertEquals(0, credentials.size());
 
-        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS);
+        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
         Assertions.assertTrue(cred.isPresent());
 
@@ -65,9 +66,9 @@ class TestCredentialService implements PostgresTestContainer {
     void verifyCreateCredentialExists(){
         User user = userSeeder.user1();
 
-        credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS);
+        credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
-        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred2", "super_secure", CredentialType.CANVAS);
+        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred2").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
         Assertions.assertTrue(cred.isEmpty());
 
@@ -80,9 +81,9 @@ class TestCredentialService implements PostgresTestContainer {
     void verifyCreateCredentialSameName(){
         User user = userSeeder.user1();
 
-        credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS);
+        credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
-        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.GRADESCOPE);
+        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("gradescope")));
 
         Assertions.assertTrue(cred.isEmpty());
 
@@ -95,7 +96,7 @@ class TestCredentialService implements PostgresTestContainer {
     void verifyMarkCredentialAsPublic(){
         User user = userSeeder.user1();
 
-        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))).orElseThrow();
 
         Credential newCred = credentialService.markCredentialAsPublic(cred.getId()).orElseThrow();
 
@@ -108,7 +109,7 @@ class TestCredentialService implements PostgresTestContainer {
     void verifyDeleteCredential(){
         User user = userSeeder.user1();
 
-        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))).orElseThrow();
 
         credentialService.deleteCredential(cred);
 
@@ -119,7 +120,7 @@ class TestCredentialService implements PostgresTestContainer {
     void verifyMarkCredentialAsPrivate(){
         User user = userSeeder.user1();
 
-        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))).orElseThrow();
 
         Credential newCred = credentialService.markCredentialAsPublic(cred.getId()).orElseThrow();
         newCred = credentialService.markCredentialAsPrivate(cred.getId()).orElseThrow();
@@ -133,8 +134,8 @@ class TestCredentialService implements PostgresTestContainer {
     void verifyGetAllCredentials(){
         User user = userSeeder.user1();
 
-        Credential cred1 = credentialService.createNewCredentialForService(user.getCwid(), "Cred1", "super_secure", CredentialType.CANVAS).orElseThrow();
-        Credential cred2 = credentialService.createNewCredentialForService(user.getCwid(), "Cred2", "super_secure", CredentialType.GRADESCOPE).orElseThrow();
+        Credential cred1 = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))).orElseThrow();
+        Credential cred2 = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred2").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("gradescope"))).orElseThrow();
 
         List<Credential> creds = credentialService.getAllCredentials(user.getCwid());
 

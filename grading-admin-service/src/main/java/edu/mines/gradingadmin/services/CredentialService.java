@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.data.CredentialDTO;
 import edu.mines.gradingadmin.models.Credential;
 import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.User;
@@ -61,12 +62,14 @@ public class CredentialService {
         return Optional.of(availableCredentials.getFirst().getApiKey());
     }
 
-    public Optional<Credential> createNewCredentialForService(String cwid, String name, String apiKey, CredentialType type){
+    public Optional<Credential> createNewCredentialForService(String cwid, CredentialDTO credentialDTO){
         // todo this needs error handling
 
         Credential credential = new Credential();
 
         Optional<User> user = userService.getUserByCwid(cwid);
+
+        CredentialType credentialType = CredentialType.fromString(credentialDTO.getService().toString());
 
         if (user.isEmpty()){
             // todo: need error handling via error advice handler
@@ -74,20 +77,20 @@ public class CredentialService {
             return Optional.empty();
         }
 
-        if (credentialRepo.existsByCwidAndEndpoint(cwid, type)){
-            log.warn("Credential with service: '{}', already exists", type);
+        if (credentialRepo.existsByCwidAndEndpoint(cwid, credentialType)){
+            log.warn("Credential with service: '{}', already exists", credentialType);
             return Optional.empty();
         }
 
-        if (credentialRepo.existsByCwidAndName(cwid, name)){
-            log.warn("Credential with name: '{}', already exists", name);
+        if (credentialRepo.existsByCwidAndName(cwid, credentialDTO.getName())){
+            log.warn("Credential with name: '{}', already exists", credentialDTO.getName());
             return Optional.empty();
         }
 
         credential.setOwningUser(user.get());
-        credential.setType(type);
-        credential.setName(name);
-        credential.setApiKey(apiKey);
+        credential.setType(credentialType);
+        credential.setName(credentialDTO.getName());
+        credential.setApiKey(credentialDTO.getApiKey());
         credential.setPrivate(true);
 
         return Optional.of(credentialRepo.save(credential));

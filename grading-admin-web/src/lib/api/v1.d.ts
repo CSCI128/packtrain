@@ -1096,6 +1096,30 @@ export interface components {
             /** @example false */
             frozen?: boolean;
         };
+        /** @description An slim assignment in a course */
+        AssignmentSlim: {
+            /** @example 999-9999-9999-99 */
+            id: string;
+            /** @example Assessment 1 */
+            name: string;
+            /**
+             * Format: double
+             * @example 15
+             */
+            points: number;
+            /**
+             * Format: date-time
+             * @example 2020-01-15T12:00:00.000Z
+             */
+            due_date: string;
+            /**
+             * Format: date-time
+             * @example 2020-01-01T12:00:00.000Z
+             */
+            unlock_date: string;
+            /** @example Quiz */
+            category: string;
+        };
         /** @description A complete course */
         Course: {
             /** @example 999-9999-9999-99 */
@@ -1119,6 +1143,17 @@ export interface components {
              *       "fall.2020.excl.101.section.a"
              *     ] */
             sections?: string[];
+        };
+        /** @description A slim course */
+        CourseSlim: {
+            /** @example 999-9999-9999-99 */
+            id?: string;
+            /** @example Fall 2020 */
+            term: string;
+            /** @example EXCL101 */
+            name: string;
+            /** @example Fall.2020.EXCL.101 */
+            code: string;
         };
         /** @description Information relevant to a student */
         StudentInformation: {
@@ -2342,7 +2377,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Course"][];
+                    "application/json": components["schemas"]["CourseSlim"][];
                 };
             };
         };
@@ -2362,7 +2397,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Course"][];
+                    "application/json": components["schemas"]["CourseSlim"][];
                 };
             };
             /** @description User not found */
@@ -2393,7 +2428,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Assignment"][];
+                    "application/json": components["schemas"]["AssignmentSlim"][];
                 };
             };
         };

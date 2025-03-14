@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.AdminApiDelegate;
 import edu.mines.gradingadmin.data.*;
+import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
@@ -38,16 +39,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<Void> updateAssignment(String courseId, AssignmentDTO assignmentDto) {
-        Optional<Assignment> assignment = assignmentService.updateAssignment(
-                courseId,
-                assignmentDto.getId(),
-                assignmentDto.getName(),
-                assignmentDto.getPoints(),
-                assignmentDto.getCategory(),
-                assignmentDto.getEnabled(),
-                assignmentDto.getDueDate(),
-                assignmentDto.getUnlockDate()
-        );
+        Optional<Assignment> assignment = assignmentService.updateAssignment(courseId, assignmentDto);
 
         if (assignment.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -58,27 +50,13 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<AssignmentDTO> addAssignment(String courseId, AssignmentDTO assignmentDto) {
-        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(
-                courseId,
-                assignmentDto.getName(),
-                assignmentDto.getPoints(),
-                assignmentDto.getCategory(),
-                assignmentDto.getDueDate(),
-                assignmentDto.getUnlockDate()
-        );
+        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(courseId, assignmentDto);
 
         if (assignment.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.accepted().body(assignment.map(a -> new AssignmentDTO()
-                .id(a.getId().toString())
-                .category(a.getCategory())
-                .dueDate(a.getDueDate())
-                .unlockDate(a.getUnlockDate())
-                .enabled(a.isEnabled())
-                .points(a.getPoints())).get()
-        );
+        return ResponseEntity.accepted().body(DTOFactory.toDto(assignment.get()));
     }
 
     @Override
@@ -94,7 +72,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        tasks.add(courseTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        tasks.add(DTOFactory.toDto(courseTask.get()));
 
         Optional<ScheduledTaskDef> sectionTask = sectionService.createSectionsFromCanvas(
                 securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
@@ -103,7 +81,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        tasks.add(DTOFactory.toDto(sectionTask.get()));
 
         if (courseSyncTaskDTO.getImportUsers()){
             Optional<ScheduledTaskDef> importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID, true, true, true);
@@ -112,7 +90,7 @@ public class AdminApiImpl implements AdminApiDelegate {
                 return ResponseEntity.badRequest().build();
             }
 
-            tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+            tasks.add(DTOFactory.toDto(importUsersTask.get()));
         }
 
         if (courseSyncTaskDTO.getImportAssignments()){
@@ -122,7 +100,7 @@ public class AdminApiImpl implements AdminApiDelegate {
                 return ResponseEntity.badRequest().build();
             }
 
-            tasks.add(importAssignmentsTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+            tasks.add(DTOFactory.toDto(importAssignmentsTask.get()));
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(tasks);
@@ -141,7 +119,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        tasks.add(courseTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        tasks.add(DTOFactory.toDto(courseTask.get()));
 
         Optional<ScheduledTaskDef> sectionTask = sectionService.createSectionsFromCanvas(
                 securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
@@ -151,7 +129,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        tasks.add(sectionTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+        tasks.add(DTOFactory.toDto(sectionTask.get()));
 
         if (courseSyncTaskDTO.getImportUsers()) {
             Optional<ScheduledTaskDef> importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.get().getId(), sectionTask.get().getId()), courseUUID, true, true, true);
@@ -160,7 +138,7 @@ public class AdminApiImpl implements AdminApiDelegate {
                 return ResponseEntity.badRequest().build();
             }
 
-            tasks.add(importUsersTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+            tasks.add(DTOFactory.toDto(importUsersTask.get()));
         }
 
         if (courseSyncTaskDTO.getImportAssignments()){
@@ -170,7 +148,7 @@ public class AdminApiImpl implements AdminApiDelegate {
                 return ResponseEntity.badRequest().build();
             }
 
-            tasks.add(importAssignmentsTask.map(t -> new TaskDTO().id(t.getId()).name(t.getTaskName()).status(t.getStatus().toString()).submittedTime(t.getSubmittedTime())).get());
+            tasks.add(DTOFactory.toDto(importAssignmentsTask.get()));
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(tasks);
@@ -178,31 +156,17 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<CourseDTO> newCourse(CourseDTO courseDTO) {
-        Optional<Course> course = courseService.createNewCourse(courseDTO.getName(), courseDTO.getTerm(), courseDTO.getCode());
+        Optional<Course> course = courseService.createNewCourse(courseDTO);
         if (course.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(course
-                .map(c -> new CourseDTO()
-                        .id(c.getId().toString())
-                        .name(c.getName())
-                        .code(c.getCode())).get());
+        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(course.get()));
     }
 
     @Override
     public ResponseEntity<List<CourseDTO>> getCourses(Boolean enabled) {
         List<Course> courses = courseService.getCourses(enabled);
-
-        List<CourseDTO> coursesResponse = courses.stream().map(course ->
-                new CourseDTO()
-                        .id(course.getId().toString())
-                        .term(course.getTerm())
-                        .enabled(course.isEnabled())
-                        .name(course.getName())
-                        .code(course.getCode())
-        ).toList();
-
-        return ResponseEntity.ok(coursesResponse);
+        return ResponseEntity.ok(courses.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
@@ -218,39 +182,14 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        CourseDTO courseDto = new CourseDTO();
-
-        courseDto.name(course.get().getName())
-                .id(course.get().getId().toString())
-                .enabled(course.get().isEnabled())
-                .term(course.get().getTerm())
-                .code(course.get().getCode());
+        CourseDTO courseDto = DTOFactory.toDto(course.get());
 
         if (include.contains("members")) {
-            courseDto.setMembers(course.get().getMembers().stream().map(member ->
-                    new CourseMemberDTO()
-                            .canvasId(member.getCanvasId())
-                            .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(member.getRole().getRole()))
-                            .cwid(member.getUser().getCwid())
-                            .sections(member.getSections().stream().map(Section::getName).toList())
-            ).toList());
+            courseDto.setMembers(course.get().getMembers().stream().map(DTOFactory::toDto).toList());
         }
 
         if (include.contains("assignments")) {
-            courseDto.setAssignments(course.get().getAssignments().stream().map(assignment ->
-                    new AssignmentDTO()
-                        .id(assignment.getId().toString())
-                        .name(assignment.getName())
-                        .canvasId(assignment.getCanvasId())
-                        .points(assignment.getPoints())
-                        .dueDate(assignment.getDueDate())
-                        .unlockDate(assignment.getUnlockDate())
-                        .category(assignment.getCategory())
-                        .groupAssignment(assignment.isGroupAssignment())
-                        .attentionRequired(assignment.isAttentionRequired())
-                    // need to add external source config
-                    .enabled(assignment.isEnabled())
-            ).toList());
+            courseDto.setAssignments(course.get().getAssignments().stream().map(DTOFactory::toDto).toList());
         }
 
         if (include.contains("sections")) {
@@ -291,21 +230,14 @@ public class AdminApiImpl implements AdminApiDelegate {
             }
         }
 
-        return ResponseEntity.ok(courseMemberService.searchCourseMembers(course.get(), roles, name, cwid).stream()
-                .map(member -> new CourseMemberDTO()
-                        .canvasId(member.getCanvasId())
-                        .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(member.getRole().getRole()))
-                        .cwid(member.getUser().getCwid())
-                        .sections(member.getSections().stream().map(Section::getName).toList()))
-                .toList());
+        return ResponseEntity.ok(courseMemberService.searchCourseMembers(course.get(), roles, name, cwid)
+            .stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
     public ResponseEntity<Void> addCourseMember(String courseId, CourseMemberDTO courseMemberDTO) {
         Optional<CourseMember> courseMember = courseMemberService.addMemberToCourse(courseId,
-                courseMemberDTO.getCwid(),
-                courseMemberDTO.getCanvasId(),
-                CourseRole.fromString(courseMemberDTO.getCourseRole().getValue()));
+                courseMemberDTO);
 
         if (courseMember.isEmpty()) {
             // need to do this with error controller
@@ -318,15 +250,7 @@ public class AdminApiImpl implements AdminApiDelegate {
     @Override
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         List<User> users = userService.getAllUsers();
-
-        return ResponseEntity.ok(users.stream()
-                .map(u -> new UserDTO()
-                        .cwid(u.getCwid())
-                        .email(u.getEmail())
-                        .name(u.getName())
-                        .admin(u.isAdmin())
-                        .enabled(u.isEnabled()))
-                .toList());
+        return ResponseEntity.ok(users.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
@@ -367,10 +291,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<UserDTO> adminUpdateUser(UserDTO userDTO) {
-        Optional<User> user = userService.updateUser(
-                userDTO.getCwid(),
-                userDTO.getName(),
-                userDTO.getEmail());
+        Optional<User> user = userService.updateUser(userDTO);
 
         if (user.isEmpty()) {
             return ResponseEntity.notFound().build();

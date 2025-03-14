@@ -1225,7 +1225,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Course"
+                  $ref: "#/components/schemas/CourseSlim"
 
   /student/enrollments:
     get:
@@ -1246,7 +1246,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Course"
+                  $ref: "#/components/schemas/CourseSlim"
         404:
           description: "User not found"
           content:
@@ -1282,7 +1282,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Assignment"
+                  $ref: "#/components/schemas/AssignmentSlim"
 
   /tasks:
     get:
@@ -2218,6 +2218,40 @@ components:
         frozen:
           type: boolean
           example: false
+
+    AssignmentSlim:
+      description: "An slim assignment in a course"
+      type: object
+      required:
+        - id
+        - name
+        - points
+        - due_date
+        - unlock_date
+        - category
+      properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
+        name:
+          type: string
+          example: "Assessment 1"
+        points:
+          type: number
+          format: double
+          example: 15.0
+        due_date:
+          type: string
+          format: date-time
+          example: "2020-01-15T12:00:00.000Z"
+        unlock_date:
+          type: string
+          format: date-time
+          example: "2020-01-01T12:00:00.000Z"
+        category:
+          type: string
+          example: "Quiz"
+
     Course:
       description: "A complete course"
       type: object
@@ -2261,6 +2295,27 @@ components:
             type: string
           example:
             - "fall.2020.excl.101.section.a"
+
+    CourseSlim:
+      description: "A slim course"
+      type: object
+      required:
+        - term
+        - name
+        - code
+      properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
+        term:
+          type: string
+          example: "Fall 2020"
+        name:
+          type: string
+          example: "EXCL101"
+        code:
+          type: string
+          example: "Fall.2020.EXCL.101"
 
     StudentInformation:
       description: "Information relevant to a student"

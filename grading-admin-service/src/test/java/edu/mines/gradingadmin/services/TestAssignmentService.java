@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.data.AssignmentDTO;
+import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.models.Assignment;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.repositories.UserRepo;
@@ -52,11 +53,7 @@ public class TestAssignmentService implements PostgresTestContainer {
 
         Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(
                 course.getId().toString(),
-                "Studio 1",
-                2.0,
-                "Studios",
-                Instant.now(),
-                Instant.now()
+                new AssignmentDTO().name("Studio 1").points(2.0).category("Studios").dueDate(Instant.now()).unlockDate(Instant.now()).enabled(true)
         );
 
         Assertions.assertTrue(assignment.isPresent());
@@ -78,23 +75,12 @@ public class TestAssignmentService implements PostgresTestContainer {
 
         Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(
                 course.getId().toString(),
-                "Studio 1",
-                2.0,
-                "Studios",
-                Instant.now(),
-                Instant.now()
+                new AssignmentDTO().name("Studio 1").points(2.0).category("Studios").dueDate(Instant.now()).unlockDate(Instant.now()).enabled(true)
         );
 
         Assertions.assertTrue(assignment.isPresent());
 
-        assignment = assignmentService.updateAssignment(course.getId().toString(),
-                assignment.get().getId().toString(),
-                assignment.get().getName(),
-                10,
-                assignment.get().getCategory(),
-                assignment.get().isEnabled(),
-                assignment.get().getDueDate(),
-                assignment.get().getUnlockDate());
+        assignment = assignmentService.updateAssignment(course.getId().toString(), DTOFactory.toDto(assignment.get()).points(10.0));
 
         Assertions.assertTrue(assignment.isPresent());
         Assertions.assertEquals(10, assignment.get().getPoints());
