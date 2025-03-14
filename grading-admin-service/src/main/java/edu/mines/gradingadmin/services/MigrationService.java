@@ -169,6 +169,10 @@ public class MigrationService {
 
         updatedMigration.setPolicy(policy.get());
         return Optional.of(migrationRepo.save(updatedMigration));
+
+    }
+    public void startMigration(){
+
     }
 
 }
