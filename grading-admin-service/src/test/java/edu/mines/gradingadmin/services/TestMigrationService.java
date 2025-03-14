@@ -99,19 +99,53 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
     }
 
     @Test
-    void verifyMigrationsCreated() throws URISyntaxException {
+    void verifyUpdatePolicy(){
         Course course1 = courseSeeders.populatedCourse();
         Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course1.getId().toString());
         Assertions.assertTrue(masterMigration.isPresent());
         Optional<Assignment> assignment = course1.getAssignments().stream().findFirst();
         Assertions.assertTrue(assignment.isPresent());
-        String filename = "http://file.js";
-
 
         Policy policy = new Policy();
         policy.setAssignment(assignment.get());
         policy.setPolicyName("test_policy");
-        policy.setPolicyURI(filename);
+        policy.setPolicyURI("http://file.js");
+        policy.setCourse(course1);
+        User user = userSeeders.user1();
+        policy.setCreatedByUser(user);
+        policyRepo.save(policy);
+        migrationService.addMigration(masterMigration.get().getId().toString(), assignment.get().getId().toString(), policy.getPolicyURI());
+
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        Assertions.assertEquals(1, migrationList.size());
+        Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
+
+        Policy updatedPolicy = new Policy();
+        updatedPolicy.setAssignment(assignment.get());
+        updatedPolicy.setPolicyName("updated_test_policy");
+        updatedPolicy.setPolicyURI("http://file2.js");
+        updatedPolicy.setCourse(course1);
+        updatedPolicy.setCreatedByUser(user);
+        policyRepo.save(updatedPolicy);
+        migrationService.updatePolicyForMigration(migrationList.get(0).getId().toString(), updatedPolicy.getPolicyURI());
+
+        migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        Assertions.assertEquals(1, migrationList.size());
+        Assertions.assertEquals(updatedPolicy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
+    }
+
+    @Test
+    void verifyMigrationsCreated() {
+        Course course1 = courseSeeders.populatedCourse();
+        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course1.getId().toString());
+        Assertions.assertTrue(masterMigration.isPresent());
+        Optional<Assignment> assignment = course1.getAssignments().stream().findFirst();
+        Assertions.assertTrue(assignment.isPresent());
+
+        Policy policy = new Policy();
+        policy.setAssignment(assignment.get());
+        policy.setPolicyName("test_policy");
+        policy.setPolicyURI("http://file.js");
         policy.setCourse(course1);
         User user = userSeeders.user1();
         policy.setCreatedByUser(user);
@@ -123,6 +157,5 @@ public class TestMigrationService implements PostgresTestContainer, MinioTestCon
         Assertions.assertEquals(assignment.get().getId().toString(), migrationList.getFirst().getAssignment().getId().toString());
         Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
     }
-
 
 }

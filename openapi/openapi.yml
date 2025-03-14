@@ -1908,6 +1908,67 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: Master Migration not found"
 
+  /instructor/courses/{course_id}/migrations/{migration_id}/assignments/{assignment_id}:
+    put:
+      tags:
+        - instructor
+      operationId: update_policy
+      security:
+        - openIDC: [ instructor:write ]
+      summary: Updates the policy for an assignment and migration
+      description: |
+        Updates the policy that corresponds to an assignment and a migration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Policy"
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: migration_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: assignment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+      responses:
+        202:
+          description: "Policy updated for assignment"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Migration"
+        400:
+          description: "Failed to update policy"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_policy"
+                error_message: "Failed to update policy for migration"
+        404:
+          description: "Policy not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_policy"
+                error_message: "Failed to update policy for migration"
+
 components:
   securitySchemes:
     OpenIDC:

@@ -22,4 +22,6 @@ public interface MigrationRepo  extends CrudRepository<Migration, UUID>{
     List<Migration> getMigrationListByMasterMigrationId(UUID masterMigrationId);
 
 
+    @Query("select a from migration a where a.id=?1")
+    Migration getMigrationById(UUID migrationId);
 }

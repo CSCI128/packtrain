@@ -58,7 +58,6 @@ public class MigrationService {
 
     }
 
-
     public void handleScoreReceived(User asUser, Migration migration, ScoredDTO dto){
         MigrationTransactionLog entry = new MigrationTransactionLog();
         entry.setPerformedByUser(asUser);
@@ -113,17 +112,18 @@ public class MigrationService {
     }
 
     @Transactional
-    public Optional<MasterMigration> addMigration(String masterMigrationId, String assignmentId, String policyUri){
+    public Optional<MasterMigration> addMigration(String masterMigrationId, String assignmentId, String policyURI){
         MasterMigration masterMigration = masterMigrationRepo.getMasterMigrationByMasterMigrationId(UUID.fromString(masterMigrationId));
         Migration migration = new Migration();
         URI uri;
 
         try {
-            uri = new URI(policyUri);
+            uri = new URI(policyURI);
 
         } catch (URISyntaxException e){
             return Optional.empty();
         }
+
         Optional<Policy> policy = courseService.getPolicy(uri);
         if (policy.isEmpty()){
             return Optional.empty();
@@ -145,7 +145,30 @@ public class MigrationService {
 
     public List<Migration> getMigrationsByMasterMigration(String masterMigrationId){
         return migrationRepo.getMigrationListByMasterMigrationId(UUID.fromString(masterMigrationId));
+    }
 
+    public Migration getMigration(String migrationId){
+        return migrationRepo.getMigrationById(UUID.fromString(migrationId));
+    }
+
+    public Optional<Migration> updatePolicyForMigration(String migrationId, String policyURI){
+        Migration updatedMigration = migrationRepo.getMigrationById(UUID.fromString(migrationId));
+        URI uri;
+
+        try {
+            uri = new URI(policyURI);
+
+        } catch (URISyntaxException e){
+            return Optional.empty();
+        }
+
+        Optional<Policy> policy = courseService.getPolicy(uri);
+        if (policy.isEmpty()){
+            return Optional.empty();
+        }
+
+        updatedMigration.setPolicy(policy.get());
+        return Optional.of(migrationRepo.save(updatedMigration));
     }
 
 }

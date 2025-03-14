@@ -154,8 +154,17 @@ public class InstructorApiImpl implements InstructorApiDelegate {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().migrationId(masterMigration.get().getId().toString()));
-
     }
+
+    @Override
+    public ResponseEntity<MigrationDTO> updatePolicy(String courseId, String migrationId, String assignmentId, PolicyDTO policyDTO){
+        Optional<Migration> newMigration = migrationService.updatePolicyForMigration(migrationId, policyDTO.getUri());
+        if (newMigration.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.accepted().build();
+    }
+
 
     @Override
     public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(String courseId, String masterMigrationId, MigrationDTO migrationDTO) {
