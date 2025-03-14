@@ -1777,6 +1777,45 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
+  /student/courses/{course_id}/extensions/{extension_id}/withdraw:
+    delete:
+      tags:
+        - student
+      operationId: withdraw_extension
+      summary: "Withdraw a submitted extension"
+      description: |
+        Deletes (withdraws) a submitted extension
+        by id for the given student.
+      security:
+        - openIDC: [student:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: extension_id
+          required: true
+          description: "The extension ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        204:
+          description: "No Content"
+        404:
+          description: "Extension not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: extension request not found"
+
   /instructor/courses/{course_id}/migrations/{master_migration_id}:
     put:
       tags:
