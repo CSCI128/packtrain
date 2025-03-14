@@ -261,18 +261,6 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
-    public ResponseEntity<Void> enableCourse(String courseId) {
-        courseService.enableCourse(UUID.fromString(courseId));
-        return ResponseEntity.accepted().build();
-    }
-
-    @Override
-    public ResponseEntity<Void> disableCourse(String courseId) {
-        courseService.disableCourse(UUID.fromString(courseId));
-        return ResponseEntity.accepted().build();
-    }
-
-    @Override
     public ResponseEntity<List<CourseMemberDTO>> getMembers(String courseId, List<String> enrollments, String name, String cwid) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
 
@@ -378,6 +366,36 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
+    public ResponseEntity<UserDTO> adminUpdateUser(UserDTO userDTO) {
+        Optional<User> user = userService.updateUser(
+                userDTO.getCwid(),
+                userDTO.getName(),
+                userDTO.getEmail());
+
+        if (user.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if(userDTO.getEnabled()) {
+            userService.enableUser(user.get().getCwid());
+        }
+        else {
+            userService.disableUser(user.get().getCwid());
+        }
+
+        if(userDTO.getAdmin()) {
+            userService.makeAdmin(user.get().getCwid());
+        }
+
+        return ResponseEntity.accepted().body(new UserDTO()
+            .cwid(user.get().getCwid())
+            .email(user.get().getEmail())
+            .name(user.get().getName())
+            .admin(user.get().isAdmin())
+            .enabled(user.get().isEnabled()));
+    }
+
+    @Override
     public ResponseEntity<Void> enableUser(String cwid) {
         Optional<User> user = userService.enableUser(cwid);
 
@@ -395,17 +413,6 @@ public class AdminApiImpl implements AdminApiDelegate {
 
         if (user.isEmpty()) {
             return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.accepted().build();
-    }
-
-    @Override
-    public ResponseEntity<Void> makeAdmin(String cwid) {
-        Optional<User> user = userService.makeAdmin(cwid);
-
-        if (user.isEmpty()) {
-            return ResponseEntity.badRequest().build();
         }
 
         return ResponseEntity.accepted().build();

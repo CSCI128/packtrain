@@ -360,64 +360,6 @@ paths:
                 error_source: "update_course"
                 error_message: "Course '999-9999-9999-99' does not exist"
 
-  /admin/courses/{course_id}/enable:
-    put:
-      tags:
-        - admin
-      operationId: enable_course
-      summary: "Enable the specified course."
-      description: |
-        Enable the specified course.
-      security:
-        - openIDC: [admin:write]
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      responses:
-        202:
-          description: "Accepted"
-        404:
-          description: Course Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_course"
-                error_message: "Course '999-9999-9999-99' does not exist"
-  /admin/courses/{course_id}/disable:
-    put:
-      tags:
-        - admin
-      operationId: disable_course
-      summary: "Disable the specified course."
-      description: |
-        Disable the specified course.
-      security:
-        - openIDC: [admin:write]
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      responses:
-        202:
-          description: "Accepted"
-        404:
-          description: Course Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_course"
-                error_message: "Course '999-9999-9999-99' does not exist"
   /admin/courses/{course_id}/assignment/{assignment_id}/disable:
     put:
       tags:
@@ -670,6 +612,29 @@ paths:
                 error_source: "create_user"
                 error_message: "Failed to create new user"
 
+    put:
+      tags:
+        - admin
+      operationId: admin_update_user
+      security:
+        - openIDC: [admin:write]
+      summary: Updates a user's information, including admin and disabled/enabled status
+      description: |
+        Updates a user's information based on the User provided in body and provided JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        202:
+          description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
   /admin/users/{cwid}/enable:
     put:
       tags:
@@ -720,37 +685,6 @@ paths:
       responses:
         201:
           description: "Created"
-        404:
-          description: "User not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_user"
-                error_message: "Failed to update user"
-
-  /admin/users/{cwid}/admin:
-    put:
-      tags:
-        - admin
-      operationId: make_admin
-      summary: "Make a user an admin"
-      description: |
-        Make a user an admin.
-        This will fail if the account is disabled or if the requested user is enrolled as a student in any classes
-      security:
-        - openIDC: [admin:write]
-      parameters:
-        - name: cwid
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99999999"
-      responses:
-        202:
-          description: "Accepted"
         404:
           description: "User not found"
           content:
@@ -1723,6 +1657,46 @@ paths:
               example:
                 error_source: "User Service"
                 error_message: "Error: migration not found"
+    post:
+      tags:
+        - instructor
+      operationId: create_master_migration
+      summary: "Create master migration for a course"
+      description: |
+        Create a new master migration for a course.
+        Replies with a master migration for a course.
+      security:
+        - openIDC: [ instructor:write ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MasterMigration"
+      responses:
+        201:
+          description: "An master Migration has been created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasterMigration"
+        404:
+          description: "Migration not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: master migration not found"
 
   /student/courses/{course_id}/extensions:
     get:
@@ -1842,7 +1816,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructor/courses/{course_id}/migrations/{migration_id}:
+  /instructor/courses/{course_id}/migrations/{master_migration_id}:
     put:
       tags:
         - instructor
@@ -1859,7 +1833,7 @@ paths:
           schema:
             type: string
             example: "99-9999-9999-99"
-        - name: migration_id
+        - name: master_migration_id
           in: path
           required: true
           schema:
@@ -1886,6 +1860,53 @@ paths:
               example:
                 error_source: "update_user"
                 error_message: "Failed to update grade for migration for user"
+    post:
+      tags:
+        - instructor
+      operationId: create_migration_for_master_migration
+      summary: "Create migration for a master migration"
+      description: |
+        Create a new migration for a master migration.
+        Replies with an master migration including the list of migrations, one for each assignment and policy.
+      security:
+        - openIDC: [ instructor:write ]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Migration"
+      responses:
+        201:
+          description: "An Master Migration has been updated"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasterMigration"
+        404:
+          description: "Master Migration not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: Master Migration not found"
 
 components:
   securitySchemes:
@@ -2085,7 +2106,6 @@ components:
       description: "An assignment in a course"
       type: object
       required:
-        - id
         - name
         - points
         - due_date
@@ -2100,6 +2120,9 @@ components:
         name:
           type: string
           example: "Assessment 1"
+        category:
+          type: string
+          example: "Quiz"
         canvas_id:
           type: integer
           format: int64
@@ -2108,6 +2131,12 @@ components:
           type: number
           format: double
           example: 15.0
+        external_service:
+          type: string
+          example: "Gradescope"
+        external_points:
+          type: integer
+          example: 14
         due_date:
           type: string
           format: date-time
@@ -2125,9 +2154,9 @@ components:
         attention_required:
           type: boolean
           example: false
-        category:
-          type: string
-          example: "Quiz"
+        frozen:
+          type: boolean
+          example: false
     Course:
       description: "A complete course"
       type: object
@@ -2275,6 +2304,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Migration"
+        migration_id:
+          type: string
+          example: "999-9999-9999-99"
+
+
 
     MasterMigrationStatistics:
       description: "The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit"
