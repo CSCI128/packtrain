@@ -43,13 +43,12 @@ public class UserService {
     public Optional<User> updateUser(String cwid, String name, String email){
         Optional<User> user = getUserByCwid(cwid);
 
-        if (user.isEmpty()){
+        if (user.isEmpty()) {
             return Optional.empty();
         }
 
         user.get().setEmail(email);
         user.get().setName(name);
-
 
         return Optional.of(userRepo.save(user.get()));
     }

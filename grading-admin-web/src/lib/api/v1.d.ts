@@ -280,7 +280,12 @@ export interface paths {
          *
          */
         get: operations["get_all_users"];
-        put?: never;
+        /**
+         * Updates a user's information, including admin and disabled/enabled status
+         * @description Updates a user's information based on the User provided in body and provided JWT.
+         *
+         */
+        put: operations["admin_update_user"];
         /**
          * Create a new user
          * @description Creates a new user.
@@ -1717,6 +1722,30 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["User"][];
+                };
+            };
+        };
+    };
+    admin_update_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["User"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
                 };
             };
         };

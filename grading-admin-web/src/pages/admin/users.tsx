@@ -24,6 +24,7 @@ import {
 } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
+import { useAuth } from "react-oidc-context";
 import { $api } from "../../api";
 import classes from "../../components/table/Table.module.scss";
 
@@ -112,6 +113,7 @@ export function UsersPage() {
     "/admin/users"
   );
 
+  const auth = useAuth();
   const [opened, { open, close }] = useDisclosure(false);
   const [addUserOpened, { open: openAddUser, close: closeAddUser }] =
     useDisclosure(false);
@@ -133,8 +135,9 @@ export function UsersPage() {
       admin: () => null,
     },
   });
-  const form = useForm({
-    mode: "controlled",
+
+  const editUserForm = useForm({
+    mode: "uncontrolled",
     initialValues: {
       name: "",
       email: "",
@@ -154,16 +157,18 @@ export function UsersPage() {
 
   const handleEditOpen = (row: any) => {
     setSelectedUser(row);
-    form.setValues({
+    editUserForm.setValues({
       name: row.name,
       email: row.email,
       cwid: row.cwid,
+      admin: row.admin,
+      enabled: row.enabled,
     });
     open();
   };
 
   const addUserMutation = $api.useMutation("post", "/admin/users");
-  const editUserMutation = $api.useMutation("put", "/user");
+  const editUserMutation = $api.useMutation("put", "/admin/users");
 
   const addUser = (values: typeof addUserForm.values) => {
     addUserMutation.mutate(
@@ -185,7 +190,7 @@ export function UsersPage() {
     closeAddUser();
   };
 
-  const editUser = (values: typeof form.values) => {
+  const editUser = (values: typeof editUserForm.values) => {
     editUserMutation.mutate(
       {
         body: {
@@ -258,44 +263,42 @@ export function UsersPage() {
     <>
       {/* TODO should export these modals to a separate component file */}
       <Modal opened={opened} onClose={close} title="Edit User">
-        <form onSubmit={form.onSubmit(editUser)}>
+        <form onSubmit={editUserForm.onSubmit(editUser)}>
           <TextInput
             withAsterisk
             label="Name"
-            key={form.key("name")}
-            {...form.getInputProps("name")}
+            key={editUserForm.key("name")}
+            {...editUserForm.getInputProps("name")}
           />
-
           <TextInput
             disabled
             label="Email"
-            key={form.key("email")}
-            {...form.getInputProps("email")}
+            key={editUserForm.key("email")}
+            {...editUserForm.getInputProps("email")}
           />
-
           <TextInput
             disabled
             label="CWID"
-            key={form.key("cwid")}
-            {...form.getInputProps("cwid")}
+            key={editUserForm.key("cwid")}
+            {...editUserForm.getInputProps("cwid")}
           />
 
-          <InputWrapper
-            withAsterisk
-            label="Admin User"
-            key={form.key("admin")}
-            {...form.getInputProps("admin")}
-          >
-            <Checkbox defaultChecked={selectedUser?.admin ? true : undefined} />
+          <InputWrapper withAsterisk label="Admin User">
+            <Checkbox
+              disabled={selectedUser?.cwid === auth.user?.profile.cwid}
+              defaultChecked={editUserForm.values.admin}
+              key={editUserForm.key("admin")}
+              {...editUserForm.getInputProps("admin", { type: "checkbox" })}
+            />
           </InputWrapper>
 
-          <InputWrapper
-            withAsterisk
-            label="Enabled"
-            key={form.key("enabled")}
-            {...form.getInputProps("enabled")}
-          >
-            <Checkbox defaultChecked={selectedUser?.enabled ? true : false} />
+          <InputWrapper withAsterisk label="Enabled">
+            <Checkbox
+              disabled={selectedUser?.cwid === auth.user?.profile.cwid}
+              defaultChecked={editUserForm.values.enabled}
+              key={editUserForm.key("enabled")}
+              {...editUserForm.getInputProps("enabled", { type: "checkbox" })}
+            />
           </InputWrapper>
 
           <br />
