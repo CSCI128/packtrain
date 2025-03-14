@@ -4,6 +4,7 @@ import edu.mines.gradingadmin.api.UserApiDelegate;
 import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.data.CredentialDTO;
 import edu.mines.gradingadmin.data.UserDTO;
+import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.Credential;
@@ -34,14 +35,7 @@ public class UserApiImpl implements UserApiDelegate {
     @Override
     public ResponseEntity<UserDTO> getUser() {
         User user = securityManager.getUser();
-
-        return ResponseEntity.ok(new UserDTO()
-                .cwid(user.getCwid())
-                .email(user.getEmail())
-                .name(user.getName())
-                .admin(user.isAdmin())
-                .enabled(user.isEnabled())
-        );
+        return ResponseEntity.ok(DTOFactory.toDto(user));
     }
 
     @Override
@@ -52,14 +46,7 @@ public class UserApiImpl implements UserApiDelegate {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.accepted().body(user
-                .map(u -> new UserDTO()
-                        .cwid(user.get().getCwid())
-                        .email(user.get().getEmail())
-                        .name(user.get().getName())
-                        .admin(user.get().isAdmin())
-                        .enabled(user.get().isEnabled()))
-                .get());
+        return ResponseEntity.accepted().body(DTOFactory.toDto(user.get()));
     }
 
     @Override
@@ -75,26 +62,15 @@ public class UserApiImpl implements UserApiDelegate {
             // need to do this with error controller
             return ResponseEntity.badRequest().build();
         }
-        CredentialDTO credentialRes = new CredentialDTO();
-        credentialRes.setId(newCredential.get().getId().toString());
-        credentialRes.setName(newCredential.get().getName());
-        credentialRes.setService(CredentialDTO.ServiceEnum.valueOf(newCredential.get().getType().toString()));
-        credentialRes.setPrivate(newCredential.get().isPrivate());
 
-        return ResponseEntity.ok(credentialRes);
+        return ResponseEntity.ok(DTOFactory.toDto(newCredential.get()));
     }
 
     @Override
     public ResponseEntity<List<CredentialDTO>> getCredentials() {
         User user = securityManager.getUser();
-        return ResponseEntity.ok(credentialService.getAllCredentials(user.getCwid()).stream()
-                .map(cred -> new CredentialDTO()
-                        .id(cred.getId().toString())
-                        .name(cred.getName())
-                        .service(CredentialDTO.ServiceEnum.valueOf(cred.getType().toString()))
-                        ._private(cred.isPrivate()))
-                .toList()
-        );
+        return ResponseEntity.ok(credentialService.getAllCredentials(user.getCwid())
+                .stream().map(DTOFactory::toDto).toList());
     }
 
     @Override

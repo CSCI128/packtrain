@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.TasksApiDelegate;
 import edu.mines.gradingadmin.data.TaskDTO;
+import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.services.TaskExecutorService;
@@ -26,12 +27,8 @@ public class TasksApiImpl implements TasksApiDelegate {
     @Override
     public ResponseEntity<List<TaskDTO>> getAllTasksForUser() {
         return ResponseEntity.ok(taskExecutorService.getScheduledTasks(securityManager.getUser()).stream()
-                .map(t -> new TaskDTO()
-                        .id(t.getId())
-                        .name(t.getTaskName())
-                        .submittedTime(t.getSubmittedTime())
+                .map(t -> DTOFactory.toDto(t)
                         .completedTime(t.getCompletedTime() == null ? null : t.getCompletedTime())
-                        .status(t.getStatus().toString())
                         .message(t.getStatusText())
         ).toList());
     }
@@ -44,12 +41,8 @@ public class TasksApiImpl implements TasksApiDelegate {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(task.map(t -> new TaskDTO()
-                .id(t.getId())
-                .name(t.getTaskName())
-                .submittedTime(t.getSubmittedTime())
+        return ResponseEntity.ok(task.map(t -> DTOFactory.toDto(t)
                 .completedTime(t.getCompletedTime() == null ? null : t.getCompletedTime())
-                .status(t.getStatus().toString())
                 .message(t.getStatusText())).get());
     }
 }

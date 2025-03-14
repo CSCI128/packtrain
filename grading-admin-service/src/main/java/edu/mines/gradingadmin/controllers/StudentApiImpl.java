@@ -2,6 +2,7 @@ package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.StudentApiDelegate;
 import edu.mines.gradingadmin.data.*;
+import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.services.*;
@@ -36,23 +37,13 @@ public class StudentApiImpl implements StudentApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<CourseDTO>> getCoursesStudent() {
+    public ResponseEntity<List<CourseSlimDTO>> getCoursesStudent() {
         List<Course> courses = courseService.getCourses(true);
-
-        List<CourseDTO> coursesResponse = courses.stream().map(course ->
-                new CourseDTO()
-                        .id(course.getId().toString())
-                        .term(course.getTerm())
-                        .enabled(course.isEnabled())
-                        .name(course.getName())
-                        .code(course.getCode())
-        ).toList();
-
-        return ResponseEntity.ok(coursesResponse);
+        return ResponseEntity.ok(courses.stream().map(DTOFactory::toSlimDto).toList());
     }
 
     @Override
-    public ResponseEntity<List<CourseDTO>> getEnrollments() {
+    public ResponseEntity<List<CourseSlimDTO>> getEnrollments() {
         User user = securityManager.getUser();
 
         Optional<List<Course>> enrollments = userService.getEnrollments(user.getCwid());
@@ -61,14 +52,7 @@ public class StudentApiImpl implements StudentApiDelegate {
             return ResponseEntity.notFound().build();
         }
 
-        List<CourseDTO> enrollmentsDto = enrollments.get().stream().map(enrollment ->
-                new CourseDTO()
-                        .name(enrollment.getName())
-                        .term(enrollment.getTerm())
-                        .code(enrollment.getCode())
-        ).toList();
-
-        return ResponseEntity.ok(enrollmentsDto);
+        return ResponseEntity.ok(enrollments.get().stream().map(DTOFactory::toSlimDto).toList());
     }
 
     @Override
@@ -84,22 +68,8 @@ public class StudentApiImpl implements StudentApiDelegate {
 
         List<CourseRole> courseRoles = courseMemberService.getRolesForUserAndCourse(securityManager.getUser(), course.get().getId());
 
-        CourseDTO courseDTO = new CourseDTO()
-            .id(course.get().getId().toString())
-            .code(course.get().getCode())
-            .name(course.get().getName())
-            .term(course.get().getTerm())
-            .enabled(course.get().isEnabled())
-            .canvasId(course.get().getCanvasId())
-            .assignments(course.get().getAssignments().stream().filter(Assignment::isEnabled).map(assignment ->
-                // "slim" assignmentdto, not all info is needed; convert this one separately in DTOFactory
-                new AssignmentDTO()
-                    .id(assignment.getId().toString())
-                    .name(assignment.getName())
-                    .dueDate(assignment.getDueDate())
-                    .unlockDate(assignment.getUnlockDate())
-                    .enabled(assignment.isEnabled())
-                ).toList())
+        CourseDTO courseDTO = DTOFactory.toDto(course.get())
+            .assignments(course.get().getAssignments().stream().filter(Assignment::isEnabled).map(DTOFactory::toDto).toList()) // TODO technically don't need to send everything here but then we get slimdto/dto issues
             .sections(sections.stream().map(Section::getName).toList());
 
         StudentInformationDTO studentInformationDTO = new StudentInformationDTO()
@@ -123,17 +93,9 @@ public class StudentApiImpl implements StudentApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<AssignmentDTO>> getCourseAssignmentsStudent(String courseId) {
+    public ResponseEntity<List<AssignmentSlimDTO>> getCourseAssignmentsStudent(String courseId) {
         List<Assignment> assignments = assignmentService.getAllUnlockedAssignments(courseId);
-
-        return ResponseEntity.ok(assignments.stream()
-                .map(a -> new AssignmentDTO()
-                        .points(a.getPoints())
-                        .dueDate(a.getDueDate())
-                        .unlockDate(a.getUnlockDate())
-                        .category(a.getCategory())
-                )
-                .toList());
+        return ResponseEntity.ok(assignments.stream().map(DTOFactory::toSlimDto).toList());
     }
 
     @Override
@@ -142,24 +104,7 @@ public class StudentApiImpl implements StudentApiDelegate {
 
         List<LateRequest> lateRequests = extensionService.getAllLateRequestsForStudent(courseId, user);
 
-        return ResponseEntity.ok(lateRequests.stream().map(lateRequest ->
-            new LateRequestDTO()
-                .id(lateRequest.getId().toString())
-                .numDaysRequested(lateRequest.getDaysRequested())
-                .requestType(LateRequestDTO.RequestTypeEnum.fromValue(lateRequest.getRequestType().name().toLowerCase()))
-                .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name().toLowerCase()))
-                .dateSubmitted(lateRequest.getSubmissionDate())
-                .assignmentId(lateRequest.getAssignment().getId().toString())
-                .assignmentName(lateRequest.getAssignment().getName())
-                .extension(lateRequest.getExtension() != null ?
-                    new ExtensionDTO()
-                        .id(lateRequest.getExtension().getId().toString())
-                        .reason(lateRequest.getExtension().getReason())
-                        .comments(lateRequest.getExtension().getComments())
-                        .responseToRequester(lateRequest.getExtension().getReviewerResponse())
-                        .responseTimestamp(lateRequest.getExtension().getReviewerResponseTimestamp())
-                    : null)
-        ).toList());
+        return ResponseEntity.ok(lateRequests.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
@@ -176,20 +121,7 @@ public class StudentApiImpl implements StudentApiDelegate {
             lateRequestDTO.getStatus(),
             lateRequestDTO.getExtension());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new LateRequestDTO()
-            .id(lateRequest.getId().toString())
-            .numDaysRequested(lateRequest.getDaysRequested())
-            .requestType(LateRequestDTO.RequestTypeEnum.fromValue(lateRequest.getRequestType().name().toLowerCase()))
-            .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name().toLowerCase()))
-            .dateSubmitted(lateRequest.getSubmissionDate())
-            .extension(lateRequest.getExtension() != null ?
-                new ExtensionDTO()
-                    .id(lateRequest.getExtension().getId().toString())
-                    .reason(lateRequest.getExtension().getReason())
-                    .comments(lateRequest.getExtension().getComments())
-                    .responseToRequester(lateRequest.getExtension().getReviewerResponse())
-                    .responseTimestamp(lateRequest.getExtension().getReviewerResponseTimestamp())
-                : null));
+        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(lateRequest));
     }
 }
 
