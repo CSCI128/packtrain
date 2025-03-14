@@ -112,17 +112,18 @@ public class MigrationService {
     }
 
     @Transactional
-    public Optional<MasterMigration> addMigration(String masterMigrationId, String assignmentId, String policyUri){
+    public Optional<MasterMigration> addMigration(String masterMigrationId, String assignmentId, String policyURI){
         MasterMigration masterMigration = masterMigrationRepo.getMasterMigrationByMasterMigrationId(UUID.fromString(masterMigrationId));
         Migration migration = new Migration();
         URI uri;
 
         try {
-            uri = new URI(policyUri);
+            uri = new URI(policyURI);
 
         } catch (URISyntaxException e){
             return Optional.empty();
         }
+
         Optional<Policy> policy = courseService.getPolicy(uri);
         if (policy.isEmpty()){
             return Optional.empty();
@@ -150,11 +151,24 @@ public class MigrationService {
         return migrationRepo.getMigrationById(UUID.fromString(migrationId));
     }
 
-    public Optional<Migration> updatePolicyForMigration(String migrationId, Policy newPolicy){
+    public Optional<Migration> updatePolicyForMigration(String migrationId, String policyURI){
         Migration updatedMigration = migrationRepo.getMigrationById(UUID.fromString(migrationId));
-        updatedMigration.setPolicy(newPolicy);
-        migrationRepo.save(updatedMigration);
-        return Optional.of(updatedMigration);
+        URI uri;
+
+        try {
+            uri = new URI(policyURI);
+
+        } catch (URISyntaxException e){
+            return Optional.empty();
+        }
+
+        Optional<Policy> policy = courseService.getPolicy(uri);
+        if (policy.isEmpty()){
+            return Optional.empty();
+        }
+
+        updatedMigration.setPolicy(policy.get());
+        return Optional.of(migrationRepo.save(updatedMigration));
     }
 
 }
