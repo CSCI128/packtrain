@@ -87,7 +87,7 @@ public class TestRawScoreService implements PostgresTestContainer {
         // Singular test get on saved score
         Optional<RawScore> score = rawScoreService.getRawScoreFromCwidAndAssignmentId("12344321", testId);
         Assertions.assertFalse(score.isEmpty());
-        Assertions.assertEquals(SubmissionStatus.GRADED, score.get().getSubmissionStatus());
+        Assertions.assertEquals(SubmissionStatus.LATE, score.get().getSubmissionStatus());
 
         // Test weird conversion fields
         score = rawScoreService.getRawScoreFromCwidAndAssignmentId("121212", testId);
@@ -177,9 +177,9 @@ public class TestRawScoreService implements PostgresTestContainer {
         Assertions.assertEquals(6.0, rawScoreList.get(1).getScore());
         Assertions.assertEquals(12.0, rawScoreList.get(2).getScore());
 
-        Assertions.assertEquals(SubmissionStatus.GRADED, rawScoreList.get(0).getSubmissionStatus());
-        Assertions.assertEquals(SubmissionStatus.GRADED, rawScoreList.get(1).getSubmissionStatus());
-        Assertions.assertEquals(SubmissionStatus.GRADED, rawScoreList.get(2).getSubmissionStatus());
+        Assertions.assertEquals(SubmissionStatus.ON_TIME, rawScoreList.get(0).getSubmissionStatus());
+        Assertions.assertEquals(SubmissionStatus.ON_TIME, rawScoreList.get(1).getSubmissionStatus());
+        Assertions.assertEquals(SubmissionStatus.LATE, rawScoreList.get(2).getSubmissionStatus());
 
         Assertions.assertEquals(0, rawScoreList.get(0).getHoursLate());
         Assertions.assertEquals(0, rawScoreList.get(1).getHoursLate());
@@ -229,9 +229,9 @@ public class TestRawScoreService implements PostgresTestContainer {
         Assertions.assertEquals(4.0, rawScoreList.get(1).getScore());
         Assertions.assertEquals(0.0, rawScoreList.get(2).getScore());
 
-        Assertions.assertEquals(SubmissionStatus.UNGRADED, rawScoreList.get(0).getSubmissionStatus());
-        Assertions.assertEquals(SubmissionStatus.UNGRADED, rawScoreList.get(1).getSubmissionStatus());
-        Assertions.assertEquals(SubmissionStatus.UNGRADED, rawScoreList.get(2).getSubmissionStatus());
+        Assertions.assertEquals(SubmissionStatus.ON_TIME, rawScoreList.get(0).getSubmissionStatus());
+        Assertions.assertEquals(SubmissionStatus.ON_TIME, rawScoreList.get(1).getSubmissionStatus());
+        Assertions.assertEquals(SubmissionStatus.LATE, rawScoreList.get(2).getSubmissionStatus());
 
         Assertions.assertEquals(0, rawScoreList.get(0).getHoursLate());
         Assertions.assertEquals(0, rawScoreList.get(1).getHoursLate());

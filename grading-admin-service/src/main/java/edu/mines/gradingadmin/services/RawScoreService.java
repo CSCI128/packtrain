@@ -75,10 +75,9 @@ public class RawScoreService {
         String cwid = line[CWID_IDX];
 
         String status = line[STATUS_IDX].trim();
-        SubmissionStatus submissionStatus = mapSubmissionStatus(status);
 
-        if(submissionStatus == SubmissionStatus.MISSING){
-            return createOrUpdateRawScore(migrationId, cwid, null, null, null, submissionStatus);
+        if(status.equals("Missing")){
+            return createOrUpdateRawScore(migrationId, cwid, null, null, null, SubmissionStatus.MISSING);
         }else{
             double score = Double.parseDouble(line[SCORE_IDX]);
 
@@ -95,18 +94,13 @@ public class RawScoreService {
             hoursLate += Double.parseDouble(lateTime[1])/60;
             hoursLate += Double.parseDouble(lateTime[2])/3600;
 
+            SubmissionStatus submissionStatus = SubmissionStatus.ON_TIME;
+            if(hoursLate > 0)
+                submissionStatus = SubmissionStatus.LATE;
+
             return createOrUpdateRawScore(migrationId, cwid, score, submissionTime, hoursLate, submissionStatus);
         }
 
-    }
-
-    public SubmissionStatus mapSubmissionStatus(String status){
-        return switch (status) {
-            case "Graded" -> SubmissionStatus.GRADED;
-            case "Ungraded" -> SubmissionStatus.UNGRADED;
-            case "Missing" -> SubmissionStatus.MISSING;
-            default -> SubmissionStatus.UNKNOWN;
-        };
     }
 
     public RawScore createOrUpdateRawScore(UUID migrationId, String cwid, Double score, Instant submissionTime, Double hoursLate, SubmissionStatus submissionStatus){
