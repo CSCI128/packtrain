@@ -2046,7 +2046,6 @@ components:
       description: "An assignment in a course"
       type: object
       required:
-        - id
         - name
         - points
         - due_date
@@ -2061,6 +2060,9 @@ components:
         name:
           type: string
           example: "Assessment 1"
+        category:
+          type: string
+          example: "Quiz"
         canvas_id:
           type: integer
           format: int64
@@ -2069,6 +2071,12 @@ components:
           type: number
           format: double
           example: 15.0
+        external_service:
+          type: string
+          example: "Gradescope"
+        external_points:
+          type: integer
+          example: 14
         due_date:
           type: string
           format: date-time
@@ -2086,9 +2094,9 @@ components:
         attention_required:
           type: boolean
           example: false
-        category:
-          type: string
-          example: "Quiz"
+        frozen:
+          type: boolean
+          example: false
     Course:
       description: "A complete course"
       type: object

@@ -1031,9 +1031,11 @@ export interface components {
         /** @description An assignment in a course */
         Assignment: {
             /** @example 999-9999-9999-99 */
-            id: string;
+            id?: string;
             /** @example Assessment 1 */
             name: string;
+            /** @example Quiz */
+            category: string;
             /**
              * Format: int64
              * @example 1245678
@@ -1044,6 +1046,10 @@ export interface components {
              * @example 15
              */
             points: number;
+            /** @example Gradescope */
+            external_service?: string;
+            /** @example 14 */
+            external_points?: number;
             /**
              * Format: date-time
              * @example 2020-01-15T12:00:00.000Z
@@ -1060,8 +1066,8 @@ export interface components {
             group_assignment?: boolean;
             /** @example false */
             attention_required?: boolean;
-            /** @example Quiz */
-            category: string;
+            /** @example false */
+            frozen?: boolean;
         };
         /** @description A complete course */
         Course: {
