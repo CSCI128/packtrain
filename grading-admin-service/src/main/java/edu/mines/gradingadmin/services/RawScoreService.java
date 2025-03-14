@@ -76,30 +76,29 @@ public class RawScoreService {
 
         String status = line[STATUS_IDX].trim();
 
-        if(status.equals("Missing")){
+        if(status.equals("Missing"))
             return createOrUpdateRawScore(migrationId, cwid, null, null, null, SubmissionStatus.MISSING);
-        }else{
-            double score = Double.parseDouble(line[SCORE_IDX]);
 
-            Instant submissionTime = LocalDateTime.parse(
-                    line[SUBMISSION_TIME_IDX],
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z", Locale.US)
-            ).atZone(
-                    ZoneId.of("America/Denver")
-            ).toInstant();
+        double score = Double.parseDouble(line[SCORE_IDX]);
 
-            double hoursLate = 0.0;
-            String[] lateTime = line[HOURS_LATE_IDX].split(":");
-            hoursLate += Double.parseDouble(lateTime[0]);
-            hoursLate += Double.parseDouble(lateTime[1])/60;
-            hoursLate += Double.parseDouble(lateTime[2])/3600;
+        Instant submissionTime = LocalDateTime.parse(
+                line[SUBMISSION_TIME_IDX],
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z", Locale.US)
+        ).atZone(
+                ZoneId.of("America/Denver")
+        ).toInstant();
 
-            SubmissionStatus submissionStatus = SubmissionStatus.ON_TIME;
-            if(hoursLate > 0)
-                submissionStatus = SubmissionStatus.LATE;
+        double hoursLate = 0.0;
+        String[] lateTime = line[HOURS_LATE_IDX].split(":");
+        hoursLate += Double.parseDouble(lateTime[0]);
+        hoursLate += Double.parseDouble(lateTime[1])/60;
+        hoursLate += Double.parseDouble(lateTime[2])/3600;
 
-            return createOrUpdateRawScore(migrationId, cwid, score, submissionTime, hoursLate, submissionStatus);
-        }
+        SubmissionStatus submissionStatus = SubmissionStatus.ON_TIME;
+        if(hoursLate > 0)
+            submissionStatus = SubmissionStatus.LATE;
+
+        return createOrUpdateRawScore(migrationId, cwid, score, submissionTime, hoursLate, submissionStatus);
 
     }
 
@@ -107,7 +106,6 @@ public class RawScoreService {
         RawScore rawScore;
         if(rawScoreRepo.existsByCwidAndMigrationId(cwid, migrationId)){
             Optional<RawScore> oldRawScore = rawScoreRepo.getByCwidAndMigrationId(cwid, migrationId);
-            System.out.println(oldRawScore);
             rawScore = updateRawScore(oldRawScore.get(), score, submissionTime, hoursLate, submissionStatus);
         }else{
             rawScore = createRawScore(migrationId, cwid, score, submissionTime, hoursLate, submissionStatus);
