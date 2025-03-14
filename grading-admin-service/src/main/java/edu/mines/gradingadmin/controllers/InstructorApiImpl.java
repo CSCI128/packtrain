@@ -5,6 +5,7 @@ import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
 import edu.mines.gradingadmin.services.MigrationService;
@@ -24,12 +25,14 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
     private final MigrationService migrationService;
+    private final MasterMigrationRepo masterMigrationRepo;
 
-    public InstructorApiImpl(CourseService courseService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService) {
+    public InstructorApiImpl(CourseService courseService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService, MasterMigrationRepo masterMigrationRepo) {
         this.courseService = courseService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
         this.migrationService = migrationService;
+        this.masterMigrationRepo = masterMigrationRepo;
     }
 
     @Override
@@ -102,5 +105,33 @@ public class InstructorApiImpl implements InstructorApiDelegate {
                 .toList());
     }
 
+    @Override
+    public ResponseEntity<MasterMigrationDTO> createMasterMigration(String courseId, MasterMigrationDTO masterMigrationDTO){
+        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(courseId);
+        if (masterMigration.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().migrationId(masterMigration.get().getId().toString()));
+    }
 
+    @Override
+    public ResponseEntity<MigrationDTO> updatePolicy(String courseId, String migrationId, String assignmentId, PolicyDTO policyDTO){
+        Optional<Migration> newMigration = migrationService.updatePolicyForMigration(migrationId, policyDTO.getUri());
+        if (newMigration.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.accepted().build();
+    }
+
+
+    @Override
+    public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(String courseId, String masterMigrationId, MigrationDTO migrationDTO) {
+        AssignmentDTO assignment = migrationDTO.getAssignment();
+        PolicyDTO policy = migrationDTO.getPolicy();
+        Optional<MasterMigration> masterMigration = migrationService.addMigration(masterMigrationId, assignment.getId(), policy.getUri());
+        if (masterMigration.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().migrationId(masterMigration.get().getId().toString()));
+    }
 }

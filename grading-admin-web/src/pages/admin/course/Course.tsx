@@ -19,35 +19,9 @@ export function CoursePage() {
     }
   );
 
-  const mutation = $api.useMutation("post", "/admin/courses/{course_id}/sync");
-
   if (isLoading || !data) return "Loading...";
 
   if (error) return `An error occured: ${error}`;
-
-  const syncAssignments = () => {
-    mutation.mutate(
-      {
-        params: {
-          path: {
-            course_id: "1",
-          },
-        },
-        body: {
-          canvas_id: 1,
-          overwrite_name: false,
-          overwrite_code: false,
-          import_users: true,
-          import_assignments: true,
-        },
-      },
-      {
-        onSuccess: (response) => {
-          console.log(response);
-        },
-      }
-    );
-  };
 
   return (
     <>
@@ -74,9 +48,6 @@ export function CoursePage() {
         <Group mt={15} gap="xs">
           <Button component={Link} to="/admin/edit" variant="filled">
             Edit
-          </Button>
-          <Button onClick={syncAssignments} variant="filled">
-            Sync Assignments
           </Button>
         </Group>
       </Container>

@@ -280,7 +280,12 @@ export interface paths {
          *
          */
         get: operations["get_all_users"];
-        put?: never;
+        /**
+         * Updates a user's information, including admin and disabled/enabled status
+         * @description Updates a user's information based on the User provided in body and provided JWT.
+         *
+         */
+        put: operations["admin_update_user"];
         /**
          * Create a new user
          * @description Creates a new user.
@@ -876,6 +881,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/student/courses/{course_id}/extensions/{extension_id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Withdraw a submitted extension
+         * @description Deletes (withdraws) a submitted extension
+         *     by id for the given student.
+         *
+         */
+        delete: operations["withdraw_extension"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/instructor/courses/{course_id}/migrations/{migration_id}": {
         parameters: {
             query?: never;
@@ -1031,9 +1058,11 @@ export interface components {
         /** @description An assignment in a course */
         Assignment: {
             /** @example 999-9999-9999-99 */
-            id: string;
+            id?: string;
             /** @example Assessment 1 */
             name: string;
+            /** @example Quiz */
+            category: string;
             /**
              * Format: int64
              * @example 1245678
@@ -1044,6 +1073,10 @@ export interface components {
              * @example 15
              */
             points: number;
+            /** @example Gradescope */
+            external_service?: string;
+            /** @example 14 */
+            external_points?: number;
             /**
              * Format: date-time
              * @example 2020-01-15T12:00:00.000Z
@@ -1060,8 +1093,8 @@ export interface components {
             group_assignment?: boolean;
             /** @example false */
             attention_required?: boolean;
-            /** @example Quiz */
-            category: string;
+            /** @example false */
+            frozen?: boolean;
         };
         /** @description An slim assignment in a course */
         AssignmentSlim: {
@@ -1746,6 +1779,30 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["User"][];
+                };
+            };
+        };
+    };
+    admin_update_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["User"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
                 };
             };
         };
@@ -2701,6 +2758,38 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["LateRequest"];
                 };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    withdraw_extension: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+                /** @description The extension ID */
+                extension_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Extension not found */
             404: {

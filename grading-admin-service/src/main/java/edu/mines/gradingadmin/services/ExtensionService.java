@@ -90,4 +90,8 @@ public class ExtensionService {
         }
         return Optional.ofNullable(lateRequestRepo.getLateRequestById(id));
     }
+
+    public void deleteLateRequest(LateRequest lateRequest) {
+        lateRequestRepo.delete(lateRequest);
+    }
 }

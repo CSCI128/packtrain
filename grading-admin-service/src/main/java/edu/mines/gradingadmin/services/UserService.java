@@ -44,7 +44,7 @@ public class UserService {
     public Optional<User> updateUser(UserDTO userDTO){
         Optional<User> user = getUserByCwid(userDTO.getCwid());
 
-        if (user.isEmpty()){
+        if (user.isEmpty()) {
             return Optional.empty();
         }
 

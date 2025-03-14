@@ -17,6 +17,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URI;
 import java.util.*;
 
 @Slf4j
@@ -193,4 +194,15 @@ public class CourseService {
 
         return policyRepo.getPoliciesByCourse(course.get());
     }
+
+    public Optional<Policy> getPolicy(URI policyURI){
+        Optional<Policy> policy = policyRepo.getPolicyByURI(policyURI.toString());
+
+        if (policy.isEmpty()){
+            return Optional.empty();
+        }
+
+        return policy;
+    }
+
 }

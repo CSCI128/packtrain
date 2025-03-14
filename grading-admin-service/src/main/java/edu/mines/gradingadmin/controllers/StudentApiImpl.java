@@ -123,5 +123,16 @@ public class StudentApiImpl implements StudentApiDelegate {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(lateRequest));
     }
+
+    @Override
+    public ResponseEntity<Void> withdrawExtension(String courseId, String extensionId) {
+        Optional<LateRequest> lateRequest = extensionService.getLateRequest(UUID.fromString(extensionId));
+
+        if(lateRequest.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        extensionService.deleteLateRequest(lateRequest.get());
+        return ResponseEntity.noContent().build();
+    }
 }
 
