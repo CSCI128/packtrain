@@ -9,14 +9,18 @@ import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
 import edu.mines.gradingadmin.repositories.MigrationRepo;
 import edu.mines.gradingadmin.repositories.MigrationTransactionLogRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
+import edu.mines.gradingadmin.services.external.PolicyServerService;
+import edu.mines.gradingadmin.services.external.RabbitMqService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 @Service
 @Slf4j
@@ -29,8 +33,10 @@ public class MigrationService {
     private final CourseService courseService;
     private final AssignmentService assignmentService;
     private final ApplicationEventPublisher eventPublisher;
+    private final RabbitMqService rabbitMqService;
+    private final PolicyServerService policyServerService;
 
-    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher){
+    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService){
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
@@ -39,6 +45,8 @@ public class MigrationService {
         this.courseService = courseService;
         this.assignmentService = assignmentService;
         this.eventPublisher = eventPublisher;
+        this.rabbitMqService = rabbitMqService;
+        this.policyServerService = policyServerService;
     }
 
     public MasterMigration createMigrationForAssignments(Course course, List<Policy> policyList, List<Assignment> assignmentList){
@@ -61,11 +69,11 @@ public class MigrationService {
 
     }
 
-    public void handleScoreReceived(User asUser, Migration migration, ScoredDTO dto){
+    public void handleScoreReceived(User asUser, UUID migrationId, ScoredDTO dto){
         MigrationTransactionLog entry = new MigrationTransactionLog();
         entry.setPerformedByUser(asUser);
         entry.setCwid(dto.getCwid());
-        entry.setMigrationId(migration.getId());
+        entry.setMigrationId(migrationId);
         entry.setExtensionId(dto.getExtensionId());
         if (entry.getExtensionId() != null){
             entry.setExtensionApplied(dto.getExtensionStatus().equals(ScoredDTO.ExtensionStatus.APPLIED));
@@ -177,7 +185,27 @@ public class MigrationService {
 
 
     public void processScoresAndExtensionsTask(ProcessScoresAndExtensionsTaskDef task){
+        Optional<Assignment> assignment = assignmentService.getAssignmentById(task.getAssignmentId().toString());
 
+        if (assignment.isEmpty()){
+            throw new RuntimeException(String.format("Failed to get assignment '%s'", task.getAssignmentId()));
+        }
+        RabbitMqService.MigrationConfig config;
+
+        try {
+           config = rabbitMqService.createMigrationConfig(task.getMigrationId())
+                    .forAssignment(assignment.get())
+                    .withPolicy(task.getPolicy())
+                    .withOnScoreReceived(dto -> this.handleScoreReceived(task.getCreatedByUser(), task.getMigrationId(), dto))
+                    .build();
+        } catch (IOException | TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+
+        policyServerService.startGrading(config.getGradingStartDTO());
+
+        // todo: get raw scores
+        // todo: send raw scores
     }
 
     @Transactional
@@ -203,6 +231,7 @@ public class MigrationService {
             task.setTaskName(String.format("Process scores and extensions for assignment '%s'", assignment.getName()));
             task.setMigrationId(migration.getId());
             task.setAssignmentId(migration.getId());
+            task.setPolicy(URI.create(migration.getPolicy().getPolicyURI()));
             task = taskRepo.save(task);
 
             tasks.add(task);
