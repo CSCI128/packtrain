@@ -191,5 +191,16 @@ public class StudentApiImpl implements StudentApiDelegate {
                     .responseTimestamp(lateRequest.getExtension().getReviewerResponseTimestamp())
                 : null));
     }
+
+    @Override
+    public ResponseEntity<Void> withdrawExtension(String courseId, String extensionId) {
+        Optional<LateRequest> lateRequest = extensionService.getLateRequest(UUID.fromString(extensionId));
+
+        if(lateRequest.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        extensionService.deleteLateRequest(lateRequest.get());
+        return ResponseEntity.noContent().build();
+    }
 }
 

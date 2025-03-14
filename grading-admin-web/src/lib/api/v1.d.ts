@@ -876,6 +876,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/student/courses/{course_id}/extensions/{extension_id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Withdraw a submitted extension
+         * @description Deletes (withdraws) a submitted extension
+         *     by id for the given student.
+         *
+         */
+        delete: operations["withdraw_extension"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/instructor/courses/{course_id}/migrations/{migration_id}": {
         parameters: {
             query?: never;
@@ -2666,6 +2688,38 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["LateRequest"];
                 };
+            };
+            /** @description Extension not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    withdraw_extension: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+                /** @description The extension ID */
+                extension_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Extension not found */
             404: {
