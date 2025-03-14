@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,7 +55,7 @@ public class TestRawScoreService implements PostgresTestContainer {
     @Test
     @SneakyThrows
     void testSkipFirst(){
-        String fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S),,,,,,,,,,,,,,,,,,\n";
+        String fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
@@ -67,11 +70,11 @@ public class TestRawScoreService implements PostgresTestContainer {
     @SneakyThrows
     void testParse(){
 
-        String fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S),,,,,,,,,,,,,,,,,,\n" +
-                "Jane,Doe,12344321,,,,12.0,12.0,Graded,,2022-06-25 13:16:26 -0600,13:29:30,,,,,,,,,,,,,,,,,,\n" +
-                "Tester,Testing,testtest,,,,12.0,12.0,Graded,,2022-06-25 13:16:58 -0600,00:00:00,,,,,,,,,,,,,,,,,,\n" +
-                "Jimmy,yyy,jimmyyyy,,,,11.5,12.0,Graded,,2022-06-25 13:25:12 -0600,07:32:50,,,,,,,,,,,,,,,,,,\n" +
-                "Joe,Jam,121212,,,,,12.0,Missing,,,,,,,,,,,,,,,,,,,,,\n";
+        String fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n" +
+                "Jane,Doe,12344321,,,,12.0,12.0,Graded,,2022-06-25 13:16:26 -0600,13:29:30\n" +
+                "Tester,Testing,testtest,,,,12.0,12.0,Graded,,2022-06-25 13:16:58 -0600,00:00:00\n" +
+                "Jimmy,yyy,jimmyyyy,,,,11.5,12.0,Graded,,2022-06-25 13:25:12 -0600,07:32:50\n" +
+                "Joe,Jam,121212,,,,,12.0,Missing\n";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
@@ -97,15 +100,20 @@ public class TestRawScoreService implements PostgresTestContainer {
         score = rawScoreService.getRawScoreFromCwidAndAssignmentId("jimmyyyy", testId);
         Assertions.assertEquals(11.5, score.get().getScore());
         Assertions.assertEquals(7.5472, score.get().getHoursLate(), 0.001);
-        Assertions.assertEquals("2022-06-25T19:25:12Z", score.get().getSubmissionTime().toString());
+
+        LocalDateTime localDateTime = LocalDateTime.of(2022, 6, 25, 13, 25, 12);
+        ZoneOffset zoneOffset = ZoneOffset.of("-06:00");
+        Instant instant = localDateTime.toInstant(zoneOffset);
+
+        Assertions.assertEquals(instant, score.get().getSubmissionTime());
 
     }
 
     @Test
     @SneakyThrows
     void testOverwrite(){
-        String fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S),,,,,,,,,,,,,,,,,,\n" +
-                "Jane,Doe,12344321,,,,0.0,12.0,Graded,,2022-06-25 13:16:26 -0600,13:29:30,,,,,,,,,,,,,,,,,,\n";
+        String fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n" +
+                "Jane,Doe,12344321,,,,0.0,12.0,Graded,,2022-06-25 13:16:26 -0600,13:29:30\n";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
@@ -113,8 +121,8 @@ public class TestRawScoreService implements PostgresTestContainer {
 
         RawScore firstRawScore = rawScoreService.uploadCSV(file, testId).getFirst();
 
-        fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S),,,,,,,,,,,,,,,,,,\n" +
-                "Jane,Doe,12344321,,,,12.0,12.0,Graded,,2022-07-25 23:20:26 -0600,15:29:30,,,,,,,,,,,,,,,,,,\n";
+        fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n" +
+                "Jane,Doe,12344321,,,,12.0,12.0,Graded,,2022-07-25 23:20:26 -0600,15:29:30\n";
 
         file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
         testId = UUID.randomUUID();
@@ -126,15 +134,14 @@ public class TestRawScoreService implements PostgresTestContainer {
         Assertions.assertNotEquals(firstRawScore.getHoursLate(), secondRawScore.getHoursLate(), 0.0001);
 
     }
-    // TODO: Add a test for all Graded, all Ungraded, all Missing.
 
     @Test
     @SneakyThrows
     void testAllGraded(){
-        String fileContent = "First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S),View Count,Submission Count,1.1: A (0.25 pts),1.2: B (0.25 pts),1.3: C (0.25 pts),1.4: D (0.25 pts),2.1: A (0.5 pts),2.2: B (0.5 pts),2.3: C (0.5 pts),2.4: D (0.5 pts),3: Drawing Truth Table from Expression (2.0 pts),4.1: A (0.5 pts),4.2: B (0.5 pts),4.3: C (0.5 pts),4.4: D (0.5 pts),5: Output from Circuit Diagram (1.0 pts),6: Circuit Diagram from Boolean Expression (2.0 pts),7: Boolean Expression and Circuit Diagram from Table (2.0 pts)\n" +
-                "Elena,Ramirez,10866111,emramirez@mines.edu,,,8.0,12.0,Graded,128746829,2022-06-25 13:16:26 -0600,00:00:00,0,1,0.25,0.25,0.25,0.25,0.5,0.5,0.5,0.5,2.0,0.5,0.5,0.5,0.5,1.0,2.0,2.0\n" +
-                "Megan,Shapiro,mshapiro,mshapiro@mines.edu,,,6.0,12.0,Graded,128746844,2022-06-25 13:16:58 -0600,00:00:00,0,1,0.25,0.25,0.25,0.25,0.5,0.5,0.5,0.5,2.0,0.5,0.5,0.5,0.5,1.0,2.0,2.0\n" +
-                "Robert,Christian,10868072,rchristian@mymail.mines.edu,,,12.0,12.0,Graded,128746851,2022-06-25 13:17:12 -0600,02:00:00,0,1,0.25,0.25,0.25,0.25,0.5,0.5,0.5,0.5,2.0,0.5,0.5,0.5,0.5,1.0,2.0,2.0";
+        String fileContent = "First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S)\n" +
+                "Samual,Mcsam,101,samualmcsam@mines.edu,,,8.0,12.0,Graded,128746829,2022-06-25 13:16:26 -0600,00:00:00\n" +
+                "Robert,Bob,robbob,robbob@mines.edu,,,6.0,12.0,Graded,128746844,2022-06-25 13:16:58 -0600,00:00:00\n" +
+                "Null,IdontNull,abcdefg,nullnullnull@mymail.mines.edu,,,12.0,12.0,Graded,128746851,2022-06-25 13:17:12 -0600,02:00:00";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
@@ -142,13 +149,25 @@ public class TestRawScoreService implements PostgresTestContainer {
 
         List<RawScore> rawScoreList = rawScoreService.uploadCSV(file, testId);
 
-        Assertions.assertEquals("10866111", rawScoreList.get(0).getCwid());
-        Assertions.assertEquals("mshapiro", rawScoreList.get(1).getCwid());
-        Assertions.assertEquals("10868072", rawScoreList.get(2).getCwid());
+        Assertions.assertEquals("101", rawScoreList.get(0).getCwid());
+        Assertions.assertEquals("robbob", rawScoreList.get(1).getCwid());
+        Assertions.assertEquals("abcdefg", rawScoreList.get(2).getCwid());
 
-        Assertions.assertEquals("2022-06-25T19:16:26Z", rawScoreList.get(0).getSubmissionTime().toString());
-        Assertions.assertEquals("2022-06-25T19:16:58Z", rawScoreList.get(1).getSubmissionTime().toString());
-        Assertions.assertEquals("2022-06-25T19:17:12Z", rawScoreList.get(2).getSubmissionTime().toString());
+        LocalDateTime localDateTime = LocalDateTime.of(2022, 6, 25, 13, 16, 26);
+        ZoneOffset zoneOffset = ZoneOffset.of("-06:00");
+        Instant instant = localDateTime.toInstant(zoneOffset);
+
+        Assertions.assertEquals(instant, rawScoreList.get(0).getSubmissionTime());
+
+        localDateTime = LocalDateTime.of(2022, 6, 25, 13, 16, 58);
+        instant = localDateTime.toInstant(zoneOffset);
+
+        Assertions.assertEquals(instant, rawScoreList.get(1).getSubmissionTime());
+
+        localDateTime = LocalDateTime.of(2022, 6, 25, 13, 17, 12);
+        instant = localDateTime.toInstant(zoneOffset);
+
+        Assertions.assertEquals(instant, rawScoreList.get(2).getSubmissionTime());
 
         Assertions.assertNotNull(rawScoreList.get(0));
         Assertions.assertNotNull(rawScoreList.get(1));
@@ -171,10 +190,10 @@ public class TestRawScoreService implements PostgresTestContainer {
     @Test
     @SneakyThrows
     void testAllUngraded(){
-        String fileContent = "First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S),View Count,Submission Count,1.1: A (0.25 pts),1.2: B (0.25 pts),1.3: C (0.25 pts),1.4: D (0.25 pts),2.1: A (0.5 pts),2.2: B (0.5 pts),2.3: C (0.5 pts),2.4: D (0.5 pts),3: Drawing Truth Table from Expression (2.0 pts),4.1: A (0.5 pts),4.2: B (0.5 pts),4.3: C (0.5 pts),4.4: D (0.5 pts),5: Output from Circuit Diagram (1.0 pts),6: Circuit Diagram from Boolean Expression (2.0 pts),7: Boolean Expression and Circuit Diagram from Table (2.0 pts)\n" +
-                "Elena,Ramirez,10866111,emramirez@mines.edu,,,8.0,12.0,Ungraded,128746829,2022-06-25 13:16:26 -0600,00:00:00,0,1,0.25,0.25,0.25,0.25,0.5,0.5,0.5,0.5,2.0,0.5,0.5,0.5,0.5,1.0,2.0,2.0\n" +
-                "Megan,Shapiro,mshapiro,mshapiro@mines.edu,,,6.0,12.0,Ungraded,128746844,2022-06-25 13:16:58 -0600,00:00:00,0,1,0.25,0.25,0.25,0.25,0.5,0.5,0.5,0.5,2.0,0.5,0.5,0.5,0.5,1.0,2.0,2.0\n" +
-                "Robert,Christian,10868072,rchristian@mymail.mines.edu,,,12.0,12.0,Ungraded,128746851,2022-06-25 13:17:12 -0600,02:00:00,0,1,0.25,0.25,0.25,0.25,0.5,0.5,0.5,0.5,2.0,0.5,0.5,0.5,0.5,1.0,2.0,2.0";
+        String fileContent = "First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S)\n" +
+                "Samual,Mcsam,101,samualmcsam@mines.edu,,,6.0,12.0,Ungraded,128746829,2022-06-25 13:16:26 -0600,00:00:00\n" +
+                "Robert,Bob,robbob,robbob@mines.edu,,,4.0,12.0,Ungraded,128746844,2022-06-25 13:16:58 -0600,00:00:00\n" +
+                "Null,IdontNull,abcdefg,nullnullnull@mymail.mines.edu,,,0.0,12.0,Ungraded,128746851,2022-06-25 13:17:12 -0600,02:00:00";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
@@ -182,21 +201,33 @@ public class TestRawScoreService implements PostgresTestContainer {
 
         List<RawScore> rawScoreList = rawScoreService.uploadCSV(file, testId);
 
-        Assertions.assertEquals("10866111", rawScoreList.get(0).getCwid());
-        Assertions.assertEquals("mshapiro", rawScoreList.get(1).getCwid());
-        Assertions.assertEquals("10868072", rawScoreList.get(2).getCwid());
+        Assertions.assertEquals("101", rawScoreList.get(0).getCwid());
+        Assertions.assertEquals("robbob", rawScoreList.get(1).getCwid());
+        Assertions.assertEquals("abcdefg", rawScoreList.get(2).getCwid());
 
-        Assertions.assertEquals("2022-06-25T19:16:26Z", rawScoreList.get(0).getSubmissionTime().toString());
-        Assertions.assertEquals("2022-06-25T19:16:58Z", rawScoreList.get(1).getSubmissionTime().toString());
-        Assertions.assertEquals("2022-06-25T19:17:12Z", rawScoreList.get(2).getSubmissionTime().toString());
+        LocalDateTime localDateTime = LocalDateTime.of(2022, 6, 25, 13, 16, 26);
+        ZoneOffset zoneOffset = ZoneOffset.of("-06:00");
+        Instant instant = localDateTime.toInstant(zoneOffset);
+
+        Assertions.assertEquals(instant, rawScoreList.get(0).getSubmissionTime());
+
+        localDateTime = LocalDateTime.of(2022, 6, 25, 13, 16, 58);
+        instant = localDateTime.toInstant(zoneOffset);
+
+        Assertions.assertEquals(instant, rawScoreList.get(1).getSubmissionTime());
+
+        localDateTime = LocalDateTime.of(2022, 6, 25, 13, 17, 12);
+        instant = localDateTime.toInstant(zoneOffset);
+
+        Assertions.assertEquals(instant, rawScoreList.get(2).getSubmissionTime());
 
         Assertions.assertNotNull(rawScoreList.get(0));
         Assertions.assertNotNull(rawScoreList.get(1));
         Assertions.assertNotNull(rawScoreList.get(2));
 
-        Assertions.assertEquals(8.0, rawScoreList.get(0).getScore());
-        Assertions.assertEquals(6.0, rawScoreList.get(1).getScore());
-        Assertions.assertEquals(12.0, rawScoreList.get(2).getScore());
+        Assertions.assertEquals(6.0, rawScoreList.get(0).getScore());
+        Assertions.assertEquals(4.0, rawScoreList.get(1).getScore());
+        Assertions.assertEquals(0.0, rawScoreList.get(2).getScore());
 
         Assertions.assertEquals(SubmissionStatus.UNGRADED, rawScoreList.get(0).getSubmissionStatus());
         Assertions.assertEquals(SubmissionStatus.UNGRADED, rawScoreList.get(1).getSubmissionStatus());
@@ -211,10 +242,10 @@ public class TestRawScoreService implements PostgresTestContainer {
     @Test
     @SneakyThrows
     void testAllMissing() {
-        String fileContent = "First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S),View Count,Submission Count,1.1: A (0.25 pts),1.2: B (0.25 pts),1.3: C (0.25 pts),1.4: D (0.25 pts),2.1: A (0.5 pts),2.2: B (0.5 pts),2.3: C (0.5 pts),2.4: D (0.5 pts),3: Drawing Truth Table from Expression (2.0 pts),4.1: A (0.5 pts),4.2: B (0.5 pts),4.3: C (0.5 pts),4.4: D (0.5 pts),5: Output from Circuit Diagram (1.0 pts),6: Circuit Diagram from Boolean Expression (2.0 pts),7: Boolean Expression and Circuit Diagram from Table (2.0 pts)\n" +
-                "Elena,Ramirez,10866111,emramirez@mines.edu,,,,12.0,Missing,128746829,,,0,1,0.25,0.25,0.25,0.25,0.5,0.5,0.5,0.5,2.0,0.5,0.5,0.5,0.5,1.0,2.0,2.0\n" +
-                "Megan,Shapiro,mshapiro,mshapiro@mines.edu,,,,12.0,Missing,128746844,,,0,1,0.25,0.25,0.25,0.25,0.5,0.5,0.5,0.5,2.0,0.5,0.5,0.5,0.5,1.0,2.0,2.0\n" +
-                "Robert,Christian,10868072,rchristian@mymail.mines.edu,,,,12.0,Missing,128746851,,,0,1,0.25,0.25,0.25,0.25,0.5,0.5,0.5,0.5,2.0,0.5,0.5,0.5,0.5,1.0,2.0,2.0";
+        String fileContent = "First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S)\n" +
+                "Samual,Mcsam,101,samualmcsam@mines.edu,,,,12.0,Missing,128746829,,\n" +
+                "Robert,Bob,robbob,robbob@mines.edu,,,,12.0,Missing,128746844,,\n" +
+                "Null,IdontNull,abcdefg,nullnullnull@mymail.mines.edu,,,,12.0,Missing,128746851,,";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
@@ -222,9 +253,9 @@ public class TestRawScoreService implements PostgresTestContainer {
 
         List<RawScore> rawScoreList = rawScoreService.uploadCSV(file, testId);
 
-        Assertions.assertEquals("10866111", rawScoreList.get(0).getCwid());
-        Assertions.assertEquals("mshapiro", rawScoreList.get(1).getCwid());
-        Assertions.assertEquals("10868072", rawScoreList.get(2).getCwid());
+        Assertions.assertEquals("101", rawScoreList.get(0).getCwid());
+        Assertions.assertEquals("robbob", rawScoreList.get(1).getCwid());
+        Assertions.assertEquals("abcdefg", rawScoreList.get(2).getCwid());
 
         Assertions.assertNull(rawScoreList.get(0).getSubmissionTime());
         Assertions.assertNull(rawScoreList.get(1).getSubmissionTime());
