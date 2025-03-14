@@ -35,6 +35,10 @@ public class MasterMigration {
     @Column(name = "num_extensions")
     private int numExtensions;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private MigrationStatus status = MigrationStatus.CREATED;
+
     @OneToMany()
     @JoinColumn(name = "migrations", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude

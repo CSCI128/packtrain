@@ -1,23 +1,22 @@
 package edu.mines.gradingadmin.services;
 
-import edu.mines.gradingadmin.data.AssignmentDTO;
-import edu.mines.gradingadmin.data.PolicyDTO;
 import edu.mines.gradingadmin.data.messages.ScoredDTO;
+import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.models.tasks.ProcessScoresAndExtensionsTaskDef;
+import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
 import edu.mines.gradingadmin.repositories.MigrationRepo;
 import edu.mines.gradingadmin.repositories.MigrationTransactionLogRepo;
+import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.C;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -25,17 +24,21 @@ public class MigrationService {
     private final MigrationRepo migrationRepo;
     private final MasterMigrationRepo masterMigrationRepo;
     private final MigrationTransactionLogRepo transactionLogRepo;
+    private final ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo;
     private final ExtensionService extensionService;
     private final CourseService courseService;
     private final AssignmentService assignmentService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService){
+    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher){
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
+        this.taskRepo = taskRepo;
         this.extensionService = extensionService;
         this.courseService = courseService;
         this.assignmentService = assignmentService;
+        this.eventPublisher = eventPublisher;
     }
 
     public MasterMigration createMigrationForAssignments(Course course, List<Policy> policyList, List<Assignment> assignmentList){
@@ -171,8 +174,45 @@ public class MigrationService {
         return Optional.of(migrationRepo.save(updatedMigration));
 
     }
-    public void startMigration(){
 
+
+    public void processScoresAndExtensionsTask(ProcessScoresAndExtensionsTaskDef task){
+
+    }
+
+    @Transactional
+    public List<ScheduledTaskDef> startMigration(User actingUser, String masterMigrationId ){
+        MasterMigration master = masterMigrationRepo.getMasterMigrationByMasterMigrationId(UUID.fromString(masterMigrationId));
+
+        if (master.getStatus() != MigrationStatus.CREATED){
+            log.warn("Migration is in invalid state to start a migration. {} != {}", master.getStatus().name(), MigrationStatus.CREATED.name());
+            return List.of();
+        }
+
+        List<Migration> migrations = migrationRepo.getMigrationListByMasterMigrationId(UUID.fromString(masterMigrationId));
+
+        log.info("Starting migration for {} assignments", migrations.size());
+
+        List<ScheduledTaskDef> tasks = new LinkedList<>();
+
+        for (Migration migration : migrations){
+            Assignment assignment = migration.getAssignment();
+
+            ProcessScoresAndExtensionsTaskDef task = new ProcessScoresAndExtensionsTaskDef();
+            task.setCreatedByUser(actingUser);
+            task.setTaskName(String.format("Process scores and extensions for assignment '%s'", assignment.getName()));
+            task.setMigrationId(migration.getId());
+            task.setAssignmentId(migration.getId());
+            task = taskRepo.save(task);
+
+            tasks.add(task);
+
+            NewTaskEvent.TaskData<ProcessScoresAndExtensionsTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::processScoresAndExtensionsTask);
+
+            eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
+        }
+
+        return tasks;
     }
 
 }
