@@ -9,6 +9,7 @@ import {
   keys,
   Modal,
   ScrollArea,
+  Stack,
   Table,
   Text,
   TextInput,
@@ -149,7 +150,7 @@ export function UsersPage() {
     },
   });
 
-  const handleEditOpen = (row: User) => {
+  const handleEditOpen = (row: components["schemas"]["User"]) => {
     setSelectedUser(row);
     editUserForm.setValues({
       name: row.name,
@@ -364,10 +365,7 @@ export function UsersPage() {
             Add User
           </Button>
         </Group>
-
-        <Divider my="sm" />
-
-        <ScrollArea h={750}>
+        <Stack mt={10}>
           <TextInput
             placeholder="Search by any field"
             mb="md"
@@ -375,6 +373,11 @@ export function UsersPage() {
             value={search}
             onChange={handleSearchChange}
           />
+        </Stack>
+
+        <Divider my="sm" />
+
+        <ScrollArea h={750}>
           <Table horizontalSpacing="md" verticalSpacing="xs" miw={700}>
             <Table.Tbody>
               <Table.Tr>
