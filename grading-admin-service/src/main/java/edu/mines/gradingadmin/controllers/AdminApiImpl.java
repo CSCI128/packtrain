@@ -309,14 +309,25 @@ public class AdminApiImpl implements AdminApiDelegate {
         }
 
         if(userDTO.getEnabled()) {
-            userService.enableUser(user.get().getCwid());
+            user = userService.enableUser(user.get().getCwid());
         }
         else {
-            userService.disableUser(user.get().getCwid());
+            user = userService.disableUser(securityManager.getUser(), user.get().getCwid());
+        }
+
+        if (user.isEmpty()){
+            return ResponseEntity.badRequest().build();
         }
 
         if(userDTO.getAdmin()) {
-            userService.makeAdmin(user.get().getCwid());
+            user = userService.makeAdmin(user.get().getCwid());
+        } else{
+            user = userService.demoteAdmin(securityManager.getUser(), user.get().getCwid());
+
+        }
+
+        if (user.isEmpty()){
+            return ResponseEntity.badRequest().build();
         }
 
         return ResponseEntity.accepted().body(new UserDTO()
@@ -341,7 +352,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<Void> disableUser(String cwid) {
-        Optional<User> user = userService.disableUser(cwid);
+        Optional<User> user = userService.disableUser(securityManager.getUser(), cwid);
 
         if (user.isEmpty()) {
             return ResponseEntity.notFound().build();
