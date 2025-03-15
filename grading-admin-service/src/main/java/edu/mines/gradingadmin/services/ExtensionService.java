@@ -66,7 +66,7 @@ public class ExtensionService {
     public LateRequest createLateRequest(String courseId,
                                          User user,
                                          LateRequestDTO.RequestTypeEnum requestType,
-                                         int daysRequested,
+                                         double daysRequested,
                                          Instant submissionDate,
                                          String assignmentId,
                                          LateRequestDTO.StatusEnum status,
