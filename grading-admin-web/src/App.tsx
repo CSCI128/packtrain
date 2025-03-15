@@ -1,4 +1,4 @@
-import { MantineProvider } from "@mantine/core";
+import { MantineProvider, Text } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -34,6 +34,14 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const NotFoundPage = () => {
+  return (
+    <>
+      <Text>The specified page could not be found!</Text>
+    </>
+  );
+};
 
 const MiddlewareLayout = () => {
   const navigate = useNavigate();
@@ -168,6 +176,10 @@ const router = createBrowserRouter([
           {
             path: "/profile",
             element: <ProfilePage />,
+          },
+          {
+            path: "*",
+            element: <NotFoundPage />,
           },
         ],
       },
