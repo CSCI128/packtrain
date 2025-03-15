@@ -6,28 +6,21 @@ import {
   Divider,
   Group,
   InputWrapper,
-  keys,
   Modal,
   ScrollArea,
   Stack,
   Table,
   Text,
   TextInput,
-  UnstyledButton,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import {
-  IconChevronDown,
-  IconChevronUp,
-  IconSearch,
-  IconSelector,
-} from "@tabler/icons-react";
+import { IconSearch } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { useAuth } from "react-oidc-context";
 import { $api } from "../../api";
-import classes from "../../components/table/Table.module.scss";
+import { sortData, TableHeader } from "../../components/table/Table";
 import { components } from "../../lib/api/v1";
 
 interface UserRowData {
@@ -35,74 +28,6 @@ interface UserRowData {
   cwid: string;
   name: string;
   admin: boolean;
-}
-
-interface TableHeaderProps {
-  children: React.ReactNode;
-  reversed: boolean;
-  sorted: boolean;
-  onSort: (() => void) | undefined;
-}
-
-function TableHeader({ children, reversed, sorted, onSort }: TableHeaderProps) {
-  const Icon = sorted
-    ? reversed
-      ? IconChevronUp
-      : IconChevronDown
-    : IconSelector;
-  return (
-    <Table.Th className={classes.th}>
-      {onSort !== undefined ? (
-        <UnstyledButton onClick={onSort} className={classes.control}>
-          <Group justify="space-between">
-            <Text fw={500} fz="sm">
-              {children}
-            </Text>
-            <Center className={classes.icon}>
-              <Icon size={16} stroke={1.5} />
-            </Center>
-          </Group>
-        </UnstyledButton>
-      ) : (
-        <Text fw={500} fz="sm" ta="center">
-          {children}
-        </Text>
-      )}
-    </Table.Th>
-  );
-}
-
-function filterData(data: UserRowData[], search: string) {
-  const query = search.toLowerCase().trim();
-  return data.filter((item) =>
-    keys(data[0]).some((key) => String(item[key]).toLowerCase().includes(query))
-  );
-}
-
-function sortData(
-  data: UserRowData[],
-  payload: {
-    sortBy: keyof UserRowData | null;
-    reversed: boolean;
-    search: string;
-  }
-) {
-  const { sortBy } = payload;
-
-  if (!sortBy) {
-    return filterData(data, payload.search);
-  }
-
-  return filterData(
-    [...data].sort((a, b) => {
-      if (payload.reversed) {
-        return String(b[sortBy]).localeCompare(String(a[sortBy]));
-      }
-
-      return String(a[sortBy]).localeCompare(String(b[sortBy]));
-    }),
-    payload.search
-  );
 }
 
 export function UsersPage() {
@@ -230,14 +155,20 @@ export function UsersPage() {
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
-    setSortedData(sortData(data, { sortBy: field, reversed, search }));
+    setSortedData(
+      sortData<UserRowData>(data, { sortBy: field, reversed, search })
+    );
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.currentTarget;
     setSearch(value);
     setSortedData(
-      sortData(data, { sortBy, reversed: reverseSortDirection, search: value })
+      sortData<UserRowData>(data, {
+        sortBy,
+        reversed: reverseSortDirection,
+        search: value,
+      })
     );
   };
 

@@ -1,92 +1,21 @@
 import {
-  Center,
   Container,
-  Group,
-  keys,
   ScrollArea,
   Table,
   Tabs,
   Text,
   TextInput,
-  UnstyledButton,
 } from "@mantine/core";
-import {
-  IconChevronDown,
-  IconChevronUp,
-  IconSearch,
-  IconSelector,
-} from "@tabler/icons-react";
+import { IconSearch } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 import { $api, store$ } from "../../api";
-import classes from "../../components/table/Table.module.scss";
+import { sortData, TableHeader } from "../../components/table/Table";
 
 interface MemberRowData {
   cwid: string;
   canvas_id: string;
   course_role: "student" | "instructor" | "ta" | "owner";
   sections?: string[] | undefined;
-}
-
-interface TableHeaderProps {
-  children: React.ReactNode;
-  reversed: boolean;
-  sorted: boolean;
-  onSort: () => void;
-}
-
-function TableHeader({ children, reversed, sorted, onSort }: TableHeaderProps) {
-  const Icon = sorted
-    ? reversed
-      ? IconChevronUp
-      : IconChevronDown
-    : IconSelector;
-  return (
-    <Table.Th className={classes.th}>
-      <UnstyledButton onClick={onSort} className={classes.control}>
-        <Group justify="space-between">
-          <Text fw={500} fz="sm">
-            {children}
-          </Text>
-          <Center className={classes.icon}>
-            <Icon size={16} stroke={1.5} />
-          </Center>
-        </Group>
-      </UnstyledButton>
-    </Table.Th>
-  );
-}
-
-function filterData(data: MemberRowData[], search: string) {
-  const query = search.toLowerCase().trim();
-  return data.filter((item) =>
-    keys(data[0]).some((key) => String(item[key]).toLowerCase().includes(query))
-  );
-}
-
-function sortData(
-  data: MemberRowData[],
-  payload: {
-    sortBy: keyof MemberRowData | null;
-    reversed: boolean;
-    search: string;
-  }
-) {
-  const { sortBy } = payload;
-
-  if (!sortBy) {
-    return filterData(data, payload.search);
-  }
-
-  return filterData(
-    [...data].sort((a, b) => {
-      if (payload.reversed) {
-        return String(b[sortBy]).localeCompare(String(a[sortBy]));
-      }
-
-      return String(a[sortBy]).localeCompare(String(b[sortBy]));
-    }),
-    payload.search
-  );
 }
 
 export function MembersPage() {
@@ -147,14 +76,20 @@ export function MembersPage() {
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
-    setSortedData(sortData(data, { sortBy: field, reversed, search }));
+    setSortedData(
+      sortData<MemberRowData>(data, { sortBy: field, reversed, search })
+    );
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.currentTarget;
     setSearch(value);
     setSortedData(
-      sortData(data, { sortBy, reversed: reverseSortDirection, search: value })
+      sortData<MemberRowData>(data, {
+        sortBy,
+        reversed: reverseSortDirection,
+        search: value,
+      })
     );
   };
 
@@ -163,7 +98,11 @@ export function MembersPage() {
     setReverseSortDirection(reversed);
     setSortBy(field);
     setSortedInstructorData(
-      sortData(instructorData, { sortBy: field, reversed, search })
+      sortData<MemberRowData>(instructorData, {
+        sortBy: field,
+        reversed,
+        search,
+      })
     );
   };
 
@@ -173,7 +112,7 @@ export function MembersPage() {
     const { value } = event.currentTarget;
     setSearch(value);
     setSortedInstructorData(
-      sortData(instructorData, {
+      sortData<MemberRowData>(instructorData, {
         sortBy,
         reversed: reverseSortDirection,
         search: value,
