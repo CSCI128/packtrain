@@ -22,6 +22,7 @@ spring:
   mustache:
     check-template-location: false
 
+server:
   error:
     whitelabel:
       enabled: false
