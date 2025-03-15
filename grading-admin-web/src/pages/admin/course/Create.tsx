@@ -21,6 +21,7 @@ export function CreatePage() {
     "post",
     "/admin/courses/{course_id}/import"
   );
+  const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
   const [outstandingTasks, setOutstandingTasks] = useState<
     components["schemas"]["Task"][]
   >([]);
@@ -37,22 +38,10 @@ export function CreatePage() {
 
   // TODO add/link service mutation here
 
-  // const {
-  //   data: data,
-  //   error: error,
-  //   isLoading: isLoading,
-  // } = $api.useQuery("get", "/user/credentials");
-
-  // TODO check canvas credentials somehow, ensure credentials exist for user, disable form if none found
-
-  // const hasCanvasCredential = () => {
-  //   for (let credential of data) {
-  //     if (credential.service === "canvas") {
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // };
+  const { data: credentialData, error: credentialError } = $api.useQuery(
+    "get",
+    "/user/credentials"
+  );
 
   const importCourse = () => {
     setImporting(true);
@@ -204,8 +193,22 @@ export function CreatePage() {
     },
   });
 
+  useEffect(() => {
+    if (credentialData) {
+      for (let credential of credentialData) {
+        if (credential.service === "canvas") {
+          setUserHasCredential(true);
+        }
+      }
+    }
+  }, [credentialData]);
+
   if (error) {
     return <p>Error while querying created course!</p>;
+  }
+
+  if (credentialError) {
+    return <p>Error while querying credentials!</p>;
   }
 
   return (
@@ -217,92 +220,101 @@ export function CreatePage() {
 
         <Divider my="md" />
 
-        <form onSubmit={form.onSubmit(createCourse)}>
-          <TextInput
-            pb={8}
-            label="Course Name"
-            defaultValue="Computer Science For STEM"
-            placeholder="Computer Science For STEM"
-            key={form.key("courseName")}
-            {...form.getInputProps("courseName")}
-          />
-
-          <TextInput
-            pb={8}
-            label="Course Code"
-            defaultValue="CSCI128"
-            placeholder="CSCI128"
-            key={form.key("courseCode")}
-            {...form.getInputProps("courseCode")}
-          />
-
-          <TextInput
-            pb={8}
-            label="Term"
-            defaultValue="Fall 2024"
-            placeholder="Fall 2024"
-            key={form.key("courseTerm")}
-            {...form.getInputProps("courseTerm")}
-          />
-
-          <TextInput
-            label="Canvas ID"
-            placeholder="xxxxxxxx"
-            key={form.key("canvasId")}
-            {...form.getInputProps("canvasId")}
-          />
-
-          <InputWrapper label="External Services">
-            <Chip.Group multiple>
-              <Group>
-                <Chip value="1">Gradescope</Chip>
-                <Chip value="2">Runestone</Chip>
-                <Chip value="3">PrairieLearn</Chip>
-              </Group>
-            </Chip.Group>
-          </InputWrapper>
-
-          {!courseCreated && (
-            <Group justify="flex-end" mt="md">
-              <Button type="submit">Create</Button>
-            </Group>
-          )}
-        </form>
-
-        {courseCreated && (
+        {!userHasCredential ? (
           <>
-            {!allTasksCompleted ? (
+            <Text fw={400}>You do not have any active Canvas credentials!</Text>
+            <Text>Please add a credential under your profile to proceed.</Text>
+          </>
+        ) : (
+          <>
+            <form onSubmit={form.onSubmit(createCourse)}>
+              <TextInput
+                pb={8}
+                label="Course Name"
+                defaultValue="Computer Science For STEM"
+                placeholder="Computer Science For STEM"
+                key={form.key("courseName")}
+                {...form.getInputProps("courseName")}
+              />
+
+              <TextInput
+                pb={8}
+                label="Course Code"
+                defaultValue="CSCI128"
+                placeholder="CSCI128"
+                key={form.key("courseCode")}
+                {...form.getInputProps("courseCode")}
+              />
+
+              <TextInput
+                pb={8}
+                label="Term"
+                defaultValue="Fall 2024"
+                placeholder="Fall 2024"
+                key={form.key("courseTerm")}
+                {...form.getInputProps("courseTerm")}
+              />
+
+              <TextInput
+                label="Canvas ID"
+                placeholder="xxxxxxxx"
+                key={form.key("canvasId")}
+                {...form.getInputProps("canvasId")}
+              />
+
+              <InputWrapper label="External Services">
+                <Chip.Group multiple>
+                  <Group>
+                    <Chip value="1">Gradescope</Chip>
+                    <Chip value="2">Runestone</Chip>
+                    <Chip value="3">PrairieLearn</Chip>
+                  </Group>
+                </Chip.Group>
+              </InputWrapper>
+
+              {!courseCreated && (
+                <Group justify="flex-end" mt="md">
+                  <Button type="submit">Create</Button>
+                </Group>
+              )}
+            </form>
+
+            {courseCreated && (
               <>
-                {importing ? (
+                {!allTasksCompleted ? (
                   <>
-                    <p>Importing, this may take a moment..</p>{" "}
-                    <Loader color="blue" />
+                    {importing ? (
+                      <>
+                        <p>Importing, this may take a moment..</p>{" "}
+                        <Loader color="blue" />
+                      </>
+                    ) : (
+                      <Group justify="flex-end" mt="md">
+                        <Button onClick={importCourse}>Import</Button>
+                      </Group>
+                    )}
                   </>
                 ) : (
-                  <Group justify="flex-end" mt="md">
-                    <Button onClick={importCourse}>Import</Button>
-                  </Group>
+                  <>
+                    <p>Import complete!</p>
+                    <p>{importStatistics.assignments} assignments imported</p>
+                    <p>{importStatistics.members} members imported</p>
+                    <p>{importStatistics.sections} sections imported</p>
+                  </>
                 )}
-              </>
-            ) : (
-              <>
-                <p>Import complete!</p>
-                <p>{importStatistics.assignments} assignments imported</p>
-                <p>{importStatistics.members} members imported</p>
-                <p>{importStatistics.sections} sections imported</p>
+
+                {/* TODO disable this if import isn't done */}
+                <Group justify="flex-end" mt="md">
+                  <Button
+                    color={allTasksCompleted ? "blue" : "gray"}
+                    component={Link}
+                    to="/admin/home"
+                  >
+                    Continue
+                  </Button>
+                </Group>
               </>
             )}
-
-            {/* TODO disable this if import isn't done */}
-            <Group justify="flex-end" mt="md">
-              <Button
-                color={allTasksCompleted ? "blue" : "gray"}
-                component={Link}
-                to="/admin/home"
-              >
-                Continue
-              </Button>
-            </Group>
           </>
         )}
       </Container>
