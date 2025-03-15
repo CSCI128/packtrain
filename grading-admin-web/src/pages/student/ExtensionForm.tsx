@@ -27,8 +27,6 @@ export function ExtensionForm() {
   const [numDaysRequested, setNumDaysRequested] = useState<number>(1);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>("");
 
-  // TODO validate assignmentId/selected ID in <select>
-
   const extensionForm = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -38,6 +36,8 @@ export function ExtensionForm() {
       comments: "",
     },
     validate: {
+      assignmentId: (value) =>
+        value === "" ? "You must select an assignment!" : null,
       daysRequested: (value) =>
         value < 0 || value > 5
           ? "Days requested must be greater than zero and less than or equal to 5."
@@ -52,6 +52,8 @@ export function ExtensionForm() {
       daysRequested: 1,
     },
     validate: {
+      assignmentId: (value) =>
+        value === "" ? "You must select an assignment!" : null,
       daysRequested: (value) =>
         value < 0 || value > 5
           ? "Days requested must be greater than zero and less than or equal to 5."
@@ -59,7 +61,6 @@ export function ExtensionForm() {
     },
   });
 
-  // TODO might want to send back remaining extensions here
   const {
     data: courseData,
     isLoading,
@@ -216,6 +217,7 @@ export function ExtensionForm() {
         <form onSubmit={latePassForm.onSubmit(submitLatePass)}>
           <Stack>
             <Select
+              withAsterisk
               searchable
               searchValue={searchValue}
               onSearchChange={setSearchValue}
@@ -232,7 +234,10 @@ export function ExtensionForm() {
               }
               key={latePassForm.key("assignmentId")}
               {...latePassForm.getInputProps("assignmentId")}
-              onChange={(_value) => setSelectedAssignmentId(_value ?? "")}
+              onChange={(_value, _) => {
+                setSelectedAssignmentId(_value ?? "");
+                latePassForm.setFieldValue("assignmentId", _value ?? "");
+              }}
             />
 
             <Text>
@@ -243,6 +248,7 @@ export function ExtensionForm() {
 
             <Group>
               <NumberInput
+                withAsterisk
                 label="Days to extend:"
                 defaultValue={1}
                 max={5}
@@ -274,6 +280,7 @@ export function ExtensionForm() {
         <form onSubmit={extensionForm.onSubmit(submitExtension)}>
           <Stack>
             <Select
+              withAsterisk
               searchable
               searchValue={searchValue}
               onSearchChange={setSearchValue}
@@ -290,7 +297,10 @@ export function ExtensionForm() {
               }
               key={extensionForm.key("assignmentId")}
               {...extensionForm.getInputProps("assignmentId")}
-              onChange={(_value) => setSelectedAssignmentId(_value ?? "")}
+              onChange={(_value, _) => {
+                setSelectedAssignmentId(_value ?? "");
+                extensionForm.setFieldValue("assignmentId", _value ?? "");
+              }}
             />
             <Text>
               Extensions are <strong>only</strong> for medical, excused or
@@ -302,6 +312,7 @@ export function ExtensionForm() {
             </Text>
             <Group>
               <NumberInput
+                withAsterisk
                 label="Days Requested"
                 defaultValue={1}
                 max={5}
