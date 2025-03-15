@@ -49,14 +49,6 @@ const MiddlewareLayout = () => {
   const isAuthenticated = store$.id.get();
   const currentPage = location.pathname;
 
-  // TODO can't find course, delete state tracked course; will this ever happen?
-  // useEffect(() => {
-  //   if (data === undefined) {
-  //     store$.id.delete();
-  //     store$.name.delete();
-  //   }
-  // }, []);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
