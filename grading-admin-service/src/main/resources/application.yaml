@@ -19,8 +19,9 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: false
+  mustache:
+    check-template-location: false
 
-server:
   error:
     whitelabel:
       enabled: false

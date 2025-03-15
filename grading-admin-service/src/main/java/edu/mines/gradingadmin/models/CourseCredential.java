@@ -24,6 +24,4 @@ public class CourseCredential {
 
     @Column(name="active")
     private boolean isActive;
-
-    // TODO: may need to add a usable_by field
 }
