@@ -50,7 +50,7 @@ describe("Policy Service", () => {
 return {
     finalScore: rawScore.rawScore,
     adjustedSubmissionDate: new Date(),
-    adjustedHoursLate: 0,
+    adjustedDaysLate: 0,
     submissionStatus: "on_time",
     extensionStatus: "no_extension"
 };
@@ -68,7 +68,7 @@ return {
 return {
     finalScore: "A",
     adjustedSubmissionDate: "invalid date",
-    adjustedHoursLate: "zero",
+    adjustedDaysLate: "zero",
     submissionStatus: "good"
 };
 `;
@@ -112,7 +112,7 @@ return {
 return {
     finalScore: rawScore.rawScore,
     adjustedSubmissionDate: new Date(),
-    adjustedHoursLate: 0,
+    adjustedDaysLate: 0,
     submissionStatus: "on_time",
     extensionStatus: "no_extension"
 };

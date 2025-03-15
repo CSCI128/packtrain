@@ -37,7 +37,7 @@ function validateScoredDTO(scored: PolicyScoredDTO): string[] {
     }
 
     if (scored.adjustedDaysLate == null){
-        errors.push("adjustedHoursLate was not set by policy!");
+        errors.push("adjustedDaysLate was not set by policy!");
     }
     if (scored.adjustedDaysLate != null && isNaN(Number(scored.adjustedDaysLate.toString()))){
         errors.push(`adjustedHoursLate was not a number! Received: ${scored.adjustedDaysLate}!`);
