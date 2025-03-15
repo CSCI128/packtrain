@@ -189,7 +189,7 @@ public class SecurityManager implements IdentityProvider{
         log.debug("Verifying '{}' has access to course '{}' with role '{}'", user.getEmail(), courseId, role.getRole());
 
 
-        return membershipService.getRolesForUserAndCourse(user, courseId).contains(role);
+        return membershipService.getRoleForUserAndCourse(user, courseId) == role;
     }
 
 }
