@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.data.messages.RawGradeDTO;
 import edu.mines.gradingadmin.data.messages.ScoredDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
+import edu.mines.gradingadmin.factories.MigrationFactory;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.LateRequestStatus;
 import edu.mines.gradingadmin.models.enums.MigrationStatus;
@@ -96,7 +97,7 @@ public class MigrationService {
         Optional<LateRequest> lateRequest = extensionService.getLateRequest(entry.getExtensionId());
 
         if (entry.isExtensionApplied() && lateRequest.isPresent()){
-            msg.append(String.format("Applied extension '%s' submitted on '%s' for %d days\n\n", lateRequest.get().getLateRequestType(), lateRequest.get().getSubmissionDate().toString(), lateRequest.get().getDaysRequested()));
+            msg.append(String.format("Applied extension '%s' submitted on '%s' for %s days\n\n", lateRequest.get().getLateRequestType(), lateRequest.get().getSubmissionDate().toString(), lateRequest.get().getDaysRequested()));
         }
 
         if (lateRequest.isPresent() && lateRequest.get().getExtension() != null && lateRequest.get().getExtension().getReviewerResponse() != null && !lateRequest.get().getExtension().getReviewerResponse().isEmpty()){
@@ -197,10 +198,10 @@ public class MigrationService {
         if (assignment.isEmpty()){
             throw new RuntimeException(String.format("Failed to get assignment '%s'", task.getAssignmentId()));
         }
-        RabbitMqService.MigrationConfig config;
+        MigrationFactory.ProcessScoresAndExtensionsConfig config;
 
         try {
-           config = rabbitMqService.createMigrationConfig(task.getMigrationId())
+           config = MigrationFactory.startProcessScoresAndExtensions(task.getMigrationId(), rabbitMqService::createRawGradePublishChannel, rabbitMqService::createScoreReceivedChannel)
                     .forAssignment(assignment.get())
                     .withPolicy(task.getPolicy())
                     .withOnScoreReceived(dto -> this.handleScoreReceived(task.getCreatedByUser(), task.getMigrationId(), dto))
@@ -217,7 +218,7 @@ public class MigrationService {
             Optional<LateRequest> extension = extensionService.getLateRequestForStudentAndAssignment(score.getCwid(), task.getAssignmentId());
             RawGradeDTO dto = createRawGradeDTO(score, extension);
 
-            rabbitMqService.sendScore(config, dto);
+            rabbitMqService.sendScore(config.getRawGradePublishChannel(), config.getGradingStartDTO().getRawGradeRoutingKey(), dto);
         }
     }
 

@@ -34,8 +34,4 @@ public class Migration {
     @JoinColumn(name = "assignment", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
     private Assignment assignment;
-
-    // TO-DO: once raw shore sheet is created pull from that here too
-    // many to one with a migration
-    // many to one with extensions
 }

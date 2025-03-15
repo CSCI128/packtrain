@@ -7,6 +7,7 @@ import edu.mines.gradingadmin.containers.RabbitMqTestContainer;
 import edu.mines.gradingadmin.data.messages.GradingStartDTO;
 import edu.mines.gradingadmin.data.messages.RawGradeDTO;
 import edu.mines.gradingadmin.data.messages.ScoredDTO;
+import edu.mines.gradingadmin.factories.MigrationFactory;
 import edu.mines.gradingadmin.models.Assignment;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
@@ -54,48 +55,22 @@ public class TestRabbitMqService implements PostgresTestContainer, RabbitMqTestC
     }
 
     @Test
-    void verifyCreateMigrationConfig() throws IOException, TimeoutException {
-        Assignment assignment = new Assignment();
-        assignment.setId(UUID.randomUUID());
-        assignment.setPoints(10);
-        assignment.setDueDate(Instant.now());
-
-        URI uri = URI.create("http://localhost:3000/policy.js");
-
-        Consumer<ScoredDTO> onReceived = Mockito.mock(Consumer.class);
-
-        RabbitMqService.MigrationConfig config = rabbitMqService.createMigrationConfig(UUID.randomUUID())
-                .forAssignment(assignment)
-                .withPolicy(uri)
-                .withOnScoreReceived(onReceived)
-                .build();
-
-        Assertions.assertTrue(config.getRawGradePublishChannel().isOpen());
-        Assertions.assertTrue(config.getScoreReceivedChannel().isOpen());
-
-        Assertions.assertEquals(assignment.getId(), config.getGradingStartDTO().getGlobalMetadata().getAssignmentId());
-        Assertions.assertEquals(uri, config.getGradingStartDTO().getPolicyURI());
-        Assertions.assertNotNull(config.getGradingStartDTO().getScoreCreatedRoutingKey());
-        Assertions.assertNotNull(config.getGradingStartDTO().getRawGradeRoutingKey());
-    }
-
-    @Test
     void verifyReceiveScore() throws IOException, TimeoutException, InterruptedException {
         Consumer<ScoredDTO> onReceived = Mockito.mock(Consumer.class);
 
-        RabbitMqService.MigrationConfig config = rabbitMqService.createMigrationConfig(UUID.randomUUID())
-                .withOnScoreReceived(onReceived)
-                .build();
+        String routingKey = UUID.randomUUID().toString();
+
+        Channel consumer = rabbitMqService.createScoreReceivedChannel(routingKey, onReceived).orElseThrow(AssertionError::new);
 
         Channel scoreSender = rabbitMqConnection.createChannel();
         String queue = scoreSender.queueDeclare().getQueue();
-        scoreSender.queueBind(queue, rabbitMqExchange.get().toString(), config.getGradingStartDTO().getScoreCreatedRoutingKey());
+        scoreSender.queueBind(queue, rabbitMqExchange.get().toString(), routingKey);
 
         ScoredDTO scored = new ScoredDTO();
 
         scoreSender.basicPublish(
                 rabbitMqExchange.get().toString(),
-                config.getGradingStartDTO().getScoreCreatedRoutingKey(),
+                routingKey,
                 new AMQP.BasicProperties.Builder()
                         .contentType("application/json")
                         .build(),
@@ -109,16 +84,18 @@ public class TestRabbitMqService implements PostgresTestContainer, RabbitMqTestC
 
         // clean up testing connection
         scoreSender.close();
+        // clean up consumer
+        consumer.close();
     }
 
     @Test
     void verifySendRawScore() throws IOException, TimeoutException, InterruptedException {
-        RabbitMqService.MigrationConfig config = rabbitMqService.createMigrationConfig(UUID.randomUUID())
-                .build();
+        String routingKey = UUID.randomUUID().toString();
+        Channel publisher = rabbitMqService.createRawGradePublishChannel(routingKey).orElseThrow(AssertionError::new);
 
         Channel scoreReceiver = rabbitMqConnection.createChannel();
         String queue = scoreReceiver.queueDeclare().getQueue();
-        scoreReceiver.queueBind(queue, rabbitMqExchange.get().toString(), config.getGradingStartDTO().getRawGradeRoutingKey());
+        scoreReceiver.queueBind(queue, rabbitMqExchange.get().toString(), routingKey);
 
         class Wrapper {
             RawGradeDTO data;
@@ -136,7 +113,7 @@ public class TestRabbitMqService implements PostgresTestContainer, RabbitMqTestC
         RawGradeDTO score = new RawGradeDTO();
         score.setCwid("99");
 
-        Assertions.assertTrue(rabbitMqService.sendScore(config, score));
+        Assertions.assertTrue(rabbitMqService.sendScore(publisher, routingKey, score));
 
         // Yucky - but not really a good way to wait for the network otherwise
         TimeUnit.MILLISECONDS.sleep(500);
@@ -144,8 +121,8 @@ public class TestRabbitMqService implements PostgresTestContainer, RabbitMqTestC
         Assertions.assertNotNull(wrapper.data);
         Assertions.assertEquals("99", wrapper.data.getCwid());
 
-        // clean up testing connection
         scoreReceiver.close();
+        publisher.close();
     }
 
 }
