@@ -4,6 +4,7 @@ import {
   Container,
   Divider,
   Group,
+  InputWrapper,
   Loader,
   Text,
   TextInput,
@@ -28,10 +29,11 @@ export function CreatePage() {
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
   const [courseCreated, setCourseCreated] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [membersImported, setMembersImported] = useState(0);
-  const [assignmentsImported, setAssignmentsImported] = useState(0);
-  const [sectionsImported, setSectionsImported] = useState(0);
-  // TODO make struct for this and cleanup this file ^^
+  const [importStatistics, setImportStatistics] = useState({
+    members: 0,
+    assignments: 0,
+    sections: 0,
+  });
 
   // TODO add/link service mutation here
 
@@ -41,8 +43,7 @@ export function CreatePage() {
   //   isLoading: isLoading,
   // } = $api.useQuery("get", "/user/credentials");
 
-  // TODO check canvas credentials somehow, ensure credentials exist for user.
-  // disable form if none found
+  // TODO check canvas credentials somehow, ensure credentials exist for user, disable form if none found
 
   // const hasCanvasCredential = () => {
   //   for (let credential of data) {
@@ -150,9 +151,11 @@ export function CreatePage() {
 
   useEffect(() => {
     if (courseCreated && allTasksCompleted && data) {
-      setAssignmentsImported(data.assignments?.length || 0);
-      setSectionsImported(data.sections?.length || 0);
-      setMembersImported(data.members?.length || 0);
+      setImportStatistics({
+        members: data.members?.length || 0,
+        sections: data.sections?.length || 0,
+        assignments: data.assignments?.length || 0,
+      });
       setImporting(false);
     }
   }, [courseCreated, allTasksCompleted, data]);
@@ -249,15 +252,15 @@ export function CreatePage() {
             {...form.getInputProps("canvasId")}
           />
 
-          <Text size="md">External Services</Text>
-
-          <Chip.Group multiple>
-            <Group>
-              <Chip value="1">Gradescope</Chip>
-              <Chip value="2">Runestone</Chip>
-              <Chip value="3">PrairieLearn</Chip>
-            </Group>
-          </Chip.Group>
+          <InputWrapper label="External Services">
+            <Chip.Group multiple>
+              <Group>
+                <Chip value="1">Gradescope</Chip>
+                <Chip value="2">Runestone</Chip>
+                <Chip value="3">PrairieLearn</Chip>
+              </Group>
+            </Chip.Group>
+          </InputWrapper>
 
           {!courseCreated && (
             <Group justify="flex-end" mt="md">
@@ -284,9 +287,9 @@ export function CreatePage() {
             ) : (
               <>
                 <p>Import complete!</p>
-                <p>{assignmentsImported} assignments imported</p>
-                <p>{membersImported} members imported</p>
-                <p>{sectionsImported} sections imported</p>
+                <p>{importStatistics.assignments} assignments imported</p>
+                <p>{importStatistics.members} members imported</p>
+                <p>{importStatistics.sections} sections imported</p>
               </>
             )}
 

@@ -256,7 +256,6 @@ export function UsersPage() {
 
   return (
     <>
-      {/* TODO should export these modals to a separate component file */}
       <Modal opened={opened} onClose={close} title="Edit User">
         <form onSubmit={editUserForm.onSubmit(editUser)}>
           <TextInput
