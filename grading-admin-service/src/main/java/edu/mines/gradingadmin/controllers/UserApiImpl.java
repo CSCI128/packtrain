@@ -1,14 +1,11 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.UserApiDelegate;
-import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.data.CredentialDTO;
 import edu.mines.gradingadmin.data.UserDTO;
 import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
-import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.Credential;
-import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;

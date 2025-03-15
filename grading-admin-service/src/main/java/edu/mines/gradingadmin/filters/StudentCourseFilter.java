@@ -1,12 +1,11 @@
 package edu.mines.gradingadmin.filters;
 
 import edu.mines.gradingadmin.managers.SecurityManager;
-import edu.mines.gradingadmin.models.CourseRole;
+import edu.mines.gradingadmin.models.enums.CourseRole;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
 

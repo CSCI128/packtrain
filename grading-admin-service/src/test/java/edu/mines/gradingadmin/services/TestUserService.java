@@ -4,7 +4,7 @@ import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.data.CourseMemberDTO;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.CourseRole;
+import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.UserSyncTaskDef;
 import edu.mines.gradingadmin.repositories.CourseMemberRepo;

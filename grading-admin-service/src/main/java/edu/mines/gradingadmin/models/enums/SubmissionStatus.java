@@ -1,4 +1,4 @@
-package edu.mines.gradingadmin.models;
+package edu.mines.gradingadmin.models.enums;
 
 
 import lombok.Getter;
@@ -9,7 +9,7 @@ public enum SubmissionStatus {
     @Getter
     private final String status;
 
-    SubmissionStatus(String status){
+    SubmissionStatus(String status) {
         this.status = status;
     }
 

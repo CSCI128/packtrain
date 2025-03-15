@@ -1,10 +1,10 @@
 package edu.mines.gradingadmin.models;
 
+import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.Instant;
-import java.time.LocalTime;
 import java.util.UUID;
 
 @Data

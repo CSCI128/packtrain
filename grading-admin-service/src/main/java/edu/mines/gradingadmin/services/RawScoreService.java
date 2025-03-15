@@ -2,18 +2,13 @@ package edu.mines.gradingadmin.services;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
-import com.opencsv.exceptions.CsvValidationException;
-import edu.ksu.canvas.model.Enrollment;
-import edu.mines.gradingadmin.models.CourseRole;
 import edu.mines.gradingadmin.models.RawScore;
-import edu.mines.gradingadmin.models.SubmissionStatus;
+import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import edu.mines.gradingadmin.repositories.RawScoreRepo;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.index.qual.SubstringIndexBottom;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.*;
@@ -36,7 +31,7 @@ public class RawScoreService {
         this.rawScoreRepo = rawScoreRepo;
     }
 
-    public List<RawScore> uploadCSV(MultipartFile file, UUID migrationId) {
+    public List<RawScore> parseCSV(MultipartFile file, UUID migrationId) {
         List<RawScore> scores = new LinkedList<>();
 
         if (file.isEmpty()){
@@ -64,7 +59,7 @@ public class RawScoreService {
             }
         }
         catch (Exception e){
-            log.warn(e.getMessage());
+            log.warn("Failed to read CSV", e);
         }
 
         return scores;
@@ -95,6 +90,7 @@ public class RawScoreService {
         hoursLate += Double.parseDouble(lateTime[2])/3600;
 
         SubmissionStatus submissionStatus = SubmissionStatus.ON_TIME;
+
         if(hoursLate > 0)
             submissionStatus = SubmissionStatus.LATE;
 
@@ -139,13 +135,17 @@ public class RawScoreService {
         return newScore;
     }
 
-    public Optional<RawScore> getRawScoreFromCwidAndAssignmentId(String cwid, UUID migrationId){
+    public Optional<RawScore> getRawScoreForCwidAndMigrationId(String cwid, UUID migrationId){
         Optional<RawScore> score = rawScoreRepo.getByCwidAndMigrationId(cwid, migrationId);
         if(score.isEmpty()){
             log.warn("Could not find raw score for cwid {} on migration id {}", cwid, migrationId);
             return Optional.empty();
         }
         return score;
+    }
+
+    public List<RawScore> getRawScoresFromMigration(UUID migrationId){
+        return rawScoreRepo.getByMigrationId(migrationId);
     }
 
 }

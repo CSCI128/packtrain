@@ -1,5 +1,7 @@
 package edu.mines.gradingadmin.data.messages;
 
+import edu.mines.gradingadmin.models.enums.LateRequestStatus;
+import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import lombok.Data;
 
 import java.time.Instant;
@@ -7,14 +9,6 @@ import java.util.UUID;
 
 @Data
 public class ScoredDTO {
-    public enum ExtensionStatus{
-        IGNORED, APPLIED, REJECTED
-    }
-
-    public enum SubmissionStatus {
-        MISSING, EXCUSED, LATE, EXTENDED, ON_TIME
-    }
-
     private String cwid;
     private UUID extensionId;
     private double rawScore;
@@ -22,7 +16,7 @@ public class ScoredDTO {
     private Instant adjustedSubmissionTime;
     private double hoursLate;
     private SubmissionStatus submissionStatus;
-    private ExtensionStatus extensionStatus;
+    private LateRequestStatus extensionStatus;
     private String extensionMessage;
     private String submissionMessage;
 }

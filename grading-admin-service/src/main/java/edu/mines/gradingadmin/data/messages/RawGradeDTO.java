@@ -1,18 +1,20 @@
 package edu.mines.gradingadmin.data.messages;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
+import edu.mines.gradingadmin.models.enums.LateRequestStatus;
+import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import lombok.Data;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Data
 public class RawGradeDTO {
     private String cwid;
-    private UUID extensionId;
     private double rawScore;
     private Instant submissionDate;
-    private Instant extensionDate;
-    private double extensionHours;
-    private String extensionType;
+    private SubmissionStatus submissionStatus;
+    private String extensionId = null;
+    private Instant extensionDate = null;
+    private Double extensionDays = null;
+    private String extensionType = null;
+    private LateRequestStatus extensionStatus = null;
 }

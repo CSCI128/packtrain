@@ -3,6 +3,8 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.data.ExtensionDTO;
 import edu.mines.gradingadmin.data.LateRequestDTO;
 import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.models.enums.LateRequestStatus;
+import edu.mines.gradingadmin.models.enums.LateRequestType;
 import edu.mines.gradingadmin.repositories.ExtensionRepo;
 import edu.mines.gradingadmin.repositories.LateRequestRepo;
 import lombok.extern.slf4j.Slf4j;
@@ -71,8 +73,8 @@ public class ExtensionService {
                                          ExtensionDTO extension) {
         LateRequest lateRequest = new LateRequest();
         lateRequest.setDaysRequested(daysRequested);
-        lateRequest.setRequestType(RequestType.valueOf(requestType.name()));
-        lateRequest.setStatus(RequestStatus.valueOf(status.name()));
+        lateRequest.setLateRequestType(LateRequestType.valueOf(requestType.name()));
+        lateRequest.setStatus(LateRequestStatus.valueOf(status.name()));
         lateRequest.setSubmissionDate(submissionDate);
         if(extension != null) {
             Extension newExtension = createExtensionFromDTO(courseId, user, extension);
@@ -93,5 +95,10 @@ public class ExtensionService {
 
     public void deleteLateRequest(LateRequest lateRequest) {
         lateRequestRepo.delete(lateRequest);
+    }
+
+    public Optional<LateRequest> getLateRequestForStudentAndAssignment(String cwid, UUID assignment) {
+
+        return null;
     }
 }

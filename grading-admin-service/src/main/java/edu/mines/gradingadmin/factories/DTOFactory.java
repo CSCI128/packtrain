@@ -10,7 +10,7 @@ public class DTOFactory {
         return new LateRequestDTO()
             .id(lateRequest.getId().toString())
             .numDaysRequested(lateRequest.getDaysRequested())
-            .requestType(LateRequestDTO.RequestTypeEnum.fromValue(lateRequest.getRequestType().name().toLowerCase()))
+            .requestType(LateRequestDTO.RequestTypeEnum.fromValue(lateRequest.getLateRequestType().name().toLowerCase()))
             .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name().toLowerCase()))
             .dateSubmitted(lateRequest.getSubmissionDate())
             .assignmentId(lateRequest.getAssignment().getId().toString())

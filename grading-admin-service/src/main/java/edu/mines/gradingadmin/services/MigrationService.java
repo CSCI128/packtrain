@@ -1,8 +1,12 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.data.messages.RawGradeDTO;
 import edu.mines.gradingadmin.data.messages.ScoredDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.models.enums.LateRequestStatus;
+import edu.mines.gradingadmin.models.enums.MigrationStatus;
+import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import edu.mines.gradingadmin.models.tasks.ProcessScoresAndExtensionsTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
@@ -13,6 +17,7 @@ import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.RabbitMqService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -35,8 +40,9 @@ public class MigrationService {
     private final ApplicationEventPublisher eventPublisher;
     private final RabbitMqService rabbitMqService;
     private final PolicyServerService policyServerService;
+    private final RawScoreService rawScoreService;
 
-    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService){
+    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreService rawScoreService){
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
@@ -47,6 +53,7 @@ public class MigrationService {
         this.eventPublisher = eventPublisher;
         this.rabbitMqService = rabbitMqService;
         this.policyServerService = policyServerService;
+        this.rawScoreService = rawScoreService;
     }
 
     public MasterMigration createMigrationForAssignments(Course course, List<Policy> policyList, List<Assignment> assignmentList){
@@ -76,7 +83,7 @@ public class MigrationService {
         entry.setMigrationId(migrationId);
         entry.setExtensionId(dto.getExtensionId());
         if (entry.getExtensionId() != null){
-            entry.setExtensionApplied(dto.getExtensionStatus().equals(ScoredDTO.ExtensionStatus.APPLIED));
+            entry.setExtensionApplied(dto.getExtensionStatus().equals(LateRequestStatus.APPLIED));
         }
         else {
             entry.setExtensionApplied(false);
@@ -89,7 +96,7 @@ public class MigrationService {
         Optional<LateRequest> lateRequest = extensionService.getLateRequest(entry.getExtensionId());
 
         if (entry.isExtensionApplied() && lateRequest.isPresent()){
-            msg.append(String.format("Applied extension '%s' submitted on '%s' for %d days\n\n", lateRequest.get().getRequestType(), lateRequest.get().getSubmissionDate().toString(), lateRequest.get().getDaysRequested()));
+            msg.append(String.format("Applied extension '%s' submitted on '%s' for %d days\n\n", lateRequest.get().getLateRequestType(), lateRequest.get().getSubmissionDate().toString(), lateRequest.get().getDaysRequested()));
         }
 
         if (lateRequest.isPresent() && lateRequest.get().getExtension() != null && lateRequest.get().getExtension().getReviewerResponse() != null && !lateRequest.get().getExtension().getReviewerResponse().isEmpty()){
@@ -204,8 +211,31 @@ public class MigrationService {
 
         policyServerService.startGrading(config.getGradingStartDTO());
 
-        // todo: get raw scores
-        // todo: send raw scores
+        List<RawScore> scores = rawScoreService.getRawScoresFromMigration(task.getMigrationId());
+
+        for (RawScore score : scores){
+            Optional<LateRequest> extension = extensionService.getLateRequestForStudentAndAssignment(score.getCwid(), task.getAssignmentId());
+            RawGradeDTO dto = createRawGradeDTO(score, extension);
+
+            rabbitMqService.sendScore(config, dto);
+        }
+    }
+
+    private static @NotNull RawGradeDTO createRawGradeDTO(RawScore score, Optional<LateRequest> extension) {
+        RawGradeDTO dto = new RawGradeDTO();
+        dto.setCwid(score.getCwid());
+        dto.setRawScore(score.getScore());
+        dto.setSubmissionDate(score.getSubmissionTime());
+        dto.setSubmissionStatus(score.getSubmissionStatus());
+
+        if (extension.isPresent()){
+            dto.setExtensionId(extension.get().getId().toString());
+            dto.setExtensionDate(extension.get().getExtensionDate());
+            dto.setExtensionDays(extension.get().getDaysRequested());
+            dto.setExtensionType(extension.get().getLateRequestType().name());
+            dto.setExtensionStatus(extension.get().getStatus());
+        }
+        return dto;
     }
 
     @Transactional
@@ -240,6 +270,10 @@ public class MigrationService {
 
             eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
         }
+
+        master.setStatus(MigrationStatus.STARTED);
+
+        masterMigrationRepo.save(master);
 
         return tasks;
     }

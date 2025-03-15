@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.models;
 
+import edu.mines.gradingadmin.models.enums.MigrationStatus;
 import jakarta.persistence.*;
 import jakarta.persistence.Entity;
 import lombok.Data;

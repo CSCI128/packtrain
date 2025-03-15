@@ -5,6 +5,7 @@ import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.services.*;
 import jakarta.transaction.Transactional;

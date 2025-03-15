@@ -1,6 +1,6 @@
 package edu.mines.gradingadmin.managers;
 
-import edu.mines.gradingadmin.models.CredentialType;
+import edu.mines.gradingadmin.models.enums.CredentialType;
 import edu.mines.gradingadmin.models.User;
 import org.springframework.security.access.AccessDeniedException;
 

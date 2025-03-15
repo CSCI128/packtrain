@@ -3,7 +3,7 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.data.CredentialDTO;
 import edu.mines.gradingadmin.models.Credential;
-import edu.mines.gradingadmin.models.CredentialType;
+import edu.mines.gradingadmin.models.enums.CredentialType;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.CredentialRepo;
 import edu.mines.gradingadmin.seeders.CourseSeeders;

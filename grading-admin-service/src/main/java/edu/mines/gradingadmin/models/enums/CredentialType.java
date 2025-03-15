@@ -1,4 +1,4 @@
-package edu.mines.gradingadmin.models;
+package edu.mines.gradingadmin.models.enums;
 
 import java.util.stream.Stream;
 

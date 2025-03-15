@@ -3,7 +3,7 @@ import { AppliedExtensionStatus, SubmissionStatus } from "./common";
 export default class PolicyScoredDTO {
     finalScore!: number;
     adjustedSubmissionDate!: Date;
-    adjustedHoursLate!: number;
+    adjustedDaysLate!: number;
     submissionStatus!: SubmissionStatus;
     extensionStatus!: AppliedExtensionStatus;
     extensionMessage?: string;
