@@ -77,6 +77,74 @@ public class MigrationService {
 
     }
 
+
+    public Optional<MasterMigration> createMasterMigration(String courseId){
+        MasterMigration masterMigration = new MasterMigration();
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+        if (course.isEmpty()) {
+            return Optional.empty();
+        }
+        masterMigration.setCourse(course.get());
+        masterMigrationRepo.save(masterMigration);
+        return Optional.of(masterMigration);
+    }
+
+    public Optional<MasterMigration> addMigration(String masterMigrationId, String assignmentId, String policyURI){
+        Optional<MasterMigration> masterMigration = masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
+
+        if (masterMigration.isEmpty()){
+            return Optional.empty();
+        }
+
+        Migration migration = new Migration();
+        URI uri =URI.create(policyURI);
+
+        Optional<Policy> policy = courseService.getPolicy(uri);
+
+        if (policy.isEmpty()){
+            return Optional.empty();
+        }
+
+        migration.setPolicy(policy.get());
+        Optional<Assignment> assignment = assignmentService.getAssignmentById(assignmentId);
+       if (assignment.isEmpty()){
+           return Optional.empty();
+       }
+        migration.setAssignment(assignment.get());
+        migration.setMasterMigration(masterMigration.get());
+        migrationRepo.save(migration);
+        return masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
+    }
+
+    public List<Migration> getMigrationsByMasterMigration(String masterMigrationId){
+        return migrationRepo.getMigrationListByMasterMigrationId(UUID.fromString(masterMigrationId));
+    }
+
+    public Migration getMigration(String migrationId){
+        return migrationRepo.getMigrationById(UUID.fromString(migrationId));
+    }
+
+    public Optional<Migration> updatePolicyForMigration(String migrationId, String policyURI){
+        Migration updatedMigration = migrationRepo.getMigrationById(UUID.fromString(migrationId));
+        URI uri;
+
+        try {
+            uri = new URI(policyURI);
+
+        } catch (URISyntaxException e){
+            return Optional.empty();
+        }
+
+        Optional<Policy> policy = courseService.getPolicy(uri);
+        if (policy.isEmpty()){
+            return Optional.empty();
+        }
+
+        updatedMigration.setPolicy(policy.get());
+        return Optional.of(migrationRepo.save(updatedMigration));
+
+    }
+
     public void handleScoreReceived(User asUser, UUID migrationId, ScoredDTO dto){
         MigrationTransactionLog entry = new MigrationTransactionLog();
         entry.setPerformedByUser(asUser);
@@ -119,79 +187,6 @@ public class MigrationService {
         transactionLogRepo.save(entry);
     }
 
-    public Optional<MasterMigration> createMasterMigration(String courseId){
-        MasterMigration masterMigration = new MasterMigration();
-        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-        if (course.isEmpty()) {
-            return Optional.empty();
-        }
-        masterMigration.setCourse(course.get());
-        masterMigrationRepo.save(masterMigration);
-        return Optional.of(masterMigration);
-    }
-
-    @Transactional
-    public Optional<MasterMigration> addMigration(String masterMigrationId, String assignmentId, String policyURI){
-        MasterMigration masterMigration = masterMigrationRepo.getMasterMigrationByMasterMigrationId(UUID.fromString(masterMigrationId));
-        Migration migration = new Migration();
-        URI uri;
-
-        try {
-            uri = new URI(policyURI);
-
-        } catch (URISyntaxException e){
-            return Optional.empty();
-        }
-
-        Optional<Policy> policy = courseService.getPolicy(uri);
-        if (policy.isEmpty()){
-            return Optional.empty();
-        }
-        migration.setPolicy(policy.get());
-        Optional<Assignment> assignment = assignmentService.getAssignmentById(assignmentId);
-       if (assignment.isEmpty()){
-           return Optional.empty();
-       }
-        migration.setAssignment(assignment.get());
-        List<Migration> migrationList = masterMigration.getMigrations();
-        migrationList.add(migration);
-        masterMigration.setMigrations(migrationList);
-        migration.setMasterMigration(masterMigration);
-        migrationRepo.save(migration);
-        masterMigrationRepo.save(masterMigration);
-        return Optional.of(masterMigration);
-    }
-
-    public List<Migration> getMigrationsByMasterMigration(String masterMigrationId){
-        return migrationRepo.getMigrationListByMasterMigrationId(UUID.fromString(masterMigrationId));
-    }
-
-    public Migration getMigration(String migrationId){
-        return migrationRepo.getMigrationById(UUID.fromString(migrationId));
-    }
-
-    public Optional<Migration> updatePolicyForMigration(String migrationId, String policyURI){
-        Migration updatedMigration = migrationRepo.getMigrationById(UUID.fromString(migrationId));
-        URI uri;
-
-        try {
-            uri = new URI(policyURI);
-
-        } catch (URISyntaxException e){
-            return Optional.empty();
-        }
-
-        Optional<Policy> policy = courseService.getPolicy(uri);
-        if (policy.isEmpty()){
-            return Optional.empty();
-        }
-
-        updatedMigration.setPolicy(policy.get());
-        return Optional.of(migrationRepo.save(updatedMigration));
-
-    }
-
-
     public void processScoresAndExtensionsTask(ProcessScoresAndExtensionsTaskDef task){
         Optional<Assignment> assignment = assignmentService.getAssignmentById(task.getAssignmentId().toString());
 
@@ -210,7 +205,11 @@ public class MigrationService {
             throw new RuntimeException(e);
         }
 
-        policyServerService.startGrading(config.getGradingStartDTO());
+        boolean status = policyServerService.startGrading(config.getGradingStartDTO());
+
+        if (!status){
+            throw new RuntimeException("Failed to start grading!");
+        }
 
         List<RawScore> scores = rawScoreService.getRawScoresFromMigration(task.getMigrationId());
 
@@ -240,11 +239,15 @@ public class MigrationService {
     }
 
     @Transactional
-    public List<ScheduledTaskDef> startMigration(User actingUser, String masterMigrationId ){
-        MasterMigration master = masterMigrationRepo.getMasterMigrationByMasterMigrationId(UUID.fromString(masterMigrationId));
+    public List<ScheduledTaskDef> startProcessScoresAndExtensions(User actingUser, String masterMigrationId ){
+        Optional<MasterMigration> master = masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
 
-        if (master.getStatus() != MigrationStatus.CREATED){
-            log.warn("Migration is in invalid state to start a migration. {} != {}", master.getStatus().name(), MigrationStatus.CREATED.name());
+        if(master.isEmpty()){
+            return List.of();
+        }
+
+        if (master.get().getStatus() != MigrationStatus.CREATED){
+            log.warn("Migration is in invalid state to start a migration. {} != {}", master.get().getStatus().name(), MigrationStatus.CREATED.name());
             return List.of();
         }
 
@@ -272,9 +275,9 @@ public class MigrationService {
             eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
         }
 
-        master.setStatus(MigrationStatus.STARTED);
+        master.get().setStatus(MigrationStatus.STARTED);
 
-        masterMigrationRepo.save(master);
+        masterMigrationRepo.save(master.get());
 
         return tasks;
     }
