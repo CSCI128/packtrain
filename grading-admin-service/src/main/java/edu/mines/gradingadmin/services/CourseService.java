@@ -55,6 +55,20 @@ public class CourseService {
         return courseRepo.getById(courseId);
     }
 
+    public Optional<Course> updateCourse(String courseId, CourseDTO courseDTO) {
+        Optional<Course> course = getCourse(UUID.fromString(courseId));
+
+        if(course.isEmpty()) {
+            return Optional.empty();
+        }
+
+        course.get().setName(courseDTO.getName());
+        course.get().setCode(courseDTO.getCode());
+        course.get().setTerm(courseDTO.getTerm());
+
+        return Optional.of(courseRepo.save(course.get()));
+    }
+
     public void syncCourseTask(CourseSyncTaskDef task){
         IdentityProvider user = impersonationManager.impersonateUser(task.getCreatedByUser());
         List<edu.ksu.canvas.model.Course> availableCourses =

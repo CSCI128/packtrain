@@ -10,10 +10,11 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { $api, store$ } from "../../../api";
 
 export function EditCourse() {
+  const navigate = useNavigate();
   const { data, error, isLoading } = $api.useQuery(
     "get",
     "/admin/courses/{course_id}",
@@ -29,20 +30,27 @@ export function EditCourse() {
   // TODO add/link service mutation here
 
   const updateCourse = (values: typeof form.values) => {
-    mutation.mutate({
-      params: {
-        path: {
-          course_id: "1",
+    mutation.mutate(
+      {
+        params: {
+          path: {
+            course_id: store$.id.get() as string,
+          },
+        },
+        body: {
+          name: values.courseName as string,
+          code: values.courseCode as string,
+          term: values.courseTerm as string,
+          enabled: true,
+          canvas_id: Number(values.canvasId),
         },
       },
-      body: {
-        name: values.courseName as string,
-        code: values.courseCode as string,
-        term: values.courseTerm as string,
-        enabled: true,
-        canvas_id: Number(values.canvasId),
-      },
-    });
+      {
+        onSuccess: () => {
+          navigate("/admin/home");
+        },
+      }
+    );
   };
 
   const form = useForm({
@@ -174,10 +182,7 @@ export function EditCourse() {
               Sync Assignments
             </Button>
 
-            {/* TODO maybe make this another button once external services are added */}
-            <Button component={Link} to="/admin/home" type="submit">
-              Save
-            </Button>
+            <Button type="submit">Save</Button>
           </Group>
         </form>
       </Container>

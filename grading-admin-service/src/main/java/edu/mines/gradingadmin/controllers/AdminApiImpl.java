@@ -164,6 +164,17 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
+    public ResponseEntity<Void> updateCourse(String courseId, CourseDTO courseDTO) {
+        Optional<Course> course = courseService.updateCourse(courseId, courseDTO);
+
+        if (course.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @Override
     public ResponseEntity<List<CourseDTO>> getCourses(Boolean enabled) {
         List<Course> courses = courseService.getCourses(enabled);
         return ResponseEntity.ok(courses.stream().map(DTOFactory::toDto).toList());
