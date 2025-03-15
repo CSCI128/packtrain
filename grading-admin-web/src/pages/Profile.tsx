@@ -196,7 +196,7 @@ export function ProfilePage() {
 
             <Button
               color="red"
-              onClick={() => deleteCredential(selectedCredential?.id!)}
+              onClick={() => deleteCredential(selectedCredential?.id as string)}
             >
               Delete
             </Button>

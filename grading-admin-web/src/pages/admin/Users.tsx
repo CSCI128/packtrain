@@ -27,15 +27,7 @@ import { BsPencilSquare } from "react-icons/bs";
 import { useAuth } from "react-oidc-context";
 import { $api } from "../../api";
 import classes from "../../components/table/Table.module.scss";
-
-// adapted from https://ui.mantine.dev/category/tables/#table-sort
-interface User {
-  email: string;
-  cwid: string;
-  name: string;
-  admin: boolean;
-  enabled?: boolean;
-}
+import { components } from "../../lib/api/v1";
 
 interface UserRowData {
   email: string;
@@ -117,7 +109,9 @@ export function UsersPage() {
   const [opened, { open, close }] = useDisclosure(false);
   const [addUserOpened, { open: openAddUser, close: closeAddUser }] =
     useDisclosure(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<
+    components["schemas"]["User"] | null
+  >(null);
   const addUserForm = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -194,8 +188,8 @@ export function UsersPage() {
     editUserMutation.mutate(
       {
         body: {
-          cwid: selectedUser?.cwid!,
-          email: selectedUser?.email!,
+          cwid: selectedUser?.cwid as string,
+          email: selectedUser?.email as string,
           admin: values.admin,
           name: values.name,
           enabled: values.enabled,

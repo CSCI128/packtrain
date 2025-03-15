@@ -229,7 +229,7 @@ export function Requests() {
             <Button
               color="red"
               onClick={() => {
-                deleteExtension(selectedExtension?.id!);
+                deleteExtension(selectedExtension?.id as string);
               }}
             >
               Delete

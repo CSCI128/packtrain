@@ -35,7 +35,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// TODO not sure if middleware is the correct name here but yeehaw
 const MiddlewareLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -116,7 +115,6 @@ const router = createBrowserRouter([
           },
           {
             path: "/admin/home",
-            // TODO rename to AdminRoute and ensure this works with instructors + normal users too
             element: (
               <ProtectedRoute>
                 <CoursePage />

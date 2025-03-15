@@ -227,13 +227,13 @@ export function ExtensionForm() {
                 courseData.course.assignments.flatMap((x) => [
                   {
                     label: x.name,
-                    value: x.id,
+                    value: x.id as string,
                   },
                 ])
               }
               key={latePassForm.key("assignmentId")}
               {...latePassForm.getInputProps("assignmentId")}
-              onChange={(_value, _) => setSelectedAssignmentId(_value ?? "")}
+              onChange={(_value) => setSelectedAssignmentId(_value ?? "")}
             />
 
             <Text>
@@ -256,8 +256,7 @@ export function ExtensionForm() {
               />
 
               <Text>
-                {/* TODO update extensionDays */}(<strong>X remaining</strong>{" "}
-                after)
+                (<strong>X remaining</strong> after)
               </Text>
             </Group>
 
@@ -286,13 +285,13 @@ export function ExtensionForm() {
                 courseData.course.assignments.flatMap((x) => [
                   {
                     label: x.name,
-                    value: x.id,
+                    value: x.id as string,
                   },
                 ])
               }
               key={extensionForm.key("assignmentId")}
               {...extensionForm.getInputProps("assignmentId")}
-              onChange={(_value, _) => setSelectedAssignmentId(_value ?? "")}
+              onChange={(_value) => setSelectedAssignmentId(_value ?? "")}
             />
             <Text>
               Extensions are <strong>only</strong> for medical, excused or
