@@ -302,11 +302,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<UserDTO> adminUpdateUser(UserDTO userDTO) {
-        Optional<User> user = userService.updateUser(userDTO);
-
-        if (user.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        Optional<User> user = Optional.empty();
 
         if(userDTO.getEnabled()) {
             user = userService.enableUser(user.get().getCwid());
@@ -325,6 +321,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             user = userService.demoteAdmin(securityManager.getUser(), user.get().getCwid());
 
         }
+        user = userService.updateUser(userDTO);
 
         if (user.isEmpty()){
             return ResponseEntity.badRequest().build();
