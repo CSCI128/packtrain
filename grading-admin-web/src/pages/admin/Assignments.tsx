@@ -51,7 +51,7 @@ interface TableHeaderProps {
   children: React.ReactNode;
   reversed: boolean;
   sorted: boolean;
-  onSort: () => void;
+  onSort: (() => void) | undefined;
 }
 
 function TableHeader({ children, reversed, sorted, onSort }: TableHeaderProps) {
@@ -62,16 +62,22 @@ function TableHeader({ children, reversed, sorted, onSort }: TableHeaderProps) {
     : IconSelector;
   return (
     <Table.Th className={classes.th}>
-      <UnstyledButton onClick={onSort} className={classes.control}>
-        <Group justify="space-between">
-          <Text fw={500} fz="sm">
-            {children}
-          </Text>
-          <Center className={classes.icon}>
-            <Icon size={16} stroke={1.5} />
-          </Center>
-        </Group>
-      </UnstyledButton>
+      {onSort !== undefined ? (
+        <UnstyledButton onClick={onSort} className={classes.control}>
+          <Group justify="space-between">
+            <Text fw={500} fz="sm">
+              {children}
+            </Text>
+            <Center className={classes.icon}>
+              <Icon size={16} stroke={1.5} />
+            </Center>
+          </Group>
+        </UnstyledButton>
+      ) : (
+        <Text fw={500} fz="sm" ta="center">
+          {children}
+        </Text>
+      )}
     </Table.Th>
   );
 }
@@ -374,7 +380,7 @@ export function AssignmentsPage() {
         </form>
       </Modal>
 
-      <Container fluid w="75%" p={35}>
+      <Container fluid w="100%" p={35}>
         <Group>
           <Text size="xl" fw={700}>
             Assignments
@@ -450,7 +456,7 @@ export function AssignmentsPage() {
                 >
                   Status
                 </TableHeader>
-                <TableHeader sorted={false} reversed={false} onSort={() => {}}>
+                <TableHeader sorted={false} reversed={false} onSort={undefined}>
                   Actions
                 </TableHeader>
               </Table.Tr>
