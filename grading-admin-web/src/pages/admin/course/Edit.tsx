@@ -4,10 +4,12 @@ import {
   Container,
   Divider,
   Group,
+  InputWrapper,
   Text,
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { $api, store$ } from "../../../api";
 
@@ -34,11 +36,11 @@ export function EditCourse() {
         },
       },
       body: {
-        name: values.courseName,
-        code: values.courseCode,
-        term: values.courseTerm,
+        name: values.courseName as string,
+        code: values.courseCode as string,
+        term: values.courseTerm as string,
         enabled: true,
-        canvas_id: Number(values.canvasId), // TODO they shouldn't really be editing canvas_id here
+        canvas_id: Number(values.canvasId),
       },
     });
   };
@@ -46,14 +48,12 @@ export function EditCourse() {
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
-      courseName: data?.name,
-      courseCode: data?.code,
-      courseTerm: data?.term,
-      canvasId: data?.canvas_id,
+      courseName: "",
+      courseCode: "",
+      courseTerm: "",
+      canvasId: 0,
     },
     validate: {
-      // canvasId: (value) =>
-      //   value.length == 8 ? null : "Canvas ID must be 8 characters",
       courseName: (value) =>
         value && value.length < 1
           ? "Course name must have at least 1 character"
@@ -98,6 +98,17 @@ export function EditCourse() {
     );
   };
 
+  useEffect(() => {
+    if (data) {
+      form.setValues({
+        courseName: data.name,
+        courseCode: data.code,
+        courseTerm: data.term,
+        canvasId: data.canvas_id,
+      });
+    }
+  }, [data]);
+
   if (isLoading || !data) return "Loading...";
 
   if (error) return `An error occured: ${error}`;
@@ -139,23 +150,24 @@ export function EditCourse() {
             {...form.getInputProps("courseTerm")}
           />
 
-          {/* TODO dont allow this, this shouldnt really happen or should resync? */}
           <TextInput
+            pb={8}
+            disabled
             label="Canvas ID"
             placeholder="xxxxxxxx"
             key={form.key("canvasId")}
             {...form.getInputProps("canvasId")}
           />
 
-          <Text size="md">External Services</Text>
-
-          <Chip.Group multiple>
-            <Group>
-              <Chip value="1">Gradescope</Chip>
-              <Chip value="2">Runestone</Chip>
-              <Chip value="3">PrairieLearn</Chip>
-            </Group>
-          </Chip.Group>
+          <InputWrapper label="External Services">
+            <Chip.Group multiple>
+              <Group>
+                <Chip value="1">Gradescope</Chip>
+                <Chip value="2">Runestone</Chip>
+                <Chip value="3">PrairieLearn</Chip>
+              </Group>
+            </Chip.Group>
+          </InputWrapper>
 
           <Group justify="flex-end" mt="md">
             <Button onClick={syncAssignments} variant="filled">
