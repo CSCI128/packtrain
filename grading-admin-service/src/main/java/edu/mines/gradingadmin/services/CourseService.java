@@ -65,6 +65,7 @@ public class CourseService {
         course.get().setName(courseDTO.getName());
         course.get().setCode(courseDTO.getCode());
         course.get().setTerm(courseDTO.getTerm());
+        course.get().setEnabled(courseDTO.getEnabled());
 
         return Optional.of(courseRepo.save(course.get()));
     }

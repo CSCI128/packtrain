@@ -119,8 +119,8 @@ paths:
             schema:
               $ref: "#/components/schemas/Course"
       responses:
-        201:
-          description: "Updated course"
+        204:
+          description: "No Content"
         404:
           description: "Course does not exist"
           content:

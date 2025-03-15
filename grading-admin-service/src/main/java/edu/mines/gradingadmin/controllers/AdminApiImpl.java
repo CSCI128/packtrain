@@ -171,7 +171,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.noContent().build();
     }
 
     @Override
