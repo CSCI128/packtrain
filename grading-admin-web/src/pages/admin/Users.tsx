@@ -6,105 +6,28 @@ import {
   Divider,
   Group,
   InputWrapper,
-  keys,
   Modal,
   ScrollArea,
+  Stack,
   Table,
   Text,
   TextInput,
-  UnstyledButton,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import {
-  IconChevronDown,
-  IconChevronUp,
-  IconSearch,
-  IconSelector,
-} from "@tabler/icons-react";
+import { IconSearch } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { useAuth } from "react-oidc-context";
 import { $api } from "../../api";
-import classes from "../../components/table/Table.module.scss";
-
-// adapted from https://ui.mantine.dev/category/tables/#table-sort
-interface User {
-  email: string;
-  cwid: string;
-  name: string;
-  admin: boolean;
-  enabled: boolean;
-}
+import { sortData, TableHeader } from "../../components/table/Table";
+import { components } from "../../lib/api/v1";
 
 interface UserRowData {
   email: string;
   cwid: string;
   name: string;
   admin: boolean;
-}
-
-// TODO can have null reversed/sorted/onsort; if null display nothing in that header
-interface TableHeaderProps {
-  children: React.ReactNode;
-  reversed: boolean;
-  sorted: boolean;
-  onSort: () => void;
-}
-
-function TableHeader({ children, reversed, sorted, onSort }: TableHeaderProps) {
-  const Icon = sorted
-    ? reversed
-      ? IconChevronUp
-      : IconChevronDown
-    : IconSelector;
-  return (
-    <Table.Th className={classes.th}>
-      <UnstyledButton onClick={onSort} className={classes.control}>
-        <Group justify="space-between">
-          <Text fw={500} fz="sm">
-            {children}
-          </Text>
-          <Center className={classes.icon}>
-            <Icon size={16} stroke={1.5} />
-          </Center>
-        </Group>
-      </UnstyledButton>
-    </Table.Th>
-  );
-}
-
-function filterData(data: UserRowData[], search: string) {
-  const query = search.toLowerCase().trim();
-  return data.filter((item) =>
-    keys(data[0]).some((key) => String(item[key]).toLowerCase().includes(query))
-  );
-}
-
-function sortData(
-  data: UserRowData[],
-  payload: {
-    sortBy: keyof UserRowData | null;
-    reversed: boolean;
-    search: string;
-  }
-) {
-  const { sortBy } = payload;
-
-  if (!sortBy) {
-    return filterData(data, payload.search);
-  }
-
-  return filterData(
-    [...data].sort((a, b) => {
-      if (payload.reversed) {
-        return String(b[sortBy]).localeCompare(String(a[sortBy]));
-      }
-
-      return String(a[sortBy]).localeCompare(String(b[sortBy]));
-    }),
-    payload.search
-  );
 }
 
 export function UsersPage() {
@@ -117,7 +40,9 @@ export function UsersPage() {
   const [opened, { open, close }] = useDisclosure(false);
   const [addUserOpened, { open: openAddUser, close: closeAddUser }] =
     useDisclosure(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<
+    components["schemas"]["User"] | null
+  >(null);
   const addUserForm = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -155,7 +80,7 @@ export function UsersPage() {
     },
   });
 
-  const handleEditOpen = (row: any) => {
+  const handleEditOpen = (row: components["schemas"]["User"]) => {
     setSelectedUser(row);
     editUserForm.setValues({
       name: row.name,
@@ -194,8 +119,8 @@ export function UsersPage() {
     editUserMutation.mutate(
       {
         body: {
-          cwid: selectedUser?.cwid!,
-          email: selectedUser?.email!,
+          cwid: selectedUser?.cwid as string,
+          email: selectedUser?.email as string,
           admin: values.admin,
           name: values.name,
           enabled: values.enabled,
@@ -215,7 +140,7 @@ export function UsersPage() {
   const [sortBy, setSortBy] = useState<keyof UserRowData | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
-  // sync sortedData with data - TODO see if this is necessary
+  // sync sortedData with data
   useEffect(() => {
     if (data) {
       setSortedData(data);
@@ -230,14 +155,20 @@ export function UsersPage() {
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
-    setSortedData(sortData(data, { sortBy: field, reversed, search }));
+    setSortedData(
+      sortData<UserRowData>(data, { sortBy: field, reversed, search })
+    );
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.currentTarget;
     setSearch(value);
     setSortedData(
-      sortData(data, { sortBy, reversed: reverseSortDirection, search: value })
+      sortData<UserRowData>(data, {
+        sortBy,
+        reversed: reverseSortDirection,
+        search: value,
+      })
     );
   };
 
@@ -261,7 +192,6 @@ export function UsersPage() {
 
   return (
     <>
-      {/* TODO should export these modals to a separate component file */}
       <Modal opened={opened} onClose={close} title="Edit User">
         <form onSubmit={editUserForm.onSubmit(editUser)}>
           <TextInput
@@ -370,10 +300,7 @@ export function UsersPage() {
             Add User
           </Button>
         </Group>
-
-        <Divider my="sm" />
-
-        <ScrollArea h={750}>
+        <Stack mt={10}>
           <TextInput
             placeholder="Search by any field"
             mb="md"
@@ -381,6 +308,11 @@ export function UsersPage() {
             value={search}
             onChange={handleSearchChange}
           />
+        </Stack>
+
+        <Divider my="sm" />
+
+        <ScrollArea h={750}>
           <Table horizontalSpacing="md" verticalSpacing="xs" miw={700}>
             <Table.Tbody>
               <Table.Tr>
@@ -405,7 +337,7 @@ export function UsersPage() {
                 >
                   CWID
                 </TableHeader>
-                <TableHeader sorted={false} reversed={false} onSort={() => {}}>
+                <TableHeader sorted={false} reversed={false} onSort={undefined}>
                   Actions
                 </TableHeader>
               </Table.Tr>

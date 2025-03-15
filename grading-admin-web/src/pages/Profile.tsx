@@ -16,20 +16,13 @@ import { useDisclosure } from "@mantine/hooks";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
 import { $api } from "../api";
-
-// TODO figure out how to grab the types from the generated file
-export interface Credential {
-  id?: string;
-  name?: string;
-  service?: string;
-  api_key?: string;
-  private?: boolean;
-}
+import { components } from "../lib/api/v1";
 
 export function ProfilePage() {
   const auth = useAuth();
-  const [selectedCredential, setSelectedCredential] =
-    useState<Credential | null>(null);
+  const [selectedCredential, setSelectedCredential] = useState<
+    components["schemas"]["Credential"] | null
+  >(null);
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
     useDisclosure(false);
   const [editUserOpened, { open: openEditUser, close: closeEditUser }] =
@@ -171,7 +164,7 @@ export function ProfilePage() {
     closeDelete();
   };
 
-  const handleDelete = (credential: Credential) => {
+  const handleDelete = (credential: components["schemas"]["Credential"]) => {
     setSelectedCredential(credential);
     openDelete();
   };
@@ -196,7 +189,7 @@ export function ProfilePage() {
 
             <Button
               color="red"
-              onClick={() => deleteCredential(selectedCredential?.id!)}
+              onClick={() => deleteCredential(selectedCredential?.id as string)}
             >
               Delete
             </Button>

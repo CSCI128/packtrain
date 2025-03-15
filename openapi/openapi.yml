@@ -119,8 +119,8 @@ paths:
             schema:
               $ref: "#/components/schemas/Course"
       responses:
-        201:
-          description: "Updated course"
+        204:
+          description: "No Content"
         404:
           description: "Course does not exist"
           content:
@@ -326,8 +326,8 @@ paths:
       summary: "Add assignment to a course"
       description: |
         Add assignments to a course.
-        If any assignment already exist in the class (based off of the TODO), 
-        their information will be updated.
+        If any assignment already exists in the class,
+        its information will be updated.
       security:
         - openIDC: [admin:write]
       parameters:
@@ -1666,7 +1666,7 @@ paths:
         Create a new master migration for a course.
         Replies with a master migration for a course.
       security:
-        - openIDC: [ instructor:write ]
+        - openIDC: [instructor:write]
       parameters:
         - name: course_id
           required: true
@@ -1869,7 +1869,7 @@ paths:
         Create a new migration for a master migration.
         Replies with an master migration including the list of migrations, one for each assignment and policy.
       security:
-        - openIDC: [ instructor:write ]
+        - openIDC: [instructor:write]
       parameters:
         - name: course_id
           required: true
@@ -1914,7 +1914,7 @@ paths:
         - instructor
       operationId: update_policy
       security:
-        - openIDC: [ instructor:write ]
+        - openIDC: [instructor:write]
       summary: Updates the policy for an assignment and migration
       description: |
         Updates the policy that corresponds to an assignment and a migration.
@@ -2423,8 +2423,6 @@ components:
         migration_id:
           type: string
           example: "999-9999-9999-99"
-
-
 
     MasterMigrationStatistics:
       description: "The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit"

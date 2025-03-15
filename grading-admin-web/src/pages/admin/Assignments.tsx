@@ -6,28 +6,21 @@ import {
   Divider,
   Group,
   InputWrapper,
-  keys,
   Modal,
   ScrollArea,
   Select,
   Table,
   Text,
   TextInput,
-  UnstyledButton,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import {
-  IconChevronDown,
-  IconChevronUp,
-  IconSearch,
-  IconSelector,
-} from "@tabler/icons-react";
+import { IconSearch } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { $api, store$ } from "../../api";
-import classes from "../../components/table/Table.module.scss";
+import { sortData, TableHeader } from "../../components/table/Table";
 import { components } from "../../lib/api/v1";
 
 interface AssignmentRowData {
@@ -47,87 +40,7 @@ interface AssignmentRowData {
   frozen: boolean;
 }
 
-interface TableHeaderProps {
-  children: React.ReactNode;
-  reversed: boolean;
-  sorted: boolean;
-  onSort: () => void;
-}
-
-function TableHeader({ children, reversed, sorted, onSort }: TableHeaderProps) {
-  const Icon = sorted
-    ? reversed
-      ? IconChevronUp
-      : IconChevronDown
-    : IconSelector;
-  return (
-    <Table.Th className={classes.th}>
-      <UnstyledButton onClick={onSort} className={classes.control}>
-        <Group justify="space-between">
-          <Text fw={500} fz="sm">
-            {children}
-          </Text>
-          <Center className={classes.icon}>
-            <Icon size={16} stroke={1.5} />
-          </Center>
-        </Group>
-      </UnstyledButton>
-    </Table.Th>
-  );
-}
-
-function filterData(data: AssignmentRowData[], search: string) {
-  const query = search.toLowerCase().trim();
-  return data.filter((item) =>
-    keys(data[0]).some((key) => String(item[key]).toLowerCase().includes(query))
-  );
-}
-
-function sortData(
-  data: AssignmentRowData[],
-  payload: {
-    sortBy: keyof AssignmentRowData | null;
-    reversed: boolean;
-    search: string;
-  }
-) {
-  const { sortBy } = payload;
-
-  if (!sortBy) {
-    return filterData(data, payload.search);
-  }
-
-  return filterData(
-    [...data].sort((a, b) => {
-      if (payload.reversed) {
-        return String(b[sortBy]).localeCompare(String(a[sortBy]));
-      }
-
-      return String(a[sortBy]).localeCompare(String(b[sortBy]));
-    }),
-    payload.search
-  );
-}
-
 export function AssignmentsPage() {
-  // const data: AssignmentRowData[] = [
-  //   {
-  //     id: "1",
-  //     name: "Assessment 1",
-  //     category: "Assessments",
-  //     points: 14,
-  //     external_service: "GRADESCOPE",
-  //     external_points: 28,
-  //     unlock_date: "May 1 2025",
-  //     due_date: "May 8 2025",
-  //     enabled: true,
-  //     status: "Migrated",
-  //     canvas_id: 1,
-  //     group_assignment: false,
-  //     attention_required: false,
-  //     frozen: false,
-  //   },
-  // ];
   const { data, error, isLoading, refetch } = $api.useQuery(
     "get",
     "/admin/courses/{course_id}",
@@ -144,10 +57,10 @@ export function AssignmentsPage() {
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedAssignment, setSelectedAssignment] = useState<
     components["schemas"]["Assignment"] | null
-  >(null); // TODO may not be necessary
+  >(null);
 
   const form = useForm({
-    mode: "controlled",
+    mode: "uncontrolled",
     initialValues: {
       name: "",
       category: "",
@@ -162,12 +75,16 @@ export function AssignmentsPage() {
       attention_required: true,
     },
     validate: {
-      // TODO validate stuff here
       name: (value) =>
         value && value.length < 1
           ? "Name must have at least 1 character"
           : null,
-      enabled: () => null,
+      category: (value) =>
+        value && value.length < 1
+          ? "Category must have at least 1 character"
+          : null,
+      points: (value) =>
+        value && value <= 0 ? "Points must be greater than 0" : null,
     },
   });
 
@@ -199,7 +116,7 @@ export function AssignmentsPage() {
     setReverseSortDirection(reversed);
     setSortBy(field);
     setSortedData(
-      sortData(data?.assignments as AssignmentRowData[], {
+      sortData<AssignmentRowData>(data?.assignments as AssignmentRowData[], {
         sortBy: field,
         reversed,
         search,
@@ -211,7 +128,7 @@ export function AssignmentsPage() {
     const { value } = event.currentTarget;
     setSearch(value);
     setSortedData(
-      sortData(data?.assignments as AssignmentRowData[], {
+      sortData<AssignmentRowData>(data?.assignments as AssignmentRowData[], {
         sortBy,
         reversed: reverseSortDirection,
         search: value,
@@ -254,7 +171,7 @@ export function AssignmentsPage() {
     );
   };
 
-  // sync sortedData with data - TODO see if this is necessary
+  // sync sortedData with data
   useEffect(() => {
     if (data?.assignments) {
       setSortedData(data.assignments);
@@ -356,14 +273,12 @@ export function AssignmentsPage() {
             onChange={setValue}
           />
 
-          {/* TODO fix and prettify the boolean fields */}
-          <InputWrapper
-            withAsterisk
-            label="Enabled"
-            key={form.key("enabled")}
-            {...form.getInputProps("enabled")}
-          >
-            <Checkbox defaultChecked={false} />
+          <InputWrapper withAsterisk label="Enabled">
+            <Checkbox
+              defaultChecked={form.values.enabled}
+              key={form.key("enabled")}
+              {...form.getInputProps("enabled", { type: "checkbox" })}
+            />
           </InputWrapper>
 
           <Text>
@@ -388,7 +303,7 @@ export function AssignmentsPage() {
         </form>
       </Modal>
 
-      <Container fluid w="75%" p={35}>
+      <Container fluid w="100%" p={35}>
         <Group>
           <Text size="xl" fw={700}>
             Assignments
@@ -464,7 +379,7 @@ export function AssignmentsPage() {
                 >
                   Status
                 </TableHeader>
-                <TableHeader sorted={false} reversed={false} onSort={() => {}}>
+                <TableHeader sorted={false} reversed={false} onSort={undefined}>
                   Actions
                 </TableHeader>
               </Table.Tr>

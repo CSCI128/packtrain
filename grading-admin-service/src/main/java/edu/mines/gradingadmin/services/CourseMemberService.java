@@ -273,21 +273,25 @@ public class CourseMemberService {
         return true;
     }
 
-    public List<CourseRole> getRolesForUserAndCourse(User user, UUID courseId){
+    public CourseRole getRoleForUserAndCourse(User user, UUID courseId){
         Optional<Course> course = courseService.getCourse(courseId);
 
-        if (course.isEmpty()){
-            return List.of();
+        Optional<CourseMember> membership = courseMemberRepo.getByUserAndCourse(user, course.get());
+
+        if(membership.isEmpty()) {
+            return CourseRole.NOT_ENROLLED;
         }
 
-        Set<CourseMember> memberships = courseMemberRepo.getByUserAndCourse(user, course.get());
-
-        return memberships.stream().map(CourseMember::getRole).toList();
+        return membership.get().getRole();
     }
 
     public Set<Section> getSectionsForUserAndCourse(User user, Course course){
-        Set<CourseMember> memberships = courseMemberRepo.getByUserAndCourse(user, course);
+        Optional<CourseMember> membership = courseMemberRepo.getByUserAndCourse(user, course);
 
-        return memberships.stream().map(CourseMember::getSections).flatMap(Set::stream).collect(Collectors.toSet());
+        if(membership.isEmpty()) {
+            return Set.of();
+        }
+
+        return membership.get().getSections();
     }
 }

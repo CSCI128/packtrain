@@ -115,10 +115,20 @@ public class UserService {
         return Optional.of(userRepo.save(user));
     }
 
-    public Optional<User> disableUser(String cwidToDisable){
+    public Optional<User> disableUser(User actingUser, String cwidToDisable){
+        if (actingUser.getCwid().equals(cwidToDisable)){
+            log.warn("Attempt to disable current user '{}' from admin!", cwidToDisable);
+            return Optional.empty();
+        }
+
         Optional<User> user = getUserByCwid(cwidToDisable);
 
         if (user.isEmpty()){
+            return Optional.empty();
+        }
+
+        if (user.get().isAdmin()){
+            log.warn("Attempt to disable admin user '{}'", cwidToDisable);
             return Optional.empty();
         }
 
@@ -163,8 +173,28 @@ public class UserService {
     }
 
     @Transactional
+    public Optional<User> demoteAdmin(User actingUser, String cwid) {
+        if (actingUser.getCwid().equals(cwid)){
+            log.warn("Attempt to demote current user '{}' from admin!", cwid);
+            return Optional.empty();
+        }
+        Optional<User> user = getUserByCwid(cwid);
+
+        if (user.isEmpty()){
+            return Optional.empty();
+        }
+
+        user.get().setAdmin(false);
+
+        log.info("Demoted admin '{}' to user", user.get().getEmail());
+
+        return Optional.of(userRepo.save(user.get()));
+    }
+
+    @Transactional
     public Optional<List<Course>> getEnrollments(String cwid) {
         Optional<User> user = userRepo.getByCwid(cwid);
         return user.map(member -> member.getCourseMemberships().stream().map(CourseMember::getCourse).toList());
     }
+
 }

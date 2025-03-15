@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
+import java.time.Instant;
 import java.util.*;
 
 @Transactional
@@ -65,18 +66,18 @@ public class StudentApiImpl implements StudentApiDelegate {
         }
 
         Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(securityManager.getUser(), course.get());
-
-        List<CourseRole> courseRoles = courseMemberService.getRolesForUserAndCourse(securityManager.getUser(), course.get().getId());
+        CourseRole courseRole = courseMemberService.getRoleForUserAndCourse(securityManager.getUser(), course.get().getId());
 
         CourseDTO courseDTO = DTOFactory.toDto(course.get())
-            .assignments(course.get().getAssignments().stream().filter(Assignment::isEnabled).map(DTOFactory::toDto).toList()) // TODO technically don't need to send everything here but then we get slimdto/dto issues
+            .assignments(course.get().getAssignments().stream()
+                    .filter(Assignment::isEnabled)
+                    .filter(assignment -> assignment.getDueDate().isAfter(Instant.now())).map(DTOFactory::toDto).toList())
             .sections(sections.stream().map(Section::getName).toList());
 
         StudentInformationDTO studentInformationDTO = new StudentInformationDTO()
                 .course(courseDTO)
-                .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRoles.stream().findFirst().get().name().toLowerCase()));
+                .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRole.getRole()));
 
-        // TODO fix some unsafe/presumptive checks here about sections; basically just using the first
         Optional<Section> section = sections.stream().findFirst();
         if(section.isPresent()) {
             Optional<CourseMember> instructor = courseMemberService.getFirstSectionInstructor(section.get());

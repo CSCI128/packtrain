@@ -4,14 +4,17 @@ import {
   Container,
   Divider,
   Group,
+  InputWrapper,
   Text,
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { $api, store$ } from "../../../api";
 
 export function EditCourse() {
+  const navigate = useNavigate();
   const { data, error, isLoading } = $api.useQuery(
     "get",
     "/admin/courses/{course_id}",
@@ -27,33 +30,38 @@ export function EditCourse() {
   // TODO add/link service mutation here
 
   const updateCourse = (values: typeof form.values) => {
-    mutation.mutate({
-      params: {
-        path: {
-          course_id: "1",
+    mutation.mutate(
+      {
+        params: {
+          path: {
+            course_id: store$.id.get() as string,
+          },
+        },
+        body: {
+          name: values.courseName as string,
+          code: values.courseCode as string,
+          term: values.courseTerm as string,
+          enabled: true,
+          canvas_id: Number(values.canvasId),
         },
       },
-      body: {
-        name: values.courseName,
-        code: values.courseCode,
-        term: values.courseTerm,
-        enabled: true,
-        canvas_id: Number(values.canvasId), // TODO they shouldn't really be editing canvas_id here
-      },
-    });
+      {
+        onSuccess: () => {
+          navigate("/admin/home");
+        },
+      }
+    );
   };
 
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
-      courseName: data?.name,
-      courseCode: data?.code,
-      courseTerm: data?.term,
-      canvasId: data?.canvas_id,
+      courseName: "",
+      courseCode: "",
+      courseTerm: "",
+      canvasId: 0,
     },
     validate: {
-      // canvasId: (value) =>
-      //   value.length == 8 ? null : "Canvas ID must be 8 characters",
       courseName: (value) =>
         value && value.length < 1
           ? "Course name must have at least 1 character"
@@ -98,6 +106,17 @@ export function EditCourse() {
     );
   };
 
+  useEffect(() => {
+    if (data) {
+      form.setValues({
+        courseName: data.name,
+        courseCode: data.code,
+        courseTerm: data.term,
+        canvasId: data.canvas_id,
+      });
+    }
+  }, [data]);
+
   if (isLoading || !data) return "Loading...";
 
   if (error) return `An error occured: ${error}`;
@@ -139,33 +158,31 @@ export function EditCourse() {
             {...form.getInputProps("courseTerm")}
           />
 
-          {/* TODO dont allow this, this shouldnt really happen or should resync? */}
           <TextInput
+            pb={8}
+            disabled
             label="Canvas ID"
             placeholder="xxxxxxxx"
             key={form.key("canvasId")}
             {...form.getInputProps("canvasId")}
           />
 
-          <Text size="md">External Services</Text>
-
-          <Chip.Group multiple>
-            <Group>
-              <Chip value="1">Gradescope</Chip>
-              <Chip value="2">Runestone</Chip>
-              <Chip value="3">PrairieLearn</Chip>
-            </Group>
-          </Chip.Group>
+          <InputWrapper label="External Services">
+            <Chip.Group multiple>
+              <Group>
+                <Chip value="1">Gradescope</Chip>
+                <Chip value="2">Runestone</Chip>
+                <Chip value="3">PrairieLearn</Chip>
+              </Group>
+            </Chip.Group>
+          </InputWrapper>
 
           <Group justify="flex-end" mt="md">
             <Button onClick={syncAssignments} variant="filled">
               Sync Assignments
             </Button>
 
-            {/* TODO maybe make this another button once external services are added */}
-            <Button component={Link} to="/admin/home" type="submit">
-              Save
-            </Button>
+            <Button type="submit">Save</Button>
           </Group>
         </form>
       </Container>

@@ -1,4 +1,4 @@
-import { MantineProvider } from "@mantine/core";
+import { MantineProvider, Text } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -35,20 +35,19 @@ const queryClient = new QueryClient({
   },
 });
 
-// TODO not sure if middleware is the correct name here but yeehaw
+const NotFoundPage = () => {
+  return (
+    <>
+      <Text>The specified page could not be found!</Text>
+    </>
+  );
+};
+
 const MiddlewareLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = store$.id.get();
   const currentPage = location.pathname;
-
-  // TODO can't find course, delete state tracked course; will this ever happen?
-  // useEffect(() => {
-  //   if (data === undefined) {
-  //     store$.id.delete();
-  //     store$.name.delete();
-  //   }
-  // }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -116,7 +115,6 @@ const router = createBrowserRouter([
           },
           {
             path: "/admin/home",
-            // TODO rename to AdminRoute and ensure this works with instructors + normal users too
             element: (
               <ProtectedRoute>
                 <CoursePage />
@@ -170,6 +168,10 @@ const router = createBrowserRouter([
           {
             path: "/profile",
             element: <ProfilePage />,
+          },
+          {
+            path: "*",
+            element: <NotFoundPage />,
           },
         ],
       },

@@ -5,6 +5,7 @@ import lombok.Getter;
 import java.util.stream.Stream;
 
 public enum CourseRole {
+    NOT_ENROLLED("not enrolled"),
     STUDENT("student"),
     TA("ta"),
     INSTRUCTOR("instructor"),

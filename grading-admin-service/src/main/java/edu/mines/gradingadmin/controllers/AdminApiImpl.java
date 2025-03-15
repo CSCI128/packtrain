@@ -164,6 +164,17 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
+    public ResponseEntity<Void> updateCourse(String courseId, CourseDTO courseDTO) {
+        Optional<Course> course = courseService.updateCourse(courseId, courseDTO);
+
+        if (course.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
     public ResponseEntity<List<CourseDTO>> getCourses(Boolean enabled) {
         List<Course> courses = courseService.getCourses(enabled);
         return ResponseEntity.ok(courses.stream().map(DTOFactory::toDto).toList());
@@ -291,21 +302,29 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<UserDTO> adminUpdateUser(UserDTO userDTO) {
-        Optional<User> user = userService.updateUser(userDTO);
-
-        if (user.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        Optional<User> user = Optional.empty();
 
         if(userDTO.getEnabled()) {
-            userService.enableUser(user.get().getCwid());
+            user = userService.enableUser(user.get().getCwid());
         }
         else {
-            userService.disableUser(user.get().getCwid());
+            user = userService.disableUser(securityManager.getUser(), user.get().getCwid());
+        }
+
+        if (user.isEmpty()){
+            return ResponseEntity.badRequest().build();
         }
 
         if(userDTO.getAdmin()) {
-            userService.makeAdmin(user.get().getCwid());
+            user = userService.makeAdmin(user.get().getCwid());
+        } else{
+            user = userService.demoteAdmin(securityManager.getUser(), user.get().getCwid());
+
+        }
+        user = userService.updateUser(userDTO);
+
+        if (user.isEmpty()){
+            return ResponseEntity.badRequest().build();
         }
 
         return ResponseEntity.accepted().body(new UserDTO()
@@ -330,7 +349,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<Void> disableUser(String cwid) {
-        Optional<User> user = userService.disableUser(cwid);
+        Optional<User> user = userService.disableUser(securityManager.getUser(), cwid);
 
         if (user.isEmpty()) {
             return ResponseEntity.notFound().build();

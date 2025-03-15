@@ -4,6 +4,7 @@ import {
   Container,
   Divider,
   Group,
+  InputWrapper,
   Loader,
   Text,
   TextInput,
@@ -20,48 +21,33 @@ export function CreatePage() {
     "post",
     "/admin/courses/{course_id}/import"
   );
+  const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
   const [outstandingTasks, setOutstandingTasks] = useState<
     components["schemas"]["Task"][]
   >([]);
   const [canvasId, setCanvasId] = useState("");
   const [courseId, setCourseId] = useState("");
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
-
-  // TODO this might not be needed based off alltasksCompleted
   const [courseCreated, setCourseCreated] = useState(false);
-  const [importing, setImporting] = useState(false);
-  const [membersImported, setMembersImported] = useState(0);
-  const [assignmentsImported, setAssignmentsImported] = useState(0);
-  const [sectionsImported, setSectionsImported] = useState(0);
-  // TODO make struct for this and cleanup this file ^^
+  const [importStatistics, setImportStatistics] = useState({
+    members: 0,
+    assignments: 0,
+    sections: 0,
+  });
 
   // TODO add/link service mutation here
 
-  // const {
-  //   data: data,
-  //   error: error,
-  //   isLoading: isLoading,
-  // } = $api.useQuery("get", "/user/credentials");
-
-  // TODO check canvas credentials somehow, ensure credentials exist for user.
-  // disable form if none found
-
-  // const hasCanvasCredential = () => {
-  //   for (let credential of data) {
-  //     if (credential.service === "canvas") {
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // };
+  const { data: credentialData, error: credentialError } = $api.useQuery(
+    "get",
+    "/user/credentials"
+  );
 
   const importCourse = () => {
-    setImporting(true);
     importMutation.mutate(
       {
         params: {
           path: {
-            course_id: courseId,
+            course_id: store$.id.get() as string,
           },
         },
         body: {
@@ -103,10 +89,11 @@ export function CreatePage() {
             console.log(
               `Task ${taskId} is still in progress, retrying in ${delay}ms...`
             );
-            await new Promise((res) => setTimeout(res, delay)); // Wait before retrying
+            await new Promise((res) => setTimeout(res, delay));
           }
         } catch (error) {
           console.error(`Error fetching task ${taskId}:`, error);
+          return;
         }
       }
     },
@@ -123,7 +110,6 @@ export function CreatePage() {
         .then((results) => {
           console.log("All tasks are completed:", results);
           setAllTasksCompleted(true);
-          setImporting(false);
           setOutstandingTasks([]);
         })
         .catch((error) => {
@@ -132,7 +118,7 @@ export function CreatePage() {
     };
 
     pollTasks();
-  }, [outstandingTasks, pollTaskUntilComplete, importing]);
+  }, [outstandingTasks, pollTaskUntilComplete]);
 
   const { data, error } = $api.useQuery(
     "get",
@@ -152,10 +138,11 @@ export function CreatePage() {
 
   useEffect(() => {
     if (courseCreated && allTasksCompleted && data) {
-      setAssignmentsImported(data.assignments?.length || 0);
-      setSectionsImported(data.sections?.length || 0);
-      setMembersImported(data.members?.length || 0);
-      setImporting(false);
+      setImportStatistics({
+        members: data.members?.length || 0,
+        sections: data.sections?.length || 0,
+        assignments: data.assignments?.length || 0,
+      });
     }
   }, [courseCreated, allTasksCompleted, data]);
 
@@ -175,13 +162,18 @@ export function CreatePage() {
           setCanvasId(values.canvasId);
           setCourseId(response.id as string);
           setCourseCreated(true);
-          setAllTasksCompleted(false);
           store$.id.set(response.id as string);
           store$.name.set(response.name);
         },
       }
     );
   };
+
+  useEffect(() => {
+    if (courseCreated) {
+      importCourse();
+    }
+  }, [courseCreated]);
 
   const form = useForm({
     mode: "uncontrolled",
@@ -203,8 +195,22 @@ export function CreatePage() {
     },
   });
 
+  useEffect(() => {
+    if (credentialData) {
+      for (let credential of credentialData) {
+        if (credential.service === "canvas") {
+          setUserHasCredential(true);
+        }
+      }
+    }
+  }, [credentialData]);
+
   if (error) {
-    return <p>Error while querying created course!</p>; // TODO handle this error better!
+    return <p>Error while querying created course!</p>;
+  }
+
+  if (credentialError) {
+    return <p>Error while querying credentials!</p>;
   }
 
   return (
@@ -216,92 +222,107 @@ export function CreatePage() {
 
         <Divider my="md" />
 
-        <form onSubmit={form.onSubmit(createCourse)}>
-          <TextInput
-            pb={8}
-            label="Course Name"
-            defaultValue="Computer Science For STEM"
-            placeholder="Computer Science For STEM"
-            key={form.key("courseName")}
-            {...form.getInputProps("courseName")}
-          />
-
-          <TextInput
-            pb={8}
-            label="Course Code"
-            defaultValue="CSCI128"
-            placeholder="CSCI128"
-            key={form.key("courseCode")}
-            {...form.getInputProps("courseCode")}
-          />
-
-          <TextInput
-            pb={8}
-            label="Term"
-            defaultValue="Fall 2024"
-            placeholder="Fall 2024"
-            key={form.key("courseTerm")}
-            {...form.getInputProps("courseTerm")}
-          />
-
-          <TextInput
-            label="Canvas ID"
-            placeholder="xxxxxxxx"
-            key={form.key("canvasId")}
-            {...form.getInputProps("canvasId")}
-          />
-
-          <Text size="md">External Services</Text>
-
-          <Chip.Group multiple>
-            <Group>
-              <Chip value="1">Gradescope</Chip>
-              <Chip value="2">Runestone</Chip>
-              <Chip value="3">PrairieLearn</Chip>
-            </Group>
-          </Chip.Group>
-
-          {!courseCreated && (
-            <Group justify="flex-end" mt="md">
-              <Button type="submit">Create</Button>
-            </Group>
-          )}
-        </form>
-
-        {courseCreated && (
+        {!userHasCredential ? (
           <>
-            {!allTasksCompleted ? (
+            <Text fw={400}>You do not have any active Canvas credentials!</Text>
+            <Text>Please add a credential under your profile to proceed.</Text>
+          </>
+        ) : (
+          <>
+            <form onSubmit={form.onSubmit(createCourse)}>
+              <TextInput
+                disabled={courseCreated}
+                pb={8}
+                label="Course Name"
+                defaultValue="Computer Science For STEM"
+                placeholder="Computer Science For STEM"
+                key={form.key("courseName")}
+                {...form.getInputProps("courseName")}
+              />
+
+              <TextInput
+                disabled={courseCreated}
+                pb={8}
+                label="Course Code"
+                defaultValue="CSCI128"
+                placeholder="CSCI128"
+                key={form.key("courseCode")}
+                {...form.getInputProps("courseCode")}
+              />
+
+              <TextInput
+                disabled={courseCreated}
+                pb={8}
+                label="Term"
+                defaultValue="Fall 2024"
+                placeholder="Fall 2024"
+                key={form.key("courseTerm")}
+                {...form.getInputProps("courseTerm")}
+              />
+
+              <TextInput
+                disabled={courseCreated}
+                pb={8}
+                label="Canvas ID"
+                placeholder="xxxxxxxx"
+                key={form.key("canvasId")}
+                {...form.getInputProps("canvasId")}
+              />
+
+              <InputWrapper label="External Services">
+                <Chip.Group multiple>
+                  <Group>
+                    <Chip value="1">Gradescope</Chip>
+                    <Chip value="2">Runestone</Chip>
+                    <Chip value="3">PrairieLearn</Chip>
+                  </Group>
+                </Chip.Group>
+              </InputWrapper>
+
+              {!courseCreated && (
+                <Group justify="flex-end" mt="md">
+                  <Button type="submit">Create</Button>
+                </Group>
+              )}
+            </form>
+
+            {courseCreated && (
               <>
-                {importing ? (
+                {!allTasksCompleted ? (
                   <>
-                    <p>Importing, this may take a moment..</p>{" "}
+                    <Text>Importing, this may take a moment..</Text>{" "}
                     <Loader color="blue" />
                   </>
                 ) : (
-                  <Group justify="flex-end" mt="md">
-                    <Button onClick={importCourse}>Import</Button>
-                  </Group>
+                  <>
+                    <Text>Import complete!</Text>
+                    <Text>
+                      <strong>{importStatistics.assignments}</strong>{" "}
+                      assignments imported
+                    </Text>
+                    <Text>
+                      <strong>{importStatistics.members}</strong> members
+                      imported
+                    </Text>
+                    <Text>
+                      <strong>{importStatistics.sections}</strong> sections
+                      imported
+                    </Text>
+                  </>
                 )}
-              </>
-            ) : (
-              <>
-                <p>Import complete!</p>
-                <p>{assignmentsImported} assignments imported</p>
-                <p>{membersImported} members imported</p>
-                <p>{sectionsImported} sections imported</p>
+
+                <Group justify="flex-end" mt="md">
+                  <Button
+                    disabled={!allTasksCompleted}
+                    color={allTasksCompleted ? "blue" : "gray"}
+                    component={Link}
+                    to="/admin/home"
+                  >
+                    Continue
+                  </Button>
+                </Group>
               </>
             )}
-
-            {/* TODO disable this if import isn't done */}
-            <Group justify="flex-end" mt="md">
-              <Button
-                color={allTasksCompleted ? "blue" : "gray"}
-                component={Link}
-                to="/admin/home"
-              >
-                Continue
-              </Button>
-            </Group>
           </>
         )}
       </Container>
