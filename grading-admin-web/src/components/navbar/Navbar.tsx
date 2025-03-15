@@ -8,6 +8,8 @@ import {
   Menu,
   Modal,
   ScrollArea,
+  Stack,
+  Text,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useAuth } from "react-oidc-context";
@@ -107,11 +109,10 @@ export function Navbar() {
             </Group>
           </Group>
 
-          {/* TODO finish drawer */}
           <Drawer
             opened={drawerOpened}
             onClose={closeDrawer}
-            size="100%"
+            size="50%"
             padding="md"
             title="Navigation"
             hiddenFrom="sm"
@@ -120,20 +121,73 @@ export function Navbar() {
             <ScrollArea h="calc(100vh - 80px)" mx="-md">
               <Divider my="sm" />
 
-              <a href="#" className={classes.link}>
-                Home
-              </a>
-              <a href="#" className={classes.link}>
-                Learn
-              </a>
-              <a href="#" className={classes.link}>
-                Academy
-              </a>
+              <Box ml={20}>
+                <p onClick={() => navigate("/")}>Grading Admin</p>
+                {auth.user?.profile.is_admin ? (
+                  <>
+                    <a href="/instructor/migrate" className={classes.link}>
+                      Migrate
+                    </a>
+                    <a href="/admin/home" className={classes.link}>
+                      Course
+                    </a>
+                    <a href="/admin/assignments" className={classes.link}>
+                      Assignments
+                    </a>
+                    <a href="/admin/members" className={classes.link}>
+                      Members
+                    </a>
+                    <a href="/admin/users" className={classes.link}>
+                      Users
+                    </a>
+                  </>
+                ) : (
+                  <></>
+                )}
+              </Box>
 
               <Divider my="sm" />
 
               <Group justify="center" grow pb="xl" px="md">
-                <Button variant="default">Log in</Button>
+                {!auth.user ? (
+                  <Group visibleFrom="sm">
+                    <Button
+                      onClick={() => void auth.signinRedirect()}
+                      variant="default"
+                    >
+                      Login
+                    </Button>
+                  </Group>
+                ) : (
+                  <Menu shadow="md" width={200}>
+                    <Stack>
+                      <Text>{auth.user.profile.name}</Text>
+
+                      <Menu.Dropdown>
+                        <Menu.Item component="a" href="/profile">
+                          Profile
+                        </Menu.Item>
+
+                        <Menu.Divider />
+
+                        <Menu.Item
+                          color="red"
+                          onClick={() => {
+                            void auth.signoutRedirect();
+                            store$.id.delete();
+                            store$.name.delete();
+                          }}
+                        >
+                          Logout
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Stack>
+                  </Menu>
+                )}
+
+                <Button variant="default" onClick={open}>
+                  {store$.name.get() || "Select Class"}
+                </Button>
               </Group>
             </ScrollArea>
           </Drawer>
