@@ -148,48 +148,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/courses/{course_id}/enable": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Enable the specified course.
-         * @description Enable the specified course.
-         *
-         */
-        put: operations["enable_course"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/courses/{course_id}/disable": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Disable the specified course.
-         * @description Disable the specified course.
-         *
-         */
-        put: operations["disable_course"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/admin/courses/{course_id}/assignment/{assignment_id}/disable": {
         parameters: {
             query?: never;
@@ -333,28 +291,6 @@ export interface paths {
          *
          */
         put: operations["disable_user"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/users/{cwid}/admin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Make a user an admin
-         * @description Make a user an admin.
-         *     This will fail if the account is disabled or if the requested user is enrolled as a student in any classes
-         *
-         */
-        put: operations["make_admin"];
         post?: never;
         delete?: never;
         options?: never;
@@ -845,7 +781,13 @@ export interface paths {
          */
         get: operations["get_all_master_migrations_for_course"];
         put?: never;
-        post?: never;
+        /**
+         * Create master migration for a course
+         * @description Create a new master migration for a course.
+         *     Replies with a master migration for a course.
+         *
+         */
+        post: operations["create_master_migration"];
         delete?: never;
         options?: never;
         head?: never;
@@ -903,7 +845,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/instructor/courses/{course_id}/migrations/{migration_id}": {
+    "/instructor/courses/{course_id}/migrations/{master_migration_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -917,6 +859,33 @@ export interface paths {
          *
          */
         put: operations["update_grade"];
+        /**
+         * Create migration for a master migration
+         * @description Create a new migration for a master migration.
+         *     Replies with an master migration including the list of migrations, one for each assignment and policy.
+         *
+         */
+        post: operations["create_migration_for_master_migration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses/{course_id}/migrations/{migration_id}/assignments/{assignment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Updates the policy for an assignment and migration
+         * @description Updates the policy that corresponds to an assignment and a migration.
+         *
+         */
+        put: operations["update_policy"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1215,6 +1184,8 @@ export interface components {
         /** @description The master migration that contains to the list of migration objects */
         MasterMigration: {
             migration_list: components["schemas"]["Migration"][];
+            /** @example 999-9999-9999-99 */
+            migration_id?: string;
         };
         /** @description The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit */
         MasterMigrationStatistics: {
@@ -1544,64 +1515,6 @@ export interface operations {
             };
         };
     };
-    enable_course: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                course_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Course Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    disable_course: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                course_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Course Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     disable_assignment: {
         parameters: {
             query?: never;
@@ -1880,35 +1793,6 @@ export interface operations {
         responses: {
             /** @description Created */
             201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    make_admin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                cwid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2702,6 +2586,42 @@ export interface operations {
             };
         };
     };
+    create_master_migration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MasterMigration"];
+            };
+        };
+        responses: {
+            /** @description An master Migration has been created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MasterMigration"];
+                };
+            };
+            /** @description Migration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_all_extensions: {
         parameters: {
             query?: never;
@@ -2808,7 +2728,7 @@ export interface operations {
             header?: never;
             path: {
                 course_id: string;
-                migration_id: string;
+                master_migration_id: string;
             };
             cookie?: never;
         };
@@ -2831,6 +2751,90 @@ export interface operations {
                 };
             };
             /** @description Migration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_migration_for_master_migration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course ID */
+                course_id: string;
+                /** @description The master migration ID */
+                master_migration_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Migration"];
+            };
+        };
+        responses: {
+            /** @description An Master Migration has been updated */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MasterMigration"];
+                };
+            };
+            /** @description Master Migration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_policy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+                migration_id: string;
+                assignment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Policy"];
+            };
+        };
+        responses: {
+            /** @description Policy updated for assignment */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Migration"];
+                };
+            };
+            /** @description Failed to update policy */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Policy not found */
             404: {
                 headers: {
                     [name: string]: unknown;

@@ -154,7 +154,7 @@ export function Requests() {
     );
   };
 
-  const handleWithdraw = (row: any) => {
+  const handleWithdraw = (row: RequestRowData) => {
     setSelectedExtension(row);
     openDelete();
   };

@@ -34,7 +34,7 @@ interface User {
   cwid: string;
   name: string;
   admin: boolean;
-  enabled: boolean;
+  enabled?: boolean;
 }
 
 interface UserRowData {
@@ -155,7 +155,7 @@ export function UsersPage() {
     },
   });
 
-  const handleEditOpen = (row: any) => {
+  const handleEditOpen = (row: User) => {
     setSelectedUser(row);
     editUserForm.setValues({
       name: row.name,
