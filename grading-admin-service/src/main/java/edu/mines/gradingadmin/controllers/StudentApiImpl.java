@@ -66,7 +66,7 @@ public class StudentApiImpl implements StudentApiDelegate {
         }
 
         Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(securityManager.getUser(), course.get());
-        CourseRole courseRole = courseMemberService.getRoleForUserAndCourse(securityManager.getUser(), course.get().getId());
+        Optional<CourseRole> courseRole = courseMemberService.getRoleForUserAndCourse(securityManager.getUser(), course.get().getId());
 
         CourseDTO courseDTO = DTOFactory.toDto(course.get())
             .assignments(course.get().getAssignments().stream()
@@ -76,7 +76,7 @@ public class StudentApiImpl implements StudentApiDelegate {
 
         StudentInformationDTO studentInformationDTO = new StudentInformationDTO()
                 .course(courseDTO)
-                .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRole.getRole()));
+                .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRole.isEmpty() ? "student" : courseRole.get().getRole()));
 
         Optional<Section> section = sections.stream().findFirst();
         if(section.isPresent()) {

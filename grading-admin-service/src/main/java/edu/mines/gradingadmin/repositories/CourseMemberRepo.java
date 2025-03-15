@@ -32,7 +32,7 @@ public interface CourseMemberRepo extends CrudRepository<CourseMember, UUID> {
     @Query("select m from course_member m where m.course = ?1 and m.user.cwid in ?2")
     Set<CourseMember> getAllByCourseAndCwids(Course course, Set<String> cwids);
 
-    CourseMember getByUserAndCourse(User user, Course course);
+    Optional<CourseMember> getByUserAndCourse(User user, Course course);
 
     @Query("delete from course_member m where m.course = ?1 and m.user.cwid in ?2")
     @Modifying

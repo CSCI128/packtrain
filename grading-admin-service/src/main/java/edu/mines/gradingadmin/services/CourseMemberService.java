@@ -273,17 +273,25 @@ public class CourseMemberService {
         return true;
     }
 
-    public CourseRole getRoleForUserAndCourse(User user, UUID courseId){
+    public Optional<CourseRole> getRoleForUserAndCourse(User user, UUID courseId){
         Optional<Course> course = courseService.getCourse(courseId);
 
-        CourseMember membership = courseMemberRepo.getByUserAndCourse(user, course.get());
+        Optional<CourseMember> membership = courseMemberRepo.getByUserAndCourse(user, course.get());
 
-        return membership.getRole();
+        if(membership.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(membership.get().getRole());
     }
 
     public Set<Section> getSectionsForUserAndCourse(User user, Course course){
-        CourseMember membership = courseMemberRepo.getByUserAndCourse(user, course);
+        Optional<CourseMember> membership = courseMemberRepo.getByUserAndCourse(user, course);
 
-        return membership.getSections();
+        if(membership.isEmpty()) {
+            return Set.of();
+        }
+
+        return membership.get().getSections();
     }
 }
