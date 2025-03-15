@@ -29,7 +29,6 @@ export function CreatePage() {
   const [courseId, setCourseId] = useState("");
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
   const [courseCreated, setCourseCreated] = useState(false);
-  const [importing, setImporting] = useState(false);
   const [importStatistics, setImportStatistics] = useState({
     members: 0,
     assignments: 0,
@@ -44,12 +43,11 @@ export function CreatePage() {
   );
 
   const importCourse = () => {
-    setImporting(true);
     importMutation.mutate(
       {
         params: {
           path: {
-            course_id: courseId,
+            course_id: store$.id.get() as string,
           },
         },
         body: {
@@ -91,10 +89,11 @@ export function CreatePage() {
             console.log(
               `Task ${taskId} is still in progress, retrying in ${delay}ms...`
             );
-            await new Promise((res) => setTimeout(res, delay)); // Wait before retrying
+            await new Promise((res) => setTimeout(res, delay));
           }
         } catch (error) {
           console.error(`Error fetching task ${taskId}:`, error);
+          return;
         }
       }
     },
@@ -111,7 +110,6 @@ export function CreatePage() {
         .then((results) => {
           console.log("All tasks are completed:", results);
           setAllTasksCompleted(true);
-          setImporting(false);
           setOutstandingTasks([]);
         })
         .catch((error) => {
@@ -120,7 +118,7 @@ export function CreatePage() {
     };
 
     pollTasks();
-  }, [outstandingTasks, pollTaskUntilComplete, importing]);
+  }, [outstandingTasks, pollTaskUntilComplete]);
 
   const { data, error } = $api.useQuery(
     "get",
@@ -145,7 +143,6 @@ export function CreatePage() {
         sections: data.sections?.length || 0,
         assignments: data.assignments?.length || 0,
       });
-      setImporting(false);
     }
   }, [courseCreated, allTasksCompleted, data]);
 
@@ -165,13 +162,18 @@ export function CreatePage() {
           setCanvasId(values.canvasId);
           setCourseId(response.id as string);
           setCourseCreated(true);
-          setAllTasksCompleted(false);
           store$.id.set(response.id as string);
           store$.name.set(response.name);
         },
       }
     );
   };
+
+  useEffect(() => {
+    if (courseCreated) {
+      importCourse();
+    }
+  }, [courseCreated]);
 
   const form = useForm({
     mode: "uncontrolled",
@@ -229,6 +231,7 @@ export function CreatePage() {
           <>
             <form onSubmit={form.onSubmit(createCourse)}>
               <TextInput
+                disabled={courseCreated}
                 pb={8}
                 label="Course Name"
                 defaultValue="Computer Science For STEM"
@@ -238,6 +241,7 @@ export function CreatePage() {
               />
 
               <TextInput
+                disabled={courseCreated}
                 pb={8}
                 label="Course Code"
                 defaultValue="CSCI128"
@@ -247,6 +251,7 @@ export function CreatePage() {
               />
 
               <TextInput
+                disabled={courseCreated}
                 pb={8}
                 label="Term"
                 defaultValue="Fall 2024"
@@ -256,6 +261,8 @@ export function CreatePage() {
               />
 
               <TextInput
+                disabled={courseCreated}
+                pb={8}
                 label="Canvas ID"
                 placeholder="xxxxxxxx"
                 key={form.key("canvasId")}
@@ -283,29 +290,30 @@ export function CreatePage() {
               <>
                 {!allTasksCompleted ? (
                   <>
-                    {importing ? (
-                      <>
-                        <p>Importing, this may take a moment..</p>{" "}
-                        <Loader color="blue" />
-                      </>
-                    ) : (
-                      <Group justify="flex-end" mt="md">
-                        <Button onClick={importCourse}>Import</Button>
-                      </Group>
-                    )}
+                    <Text>Importing, this may take a moment..</Text>{" "}
+                    <Loader color="blue" />
                   </>
                 ) : (
                   <>
-                    <p>Import complete!</p>
-                    <p>{importStatistics.assignments} assignments imported</p>
-                    <p>{importStatistics.members} members imported</p>
-                    <p>{importStatistics.sections} sections imported</p>
+                    <Text>Import complete!</Text>
+                    <Text>
+                      <strong>{importStatistics.assignments}</strong>{" "}
+                      assignments imported
+                    </Text>
+                    <Text>
+                      <strong>{importStatistics.members}</strong> members
+                      imported
+                    </Text>
+                    <Text>
+                      <strong>{importStatistics.sections}</strong> sections
+                      imported
+                    </Text>
                   </>
                 )}
 
-                {/* TODO disable this if import isn't done */}
                 <Group justify="flex-end" mt="md">
                   <Button
+                    disabled={!allTasksCompleted}
                     color={allTasksCompleted ? "blue" : "gray"}
                     component={Link}
                     to="/admin/home"
