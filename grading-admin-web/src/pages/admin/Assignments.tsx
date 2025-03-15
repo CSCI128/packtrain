@@ -60,7 +60,7 @@ export function AssignmentsPage() {
   >(null);
 
   const form = useForm({
-    mode: "controlled",
+    mode: "uncontrolled",
     initialValues: {
       name: "",
       category: "",
@@ -273,14 +273,12 @@ export function AssignmentsPage() {
             onChange={setValue}
           />
 
-          {/* TODO fix and prettify the boolean fields */}
-          <InputWrapper
-            withAsterisk
-            label="Enabled"
-            key={form.key("enabled")}
-            {...form.getInputProps("enabled")}
-          >
-            <Checkbox defaultChecked={false} />
+          <InputWrapper withAsterisk label="Enabled">
+            <Checkbox
+              defaultChecked={form.values.enabled}
+              key={form.key("enabled")}
+              {...form.getInputProps("enabled", { type: "checkbox" })}
+            />
           </InputWrapper>
 
           <Text>
