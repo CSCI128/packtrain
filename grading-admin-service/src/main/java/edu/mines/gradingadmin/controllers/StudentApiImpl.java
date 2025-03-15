@@ -75,7 +75,6 @@ public class StudentApiImpl implements StudentApiDelegate {
                 .course(courseDTO)
                 .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRole.getRole()));
 
-        // TODO fix some unsafe/presumptive checks here about sections; basically just using the first
         Optional<Section> section = sections.stream().findFirst();
         if(section.isPresent()) {
             Optional<CourseMember> instructor = courseMemberService.getFirstSectionInstructor(section.get());

@@ -99,7 +99,6 @@ public class DTOFactory {
     }
 
     public static AssignmentSlimDTO toSlimDto(Assignment assignment) {
-        // TODO should enabled be included here?
         return new AssignmentSlimDTO()
             .id(assignment.getId().toString())
             .name(assignment.getName())

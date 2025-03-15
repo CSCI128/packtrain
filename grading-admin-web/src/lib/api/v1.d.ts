@@ -137,8 +137,8 @@ export interface paths {
         /**
          * Add assignment to a course
          * @description Add assignments to a course.
-         *     If any assignment already exist in the class (based off of the TODO),
-         *     their information will be updated.
+         *     If any assignment already exists in the class,
+         *     its information will be updated.
          *
          */
         post: operations["add_assignment"];

@@ -101,7 +101,6 @@ export function Navbar() {
                 </Menu>
               )}
 
-              {/* TODO check for either instructor or admin role here */}
               <Button variant="default" onClick={open}>
                 {store$.name.get() || "Select Class"}
               </Button>

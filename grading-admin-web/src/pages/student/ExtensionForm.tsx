@@ -159,7 +159,6 @@ export function ExtensionForm() {
             <Text>
               <strong>If approved</strong>, the assignment will be due{" "}
               <strong>
-                {/* TODO update this when extensionDays updates */}
                 {formattedDate(
                   new Date(
                     calculateNewDueDate(

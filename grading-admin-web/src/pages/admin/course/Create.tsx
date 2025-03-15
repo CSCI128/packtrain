@@ -26,8 +26,6 @@ export function CreatePage() {
   const [canvasId, setCanvasId] = useState("");
   const [courseId, setCourseId] = useState("");
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
-
-  // TODO this might not be needed based off alltasksCompleted
   const [courseCreated, setCourseCreated] = useState(false);
   const [importing, setImporting] = useState(false);
   const [membersImported, setMembersImported] = useState(0);
@@ -204,7 +202,7 @@ export function CreatePage() {
   });
 
   if (error) {
-    return <p>Error while querying created course!</p>; // TODO handle this error better!
+    return <p>Error while querying created course!</p>;
   }
 
   return (
