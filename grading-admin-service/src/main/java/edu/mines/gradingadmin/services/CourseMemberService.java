@@ -273,16 +273,16 @@ public class CourseMemberService {
         return true;
     }
 
-    public Optional<CourseRole> getRoleForUserAndCourse(User user, UUID courseId){
+    public CourseRole getRoleForUserAndCourse(User user, UUID courseId){
         Optional<Course> course = courseService.getCourse(courseId);
 
         Optional<CourseMember> membership = courseMemberRepo.getByUserAndCourse(user, course.get());
 
         if(membership.isEmpty()) {
-            return Optional.empty();
+            return CourseRole.NOT_ENROLLED;
         }
 
-        return Optional.of(membership.get().getRole());
+        return membership.get().getRole();
     }
 
     public Set<Section> getSectionsForUserAndCourse(User user, Course course){
