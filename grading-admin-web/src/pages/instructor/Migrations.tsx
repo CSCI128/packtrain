@@ -1,5 +1,4 @@
 import { Box, Container, Divider, Text } from "@mantine/core";
-import { $api, store$ } from "../../api";
 import { components } from "../../lib/api/v1";
 import { formattedDate } from "../../utils/DateUtil";
 
@@ -29,7 +28,7 @@ export function MigrationsPage() {
 
         {data.length > 0 ? (
           data.map((migration: components["schemas"]["MasterMigration"]) => (
-            <Box pb={10}>
+            <Box pb={20} key={migration.migration_id}>
               <Text>
                 <strong>
                   {formattedDate(new Date(migration.timestamp as string))}
@@ -41,7 +40,9 @@ export function MigrationsPage() {
               </Text>
               <Text>
                 <strong>Migrated Assignments</strong>:{" "}
-                {migration.migration_list.join(", ")}
+                {migration.migration_list
+                  .map((migration) => migration.assignment.name)
+                  .join(", ")}
               </Text>
             </Box>
           ))

@@ -2426,7 +2426,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Migration"
-        migration_id:
+        id:
           type: string
           example: "999-9999-9999-99"
 
