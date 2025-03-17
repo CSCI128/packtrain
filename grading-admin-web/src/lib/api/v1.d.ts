@@ -1183,6 +1183,12 @@ export interface components {
         };
         /** @description The master migration that contains to the list of migration objects */
         MasterMigration: {
+            migrator?: components["schemas"]["CourseMember"];
+            /**
+             * Format: date-time
+             * @example 2020-01-01T12:00:00.000Z
+             */
+            timestamp?: string;
             migration_list: components["schemas"]["Migration"][];
             /** @example 999-9999-9999-99 */
             migration_id?: string;
@@ -1331,8 +1337,8 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Updated course */
-            201: {
+            /** @description No Content */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };

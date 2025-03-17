@@ -2416,6 +2416,12 @@ components:
       required:
         - migration_list
       properties:
+        migrator:
+          $ref: "#/components/schemas/CourseMember"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2020-01-01T12:00:00.000Z"
         migration_list:
           type: array
           items:
