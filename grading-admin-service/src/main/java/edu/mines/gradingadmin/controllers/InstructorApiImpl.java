@@ -111,7 +111,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         if (masterMigration.isEmpty()){
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().migrationId(masterMigration.get().getId().toString()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().id(masterMigration.get().getId().toString()));
     }
 
     @Override
@@ -132,6 +132,6 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         if (masterMigration.isEmpty()){
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().migrationId(masterMigration.get().getId().toString()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().id(masterMigration.get().getId().toString()));
     }
 }
