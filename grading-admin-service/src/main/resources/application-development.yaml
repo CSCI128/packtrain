@@ -1,3 +1,4 @@
 logging:
   level:
     edu.mines.gradingadmin: debug
+    org.springframework.web.socket: debug

@@ -45,4 +45,5 @@ public class TasksApiImpl implements TasksApiDelegate {
                 .completedTime(t.getCompletedTime() == null ? null : t.getCompletedTime())
                 .message(t.getStatusText())).get());
     }
+
 }
