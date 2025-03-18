@@ -12,9 +12,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -97,8 +96,7 @@ public class ExtensionService {
         lateRequestRepo.delete(lateRequest);
     }
 
-    public Optional<LateRequest> getLateRequestForStudentAndAssignment(String cwid, UUID assignment) {
-
-        return null;
+    public Map<String, LateRequest> getLateRequestsForAssignment(UUID assignment) {
+        return lateRequestRepo.getLateRequestsForAssignment(assignment).collect(Collectors.toUnmodifiableMap(l -> l.getRequestingUser().getCwid(), l->l));
     }
 }

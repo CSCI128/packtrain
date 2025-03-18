@@ -213,8 +213,10 @@ public class MigrationService {
 
         List<RawScore> scores = rawScoreService.getRawScoresFromMigration(task.getMigrationId());
 
+        Map<String, LateRequest> lateRequests = extensionService.getLateRequestsForAssignment(task.getAssignmentId());
+
         for (RawScore score : scores){
-            Optional<LateRequest> extension = extensionService.getLateRequestForStudentAndAssignment(score.getCwid(), task.getAssignmentId());
+            Optional<LateRequest> extension = Optional.ofNullable(lateRequests.getOrDefault(score.getCwid(), null));
             RawGradeDTO dto = createRawGradeDTO(score, extension);
 
             rabbitMqService.sendScore(config.getRawGradePublishChannel(), config.getGradingStartDTO().getRawGradeRoutingKey(), dto);
