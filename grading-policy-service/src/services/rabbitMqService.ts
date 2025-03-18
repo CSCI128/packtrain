@@ -170,7 +170,7 @@ function onRawScoreReceive(
         scored.rawScore = rawScore.rawScore;
         scored.finalScore = policyScored.finalScore;
         scored.adjustedSubmissionTime = policyScored.adjustedSubmissionDate;
-        scored.hoursLate = policyScored.adjustedHoursLate;
+        scored.daysLate = policyScored.adjustedDaysLate;
         scored.submissionStatus = policyScored.submissionStatus;
         scored.extensionStatus = policyScored.extensionStatus;
         scored.extensionMessage = policyScored.extensionMessage ?? "";

@@ -1,7 +1,7 @@
 package edu.mines.gradingadmin.managers;
 
-import edu.mines.gradingadmin.models.CourseRole;
-import edu.mines.gradingadmin.models.CredentialType;
+import edu.mines.gradingadmin.models.enums.CourseRole;
+import edu.mines.gradingadmin.models.enums.CredentialType;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CredentialService;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.RequestScope;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 @Service

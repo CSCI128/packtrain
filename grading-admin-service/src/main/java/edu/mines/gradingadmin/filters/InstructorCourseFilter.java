@@ -1,22 +1,15 @@
 package edu.mines.gradingadmin.filters;
 
-import edu.mines.gradingadmin.api.InstructorApi;
-import edu.mines.gradingadmin.api.InstructorApiDelegate;
 import edu.mines.gradingadmin.managers.SecurityManager;
-import edu.mines.gradingadmin.models.CourseRole;
-import jakarta.servlet.*;
-import jakarta.servlet.annotation.WebFilter;
+import edu.mines.gradingadmin.models.enums.CourseRole;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
 
-import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @Slf4j

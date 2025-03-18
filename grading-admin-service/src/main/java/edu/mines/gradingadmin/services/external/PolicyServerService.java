@@ -34,7 +34,7 @@ public class PolicyServerService {
         return res.getStatusCode() == HttpStatus.OK;
     }
 
-    public void startGrading(GradingStartDTO gradingStartDTO){
+    public boolean startGrading(GradingStartDTO gradingStartDTO){
         if (!config.isEnabled()){
             throw new ExternalServiceDisabledException("Policy Server Service");
         }
@@ -46,10 +46,11 @@ public class PolicyServerService {
 
         if (res.getStatusCode() != HttpStatus.CREATED){
             log.error("Failed to start grading! Due to: {}", res);
-            return;
+            return false;
         }
 
         log.info("Policy server is ready for grading: {}", res.getBody());
+        return true;
     }
 
 

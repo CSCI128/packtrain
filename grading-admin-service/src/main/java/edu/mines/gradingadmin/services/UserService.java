@@ -3,7 +3,7 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.data.UserDTO;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.CourseMember;
-import edu.mines.gradingadmin.models.CourseRole;
+import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.UserRepo;
 import jakarta.transaction.Transactional;

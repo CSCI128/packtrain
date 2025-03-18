@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.models;
 
+import edu.mines.gradingadmin.models.enums.MigrationStatus;
 import jakarta.persistence.*;
 import jakarta.persistence.Entity;
 import lombok.Data;
@@ -34,6 +35,10 @@ public class MasterMigration {
 
     @Column(name = "num_extensions")
     private int numExtensions;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private MigrationStatus status = MigrationStatus.CREATED;
 
     @OneToMany()
     @JoinColumn(name = "migrations", referencedColumnName = "id")

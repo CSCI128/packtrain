@@ -1,5 +1,7 @@
 package edu.mines.gradingadmin.models;
 
+import edu.mines.gradingadmin.models.enums.LateRequestStatus;
+import edu.mines.gradingadmin.models.enums.LateRequestType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,18 +20,21 @@ public class LateRequest {
     private UUID id;
 
     @Column(name = "days_requested")
-    private int daysRequested;
+    private double daysRequested;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "request_type")
-    private RequestType requestType;
+    private LateRequestType lateRequestType;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private RequestStatus status;
+    private LateRequestStatus status;
 
     @Column(name = "submission_date")
     private Instant submissionDate;
+
+    @Column(name = "extension_date")
+    private Instant extensionDate;
 
     @OneToOne()
     @JoinColumn(name = "extension", referencedColumnName = "id")

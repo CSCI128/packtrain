@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.models;
 
+import edu.mines.gradingadmin.models.enums.ExternalAssignmentType;
 import jakarta.persistence.*;
 import lombok.Data;
 

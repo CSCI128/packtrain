@@ -7,7 +7,7 @@ export default class ScoredDTO {
     rawScore!: number;
     finalScore!: number;
     adjustedSubmissionTime!: Date;
-    hoursLate!: number;
+    daysLate!: number;
     submissionStatus!: SubmissionStatus;
     extensionStatus!: AppliedExtensionStatus;
     extensionMessage!: string;

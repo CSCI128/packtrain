@@ -1,6 +1,7 @@
 package edu.mines.gradingadmin.models;
 
 
+import edu.mines.gradingadmin.models.enums.CourseRole;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

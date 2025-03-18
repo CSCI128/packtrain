@@ -1,8 +1,7 @@
 import axios from "axios";
 import RawScoreDTO from "../data/RawScoreDTO";
 import PolicyScoredDTO from "../data/PolicyScoredDTO";
-import { AppliedExtensionStatus, SubmissionStatus } from "../data/common";
-import { strict } from "node:assert";
+import {AppliedExtensionStatus, SubmissionStatus} from "../data/common";
 
 export type ApplyPolicyFunctionSig = (x: RawScoreDTO) => PolicyScoredDTO;
 
@@ -37,11 +36,11 @@ function validateScoredDTO(scored: PolicyScoredDTO): string[] {
         errors.push(`adjustedSubmissionDate was not a valid date! Received: ${scored.adjustedSubmissionDate}. Expected: Any valid JS date`);
     }
 
-    if (scored.adjustedHoursLate == null){
-        errors.push("adjustedHoursLate was not set by policy!");
+    if (scored.adjustedDaysLate == null){
+        errors.push("adjustedDaysLate was not set by policy!");
     }
-    if (scored.adjustedHoursLate != null && isNaN(Number(scored.adjustedHoursLate.toString()))){
-        errors.push(`adjustedHoursLate was not a number! Received: ${scored.adjustedHoursLate}!`);
+    if (scored.adjustedDaysLate != null && isNaN(Number(scored.adjustedDaysLate.toString()))){
+        errors.push(`adjustedHoursLate was not a number! Received: ${scored.adjustedDaysLate}!`);
     }
 
     if (scored.submissionStatus == null){
@@ -71,8 +70,9 @@ export function verifyPolicy(fun: ApplyPolicyFunctionSig): ValidationResults{
     rawScore.extensionId = "1";
     rawScore.assignmentId = "1";
     rawScore.rawScore = 10;
-    rawScore.extensionHours = 0;
+    rawScore.extensionDays = 0;
     rawScore.extensionType = "Late Pass";
+    rawScore.submissionStatus = SubmissionStatus.ON_TIME;
 
     try {
         const scoredDTO = fun(rawScore);

@@ -2363,7 +2363,8 @@ components:
           format: date-time
           example: "2020-01-01T12:00:00.000Z"
         num_days_requested:
-          type: integer
+          type: number
+          format: double
           example: 2
         extension:
           $ref: "#/components/schemas/Extension"

@@ -2,10 +2,9 @@ package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.data.CredentialDTO;
 import edu.mines.gradingadmin.models.Credential;
-import edu.mines.gradingadmin.models.CredentialType;
+import edu.mines.gradingadmin.models.enums.CredentialType;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.CredentialRepo;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;

@@ -1,8 +1,8 @@
 package edu.mines.gradingadmin.seeders;
 
 import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.repositories.*;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;

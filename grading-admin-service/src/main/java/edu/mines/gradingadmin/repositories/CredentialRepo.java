@@ -1,8 +1,7 @@
 package edu.mines.gradingadmin.repositories;
 
 import edu.mines.gradingadmin.models.Credential;
-import edu.mines.gradingadmin.models.CredentialType;
-import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.models.enums.CredentialType;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
