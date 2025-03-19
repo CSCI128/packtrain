@@ -1,4 +1,5 @@
-import { Box, Container, Divider, Text } from "@mantine/core";
+import { Box, Button, Container, Divider, Text } from "@mantine/core";
+import { Link } from "react-router-dom";
 import { $api, store$ } from "../../api";
 import { components } from "../../lib/api/v1";
 import { formattedDate } from "../../utils/DateUtil";
@@ -29,7 +30,7 @@ export function MigrationsPage() {
 
         {data.length > 0 ? (
           data.map((migration: components["schemas"]["MasterMigration"]) => (
-            <Box pb={20} key={migration.migration_id}>
+            <Box pb={20} key={migration.id}>
               <Text>
                 <strong>
                   {formattedDate(new Date(migration.timestamp as string))}
@@ -52,6 +53,10 @@ export function MigrationsPage() {
             <Text>No migrations were found!</Text>
           </>
         )}
+
+        <Button component={Link} to="/instructor/migrate/load" variant="filled">
+          Migrate Grades
+        </Button>
       </Container>
     </>
   );

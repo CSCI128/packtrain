@@ -72,7 +72,7 @@ public class StudentApiImpl implements StudentApiDelegate {
         CourseDTO courseDTO = DTOFactory.toDto(course.get())
             .assignments(course.get().getAssignments().stream()
                     .filter(Assignment::isEnabled)
-                    .filter(assignment -> assignment.getDueDate().isAfter(Instant.now())).map(DTOFactory::toDto).toList())
+                    .filter(assignment -> assignment.getDueDate() != null && assignment.getDueDate().isAfter(Instant.now())).map(DTOFactory::toDto).toList())
             .sections(sections.stream().map(Section::getName).toList());
 
         StudentInformationDTO studentInformationDTO = new StudentInformationDTO()

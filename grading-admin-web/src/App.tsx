@@ -20,6 +20,10 @@ import { SelectClass } from "./pages/admin/course/Select";
 import { UsersPage } from "./pages/admin/Users";
 import { HomePage } from "./pages/Home";
 import { MembersPage } from "./pages/instructor/Members";
+import { MigrationsApplyPage } from "./pages/instructor/migration/MigrationsApply";
+import { MigrationsLoadPage } from "./pages/instructor/migration/MigrationsLoad";
+import { MigrationsPostPage } from "./pages/instructor/migration/MigrationsPost";
+import { MigrationsReviewPage } from "./pages/instructor/migration/MigrationsReview";
 import { MigrationsPage } from "./pages/instructor/Migrations";
 import { ProfilePage } from "./pages/Profile";
 import { ExtensionForm } from "./pages/student/ExtensionForm";
@@ -41,6 +45,12 @@ const NotFoundPage = () => {
       <Text>The specified page could not be found!</Text>
     </>
   );
+};
+
+const MigrationMiddleware = ({ children }: { children: JSX.Element }) => {
+  // Four step migrate process: send people to first or active state or
+  // prevent them from going to future states
+  return children;
 };
 
 const MiddlewareLayout = () => {
@@ -132,6 +142,38 @@ const router = createBrowserRouter([
           {
             path: "/instructor/migrate",
             element: <MigrationsPage />,
+          },
+          {
+            path: "/instructor/migrate/load",
+            element: (
+              <MigrationMiddleware>
+                <MigrationsLoadPage />
+              </MigrationMiddleware>
+            ),
+          },
+          {
+            path: "/instructor/migrate/apply",
+            element: (
+              <MigrationMiddleware>
+                <MigrationsApplyPage />
+              </MigrationMiddleware>
+            ),
+          },
+          {
+            path: "/instructor/migrate/review",
+            element: (
+              <MigrationMiddleware>
+                <MigrationsReviewPage />
+              </MigrationMiddleware>
+            ),
+          },
+          {
+            path: "/instructor/migrate/post",
+            element: (
+              <MigrationMiddleware>
+                <MigrationsPostPage />
+              </MigrationMiddleware>
+            ),
           },
           {
             path: "/admin/create",

@@ -1023,6 +1023,8 @@ export interface components {
              */
             course_role: "student" | "instructor" | "ta" | "owner";
             sections?: string[];
+            /** @example 3 */
+            late_passes_used?: number;
         };
         /** @description An assignment in a course */
         Assignment: {
@@ -1191,7 +1193,7 @@ export interface components {
             timestamp?: string;
             migration_list: components["schemas"]["Migration"][];
             /** @example 999-9999-9999-99 */
-            migration_id?: string;
+            id?: string;
         };
         /** @description The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit */
         MasterMigrationStatistics: {
