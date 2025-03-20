@@ -1,22 +1,88 @@
 import {
+  Box,
   Button,
   Container,
   Divider,
   Group,
-  NumberInput,
-  Select,
+  MultiSelect,
   Stack,
   Stepper,
   Text,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { components } from "../../../lib/api/v1";
 
 export function MigrationsLoadPage() {
-  let courseData: any[] = [];
+  const courseData: components["schemas"]["Course"][] = [
+    {
+      id: "999-9999-9999-99",
+      term: "Fall 2020",
+      enabled: true,
+      name: "EXCL101",
+      code: "Fall.2020.EXCL.101",
+      canvas_id: 123456,
+      members: [
+        {
+          cwid: "CWID123456",
+          canvas_id: "9876543",
+          course_role: "instructor",
+          sections: ["fall.2020.excl.101.section.a"],
+          late_passes_used: 1,
+        },
+        {
+          cwid: "CWID654321",
+          canvas_id: "1234567",
+          course_role: "student",
+          sections: ["fall.2020.excl.101.section.b"],
+          late_passes_used: 0,
+        },
+      ],
+      assignments: [
+        {
+          id: "999-9999-9999-99",
+          name: "Assessment 1",
+          category: "Quiz",
+          canvas_id: 1245678,
+          points: 15.0,
+          external_service: "Gradescope",
+          external_points: 14,
+          due_date: "2020-01-15T12:00:00.000Z",
+          unlock_date: "2020-01-01T12:00:00.000Z",
+          enabled: true,
+          group_assignment: false,
+          attention_required: false,
+          frozen: false,
+        },
+        {
+          id: "999-8888-7777-66",
+          name: "Final Exam",
+          category: "Exam",
+          canvas_id: 987654,
+          points: 100.0,
+          external_service: "ProctorU",
+          external_points: 95,
+          due_date: "2020-12-20T12:00:00.000Z",
+          unlock_date: "2020-12-01T12:00:00.000Z",
+          enabled: true,
+          group_assignment: false,
+          attention_required: true,
+          frozen: false,
+        },
+      ],
+      sections: [
+        "fall.2020.excl.101.section.a",
+        "fall.2020.excl.101.section.b",
+      ],
+    },
+  ];
 
   const [searchValue, setSearchValue] = useState("");
+  const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
+    []
+  );
+  const [validated, setValidated] = useState(false);
 
   const form = useForm({
     mode: "uncontrolled",
@@ -32,6 +98,7 @@ export function MigrationsLoadPage() {
       enabled: true,
       group_assignment: true,
       attention_required: true,
+      assignmentIds: [],
     },
     validate: {
       name: (value) =>
@@ -47,7 +114,13 @@ export function MigrationsLoadPage() {
     },
   });
 
-  const submitLoadAssignmentss = (values: typeof form.values) => {
+  const validateAssignments = () => {
+    // TODO validate selected assignments
+    console.log("validating");
+    setValidated(true);
+  };
+
+  const submitLoadAssignments = (values: typeof form.values) => {
     // postForm.mutate(
     //   {
     //     params: {
@@ -101,74 +174,93 @@ export function MigrationsLoadPage() {
 
         <Divider my="sm" />
 
-        <form onSubmit={form.onSubmit(submitLoadAssignmentss)}>
+        <form onSubmit={form.onSubmit(submitLoadAssignments)}>
           <Stack>
-            <Select
+            <MultiSelect
               withAsterisk
               searchable
               searchValue={searchValue}
               onSearchChange={setSearchValue}
               label="Assignment"
-              placeholder="Pick value"
+              placeholder="Select more.."
               data={
-                courseData.course.assignments &&
-                courseData.course.assignments.flatMap((x) => [
+                courseData[0].assignments &&
+                courseData[0].assignments.flatMap((x) => [
                   {
                     label: x.name,
                     value: x.id as string,
                   },
                 ])
               }
-              key={form.key("assignmentId")}
-              {...form.getInputProps("assignmentId")}
-              onChange={(_value, _) => {
-                // setSelectedAssignmentId(_value ?? "");
-                // latePassForm.setFieldValue("assignmentId", _value ?? "");
+              key={form.key("assignmentIds")}
+              {...form.getInputProps("assignmentIds")}
+              onChange={(value: string[]): void => {
+                setSelectedAssignmentIds(value);
               }}
             />
 
-            <Text>
-              You have <strong>X</strong> late passes remaining. Late passes are
-              five, free passes to use over the course of the semester to extend
-              your work.
-            </Text>
+            {selectedAssignmentIds.map((selectedAssignment) => (
+              <React.Fragment key={selectedAssignment}>
+                <Box p={20} bg="gray.1">
+                  <Group justify="space-between">
+                    <Group>
+                      <Text fw={800}>
+                        {
+                          courseData[0].assignments?.filter(
+                            (a) => a.id === selectedAssignment
+                          )[0]?.name
+                        }
+                      </Text>
+                      <Text>Status</Text>
+                    </Group>
 
-            <Group>
-              <NumberInput
-                withAsterisk
-                label="Days to extend:"
-                defaultValue={1}
-                max={5}
-                min={1}
-                key={form.key("daysRequested")}
-                {...form.getInputProps("daysRequested")}
-                onChange={(value) => {
-                  //   setNumDaysRequested(parseInt(value as string));
-                }}
-              />
-
-              <Text>
-                (<strong>X remaining</strong> after)
-              </Text>
-            </Group>
+                    <Group>
+                      <Text>View Data</Text>
+                      <Button color="gray">Upload</Button>
+                    </Group>
+                  </Group>
+                </Box>
+              </React.Fragment>
+            ))}
           </Stack>
 
-          <Group justify="flex-end" mt="md">
-            <Button component={Link} to="/requests" color="gray">
-              Cancel
+          <Group justify="space-between" mt="xl">
+            <Button
+              color="gray"
+              onClick={() => {
+                form.reset();
+                setSelectedAssignmentIds([]);
+              }}
+            >
+              Clear
             </Button>
 
-            <Button type="submit">Submit</Button>
+            <Group>
+              <Button component={Link} to="/instructor/migrate" color="gray">
+                Cancel
+              </Button>
+
+              <Button color="green" onClick={validateAssignments}>
+                Validate
+              </Button>
+
+              {validated ? (
+                <Button
+                  color="blue"
+                  component={Link}
+                  to="/instructor/migrate/apply"
+                  variant="filled"
+                >
+                  Next
+                </Button>
+              ) : (
+                <Button disabled color="gray">
+                  Next
+                </Button>
+              )}
+            </Group>
           </Group>
         </form>
-
-        <Button
-          component={Link}
-          to="/instructor/migrate/apply"
-          variant="filled"
-        >
-          Apply
-        </Button>
       </Container>
     </>
   );

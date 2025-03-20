@@ -1150,7 +1150,10 @@ export interface components {
              * @example 2020-01-01T12:00:00.000Z
              */
             date_submitted: string;
-            /** @example 2 */
+            /**
+             * Format: double
+             * @example 2
+             */
             num_days_requested: number;
             extension?: components["schemas"]["Extension"];
             /** @example 999-9999-9999-99 */
