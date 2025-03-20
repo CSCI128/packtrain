@@ -99,5 +99,6 @@ public class GradescopeService {
 
         logout(cookies.get("_gradescope_session"));
 
+        return null;
     }
 }
