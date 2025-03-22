@@ -1023,6 +1023,8 @@ export interface components {
              */
             course_role: "student" | "instructor" | "ta" | "owner";
             sections?: string[];
+            /** @example 3 */
+            late_passes_used?: number;
         };
         /** @description An assignment in a course */
         Assignment: {
@@ -1148,7 +1150,10 @@ export interface components {
              * @example 2020-01-01T12:00:00.000Z
              */
             date_submitted: string;
-            /** @example 2 */
+            /**
+             * Format: double
+             * @example 2
+             */
             num_days_requested: number;
             extension?: components["schemas"]["Extension"];
             /** @example 999-9999-9999-99 */
@@ -1191,7 +1196,7 @@ export interface components {
             timestamp?: string;
             migration_list: components["schemas"]["Migration"][];
             /** @example 999-9999-9999-99 */
-            migration_id?: string;
+            id?: string;
         };
         /** @description The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit */
         MasterMigrationStatistics: {
