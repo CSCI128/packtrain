@@ -4,6 +4,7 @@ import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.ExternalAssignment;
 import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.models.enums.CredentialType;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
