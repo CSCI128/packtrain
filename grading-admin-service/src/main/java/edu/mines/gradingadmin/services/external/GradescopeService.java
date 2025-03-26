@@ -2,12 +2,9 @@ package edu.mines.gradingadmin.services.external;
 
 import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
-import edu.mines.gradingadmin.models.CredentialType;
 import edu.mines.gradingadmin.models.ExternalAssignment;
 import edu.mines.gradingadmin.models.User;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
