@@ -241,9 +241,9 @@ export function ExtensionForm() {
             />
 
             <Text>
-              You have <strong>X</strong> late passes remaining. Late passes are
-              five, free passes to use over the course of the semester to extend
-              your work.
+              You have <strong>{5 - (courseData.late_passes_used ?? 0)}</strong>{" "}
+              late passes remaining. Late passes are five, free passes to use
+              over the course of the semester to extend your work.
             </Text>
 
             <Group>
@@ -261,7 +261,12 @@ export function ExtensionForm() {
               />
 
               <Text>
-                (<strong>X remaining</strong> after)
+                (
+                <strong>
+                  {5 - (courseData.late_passes_used ?? 0) - numDaysRequested}{" "}
+                  remaining
+                </strong>{" "}
+                after)
               </Text>
             </Group>
 

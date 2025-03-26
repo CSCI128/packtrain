@@ -34,6 +34,16 @@ interface RequestRowData {
 }
 
 export function Requests() {
+  const {
+    data: studentData,
+    error: studentError,
+    isLoading: studentIsLoading,
+  } = $api.useQuery("get", "/student/courses/{course_id}", {
+    params: {
+      path: { course_id: store$.id.get() as string },
+    },
+  });
+
   const { data, error, isLoading, refetch } = $api.useQuery(
     "get",
     "/student/courses/{course_id}/extensions",
@@ -69,6 +79,10 @@ export function Requests() {
   if (isLoading || !data) return "Loading...";
 
   if (error) return `An error occured: ${error}`;
+
+  if (studentIsLoading || !studentData) return "Loading...";
+
+  if (studentError) return `An error occured: ${studentError}`;
 
   const setSorting = (field: keyof RequestRowData) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
@@ -264,7 +278,9 @@ export function Requests() {
         <Group grow mt={25}>
           <Stack>
             <Text size="md" ta="center">
-              You have <strong>X</strong> late passes remaining.
+              You have{" "}
+              <strong>{5 - (studentData.late_passes_used ?? 0)}</strong> late
+              passes remaining.
             </Text>
             <Button component={Link} to="/extension" variant="filled">
               Request Late Pass/Extension

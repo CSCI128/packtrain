@@ -1135,6 +1135,8 @@ export interface components {
             course_role: "student" | "instructor" | "ta" | "owner";
             /** @example Jane Doe */
             professor: string;
+            /** @example 3 */
+            late_passes_used?: number;
             course: components["schemas"]["Course"];
         };
         /** @description A generic request for extending work deadlines */
