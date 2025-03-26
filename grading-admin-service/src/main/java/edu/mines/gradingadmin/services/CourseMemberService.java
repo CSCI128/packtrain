@@ -299,4 +299,9 @@ public class CourseMemberService {
     public int getLatePassesUsed(User user) {
         return courseMemberRepo.findLatePassesUsedByCwid(user.getCwid());
     }
+
+    public void useLatePasses(User user, int amount) {
+        int finalLatePasses = getLatePassesUsed(user) + amount;
+        courseMemberRepo.setLatePasses(user.getCwid(), finalLatePasses);
+    }
 }

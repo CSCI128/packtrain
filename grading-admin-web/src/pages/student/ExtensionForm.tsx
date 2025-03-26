@@ -31,7 +31,7 @@ export function ExtensionForm() {
     mode: "uncontrolled",
     initialValues: {
       assignmentId: "",
-      daysRequested: 1,
+      daysRequested: numDaysRequested,
       extensionReason: "",
       comments: "",
     },
@@ -49,7 +49,7 @@ export function ExtensionForm() {
     mode: "uncontrolled",
     initialValues: {
       assignmentId: "",
-      daysRequested: 1,
+      daysRequested: numDaysRequested,
     },
     validate: {
       assignmentId: (value) =>
@@ -96,7 +96,8 @@ export function ExtensionForm() {
           user_requester_id: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
           date_submitted: new Date().toISOString(),
-          num_days_requested: values.daysRequested,
+          // TODO investigate this not setting correctly via the form (should be values.numDays)
+          num_days_requested: numDaysRequested,
           request_type: "extension",
           status: "pending",
           extension: {
@@ -125,7 +126,8 @@ export function ExtensionForm() {
           user_requester_id: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
           date_submitted: new Date().toISOString(),
-          num_days_requested: values.daysRequested,
+          // TODO investigate this not setting correctly via the form (should be values.numDays)
+          num_days_requested: numDaysRequested,
           request_type: "late_pass",
           status: "pending",
         },
@@ -268,7 +270,7 @@ export function ExtensionForm() {
                     withAsterisk
                     label="Days to extend:"
                     defaultValue={1}
-                    max={5}
+                    max={5 - (courseData.late_passes_used ?? 0)}
                     min={1}
                     key={latePassForm.key("daysRequested")}
                     {...latePassForm.getInputProps("daysRequested")}

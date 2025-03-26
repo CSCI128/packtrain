@@ -124,6 +124,10 @@ public class StudentApiImpl implements StudentApiDelegate {
             lateRequestDTO.getStatus(),
             lateRequestDTO.getExtension());
 
+        // TODO this is slightly weird with numdaysrequested as a double for tracking late passes
+        // TODO ..because late passes depend on the days requested in the 128 use case
+        courseMemberService.useLatePasses(user, lateRequestDTO.getNumDaysRequested().intValue());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(lateRequest));
     }
 
@@ -134,6 +138,9 @@ public class StudentApiImpl implements StudentApiDelegate {
         if(lateRequest.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
+        // TODO this is cursed
+        courseMemberService.useLatePasses(securityManager.getUser(), -1 * (int) lateRequest.get().getDaysRequested());
         extensionService.deleteLateRequest(lateRequest.get());
         return ResponseEntity.noContent().build();
     }
