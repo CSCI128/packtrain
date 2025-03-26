@@ -31,24 +31,10 @@ public class RawScoreService {
         this.rawScoreRepo = rawScoreRepo;
     }
 
-    public List<RawScore> parseCSV(MultipartFile file, UUID migrationId) {
+    public List<RawScore> uploadCSV(InputStream file, UUID migrationId) {
         List<RawScore> scores = new LinkedList<>();
 
-        if (file.isEmpty()){
-            log.warn("Provided file {} is empty", file.getName());
-            return scores;
-        }
-        if(file.getContentType() == null){
-            log.warn("File content type not defined for file {}", file.getName());
-            return scores;
-        }
-        if (!file.getContentType().equals("text/csv")){
-            log.warn("File MIME type is not test/csv for the file {}", file.getName());
-            return scores;
-        }
-
-        try (InputStream inputStream = file.getInputStream();
-             CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(inputStream))
+        try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
                 .withSkipLines(1)
                 .build()) {
 
@@ -59,7 +45,7 @@ public class RawScoreService {
             }
         }
         catch (Exception e){
-            log.warn("Failed to read CSV", e);
+            log.error("Failed to read CSV", e);
         }
 
         return scores;

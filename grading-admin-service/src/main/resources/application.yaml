@@ -47,4 +47,6 @@ grading-admin:
     policy-server:
       enabled: true
       uri: https://localhost.dev/
-
+    gradescope:
+      enabled: true
+      uri: https://gradescope.com
