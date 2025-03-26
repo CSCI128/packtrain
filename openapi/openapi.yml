@@ -2339,6 +2339,9 @@ components:
         professor:
           type: string
           example: "Jane Doe"
+        late_passes_used:
+          type: integer
+          example: 3
         course:
           $ref: "#/components/schemas/Course"
 

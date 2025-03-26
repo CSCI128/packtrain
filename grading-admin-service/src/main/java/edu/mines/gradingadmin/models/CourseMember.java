@@ -26,6 +26,9 @@ public class CourseMember {
     @Column(name = "course_role", nullable = false)
     private CourseRole role;
 
+    @Column(name = "late_passes_used", nullable = false)
+    private int latePassesUsed = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "cwid", nullable = false)
     @EqualsAndHashCode.Exclude

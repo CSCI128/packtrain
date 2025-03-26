@@ -77,6 +77,7 @@ public class StudentApiImpl implements StudentApiDelegate {
 
         StudentInformationDTO studentInformationDTO = new StudentInformationDTO()
                 .course(courseDTO)
+                .latePassesUsed(courseMemberService.getLatePassesUsed(securityManager.getUser()))
                 .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRole.getRole()));
 
         Optional<Section> section = sections.stream().findFirst();

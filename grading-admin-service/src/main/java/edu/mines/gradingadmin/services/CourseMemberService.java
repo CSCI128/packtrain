@@ -295,4 +295,8 @@ public class CourseMemberService {
 
         return membership.get().getSections();
     }
+
+    public int getLatePassesUsed(User user) {
+        return courseMemberRepo.findLatePassesUsedByCwid(user.getCwid());
+    }
 }
