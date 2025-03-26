@@ -194,6 +194,7 @@ export function Requests() {
           <Text size="xl" fw={700}>
             All Requests
           </Text>
+
           <Button
             justify="flex-end"
             component={Link}
@@ -277,11 +278,25 @@ export function Requests() {
 
         <Group grow mt={25}>
           <Stack>
-            <Text size="md" ta="center">
-              You have{" "}
-              <strong>{5 - (studentData.late_passes_used ?? 0)}</strong> late
-              passes remaining.
-            </Text>
+            {studentData.late_passes_used === 5 ? (
+              <>
+                <Text size="md" ta="center" c="red.9" fw={700}>
+                  You have no late passes remaining!
+                </Text>
+
+                <Text ta="center" c="gray.7">
+                  Please contact your instructor if you think this is a mistake.
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text size="md" ta="center">
+                  You have{" "}
+                  <strong>{5 - (studentData.late_passes_used ?? 0)}</strong>{" "}
+                  late passes remaining.
+                </Text>
+              </>
+            )}
             <Button component={Link} to="/extension" variant="filled">
               Request Late Pass/Extension
             </Button>

@@ -216,61 +216,82 @@ export function ExtensionForm() {
       {latePassView ? (
         <form onSubmit={latePassForm.onSubmit(submitLatePass)}>
           <Stack>
-            <Select
-              withAsterisk
-              searchable
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
-              label="Assignment"
-              placeholder="Pick value"
-              data={
-                courseData.course.assignments &&
-                courseData.course.assignments.flatMap((x) => [
-                  {
-                    label: x.name,
-                    value: x.id as string,
-                  },
-                ])
-              }
-              key={latePassForm.key("assignmentId")}
-              {...latePassForm.getInputProps("assignmentId")}
-              onChange={(_value, _) => {
-                setSelectedAssignmentId(_value ?? "");
-                latePassForm.setFieldValue("assignmentId", _value ?? "");
-              }}
-            />
+            {courseData.late_passes_used === 5 ? (
+              <>
+                {" "}
+                <>
+                  <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
+                    You have no late passes remaining!
+                  </Text>
 
-            <Text>
-              You have <strong>{5 - (courseData.late_passes_used ?? 0)}</strong>{" "}
-              late passes remaining. Late passes are five, free passes to use
-              over the course of the semester to extend your work.
-            </Text>
+                  <Text ta="center" c="gray.7">
+                    Please contact your instructor if you think this is a
+                    mistake.
+                  </Text>
+                </>
+              </>
+            ) : (
+              <>
+                <Select
+                  withAsterisk
+                  searchable
+                  searchValue={searchValue}
+                  onSearchChange={setSearchValue}
+                  label="Assignment"
+                  placeholder="Pick value"
+                  data={
+                    courseData.course.assignments &&
+                    courseData.course.assignments.flatMap((x) => [
+                      {
+                        label: x.name,
+                        value: x.id as string,
+                      },
+                    ])
+                  }
+                  key={latePassForm.key("assignmentId")}
+                  {...latePassForm.getInputProps("assignmentId")}
+                  onChange={(_value, _) => {
+                    setSelectedAssignmentId(_value ?? "");
+                    latePassForm.setFieldValue("assignmentId", _value ?? "");
+                  }}
+                />
 
-            <Group>
-              <NumberInput
-                withAsterisk
-                label="Days to extend:"
-                defaultValue={1}
-                max={5}
-                min={1}
-                key={latePassForm.key("daysRequested")}
-                {...latePassForm.getInputProps("daysRequested")}
-                onChange={(value) => {
-                  setNumDaysRequested(parseInt(value as string));
-                }}
-              />
+                <Text>
+                  You have{" "}
+                  <strong>{5 - (courseData.late_passes_used ?? 0)}</strong> late
+                  passes remaining. Late passes are five, free passes to use
+                  over the course of the semester to extend your work.
+                </Text>
 
-              <Text>
-                (
-                <strong>
-                  {5 - (courseData.late_passes_used ?? 0) - numDaysRequested}{" "}
-                  remaining
-                </strong>{" "}
-                after)
-              </Text>
-            </Group>
+                <Group>
+                  <NumberInput
+                    withAsterisk
+                    label="Days to extend:"
+                    defaultValue={1}
+                    max={5}
+                    min={1}
+                    key={latePassForm.key("daysRequested")}
+                    {...latePassForm.getInputProps("daysRequested")}
+                    onChange={(value) => {
+                      setNumDaysRequested(parseInt(value as string));
+                    }}
+                  />
 
-            <CalculatedDate />
+                  <Text>
+                    (
+                    <strong>
+                      {5 -
+                        (courseData.late_passes_used ?? 0) -
+                        numDaysRequested}{" "}
+                      remaining
+                    </strong>{" "}
+                    after)
+                  </Text>
+                </Group>
+
+                <CalculatedDate />
+              </>
+            )}
           </Stack>
 
           <Group justify="flex-end" mt="md">
