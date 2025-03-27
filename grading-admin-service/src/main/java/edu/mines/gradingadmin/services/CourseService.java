@@ -72,12 +72,14 @@ public class CourseService {
         course.get().setTerm(courseDTO.getTerm());
         course.get().setEnabled(courseDTO.getEnabled());
         CourseLateRequestConfig config = course.get().getLateRequestConfig();
-        config.setLatePassesEnabled(courseDTO.getLateRequestConfig().getLatePassesEnabled());
-        config.setLatePassName(courseDTO.getLateRequestConfig().getLatePassName());
-        config.setEnabledExtensionReasons(courseDTO.getLateRequestConfig().getEnabledExtensionReasons());
-        config.setTotalLatePassesAllowed(courseDTO.getLateRequestConfig().getTotalLatePassesAllowed());
+        if (config != null) {
+            config.setLatePassesEnabled(courseDTO.getLateRequestConfig().getLatePassesEnabled());
+            config.setLatePassName(courseDTO.getLateRequestConfig().getLatePassName());
+            config.setEnabledExtensionReasons(courseDTO.getLateRequestConfig().getEnabledExtensionReasons());
+            config.setTotalLatePassesAllowed(courseDTO.getLateRequestConfig().getTotalLatePassesAllowed());
 
-        course.get().setLateRequestConfig(lateRequestConfigRepo.save(config));
+            course.get().setLateRequestConfig(lateRequestConfigRepo.save(config));
+        }
 
         return Optional.of(courseRepo.save(course.get()));
     }
@@ -165,9 +167,11 @@ public class CourseService {
         newCourse.setTerm(courseDTO.getTerm());
         newCourse.setEnabled(true);
 
-        CourseLateRequestConfig lateRequestConfig = createCourseLateRequestConfig(courseDTO.getLateRequestConfig());
+        Optional<CourseLateRequestConfig> lateRequestConfig = createCourseLateRequestConfig(courseDTO.getLateRequestConfig());
 
-        newCourse.setLateRequestConfig(lateRequestConfig);
+        if (lateRequestConfig.isPresent()) {
+            newCourse.setLateRequestConfig(lateRequestConfig.get());
+        }
 
         newCourse = courseRepo.save(newCourse);
 
@@ -180,13 +184,16 @@ public class CourseService {
         return Optional.of(newCourse);
     }
 
-    private CourseLateRequestConfig createCourseLateRequestConfig(CourseLateRequestConfigDTO dto) {
+    private Optional<CourseLateRequestConfig> createCourseLateRequestConfig(CourseLateRequestConfigDTO dto) {
+        if (dto == null){
+            return Optional.empty();
+        }
         CourseLateRequestConfig lateRequestConfig = new CourseLateRequestConfig();
         lateRequestConfig.setLatePassesEnabled(dto.getLatePassesEnabled());
         lateRequestConfig.setEnabledExtensionReasons(dto.getEnabledExtensionReasons());
         lateRequestConfig.setTotalLatePassesAllowed(dto.getTotalLatePassesAllowed());
         lateRequestConfig.setLatePassName(dto.getLatePassName());
-        return lateRequestConfigRepo.save(lateRequestConfig);
+        return Optional.of(lateRequestConfigRepo.save(lateRequestConfig));
     }
 
     public Optional<Policy> createNewCourseWidePolicy(User actingUser, UUID courseId, String policyName, String fileName, MultipartFile file){

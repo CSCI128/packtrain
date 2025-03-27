@@ -109,6 +109,9 @@ public class DTOFactory {
             .category(assignment.getCategory());
     }
     public static CourseLateRequestConfigDTO toDto(CourseLateRequestConfig lateRequestConfig){
+        if (lateRequestConfig == null){
+            return null;
+        }
         return new CourseLateRequestConfigDTO()
             .latePassesEnabled(lateRequestConfig.isLatePassesEnabled())
             .enabledExtensionReasons(lateRequestConfig.getEnabledExtensionReasons())
