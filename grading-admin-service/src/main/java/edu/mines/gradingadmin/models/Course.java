@@ -48,7 +48,7 @@ public class Course {
     @ToString.Exclude
     private Set<CourseMember> members;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "extension_config_id", referencedColumnName = "id")
     private CourseLateRequestConfig lateRequestConfig;
 }

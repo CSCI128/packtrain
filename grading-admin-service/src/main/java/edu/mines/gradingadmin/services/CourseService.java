@@ -71,10 +71,13 @@ public class CourseService {
         course.get().setCode(courseDTO.getCode());
         course.get().setTerm(courseDTO.getTerm());
         course.get().setEnabled(courseDTO.getEnabled());
-        course.get().getLateRequestConfig().setLatePassesEnabled(courseDTO.getLateRequestConfig().getLatePassesEnabled());
-        course.get().getLateRequestConfig().setLatePassName(courseDTO.getLateRequestConfig().getLatePassName());
-        course.get().getLateRequestConfig().setEnabledExtensionReasons(courseDTO.getLateRequestConfig().getEnabledExtensionReasons());
-        course.get().getLateRequestConfig().setTotalLatePassesAllowed(courseDTO.getLateRequestConfig().getTotalLatePassesAllowed());
+        CourseLateRequestConfig config = course.get().getLateRequestConfig();
+        config.setLatePassesEnabled(courseDTO.getLateRequestConfig().getLatePassesEnabled());
+        config.setLatePassName(courseDTO.getLateRequestConfig().getLatePassName());
+        config.setEnabledExtensionReasons(courseDTO.getLateRequestConfig().getEnabledExtensionReasons());
+        config.setTotalLatePassesAllowed(courseDTO.getLateRequestConfig().getTotalLatePassesAllowed());
+
+        course.get().setLateRequestConfig(lateRequestConfigRepo.save(config));
 
         return Optional.of(courseRepo.save(course.get()));
     }
