@@ -203,7 +203,7 @@ export function CreatePage() {
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
       totalLatePassesAllowed: (value) =>
-        value >= 0 ? "Total number of late passes must be greater than or equal to 0" : null,
+        value < 0 ? "Total number of late passes must be greater than or equal to 0" : null,
     },
   });
 
