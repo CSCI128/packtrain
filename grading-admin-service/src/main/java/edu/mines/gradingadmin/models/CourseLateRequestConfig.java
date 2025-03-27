@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-@Entity(name = "course_extension_config")
-@Table(name = "course_extension_configs")
-public class CourseExtensionConfig {
+@Entity(name = "course_late_request_config")
+@Table(name = "course_late_request_configs")
+public class CourseLateRequestConfig {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")

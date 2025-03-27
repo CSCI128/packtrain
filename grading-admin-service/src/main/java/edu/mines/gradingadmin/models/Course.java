@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.springframework.boot.autoconfigure.web.WebProperties;
 
 import java.util.Set;
 import java.util.UUID;
@@ -48,4 +47,8 @@ public class Course {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Set<CourseMember> members;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "extension_config_id", referencedColumnName = "id")
+    private CourseLateRequestConfig lateRequestConfig;
 }

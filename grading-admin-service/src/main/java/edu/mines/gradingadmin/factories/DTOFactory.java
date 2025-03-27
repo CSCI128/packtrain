@@ -72,6 +72,7 @@ public class DTOFactory {
             .enabled(course.isEnabled())
             .name(course.getName())
             .canvasId(course.getCanvasId())
+            .lateRequestConfig(toDto(course.getLateRequestConfig()))
             .code(course.getCode());
     }
 
@@ -106,5 +107,12 @@ public class DTOFactory {
             .dueDate(assignment.getDueDate())
             .unlockDate(assignment.getUnlockDate())
             .category(assignment.getCategory());
+    }
+    public static CourseLateRequestConfigDTO toDto(CourseLateRequestConfig lateRequestConfig){
+        return new CourseLateRequestConfigDTO()
+            .latePassesEnabled(lateRequestConfig.isLatePassesEnabled())
+            .enabledExtensionReasons(lateRequestConfig.getEnabledExtensionReasons())
+            .totalLatePassesAllowed(lateRequestConfig.getTotalLatePassesAllowed())
+            .latePassName(lateRequestConfig.getLatePassName());
     }
 }
