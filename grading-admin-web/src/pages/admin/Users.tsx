@@ -272,12 +272,13 @@ export function UsersPage() {
           <InputWrapper
             withAsterisk
             label="Admin User"
-            key={addUserForm.key("admin")}
-            {...addUserForm.getInputProps("admin")}
           >
-            <Checkbox />
+            <Checkbox
+              key={addUserForm.key("admin")}
+              {...addUserForm.getInputProps("admin", { type: "checkbox" })}
+            />
           </InputWrapper>
-
+          
           <br />
 
           <Group gap="xs" justify="flex-end">

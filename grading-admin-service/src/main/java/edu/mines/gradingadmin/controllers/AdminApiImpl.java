@@ -303,7 +303,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<UserDTO> adminUpdateUser(UserDTO userDTO) {
-        Optional<User> user = Optional.empty();
+        Optional<User> user = userService.getUserByCwid(userDTO.getCwid());
 
         if(userDTO.getEnabled()) {
             user = userService.enableUser(user.get().getCwid());
