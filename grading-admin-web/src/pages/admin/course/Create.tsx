@@ -1,11 +1,11 @@
 import {
-  Button,
+  Button, Checkbox,
   Chip,
   Container,
-  Divider,
+  Divider, Fieldset,
   Group,
   InputWrapper,
-  Loader,
+  Loader, MultiSelect, NumberInput, Space,
   Text,
   TextInput,
 } from "@mantine/core";
@@ -155,6 +155,12 @@ export function CreatePage() {
           term: values.courseTerm,
           enabled: true,
           canvas_id: Number(values.canvasId),
+          late_request_config: {
+            late_passes_enabled: values.latePassesEnabled,
+            late_pass_name: values.latePassName,
+            enabled_extension_reasons: values.enabledExtensionReasons,
+            total_late_passes_allowed: values.totalLatePassesAllowed,
+          }
         },
       },
       {
@@ -182,6 +188,10 @@ export function CreatePage() {
       courseCode: "",
       courseTerm: "",
       canvasId: "",
+      latePassesEnabled: false,
+      totalLatePassesAllowed: 0,
+      enabledExtensionReasons: [],
+      latePassName: "",
     },
     validate: {
       canvasId: (value) =>
@@ -192,12 +202,14 @@ export function CreatePage() {
         value.length < 1 ? "Course code must have at least 1 character" : null,
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
+      totalLatePassesAllowed: (value) =>
+        value >= 0 ? "Total number of late passes must be greater than or equal to 0" : null,
     },
   });
 
   useEffect(() => {
     if (credentialData) {
-      for (let credential of credentialData) {
+      for (const credential of credentialData) {
         if (credential.service === "canvas") {
           setUserHasCredential(true);
         }
@@ -230,44 +242,85 @@ export function CreatePage() {
         ) : (
           <>
             <form onSubmit={form.onSubmit(createCourse)}>
-              <TextInput
-                disabled={courseCreated}
-                pb={8}
-                label="Course Name"
-                defaultValue="Computer Science For STEM"
-                placeholder="Computer Science For STEM"
-                key={form.key("courseName")}
-                {...form.getInputProps("courseName")}
-              />
+              <Fieldset legend="Course Information">
+                <TextInput
+                  disabled={courseCreated}
+                  pb={8}
+                  label="Course Name"
+                  defaultValue="Computer Science For STEM"
+                  placeholder="Computer Science For STEM"
+                  key={form.key("courseName")}
+                  {...form.getInputProps("courseName")}
+                />
 
-              <TextInput
-                disabled={courseCreated}
-                pb={8}
-                label="Course Code"
-                defaultValue="CSCI128"
-                placeholder="CSCI128"
-                key={form.key("courseCode")}
-                {...form.getInputProps("courseCode")}
-              />
+                <TextInput
+                  disabled={courseCreated}
+                  pb={8}
+                  label="Course Code"
+                  defaultValue="CSCI128"
+                  placeholder="CSCI128"
+                  key={form.key("courseCode")}
+                  {...form.getInputProps("courseCode")}
+                />
 
-              <TextInput
-                disabled={courseCreated}
-                pb={8}
-                label="Term"
-                defaultValue="Fall 2024"
-                placeholder="Fall 2024"
-                key={form.key("courseTerm")}
-                {...form.getInputProps("courseTerm")}
-              />
+                <TextInput
+                  disabled={courseCreated}
+                  pb={8}
+                  label="Term"
+                  defaultValue="Fall 2024"
+                  placeholder="Fall 2024"
+                  key={form.key("courseTerm")}
+                  {...form.getInputProps("courseTerm")}
+                />
 
-              <TextInput
-                disabled={courseCreated}
-                pb={8}
-                label="Canvas ID"
-                placeholder="xxxxxxxx"
-                key={form.key("canvasId")}
-                {...form.getInputProps("canvasId")}
-              />
+                <TextInput
+                  disabled={courseCreated}
+                  pb={8}
+                  label="Canvas ID"
+                  placeholder="xxxxxxxx"
+                  key={form.key("canvasId")}
+                  {...form.getInputProps("canvasId")}
+                />
+              </Fieldset>
+
+              <Space h="md" />
+
+              <Fieldset legend="Course Late Request Config">
+                <Checkbox
+                  disabled={courseCreated}
+                  pb={8}
+                  label="Enable Late Passes"
+                  key = {form.key("latePassesEnabled")}
+                  {...form.getInputProps("latePassesEnabled", {type: "checkbox"})}
+                />
+
+                <NumberInput
+                  disabled={courseCreated}
+                  pb={8}
+                  label="Total Late Passes Allowed"
+                  key={form.key("totalLatePassesAllowed")}
+                  min={0}
+                  {...form.getInputProps("totalLatePassesAllowed")}
+                />
+
+                <MultiSelect
+                  disabled={courseCreated}
+                  pb={8}
+                  label="Allowed Extension Reasons"
+                  key={form.key("enabledExtensionReasons")}
+                  {...form.getInputProps("enabledExtensionReasons")}
+                  data={['Bereavement', 'Excused Absence', 'Family', 'Illness', 'Personal', 'Other']}
+                />
+
+                <TextInput
+                  disabled={courseCreated}
+                  pb={8}
+                  label="Late Pass Name"
+                  placeholder="Late Pass"
+                  key={form.key("latePassName")}
+                  {...form.getInputProps("latePassName")}
+                />
+              </Fieldset>
 
               <InputWrapper label="External Services">
                 <Chip.Group multiple>
