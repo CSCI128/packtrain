@@ -108,6 +108,7 @@ export function UsersPage() {
       },
       {
         onSuccess: () => {
+          addUserForm.reset();
           refetch();
         },
       }
