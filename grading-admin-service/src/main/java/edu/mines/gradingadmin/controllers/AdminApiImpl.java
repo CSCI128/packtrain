@@ -306,10 +306,10 @@ public class AdminApiImpl implements AdminApiDelegate {
         Optional<User> user = Optional.empty();
 
         if(userDTO.getEnabled()) {
-            user = userService.enableUser(user.get().getCwid());
+            user = userService.enableUser(userDTO.getCwid());
         }
         else {
-            user = userService.disableUser(securityManager.getUser(), user.get().getCwid());
+            user = userService.disableUser(securityManager.getUser(), userDTO.getCwid());
         }
 
         if (user.isEmpty()){
@@ -317,9 +317,9 @@ public class AdminApiImpl implements AdminApiDelegate {
         }
 
         if(userDTO.getAdmin()) {
-            user = userService.makeAdmin(user.get().getCwid());
+            user = userService.makeAdmin(userDTO.getCwid());
         } else{
-            user = userService.demoteAdmin(securityManager.getUser(), user.get().getCwid());
+            user = userService.demoteAdmin(securityManager.getUser(), userDTO.getCwid());
 
         }
         user = userService.updateUser(userDTO);
@@ -328,12 +328,7 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        return ResponseEntity.accepted().body(new UserDTO()
-            .cwid(user.get().getCwid())
-            .email(user.get().getEmail())
-            .name(user.get().getName())
-            .admin(user.get().isAdmin())
-            .enabled(user.get().isEnabled()));
+        return ResponseEntity.accepted().body(DTOFactory.toDto(user.get()));
     }
 
     @Override
