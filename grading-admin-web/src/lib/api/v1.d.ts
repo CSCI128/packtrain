@@ -66,8 +66,7 @@ export interface paths {
         get: operations["get_course"];
         /**
          * Update existing course
-         * @description Update an existing course by replacing all content in the course.
-         *     If any assignments have been graded, then this will fail.
+         * @description Update an existing course.
          *
          */
         put: operations["update_course"];
@@ -1114,6 +1113,21 @@ export interface components {
              *       "fall.2020.excl.101.section.a"
              *     ] */
             sections?: string[];
+            late_request_config: components["schemas"]["CourseLateRequestConfig"];
+        };
+        /** @description The late request config for a course */
+        CourseLateRequestConfig: {
+            /** @example true */
+            late_passes_enabled: boolean;
+            /** @example [
+             *       "illness",
+             *       "excused absence"
+             *     ] */
+            enabled_extension_reasons: string[];
+            /** @example 5 */
+            total_late_passes_allowed: number;
+            /** @example Late Passes */
+            late_pass_name: string;
         };
         /** @description A slim course */
         CourseSlim: {
@@ -1348,15 +1362,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Refused to update course */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
             };
             /** @description Course does not exist */
             404: {

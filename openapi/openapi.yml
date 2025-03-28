@@ -102,8 +102,7 @@ paths:
       operationId: update_course
       summary: Update existing course
       description: |
-        Update an existing course by replacing all content in the course.
-        If any assignments have been graded, then this will fail.
+        Update an existing course.
       security:
         - openIDC: [admin:write]
       parameters:
@@ -130,15 +129,6 @@ paths:
               example:
                 error_source: "course_creation"
                 error_message: "Course '999-9999-9999-99' does not exist"
-        400:
-          description: "Refused to update course"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "course_creation"
-                error_message: "Refusing to update course. At least one assignment has been graded."
     get:
       tags:
         - admin
@@ -2264,6 +2254,7 @@ components:
         - name
         - code
         - canvas_id
+        - late_request_config
       properties:
         id:
           type: string
@@ -2298,6 +2289,32 @@ components:
             type: string
           example:
             - "fall.2020.excl.101.section.a"
+        late_request_config:
+          $ref: "#/components/schemas/CourseLateRequestConfig"
+
+    CourseLateRequestConfig:
+      description: "The late request config for a course"
+      type: object
+      required:
+        - late_passes_enabled
+        - late_pass_name
+        - enabled_extension_reasons
+        - total_late_passes_allowed
+      properties:
+        late_passes_enabled:
+          type: boolean
+          example: true
+        enabled_extension_reasons:
+          type: array
+          items:
+            type: string
+          example: ["illness", "excused absence"]
+        total_late_passes_allowed:
+          type: integer
+          example: 5
+        late_pass_name:
+          type: string
+          example: "Late Passes"
 
     CourseSlim:
       description: "A slim course"

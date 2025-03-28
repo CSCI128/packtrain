@@ -1,18 +1,21 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.data.CourseDTO;
+import edu.mines.gradingadmin.data.CourseLateRequestConfigDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
+import edu.mines.gradingadmin.repositories.CourseLateRequestConfigRepo;
 import edu.mines.gradingadmin.repositories.CourseRepo;
 import edu.mines.gradingadmin.repositories.PolicyRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.services.external.CanvasService;
 import edu.mines.gradingadmin.services.external.S3Service;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,6 +27,7 @@ import java.util.*;
 @Service
 public class CourseService {
     private final CourseRepo courseRepo;
+    private final CourseLateRequestConfigRepo lateRequestConfigRepo;
     private final ScheduledTaskRepo<CourseSyncTaskDef> taskRepo;
 
     private final ApplicationEventPublisher eventPublisher;
@@ -32,10 +36,11 @@ public class CourseService {
     private final S3Service s3Service;
     private final PolicyRepo policyRepo;
 
-    public CourseService(CourseRepo courseRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
+    public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
                          CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo) {
         this.courseRepo = courseRepo;
+        this.lateRequestConfigRepo = lateRequestConfigRepo;
         this.taskRepo = taskRepo;
         this.impersonationManager = impersonationManager;
         this.canvasService = canvasService;
@@ -66,6 +71,15 @@ public class CourseService {
         course.get().setCode(courseDTO.getCode());
         course.get().setTerm(courseDTO.getTerm());
         course.get().setEnabled(courseDTO.getEnabled());
+        CourseLateRequestConfig config = course.get().getLateRequestConfig();
+        if (config != null) {
+            config.setLatePassesEnabled(courseDTO.getLateRequestConfig().getLatePassesEnabled());
+            config.setLatePassName(courseDTO.getLateRequestConfig().getLatePassName());
+            config.setEnabledExtensionReasons(courseDTO.getLateRequestConfig().getEnabledExtensionReasons());
+            config.setTotalLatePassesAllowed(courseDTO.getLateRequestConfig().getTotalLatePassesAllowed());
+
+            course.get().setLateRequestConfig(lateRequestConfigRepo.save(config));
+        }
 
         return Optional.of(courseRepo.save(course.get()));
     }
@@ -152,6 +166,13 @@ public class CourseService {
         newCourse.setCode(courseDTO.getCode());
         newCourse.setTerm(courseDTO.getTerm());
         newCourse.setEnabled(true);
+
+        Optional<CourseLateRequestConfig> lateRequestConfig = createCourseLateRequestConfig(courseDTO.getLateRequestConfig());
+
+        if (lateRequestConfig.isPresent()) {
+            newCourse.setLateRequestConfig(lateRequestConfig.get());
+        }
+
         newCourse = courseRepo.save(newCourse);
 
         Optional<String> bucketName = s3Service.createNewBucketForCourse(newCourse.getId());
@@ -161,6 +182,18 @@ public class CourseService {
         }
 
         return Optional.of(newCourse);
+    }
+
+    private Optional<CourseLateRequestConfig> createCourseLateRequestConfig(CourseLateRequestConfigDTO dto) {
+        if (dto == null){
+            return Optional.empty();
+        }
+        CourseLateRequestConfig lateRequestConfig = new CourseLateRequestConfig();
+        lateRequestConfig.setLatePassesEnabled(dto.getLatePassesEnabled());
+        lateRequestConfig.setEnabledExtensionReasons(dto.getEnabledExtensionReasons());
+        lateRequestConfig.setTotalLatePassesAllowed(dto.getTotalLatePassesAllowed());
+        lateRequestConfig.setLatePassName(dto.getLatePassName());
+        return Optional.of(lateRequestConfigRepo.save(lateRequestConfig));
     }
 
     public Optional<Policy> createNewCourseWidePolicy(User actingUser, UUID courseId, String policyName, String fileName, MultipartFile file){
