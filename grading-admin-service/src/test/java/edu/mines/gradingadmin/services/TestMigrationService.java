@@ -50,6 +50,8 @@ public class TestMigrationService implements PostgresTestContainer {
     private ExtensionService extensionService;
     @Autowired
     private RawScoreService rawScoreService;
+    @Autowired
+    private MasterMigrationStatsRepo masterMigrationStatsRepo;
 
 
     @BeforeAll
