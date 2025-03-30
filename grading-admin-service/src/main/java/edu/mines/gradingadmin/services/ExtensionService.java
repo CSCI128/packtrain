@@ -5,6 +5,7 @@ import edu.mines.gradingadmin.data.LateRequestDTO;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.LateRequestStatus;
 import edu.mines.gradingadmin.models.enums.LateRequestType;
+import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ExtensionRepo;
 import edu.mines.gradingadmin.repositories.LateRequestRepo;
 import lombok.extern.slf4j.Slf4j;
@@ -20,13 +21,15 @@ import java.util.stream.Collectors;
 public class ExtensionService {
     private final ExtensionRepo extensionRepo;
     private final LateRequestRepo lateRequestRepo;
+    private final CourseMemberRepo courseMemberRepo;
     private final AssignmentService assignmentService;
     private final CourseMemberService courseMemberService;
     private final CourseService courseService;
 
-    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo, AssignmentService assignmentService, CourseMemberService courseMemberService, CourseService courseService) {
+    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo, CourseMemberRepo courseMemberRepo, AssignmentService assignmentService, CourseMemberService courseMemberService, CourseService courseService) {
         this.extensionRepo = extensionRepo;
         this.lateRequestRepo = lateRequestRepo;
+        this.courseMemberRepo = courseMemberRepo;
         this.assignmentService = assignmentService;
         this.courseMemberService = courseMemberService;
         this.courseService = courseService;
@@ -98,5 +101,23 @@ public class ExtensionService {
 
     public Map<String, LateRequest> getLateRequestsForAssignment(UUID assignment) {
         return lateRequestRepo.getLateRequestsForAssignment(assignment).collect(Collectors.toUnmodifiableMap(l -> l.getRequestingUser().getCwid(), l->l));
+    }
+
+    public void useLatePasses(Course course, User user, Double amount) {
+        Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, user.getCwid()).stream().findFirst();
+        if(courseMember.isPresent()) {
+            double finalLatePasses = courseMember.get().getLatePassesUsed() + amount;
+            courseMember.get().setLatePassesUsed(finalLatePasses);
+            courseMemberRepo.save(courseMember.get());
+        }
+    }
+
+    public void refundLatePasses(Course course, User user, Double amount) {
+        Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, user.getCwid()).stream().findFirst();
+        if(courseMember.isPresent()) {
+            double finalLatePasses = courseMember.get().getLatePassesUsed() - amount;
+            courseMember.get().setLatePassesUsed(finalLatePasses);
+            courseMemberRepo.save(courseMember.get());
+        }
     }
 }

@@ -2164,6 +2164,7 @@ components:
             example: "fall.2020.excl.101.section.a"
         late_passes_used:
           type: number
+          format: double
           example: 3
 
     Assignment:
@@ -2340,7 +2341,8 @@ components:
           type: string
           example: "Jane Doe"
         late_passes_used:
-          type: integer
+          type: number
+          format: double
           example: 3
         course:
           $ref: "#/components/schemas/Course"

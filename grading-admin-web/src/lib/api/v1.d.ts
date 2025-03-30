@@ -1023,7 +1023,10 @@ export interface components {
              */
             course_role: "student" | "instructor" | "ta" | "owner";
             sections?: string[];
-            /** @example 3 */
+            /**
+             * Format: double
+             * @example 3
+             */
             late_passes_used?: number;
         };
         /** @description An assignment in a course */
@@ -1135,7 +1138,10 @@ export interface components {
             course_role: "student" | "instructor" | "ta" | "owner";
             /** @example Jane Doe */
             professor: string;
-            /** @example 3 */
+            /**
+             * Format: double
+             * @example 3
+             */
             late_passes_used?: number;
             course: components["schemas"]["Course"];
         };

@@ -38,6 +38,7 @@ export function Requests() {
     data: studentData,
     error: studentError,
     isLoading: studentIsLoading,
+    refetch: refetchStudent,
   } = $api.useQuery("get", "/student/courses/{course_id}", {
     params: {
       path: { course_id: store$.id.get() as string },
@@ -123,6 +124,7 @@ export function Requests() {
       {
         onSuccess: () => {
           refetch();
+          refetchStudent();
         },
       }
     );

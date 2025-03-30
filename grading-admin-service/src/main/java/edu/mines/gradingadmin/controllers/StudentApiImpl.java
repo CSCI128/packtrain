@@ -6,6 +6,7 @@ import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.CourseRole;
+import edu.mines.gradingadmin.models.enums.LateRequestType;
 import edu.mines.gradingadmin.services.*;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +67,12 @@ public class StudentApiImpl implements StudentApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
+        Optional<CourseMember> courseMember = courseMemberService.getCourseMemberByCourseByCwid(course.get(), securityManager.getUser().getCwid());
+        if(courseMember.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
         Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(securityManager.getUser(), course.get());
         CourseRole courseRole = courseMemberService.getRoleForUserAndCourse(securityManager.getUser(), course.get().getId());
 
@@ -77,7 +84,7 @@ public class StudentApiImpl implements StudentApiDelegate {
 
         StudentInformationDTO studentInformationDTO = new StudentInformationDTO()
                 .course(courseDTO)
-                .latePassesUsed(courseMemberService.getLatePassesUsed(securityManager.getUser()))
+                .latePassesUsed(courseMember.get().getLatePassesUsed())
                 .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRole.getRole()));
 
         Optional<Section> section = sections.stream().findFirst();
@@ -114,6 +121,11 @@ public class StudentApiImpl implements StudentApiDelegate {
     public ResponseEntity<LateRequestDTO> createExtensionRequest(String courseId, LateRequestDTO lateRequestDTO) {
         User user = securityManager.getUser();
 
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+        if(course.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
         LateRequest lateRequest = extensionService.createLateRequest(
             courseId,
             user,
@@ -124,9 +136,9 @@ public class StudentApiImpl implements StudentApiDelegate {
             lateRequestDTO.getStatus(),
             lateRequestDTO.getExtension());
 
-        // TODO this is slightly weird with numdaysrequested as a double for tracking late passes
-        // TODO ..because late passes depend on the days requested in the 128 use case
-        courseMemberService.useLatePasses(user, lateRequestDTO.getNumDaysRequested().intValue());
+        if(lateRequest.getLateRequestType() == LateRequestType.LATE_PASS) {
+            extensionService.useLatePasses(course.get(), user, lateRequestDTO.getNumDaysRequested());
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(lateRequest));
     }
@@ -134,13 +146,19 @@ public class StudentApiImpl implements StudentApiDelegate {
     @Override
     public ResponseEntity<Void> withdrawExtension(String courseId, String extensionId) {
         Optional<LateRequest> lateRequest = extensionService.getLateRequest(UUID.fromString(extensionId));
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
 
         if(lateRequest.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        // TODO this is cursed
-        courseMemberService.useLatePasses(securityManager.getUser(), -1 * (int) lateRequest.get().getDaysRequested());
+        if(course.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if(lateRequest.get().getLateRequestType() == LateRequestType.LATE_PASS) {
+            extensionService.refundLatePasses(course.get(), securityManager.getUser(), lateRequest.get().getDaysRequested());
+        }
         extensionService.deleteLateRequest(lateRequest.get());
         return ResponseEntity.noContent().build();
     }

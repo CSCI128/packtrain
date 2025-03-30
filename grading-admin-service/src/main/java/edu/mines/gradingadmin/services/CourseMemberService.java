@@ -48,6 +48,10 @@ public class CourseMemberService {
         return section.getMembers().stream().filter(member -> member.getRole() == CourseRole.INSTRUCTOR).findFirst();
     }
 
+    public Optional<CourseMember> getCourseMemberByCourseByCwid(Course course, String cwid) {
+        return courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().findFirst();
+    }
+
     public List<CourseMember> searchCourseMembers(Course course, List<CourseRole> roles, String name, String cwid) {
         if(name != null) {
             return courseMemberRepo.findAllByCourseByUserName(course, name).stream().filter(x -> roles.contains(x.getRole())).toList();
@@ -294,14 +298,5 @@ public class CourseMemberService {
         }
 
         return membership.get().getSections();
-    }
-
-    public int getLatePassesUsed(User user) {
-        return courseMemberRepo.findLatePassesUsedByCwid(user.getCwid());
-    }
-
-    public void useLatePasses(User user, int amount) {
-        int finalLatePasses = getLatePassesUsed(user) + amount;
-        courseMemberRepo.setLatePasses(user.getCwid(), finalLatePasses);
     }
 }

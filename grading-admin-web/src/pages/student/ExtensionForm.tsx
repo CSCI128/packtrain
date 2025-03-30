@@ -23,7 +23,6 @@ export function ExtensionForm() {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
   const [latePassView, setLatePassView] = useState<boolean>(true);
-  const [latePassesRemaining, setLatePassesRemaining] = useState<boolean>(true);
   const [numDaysRequested, setNumDaysRequested] = useState<number>(1);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>("");
 
@@ -200,7 +199,12 @@ export function ExtensionForm() {
         </Text>
       </Group>
       <Text size="md">
-        <strong>Date</strong>: {new Date().toLocaleString()}
+        <strong>Date</strong>:{" "}
+        {new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        })}
       </Text>
 
       <InputWrapper label="Extension Type:">
@@ -218,19 +222,15 @@ export function ExtensionForm() {
       {latePassView ? (
         <form onSubmit={latePassForm.onSubmit(submitLatePass)}>
           <Stack>
-            {courseData.late_passes_used === 5 ? (
+            {(courseData.late_passes_used ?? 0) >= 5 ? (
               <>
-                {" "}
-                <>
-                  <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
-                    You have no late passes remaining!
-                  </Text>
+                <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
+                  You have no late passes remaining!
+                </Text>
 
-                  <Text ta="center" c="gray.7">
-                    Please contact your instructor if you think this is a
-                    mistake.
-                  </Text>
-                </>
+                <Text ta="center" c="gray.7">
+                  Please contact your instructor if you think this is a mistake.
+                </Text>
               </>
             ) : (
               <>
@@ -301,7 +301,9 @@ export function ExtensionForm() {
               Cancel
             </Button>
 
-            {latePassesRemaining && <Button type="submit">Submit</Button>}
+            {(courseData.late_passes_used ?? 0) < 5 && (
+              <Button type="submit">Submit</Button>
+            )}
           </Group>
         </form>
       ) : (
