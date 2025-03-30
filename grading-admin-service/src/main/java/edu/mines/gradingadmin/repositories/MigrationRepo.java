@@ -15,10 +15,10 @@ import java.util.List;
 @Repository
 public interface MigrationRepo  extends CrudRepository<Migration, UUID>{
 
-    @Query("select m from migration m join fetch assignment a on m.assignment.id = a.id join fetch policy p on m.policy.id = p.id where m.masterMigration.id=?1")
+    @Query("select m from migration m where m.masterMigration.id=?1")
     List<Migration> getMigrationListByMasterMigrationId(UUID masterMigrationId);
 
 
-    @Query("select m from migration m join fetch assignment a on m.assignment.id = a.id join fetch policy p on m.policy.id = p.id where m.id=?1")
+    @Query("select m from migration m where m.id=?1")
     Migration getMigrationById(UUID migrationId);
 }

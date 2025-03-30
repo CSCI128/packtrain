@@ -1,4 +1,10 @@
-DROP TABLE IF EXISTS master_migration_stats_view;
+DO
+$$
+    BEGIN IF EXISTS(SELECT 1 FROM pg_tables WHERE tablename = 'master_migration_stats_view') THEN
+        EXECUTE 'DROP TABLE IF EXISTS master_migration_stats_view';
+    END IF;
+END $$;
+
 CREATE OR REPLACE VIEW master_migration_stats_view AS
 SELECT r.master_migration_id                                                    AS master_migration_id,
        COUNT(r.cwid)                                                            AS total_submissions,
