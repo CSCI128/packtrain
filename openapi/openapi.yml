@@ -2437,41 +2437,47 @@ components:
       required:
         - migration_list
       properties:
-        migrator:
-          $ref: "#/components/schemas/CourseMember"
-        timestamp:
-          type: string
-          format: date-time
-          example: "2020-01-01T12:00:00.000Z"
-        migration_list:
-          type: array
-          items:
-            $ref: "#/components/schemas/Migration"
         id:
           type: string
           example: "999-9999-9999-99"
+        migrator:
+          $ref: "#/components/schemas/User"
+        date_started:
+          type: string
+          format: date-time
+          example: "2020-01-01T12:00:00.000Z"
+        migrations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Migration"
+        stats:
+          $ref: "#/components/schemas/MasterMigrationStatistics"
 
     MasterMigrationStatistics:
       description: "The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit"
       type: object
       required:
-        - missing
-        - extensions_applied
-        - no_credit
-        - late_penalties
+        - total_submission
+        - late_requests
+        - total_extensions
+        - total_late_passes
+        - unapproved_requests
       properties:
-        missing:
+        total_submission:
           type: integer
           example: 2
-        extensions_applied:
+        late_requests:
           type: integer
           example: 12
-        no_credit:
+        total_extensions:
           type: integer
           example: 1
-        late_penalties:
+        total_late_passes:
           type: integer
           example: 5
+        unapproved_requests:
+          type: integer
+          example: 3
 
     Migration:
       description: "Migration object that has a single assignment and a policy"

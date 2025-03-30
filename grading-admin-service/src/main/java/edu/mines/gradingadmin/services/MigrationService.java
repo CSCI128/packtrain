@@ -10,10 +10,7 @@ import edu.mines.gradingadmin.models.enums.MigrationStatus;
 import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import edu.mines.gradingadmin.models.tasks.ProcessScoresAndExtensionsTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
-import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
-import edu.mines.gradingadmin.repositories.MigrationRepo;
-import edu.mines.gradingadmin.repositories.MigrationTransactionLogRepo;
-import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
+import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.RabbitMqService;
 import jakarta.transaction.Transactional;
@@ -42,8 +39,9 @@ public class MigrationService {
     private final RabbitMqService rabbitMqService;
     private final PolicyServerService policyServerService;
     private final RawScoreService rawScoreService;
+    private final MasterMigrationStatsRepo masterMigrationStatsRepo;
 
-    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreService rawScoreService){
+    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreService rawScoreService, MasterMigrationStatsRepo masterMigrationStatsRepo){
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
@@ -55,6 +53,7 @@ public class MigrationService {
         this.rabbitMqService = rabbitMqService;
         this.policyServerService = policyServerService;
         this.rawScoreService = rawScoreService;
+        this.masterMigrationStatsRepo = masterMigrationStatsRepo;
     }
 
     public MasterMigration createMigrationForAssignments(Course course, List<Policy> policyList, List<Assignment> assignmentList){
@@ -282,6 +281,10 @@ public class MigrationService {
         masterMigrationRepo.save(master.get());
 
         return tasks;
+    }
+
+    public Optional<MasterMigrationStats> getStatsForMigration(String masterMigrationId){
+        return masterMigrationStatsRepo.findById(UUID.fromString(masterMigrationId));
     }
 
 }
