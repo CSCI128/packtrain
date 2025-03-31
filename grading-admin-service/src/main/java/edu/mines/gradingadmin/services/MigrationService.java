@@ -7,6 +7,7 @@ import edu.mines.gradingadmin.factories.MigrationFactory;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.LateRequestStatus;
 import edu.mines.gradingadmin.models.enums.MigrationStatus;
+import edu.mines.gradingadmin.models.enums.RawScoreStatus;
 import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import edu.mines.gradingadmin.models.tasks.ProcessScoresAndExtensionsTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
@@ -73,7 +74,6 @@ public class MigrationService {
     @Transactional
     public List<MasterMigration> getAllMasterMigrations(String courseId){
        return masterMigrationRepo.getMasterMigrationsByCourseId(UUID.fromString(courseId));
-
     }
 
 
@@ -121,6 +121,22 @@ public class MigrationService {
 
     public Migration getMigration(String migrationId){
         return migrationRepo.getMigrationById(UUID.fromString(migrationId));
+    }
+
+    @Transactional
+    public Course getCourseForMigration(String migrationId){
+        Migration migration = getMigration(migrationId);
+
+        MasterMigration master = migration.getMasterMigration();
+
+        return master.getCourse();
+    }
+
+    @Transactional
+    public Assignment getAssignmentForMigration(String migrationId){
+        Migration migration = getMigration(migrationId);
+
+        return migration.getAssignment();
     }
 
     public Optional<Migration> updatePolicyForMigration(String migrationId, String policyURI){
@@ -283,8 +299,38 @@ public class MigrationService {
         return tasks;
     }
 
-    public Optional<MasterMigrationStats> getStatsForMigration(String masterMigrationId){
+    public Optional<MasterMigrationStats> getStatsForMigration(String masterMigrationId) {
         return masterMigrationStatsRepo.findById(UUID.fromString(masterMigrationId));
+    }
+
+    public boolean attemptToStartRawScoreImport(String migrationId, String message){
+        Migration migration = getMigration(migrationId);
+
+        if (migration.getRawScoreStatus() != RawScoreStatus.EMPTY){
+            return false;
+        }
+
+        migration.setRawScoreStatus(RawScoreStatus.IMPORTING);
+        migration.setRawScoreMessage(message);
+
+        migrationRepo.save(migration);
+
+        return true;
+    }
+
+    public boolean finishRawScoreImport(String migrationId, String message){
+        Migration migration = getMigration(migrationId);
+
+        if (migration.getRawScoreStatus() != RawScoreStatus.IMPORTING){
+            return false;
+        }
+
+        migration.setRawScoreStatus(RawScoreStatus.PRESENT);
+        migration.setRawScoreMessage(message);
+
+        migrationRepo.save(migration);
+
+        return true;
     }
 
 }
