@@ -28,6 +28,8 @@ server:
       enabled: false
 
 grading-admin:
+  # needs to be 16, 32, or 64 bytes long - this should also be randomly generated.
+  secret-key: password91023451
   external-services:
     canvas:
       enabled: true
