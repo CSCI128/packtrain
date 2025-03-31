@@ -14,4 +14,4 @@ RUN make html
 
 FROM nginx:alpine AS serve
 
-COPY --from=builder /docs/_build/html /usr/share/nginx/html
+COPY --from=builder /docs/_build/html/ /usr/share/nginx/html/
