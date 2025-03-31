@@ -53,31 +53,30 @@ public class CourseMemberService {
     }
 
     public List<CourseMember> searchCourseMembers(Course course, List<CourseRole> roles, String name, String cwid) {
-        if(name != null) {
+        if (name != null) {
             return courseMemberRepo.findAllByCourseByUserName(course, name).stream().filter(x -> roles.contains(x.getRole())).toList();
-        }
-        else if(cwid != null) {
+        } else if (cwid != null) {
             return courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().filter(x -> roles.contains(x.getRole())).toList();
         }
         return courseMemberRepo.getAllByCourse(course).stream().filter(x -> roles.contains(x.getRole())).toList();
     }
 
     @Transactional
-    public void syncCourseMembersTask(UserSyncTaskDef task){
-        if (!task.shouldAddNewUsers() && !task.shouldUpdateExistingUsers() && !task.shouldRemoveOldUsers()){
+    public void syncCourseMembersTask(UserSyncTaskDef task) {
+        if (!task.shouldAddNewUsers() && !task.shouldUpdateExistingUsers() && !task.shouldRemoveOldUsers()) {
             log.warn("No user sync action should be taken. Skipping task");
             return;
         }
 
         Optional<Course> course = courseService.getCourse(task.getCourseToImport());
-        if (course.isEmpty()){
+        if (course.isEmpty()) {
             log.warn("Course '{}' does not exist!", task.getCourseToImport());
             return;
         }
 
-        Map<String, Section> sections = sectionService.getSectionsForCourse(task.getCourseToImport()).stream().collect(Collectors.toUnmodifiableMap(s -> String.valueOf(s.getCanvasId()), s-> s));
+        Map<String, Section> sections = sectionService.getSectionsForCourse(task.getCourseToImport()).stream().collect(Collectors.toUnmodifiableMap(s -> String.valueOf(s.getCanvasId()), s -> s));
 
-        if (sections.isEmpty()){
+        if (sections.isEmpty()) {
             log.warn("Course '{}' has no sections!", course.get().getCode());
             return;
         }
@@ -130,8 +129,8 @@ public class CourseMemberService {
     }
 
     @Transactional
-    protected Set<CourseMember> updateExistingEnrollments(UserSyncTaskDef task, Set<String> users, Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse, Course course, Map<String, Section> sections){
-        Map<String, CourseMember> members = courseMemberRepo.getAllByCourseAndCwids(course, users).stream().collect(Collectors.toMap(c->c.getUser().getCwid(), c -> c));
+    protected Set<CourseMember> updateExistingEnrollments(UserSyncTaskDef task, Set<String> users, Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse, Course course, Map<String, Section> sections) {
+        Map<String, CourseMember> members = courseMemberRepo.getAllByCourseAndCwids(course, users).stream().collect(Collectors.toMap(c -> c.getUser().getCwid(), c -> c));
 
         for (String user : members.keySet()) {
             log.trace("Updating membership for user: {}", user);
@@ -173,7 +172,7 @@ public class CourseMemberService {
     private Set<CourseMember> createNewEnrollments(UserSyncTaskDef task, List<User> users, Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse, Course course, Map<String, Section> sections) {
         Set<CourseMember> members = new HashSet<>();
 
-        for(User user : users){
+        for (User user : users) {
             log.trace("Processing user: {}", user);
 
             // we dont need to worry about this case, if we get here then it is in the course.
@@ -236,12 +235,12 @@ public class CourseMemberService {
 
     public Optional<CourseMember> addMemberToCourse(String courseId, CourseMemberDTO courseMemberDTO) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-        if(course.isEmpty()) {
+        if (course.isEmpty()) {
             return Optional.empty();
         }
 
         Optional<User> user = userService.getUserByCwid(courseMemberDTO.getCwid());
-        if(user.isEmpty()) {
+        if (user.isEmpty()) {
             return Optional.empty();
         }
 
@@ -253,21 +252,21 @@ public class CourseMemberService {
         return Optional.of(courseMemberRepo.save(member));
     }
 
-    public boolean removeMembershipForUserAndCourse(User user, String courseId){
+    public boolean removeMembershipForUserAndCourse(User user, String courseId) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-        if (course.isEmpty()){
+        if (course.isEmpty()) {
             log.warn("Course '{}' does not exist!", courseId);
             return false;
         }
 
         Optional<CourseMember> courseMember = courseMemberRepo.getAllByCourseAndUser(course.get(), user);
 
-        if (courseMember.isEmpty()){
+        if (courseMember.isEmpty()) {
             log.warn("User '{}' is not enrolled in course '{}'!", user.getEmail(), course.get().getCode());
             return false;
         }
 
-        if (courseMember.get().getRole() == CourseRole.OWNER){
+        if (courseMember.get().getRole() == CourseRole.OWNER) {
             log.warn("Attempt to remove owner '{}' from '{}'!", user.getEmail(), course.get().getCode());
             return false;
         }
@@ -278,22 +277,22 @@ public class CourseMemberService {
         return true;
     }
 
-    public CourseRole getRoleForUserAndCourse(User user, UUID courseId){
+    public CourseRole getRoleForUserAndCourse(User user, UUID courseId) {
         Optional<Course> course = courseService.getCourse(courseId);
 
         Optional<CourseMember> membership = courseMemberRepo.getByUserAndCourse(user, course.get());
 
-        if(membership.isEmpty()) {
+        if (membership.isEmpty()) {
             return CourseRole.NOT_ENROLLED;
         }
 
         return membership.get().getRole();
     }
 
-    public Set<Section> getSectionsForUserAndCourse(User user, Course course){
+    public Set<Section> getSectionsForUserAndCourse(User user, Course course) {
         Optional<CourseMember> membership = courseMemberRepo.getByUserAndCourse(user, course);
 
-        if(membership.isEmpty()) {
+        if (membership.isEmpty()) {
             return Set.of();
         }
 
@@ -313,12 +312,27 @@ public class CourseMemberService {
 
     public void refundLatePasses(Course course, User user, double amount) {
         Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, user.getCwid()).stream().findFirst();
-        if(courseMember.isEmpty()) {
+        if (courseMember.isEmpty()) {
             return;
         }
 
         double finalLatePasses = courseMember.get().getLatePassesUsed() - amount;
         courseMember.get().setLatePassesUsed(finalLatePasses);
         courseMemberRepo.save(courseMember.get());
+    }
+
+    public Optional<String> getCwidGivenCourseAndEmail(String email, Course course){
+        Optional<User> user = userService.getUserByEmail(email);
+
+        if (user.isEmpty()){
+            return Optional.empty();
+        }
+
+        if(!courseMemberRepo.existsByCourseAndUser(course, user.get())){
+            log.warn("User '{}' is not enrolled in course '{}'", user.get().getCwid(), course.getCode());
+            return Optional.empty();
+        }
+
+        return Optional.of(user.get().getCwid());
     }
 }

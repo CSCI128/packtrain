@@ -47,7 +47,7 @@ public class TestRawScoreService implements PostgresTestContainer {
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
         UUID testId = UUID.randomUUID();
 
-        List<RawScore> rawScores = rawScoreService.uploadCSV(file.getInputStream(), testId);
+        List<RawScore> rawScores = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId);
 
         Assertions.assertTrue(rawScores.isEmpty());
     }
@@ -61,7 +61,7 @@ public class TestRawScoreService implements PostgresTestContainer {
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
         UUID testId = UUID.randomUUID();
 
-        List<RawScore> rawScores = rawScoreService.uploadCSV(file.getInputStream(), testId);
+        List<RawScore> rawScores = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId);
 
         Assertions.assertTrue(rawScores.isEmpty());
     }
@@ -81,7 +81,7 @@ public class TestRawScoreService implements PostgresTestContainer {
         UUID testId = UUID.randomUUID();
 
         // Should add scores to the list that were properly saved
-        List<RawScore> scores = rawScoreService.uploadCSV(file.getInputStream(), testId);
+        List<RawScore> scores = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId);
 
         Assertions.assertFalse(scores.isEmpty());
 
@@ -120,7 +120,7 @@ public class TestRawScoreService implements PostgresTestContainer {
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
         UUID testId = UUID.randomUUID();
 
-        RawScore firstRawScore = rawScoreService.uploadCSV(file.getInputStream(), testId).getFirst();
+        RawScore firstRawScore = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId).getFirst();
 
         fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n" +
                 "Jane,Doe,12344321,,,,12.0,12.0,Graded,,2022-07-25 23:20:26 -0600,15:29:30\n";
@@ -128,7 +128,7 @@ public class TestRawScoreService implements PostgresTestContainer {
         file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
         testId = UUID.randomUUID();
 
-        RawScore secondRawScore = rawScoreService.uploadCSV(file.getInputStream(), testId).getFirst();
+        RawScore secondRawScore = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId).getFirst();
 
         Assertions.assertNotEquals(firstRawScore.getScore(), secondRawScore.getScore());
         Assertions.assertNotEquals(firstRawScore.getSubmissionTime(), secondRawScore.getSubmissionTime());
@@ -148,7 +148,7 @@ public class TestRawScoreService implements PostgresTestContainer {
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
         UUID testId = UUID.randomUUID();
 
-        List<RawScore> rawScoreList = rawScoreService.uploadCSV(file.getInputStream(), testId);
+        List<RawScore> rawScoreList = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId);
 
         Assertions.assertEquals("101", rawScoreList.get(0).getCwid());
         Assertions.assertEquals("robbob", rawScoreList.get(1).getCwid());
@@ -200,7 +200,7 @@ public class TestRawScoreService implements PostgresTestContainer {
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
         UUID testId = UUID.randomUUID();
 
-        List<RawScore> rawScoreList = rawScoreService.uploadCSV(file.getInputStream(), testId);
+        List<RawScore> rawScoreList = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId);
 
         Assertions.assertEquals("101", rawScoreList.get(0).getCwid());
         Assertions.assertEquals("robbob", rawScoreList.get(1).getCwid());
@@ -252,7 +252,7 @@ public class TestRawScoreService implements PostgresTestContainer {
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
         UUID testId = UUID.randomUUID();
 
-        List<RawScore> rawScoreList = rawScoreService.uploadCSV(file.getInputStream(), testId);
+        List<RawScore> rawScoreList = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId);
 
         Assertions.assertEquals("101", rawScoreList.get(0).getCwid());
         Assertions.assertEquals("robbob", rawScoreList.get(1).getCwid());
