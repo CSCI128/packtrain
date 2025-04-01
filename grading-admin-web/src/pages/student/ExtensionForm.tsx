@@ -23,7 +23,6 @@ export function ExtensionForm() {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
   const [latePassView, setLatePassView] = useState<boolean>(true);
-  const [latePassesRemaining, setLatePassesRemaining] = useState<boolean>(true);
   const [numDaysRequested, setNumDaysRequested] = useState<number>(1);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>("");
 
@@ -31,7 +30,7 @@ export function ExtensionForm() {
     mode: "uncontrolled",
     initialValues: {
       assignmentId: "",
-      daysRequested: 1,
+      daysRequested: numDaysRequested,
       extensionReason: "",
       comments: "",
     },
@@ -49,7 +48,7 @@ export function ExtensionForm() {
     mode: "uncontrolled",
     initialValues: {
       assignmentId: "",
-      daysRequested: 1,
+      daysRequested: numDaysRequested,
     },
     validate: {
       assignmentId: (value) =>
@@ -96,7 +95,8 @@ export function ExtensionForm() {
           user_requester_id: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
           date_submitted: new Date().toISOString(),
-          num_days_requested: values.daysRequested,
+          // TODO investigate this not setting correctly via the form (should be values.numDays)
+          num_days_requested: numDaysRequested,
           request_type: "extension",
           status: "pending",
           extension: {
@@ -125,7 +125,8 @@ export function ExtensionForm() {
           user_requester_id: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
           date_submitted: new Date().toISOString(),
-          num_days_requested: values.daysRequested,
+          // TODO investigate this not setting correctly via the form (should be values.numDays)
+          num_days_requested: numDaysRequested,
           request_type: "late_pass",
           status: "pending",
         },
@@ -198,7 +199,12 @@ export function ExtensionForm() {
         </Text>
       </Group>
       <Text size="md">
-        <strong>Date</strong>: {new Date().toLocaleString()}
+        <strong>Date</strong>:{" "}
+        {new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        })}
       </Text>
 
       <InputWrapper label="Extension Type:">
@@ -216,56 +222,78 @@ export function ExtensionForm() {
       {latePassView ? (
         <form onSubmit={latePassForm.onSubmit(submitLatePass)}>
           <Stack>
-            <Select
-              withAsterisk
-              searchable
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
-              label="Assignment"
-              placeholder="Pick value"
-              data={
-                courseData.course.assignments &&
-                courseData.course.assignments.flatMap((x) => [
-                  {
-                    label: x.name,
-                    value: x.id as string,
-                  },
-                ])
-              }
-              key={latePassForm.key("assignmentId")}
-              {...latePassForm.getInputProps("assignmentId")}
-              onChange={(_value, _) => {
-                setSelectedAssignmentId(_value ?? "");
-                latePassForm.setFieldValue("assignmentId", _value ?? "");
-              }}
-            />
+            {(courseData.late_passes_used ?? 0) >= 5 ? (
+              <>
+                <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
+                  You have no late passes remaining!
+                </Text>
 
-            <Text>
-              You have <strong>X</strong> late passes remaining. Late passes are
-              five, free passes to use over the course of the semester to extend
-              your work.
-            </Text>
+                <Text ta="center" c="gray.7">
+                  Please contact your instructor if you think this is a mistake.
+                </Text>
+              </>
+            ) : (
+              <>
+                <Select
+                  withAsterisk
+                  searchable
+                  searchValue={searchValue}
+                  onSearchChange={setSearchValue}
+                  label="Assignment"
+                  placeholder="Pick value"
+                  data={
+                    courseData.course.assignments &&
+                    courseData.course.assignments.flatMap((x) => [
+                      {
+                        label: x.name,
+                        value: x.id as string,
+                      },
+                    ])
+                  }
+                  key={latePassForm.key("assignmentId")}
+                  {...latePassForm.getInputProps("assignmentId")}
+                  onChange={(_value, _) => {
+                    setSelectedAssignmentId(_value ?? "");
+                    latePassForm.setFieldValue("assignmentId", _value ?? "");
+                  }}
+                />
 
-            <Group>
-              <NumberInput
-                withAsterisk
-                label="Days to extend:"
-                defaultValue={1}
-                max={5}
-                min={1}
-                key={latePassForm.key("daysRequested")}
-                {...latePassForm.getInputProps("daysRequested")}
-                onChange={(value) => {
-                  setNumDaysRequested(parseInt(value as string));
-                }}
-              />
+                <Text>
+                  You have{" "}
+                  <strong>{5 - (courseData.late_passes_used ?? 0)}</strong> late
+                  passes remaining. Late passes are five, free passes to use
+                  over the course of the semester to extend your work.
+                </Text>
 
-              <Text>
-                (<strong>X remaining</strong> after)
-              </Text>
-            </Group>
+                <Group>
+                  <NumberInput
+                    withAsterisk
+                    label="Days to extend:"
+                    defaultValue={1}
+                    max={5 - (courseData.late_passes_used ?? 0)}
+                    min={1}
+                    key={latePassForm.key("daysRequested")}
+                    {...latePassForm.getInputProps("daysRequested")}
+                    onChange={(value) => {
+                      setNumDaysRequested(parseInt(value as string));
+                    }}
+                  />
 
-            <CalculatedDate />
+                  <Text>
+                    (
+                    <strong>
+                      {5 -
+                        (courseData.late_passes_used ?? 0) -
+                        numDaysRequested}{" "}
+                      remaining
+                    </strong>{" "}
+                    after)
+                  </Text>
+                </Group>
+
+                <CalculatedDate />
+              </>
+            )}
           </Stack>
 
           <Group justify="flex-end" mt="md">
@@ -273,7 +301,9 @@ export function ExtensionForm() {
               Cancel
             </Button>
 
-            {latePassesRemaining && <Button type="submit">Submit</Button>}
+            {(courseData.late_passes_used ?? 0) < 5 && (
+              <Button type="submit">Submit</Button>
+            )}
           </Group>
         </form>
       ) : (

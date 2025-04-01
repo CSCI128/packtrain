@@ -48,6 +48,10 @@ public class CourseMemberService {
         return section.getMembers().stream().filter(member -> member.getRole() == CourseRole.INSTRUCTOR).findFirst();
     }
 
+    public Optional<CourseMember> getCourseMemberByCourseByCwid(Course course, String cwid) {
+        return courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().findFirst();
+    }
+
     public List<CourseMember> searchCourseMembers(Course course, List<CourseRole> roles, String name, String cwid) {
         if(name != null) {
             return courseMemberRepo.findAllByCourseByUserName(course, name).stream().filter(x -> roles.contains(x.getRole())).toList();
@@ -294,5 +298,27 @@ public class CourseMemberService {
         }
 
         return membership.get().getSections();
+    }
+
+    public void useLatePasses(Course course, User user, double amount) {
+        Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, user.getCwid()).stream().findFirst();
+        if(courseMember.isEmpty()) {
+            return;
+        }
+
+        double finalLatePasses = courseMember.get().getLatePassesUsed() + amount;
+        courseMember.get().setLatePassesUsed(finalLatePasses);
+        courseMemberRepo.save(courseMember.get());
+    }
+
+    public void refundLatePasses(Course course, User user, double amount) {
+        Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, user.getCwid()).stream().findFirst();
+        if(courseMember.isEmpty()) {
+            return;
+        }
+
+        double finalLatePasses = courseMember.get().getLatePassesUsed() - amount;
+        courseMember.get().setLatePassesUsed(finalLatePasses);
+        courseMemberRepo.save(courseMember.get());
     }
 }
