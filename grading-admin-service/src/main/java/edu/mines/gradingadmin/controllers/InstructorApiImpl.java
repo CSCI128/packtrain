@@ -25,14 +25,12 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
     private final MigrationService migrationService;
-    private final MasterMigrationRepo masterMigrationRepo;
 
-    public InstructorApiImpl(CourseService courseService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService, MasterMigrationRepo masterMigrationRepo) {
+    public InstructorApiImpl(CourseService courseService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService) {
         this.courseService = courseService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
         this.migrationService = migrationService;
-        this.masterMigrationRepo = masterMigrationRepo;
     }
 
     @Override
@@ -94,24 +92,17 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     public ResponseEntity<List<MasterMigrationDTO>> getAllMasterMigrationsForCourse(String courseId){
         List<MasterMigration> masterMigrations = migrationService.getAllMasterMigrations(courseId);
 
-        // TODO clean this up
-        return ResponseEntity.ok(masterMigrations.stream().map(
-                mastermigration -> new MasterMigrationDTO()
-                        .migrationList( mastermigration.getMigrations().stream().map(
-                                migration -> new MigrationDTO()
-                                        .policy( new PolicyDTO().uri(migration.getPolicy().getPolicyURI()))
-                                        .assignment(new AssignmentDTO().id(migration.getAssignment().getId().toString())
-                                                .name(migration.getAssignment().getName()))).toList()))
-                .toList());
+        return ResponseEntity.ok(masterMigrations.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
     public ResponseEntity<MasterMigrationDTO> createMasterMigration(String courseId, MasterMigrationDTO masterMigrationDTO){
-        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(courseId);
+        Optional<MasterMigrationDTO> masterMigration = migrationService.createMasterMigration(courseId).map(DTOFactory::toDto);
+
         if (masterMigration.isEmpty()){
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().id(masterMigration.get().getId().toString()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(masterMigration.get());
     }
 
     @Override
@@ -128,10 +119,11 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(String courseId, String masterMigrationId, MigrationDTO migrationDTO) {
         AssignmentDTO assignment = migrationDTO.getAssignment();
         PolicyDTO policy = migrationDTO.getPolicy();
-        Optional<MasterMigration> masterMigration = migrationService.addMigration(masterMigrationId, assignment.getId(), policy.getUri());
+        Optional<MasterMigrationDTO> masterMigration = migrationService.addMigration(masterMigrationId, assignment.getId(), policy.getUri()).map(DTOFactory::toDto);;
+
         if (masterMigration.isEmpty()){
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().id(masterMigration.get().getId().toString()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(masterMigration.get());
     }
 }

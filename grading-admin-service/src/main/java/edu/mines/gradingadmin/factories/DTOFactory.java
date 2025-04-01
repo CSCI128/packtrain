@@ -108,14 +108,43 @@ public class DTOFactory {
             .unlockDate(assignment.getUnlockDate())
             .category(assignment.getCategory());
     }
-    public static CourseLateRequestConfigDTO toDto(CourseLateRequestConfig lateRequestConfig){
-        if (lateRequestConfig == null){
+    public static CourseLateRequestConfigDTO toDto(CourseLateRequestConfig lateRequestConfig) {
+        if (lateRequestConfig == null) {
             return null;
         }
         return new CourseLateRequestConfigDTO()
-            .latePassesEnabled(lateRequestConfig.isLatePassesEnabled())
-            .enabledExtensionReasons(lateRequestConfig.getEnabledExtensionReasons())
-            .totalLatePassesAllowed(lateRequestConfig.getTotalLatePassesAllowed())
-            .latePassName(lateRequestConfig.getLatePassName());
+                .latePassesEnabled(lateRequestConfig.isLatePassesEnabled())
+                .enabledExtensionReasons(lateRequestConfig.getEnabledExtensionReasons())
+                .totalLatePassesAllowed(lateRequestConfig.getTotalLatePassesAllowed())
+                .latePassName(lateRequestConfig.getLatePassName());
+    }
+
+    public static MasterMigrationStatisticsDTO toDto(MasterMigrationStats stats){
+        return new MasterMigrationStatisticsDTO()
+            .totalSubmission(stats.getTotalSubmissions())
+            .lateRequests(stats.getLateRequests())
+            .totalExtensions(stats.getTotalLatePasses())
+            .totalLatePasses(stats.getTotalLatePasses())
+            .unapprovedRequests(stats.getUnapprovedRequests());
+    }
+
+    public static MigrationDTO toDto(Migration migration){
+        // we are join fetching the assignment and policy so they will always be available
+        return new MigrationDTO()
+            .assignment(toDto(migration.getAssignment()))
+            .policy(toDto(migration.getPolicy()));
+    }
+
+    public static MasterMigrationDTO toDto(MasterMigration masterMigration){
+        MasterMigrationDTO dto = new MasterMigrationDTO()
+                .id(masterMigration.getId().toString())
+                .dateStarted(masterMigration.getDateStarted().toInstant())
+                .migrator(toDto(masterMigration.getCreatedByUser()));
+
+        if (masterMigration.getMigrations() != null || !masterMigration.getMigrations().isEmpty()){
+            dto.migrations(masterMigration.getMigrations().stream().map(DTOFactory::toDto).toList());
+        }
+
+        return dto;
     }
 }

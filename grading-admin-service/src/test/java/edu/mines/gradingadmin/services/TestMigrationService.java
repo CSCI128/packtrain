@@ -47,10 +47,11 @@ public class TestMigrationService implements PostgresTestContainer {
     @Autowired
     private ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo;
     @Autowired
+    private MasterMigrationStatsRepo masterMigrationStatsRepo;
+    @Autowired
     private ExtensionService extensionService;
     @Autowired
     private RawScoreService rawScoreService;
-
 
     @BeforeAll
     static void setupClass(){
@@ -62,7 +63,7 @@ public class TestMigrationService implements PostgresTestContainer {
     void setup(){
         migrationService = new MigrationService(migrationRepo, masterMigrationRepo, migrationTransactionLogRepo, taskRepo,
                 extensionService, courseService, assignmentService, Mockito.mock(ApplicationEventPublisher.class),
-                Mockito.mock(RabbitMqService.class), Mockito.mock(PolicyServerService.class), rawScoreService);
+                Mockito.mock(RabbitMqService.class), Mockito.mock(PolicyServerService.class), rawScoreService, masterMigrationStatsRepo);
 
     }
 
