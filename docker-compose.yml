@@ -70,6 +70,7 @@ services:
         condition: service_healthy
       authentik-redis:
         condition: service_healthy
+
   grading-admin-postgres:
     image: docker.io/library/postgres:16-alpine
     restart: unless-stopped
@@ -87,6 +88,7 @@ services:
       POSTGRES_DB: ${PG_DB:-gradingadmindb}
     env_file:
       - .env
+
   authentik-postgres:
     image: docker.io/library/postgres:16-alpine
     restart: unless-stopped
@@ -104,6 +106,7 @@ services:
       POSTGRES_DB: ${PG_DB:-gradingadmindb}
     env_file:
       - .env
+
   authentik-redis:
     image: docker.io/library/redis:alpine
     command: --save 60 1 --loglevel warning
@@ -116,12 +119,14 @@ services:
       timeout: 3s
     volumes:
       - authentik-redis-store:/data
+
   grading-policy-service:
     build: ./grading-policy-service
     command:
       - /opt/config.yaml
     volumes:
       - "./grading-policy-service/config.yaml:/opt/config.yaml"
+
   minio:
     image: minio/minio:latest
     command: server /data
@@ -171,6 +176,11 @@ services:
       context: openapi
       dockerfile: Dockerfile
 
+  docs:
+    build:
+      context: docs
+      dockerfile: Dockerfile
+
 # PROXY
   localhost.dev-int:
     hostname: localhost.dev
@@ -191,6 +201,8 @@ services:
         condition: service_healthy
       certificates:
         condition: service_completed_successfully
+      docs:
+        condition: service_started
       openapi-docs:
         condition: service_started
       grading-policy-service:
@@ -226,6 +238,8 @@ services:
         condition: service_completed_successfully
       certificates:
         condition: service_completed_successfully
+      docs:
+        condition: service_started
       openapi-docs:
         condition: service_started
       minio:
