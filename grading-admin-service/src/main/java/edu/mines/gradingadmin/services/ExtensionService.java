@@ -25,7 +25,7 @@ public class ExtensionService {
     private final CourseMemberService courseMemberService;
     private final CourseService courseService;
 
-    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo, CourseMemberRepo courseMemberRepo, AssignmentService assignmentService, CourseMemberService courseMemberService, CourseService courseService) {
+    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo, AssignmentService assignmentService, CourseMemberService courseMemberService, CourseService courseService) {
         this.extensionRepo = extensionRepo;
         this.lateRequestRepo = lateRequestRepo;
         this.assignmentService = assignmentService;
