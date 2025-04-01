@@ -137,7 +137,7 @@ public class StudentApiImpl implements StudentApiDelegate {
             lateRequestDTO.getExtension());
 
         if(lateRequest.getLateRequestType() == LateRequestType.LATE_PASS) {
-            extensionService.useLatePasses(course.get(), user, lateRequestDTO.getNumDaysRequested());
+            courseMemberService.useLatePasses(course.get(), user, lateRequestDTO.getNumDaysRequested());
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(lateRequest));
@@ -157,7 +157,7 @@ public class StudentApiImpl implements StudentApiDelegate {
         }
 
         if(lateRequest.get().getLateRequestType() == LateRequestType.LATE_PASS) {
-            extensionService.refundLatePasses(course.get(), securityManager.getUser(), lateRequest.get().getDaysRequested());
+            courseMemberService.refundLatePasses(course.get(), securityManager.getUser(), lateRequest.get().getDaysRequested());
         }
         extensionService.deleteLateRequest(lateRequest.get());
         return ResponseEntity.noContent().build();

@@ -299,4 +299,26 @@ public class CourseMemberService {
 
         return membership.get().getSections();
     }
+
+    public void useLatePasses(Course course, User user, double amount) {
+        Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, user.getCwid()).stream().findFirst();
+        if(courseMember.isEmpty()) {
+            return;
+        }
+
+        double finalLatePasses = courseMember.get().getLatePassesUsed() + amount;
+        courseMember.get().setLatePassesUsed(finalLatePasses);
+        courseMemberRepo.save(courseMember.get());
+    }
+
+    public void refundLatePasses(Course course, User user, double amount) {
+        Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, user.getCwid()).stream().findFirst();
+        if(courseMember.isEmpty()) {
+            return;
+        }
+
+        double finalLatePasses = courseMember.get().getLatePassesUsed() - amount;
+        courseMember.get().setLatePassesUsed(finalLatePasses);
+        courseMemberRepo.save(courseMember.get());
+    }
 }
