@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.models;
 
+import edu.mines.gradingadmin.models.converters.EncryptionConverter;
 import edu.mines.gradingadmin.models.enums.CredentialType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class Credential {
     private String name;
 
     @Column(name="api_key")
+    @Convert(converter = EncryptionConverter.class)
     private String apiKey;
 
     @Column(name="private")
