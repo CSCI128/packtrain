@@ -52,6 +52,8 @@ public class TestMigrationService implements PostgresTestContainer {
     private ExtensionService extensionService;
     @Autowired
     private RawScoreRepo rawScoreRepo;
+    private Course course;
+    private User user;
 
     @BeforeAll
     static void setupClass(){
@@ -64,6 +66,9 @@ public class TestMigrationService implements PostgresTestContainer {
         migrationService = new MigrationService(migrationRepo, masterMigrationRepo, migrationTransactionLogRepo, taskRepo,
                 extensionService, courseService, assignmentService, Mockito.mock(ApplicationEventPublisher.class),
                 Mockito.mock(RabbitMqService.class), Mockito.mock(PolicyServerService.class), rawScoreRepo, masterMigrationStatsRepo);
+
+        course = courseSeeders.populatedCourse();
+        user = userSeeders.user1();
 
     }
 
@@ -78,26 +83,22 @@ public class TestMigrationService implements PostgresTestContainer {
 
     @Test
     void verifyGetMigrations() {
-        Course course1 = courseSeeders.populatedCourse();
-        User user = userSeeders.user1();
         String filename = "file.js";
         Policy policy = new Policy();
         policy.setCreatedByUser(user);
-        policy.setCourse(course1);
+        policy.setCourse(course);
         policy.setPolicyName("test_policy");
         policy.setPolicyURI(filename);
         policyRepo.save(policy);
 
-        MasterMigration masterMigration = migrationService.createMigrationForAssignments(course1, List.of(policy), course1.getAssignments().stream().toList());
-        Assertions.assertEquals(1, masterMigrationRepo.getMasterMigrationsByCourseId(course1.getId()).size());
-        Assertions.assertEquals(masterMigration, masterMigrationRepo.getMasterMigrationsByCourseId(course1.getId()).get(0));
+        MasterMigration masterMigration = migrationService.createMigrationForAssignments(course, user, List.of(policy), course.getAssignments().stream().toList());
+        Assertions.assertEquals(1, masterMigrationRepo.getMasterMigrationsByCourseId(course.getId()).size());
+        Assertions.assertEquals(masterMigration, masterMigrationRepo.getMasterMigrationsByCourseId(course.getId()).get(0));
     }
 
     @Test
     void verifyCreateMasterMigration(){
-        Course course1 = courseSeeders.populatedCourse();
-
-        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course1.getId().toString());
+        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
         Assertions.assertTrue(masterMigration.isPresent());
         List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
         Assertions.assertEquals(0, migrationList.size());
@@ -106,17 +107,16 @@ public class TestMigrationService implements PostgresTestContainer {
 
     @Test
     void verifyUpdatePolicy(){
-        Course course1 = courseSeeders.populatedCourse();
-        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course1.getId().toString());
+        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
         Assertions.assertTrue(masterMigration.isPresent());
-        Optional<Assignment> assignment = course1.getAssignments().stream().findFirst();
+        Optional<Assignment> assignment = course.getAssignments().stream().findFirst();
         Assertions.assertTrue(assignment.isPresent());
 
         Policy policy = new Policy();
         policy.setAssignment(assignment.get());
         policy.setPolicyName("test_policy");
         policy.setPolicyURI("http://file.js");
-        policy.setCourse(course1);
+        policy.setCourse(course);
         User user = userSeeders.user1();
         policy.setCreatedByUser(user);
         policyRepo.save(policy);
@@ -130,7 +130,7 @@ public class TestMigrationService implements PostgresTestContainer {
         updatedPolicy.setAssignment(assignment.get());
         updatedPolicy.setPolicyName("updated_test_policy");
         updatedPolicy.setPolicyURI("http://file2.js");
-        updatedPolicy.setCourse(course1);
+        updatedPolicy.setCourse(course);
         updatedPolicy.setCreatedByUser(user);
         policyRepo.save(updatedPolicy);
         migrationService.updatePolicyForMigration(migrationList.get(0).getId().toString(), updatedPolicy.getPolicyURI());
@@ -142,17 +142,16 @@ public class TestMigrationService implements PostgresTestContainer {
 
     @Test
     void verifyMigrationsCreated() {
-        Course course1 = courseSeeders.populatedCourse();
-        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course1.getId().toString());
+        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
         Assertions.assertTrue(masterMigration.isPresent());
-        Optional<Assignment> assignment = course1.getAssignments().stream().findFirst();
+        Optional<Assignment> assignment = course.getAssignments().stream().findFirst();
         Assertions.assertTrue(assignment.isPresent());
 
         Policy policy = new Policy();
         policy.setAssignment(assignment.get());
         policy.setPolicyName("test_policy");
         policy.setPolicyURI("http://file.js");
-        policy.setCourse(course1);
+        policy.setCourse(course);
         User user = userSeeders.user1();
         policy.setCreatedByUser(user);
         policyRepo.save(policy);

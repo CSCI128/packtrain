@@ -138,10 +138,10 @@ public class DTOFactory {
     public static MasterMigrationDTO toDto(MasterMigration masterMigration){
         MasterMigrationDTO dto = new MasterMigrationDTO()
                 .id(masterMigration.getId().toString())
-                .dateStarted(masterMigration.getDateStarted().toInstant())
+                .dateStarted(masterMigration.getDateStarted())
                 .migrator(toDto(masterMigration.getCreatedByUser()));
 
-        if (masterMigration.getMigrations() != null || !masterMigration.getMigrations().isEmpty()){
+        if (masterMigration.getMigrations() != null && !masterMigration.getMigrations().isEmpty()){
             dto.migrations(masterMigration.getMigrations().stream().map(DTOFactory::toDto).toList());
         }
 

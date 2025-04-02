@@ -54,9 +54,10 @@ public class MigrationService {
         this.masterMigrationStatsRepo = masterMigrationStatsRepo;
     }
 
-    public MasterMigration createMigrationForAssignments(Course course, List<Policy> policyList, List<Assignment> assignmentList){
+    public MasterMigration createMigrationForAssignments(Course course, User createdByUser, List<Policy> policyList, List<Assignment> assignmentList){
         MasterMigration masterMigration = new MasterMigration();
         masterMigration.setCourse(course);
+        masterMigration.setCreatedByUser(createdByUser);
         List<Migration> migrations = new ArrayList<>();
         for (int i = 0; i < assignmentList.size(); i++){
             Migration migration = new Migration();
@@ -74,15 +75,15 @@ public class MigrationService {
     }
 
 
-    public Optional<MasterMigration> createMasterMigration(String courseId){
+    public Optional<MasterMigration> createMasterMigration(String courseId, User createdByUser){
         MasterMigration masterMigration = new MasterMigration();
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if (course.isEmpty()) {
             return Optional.empty();
         }
         masterMigration.setCourse(course.get());
-        masterMigrationRepo.save(masterMigration);
-        return Optional.of(masterMigration);
+        masterMigration.setCreatedByUser(createdByUser);
+        return Optional.of(masterMigrationRepo.save(masterMigration));
     }
 
     public Optional<MasterMigration> addMigration(String masterMigrationId, String assignmentId, String policyURI){

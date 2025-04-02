@@ -21,7 +21,7 @@ public class MasterMigration {
     private UUID id;
 
     @Column(name = "date_started")
-    private Instant dateStarted;
+    private Instant dateStarted = Instant.now();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")

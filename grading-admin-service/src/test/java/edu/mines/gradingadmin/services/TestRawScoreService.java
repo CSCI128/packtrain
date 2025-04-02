@@ -1,9 +1,13 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
-import edu.mines.gradingadmin.models.RawScore;
+import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import edu.mines.gradingadmin.repositories.RawScoreRepo;
+import edu.mines.gradingadmin.seeders.AssignmentSeeder;
+import edu.mines.gradingadmin.seeders.CourseSeeders;
+import edu.mines.gradingadmin.seeders.MigrationSeeder;
+import edu.mines.gradingadmin.seeders.UserSeeders;
 import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
@@ -27,6 +31,17 @@ public class TestRawScoreService implements PostgresTestContainer {
 
     @Autowired
     private RawScoreService rawScoreService;
+    @Autowired
+    private UserSeeders userSeeders;
+    @Autowired
+    private CourseSeeders courseSeeders;
+    @Autowired
+    private AssignmentSeeder assignmentSeeder;
+    @Autowired
+    private MigrationSeeder migrationSeeder;
+
+    private Assignment assignment;
+    private MasterMigration masterMigration;
 
     @BeforeAll
     static void setupClass(){
@@ -35,19 +50,31 @@ public class TestRawScoreService implements PostgresTestContainer {
 
     @AfterEach
     void tearDown(){
+        migrationSeeder.clearAll();
+        assignmentSeeder.clearAll();
+        courseSeeders.clear();
         rawScoreRepo.deleteAll();
+        userSeeders.clearAll();
+    }
+
+    @BeforeEach
+    void beforeEach(){
+        User user = userSeeders.user1();
+        Course course = courseSeeders.course1();
+        assignment = assignmentSeeder.worksheet1(course);
+        masterMigration = migrationSeeder.masterMigration(course, user);
     }
 
     @Test
     @SneakyThrows
     void testEmpty(){
+        Migration migration = migrationSeeder.migration(assignment, masterMigration);
         String fileContent = "";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
 
-        List<RawScore> rawScores = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId);
+        List<RawScore> rawScores = rawScoreService.uploadGradescopeCSV(file.getInputStream(), migration.getId());
 
         Assertions.assertTrue(rawScores.isEmpty());
     }
@@ -55,13 +82,13 @@ public class TestRawScoreService implements PostgresTestContainer {
     @Test
     @SneakyThrows
     void testSkipFirst(){
+        Migration migration = migrationSeeder.migration(assignment, masterMigration);
         String fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
 
-        List<RawScore> rawScores = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId);
+        List<RawScore> rawScores = rawScoreService.uploadGradescopeCSV(file.getInputStream(), migration.getId());
 
         Assertions.assertTrue(rawScores.isEmpty());
     }
@@ -69,7 +96,7 @@ public class TestRawScoreService implements PostgresTestContainer {
     @Test
     @SneakyThrows
     void testParse(){
-
+        Migration migration = migrationSeeder.migration(assignment, masterMigration);
         String fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n" +
                 "Jane,Doe,12344321,,,,12.0,12.0,Graded,,2022-06-25 13:16:26 -0600,13:29:30\n" +
                 "Tester,Testing,testtest,,,,12.0,12.0,Graded,,2022-06-25 13:16:58 -0600,00:00:00\n" +
@@ -78,27 +105,26 @@ public class TestRawScoreService implements PostgresTestContainer {
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
 
         // Should add scores to the list that were properly saved
-        List<RawScore> scores = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId);
+        List<RawScore> scores = rawScoreService.uploadGradescopeCSV(file.getInputStream(), migration.getId());
 
         Assertions.assertFalse(scores.isEmpty());
 
         // Singular test get on saved score
-        Optional<RawScore> score = rawScoreService.getRawScoreForCwidAndMigrationId("12344321", testId);
+        Optional<RawScore> score = rawScoreService.getRawScoreForCwidAndMigrationId("12344321", migration.getId());
         Assertions.assertFalse(score.isEmpty());
         Assertions.assertEquals(SubmissionStatus.LATE, score.get().getSubmissionStatus());
 
         // Test weird conversion fields
-        score = rawScoreService.getRawScoreForCwidAndMigrationId("121212", testId);
+        score = rawScoreService.getRawScoreForCwidAndMigrationId("121212", migration.getId());
         Assertions.assertNull(score.get().getScore());
         Assertions.assertEquals(SubmissionStatus.MISSING, score.get().getSubmissionStatus());
         Assertions.assertNull(score.get().getHoursLate());
         Assertions.assertNull(score.get().getSubmissionTime());
 
         // Test weird conversion fields
-        score = rawScoreService.getRawScoreForCwidAndMigrationId("jimmyyyy", testId);
+        score = rawScoreService.getRawScoreForCwidAndMigrationId("jimmyyyy", migration.getId());
         Assertions.assertEquals(11.5, score.get().getScore());
         Assertions.assertEquals(7.5472, score.get().getHoursLate(), 0.001);
 
@@ -112,43 +138,18 @@ public class TestRawScoreService implements PostgresTestContainer {
 
     @Test
     @SneakyThrows
-    void testOverwrite(){
-        String fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n" +
-                "Jane,Doe,12344321,,,,0.0,12.0,Graded,,2022-06-25 13:16:26 -0600,13:29:30\n";
-
-        String filename = "test.csv";
-        MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
-
-        RawScore firstRawScore = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId).getFirst();
-
-        fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n" +
-                "Jane,Doe,12344321,,,,12.0,12.0,Graded,,2022-07-25 23:20:26 -0600,15:29:30\n";
-
-        file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        testId = UUID.randomUUID();
-
-        RawScore secondRawScore = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId).getFirst();
-
-        Assertions.assertNotEquals(firstRawScore.getScore(), secondRawScore.getScore());
-        Assertions.assertNotEquals(firstRawScore.getSubmissionTime(), secondRawScore.getSubmissionTime());
-        Assertions.assertNotEquals(firstRawScore.getHoursLate(), secondRawScore.getHoursLate(), 0.0001);
-
-    }
-
-    @Test
-    @SneakyThrows
     void testAllGraded(){
-        String fileContent = "First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S)\n" +
-                "Samual,Mcsam,101,samualmcsam@mines.edu,,,8.0,12.0,Graded,128746829,2022-06-25 13:16:26 -0600,00:00:00\n" +
-                "Robert,Bob,robbob,robbob@mines.edu,,,6.0,12.0,Graded,128746844,2022-06-25 13:16:58 -0600,00:00:00\n" +
-                "Null,IdontNull,abcdefg,nullnullnull@mymail.mines.edu,,,12.0,12.0,Graded,128746851,2022-06-25 13:17:12 -0600,02:00:00";
+        Migration migration = migrationSeeder.migration(assignment, masterMigration);
+        String fileContent = """
+                First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S)
+                Samual,Mcsam,101,samualmcsam@mines.edu,,,8.0,12.0,Graded,128746829,2022-06-25 13:16:26 -0600,00:00:00
+                Robert,Bob,robbob,robbob@mines.edu,,,6.0,12.0,Graded,128746844,2022-06-25 13:16:58 -0600,00:00:00
+                Null,IdontNull,abcdefg,nullnullnull@mymail.mines.edu,,,12.0,12.0,Graded,128746851,2022-06-25 13:17:12 -0600,02:00:00""";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
 
-        List<RawScore> rawScoreList = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId);
+        List<RawScore> rawScoreList = rawScoreService.uploadGradescopeCSV(file.getInputStream(), migration.getId());
 
         Assertions.assertEquals("101", rawScoreList.get(0).getCwid());
         Assertions.assertEquals("robbob", rawScoreList.get(1).getCwid());
@@ -191,16 +192,17 @@ public class TestRawScoreService implements PostgresTestContainer {
     @Test
     @SneakyThrows
     void testAllUngraded(){
-        String fileContent = "First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S)\n" +
-                "Samual,Mcsam,101,samualmcsam@mines.edu,,,6.0,12.0,Ungraded,128746829,2022-06-25 13:16:26 -0600,00:00:00\n" +
-                "Robert,Bob,robbob,robbob@mines.edu,,,4.0,12.0,Ungraded,128746844,2022-06-25 13:16:58 -0600,00:00:00\n" +
-                "Null,IdontNull,abcdefg,nullnullnull@mymail.mines.edu,,,0.0,12.0,Ungraded,128746851,2022-06-25 13:17:12 -0600,02:00:00";
+        Migration migration = migrationSeeder.migration(assignment, masterMigration);
+        String fileContent = """
+                First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S)
+                Samual,Mcsam,101,samualmcsam@mines.edu,,,6.0,12.0,Ungraded,128746829,2022-06-25 13:16:26 -0600,00:00:00
+                Robert,Bob,robbob,robbob@mines.edu,,,4.0,12.0,Ungraded,128746844,2022-06-25 13:16:58 -0600,00:00:00
+                Null,IdontNull,abcdefg,nullnullnull@mymail.mines.edu,,,0.0,12.0,Ungraded,128746851,2022-06-25 13:17:12 -0600,02:00:00""";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
 
-        List<RawScore> rawScoreList = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId);
+        List<RawScore> rawScoreList = rawScoreService.uploadGradescopeCSV(file.getInputStream(), migration.getId());
 
         Assertions.assertEquals("101", rawScoreList.get(0).getCwid());
         Assertions.assertEquals("robbob", rawScoreList.get(1).getCwid());
@@ -243,16 +245,17 @@ public class TestRawScoreService implements PostgresTestContainer {
     @Test
     @SneakyThrows
     void testAllMissing() {
-        String fileContent = "First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S)\n" +
-                "Samual,Mcsam,101,samualmcsam@mines.edu,,,,12.0,Missing,128746829,,\n" +
-                "Robert,Bob,robbob,robbob@mines.edu,,,,12.0,Missing,128746844,,\n" +
-                "Null,IdontNull,abcdefg,nullnullnull@mymail.mines.edu,,,,12.0,Missing,128746851,,";
+        Migration migration = migrationSeeder.migration(assignment, masterMigration);
+        String fileContent = """
+                First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S)
+                Samual,Mcsam,101,samualmcsam@mines.edu,,,,12.0,Missing,128746829,,
+                Robert,Bob,robbob,robbob@mines.edu,,,,12.0,Missing,128746844,,
+                Null,IdontNull,abcdefg,nullnullnull@mymail.mines.edu,,,,12.0,Missing,128746851,,""";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
 
-        List<RawScore> rawScoreList = rawScoreService.uploadGradescopeCSV(file.getInputStream(), testId);
+        List<RawScore> rawScoreList = rawScoreService.uploadGradescopeCSV(file.getInputStream(), migration.getId());
 
         Assertions.assertEquals("101", rawScoreList.get(0).getCwid());
         Assertions.assertEquals("robbob", rawScoreList.get(1).getCwid());

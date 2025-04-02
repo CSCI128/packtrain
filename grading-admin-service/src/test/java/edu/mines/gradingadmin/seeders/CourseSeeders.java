@@ -86,6 +86,10 @@ public class CourseSeeders {
         return course;
     }
 
+    public void clear(){
+        repo.deleteAll();
+    }
+
     public void clearAll(){
         courseMemberRepo.deleteAll();
         sectionRepo.deleteAll();
