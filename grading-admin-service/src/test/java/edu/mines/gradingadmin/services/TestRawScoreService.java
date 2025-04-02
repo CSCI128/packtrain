@@ -279,4 +279,22 @@ public class TestRawScoreService implements PostgresTestContainer {
         Assertions.assertNotNull(rawScoreList.get(2));
     }
 
+    @Test
+    @SneakyThrows
+    void testParseRunestone(){
+        String fileContent = "\"first_name\",\"last_name\",\"email\",\"Week 6 Readings\",\"Week 12 Readings\",\"Week 11 Readings\",\"Week 14 Readings\",\"Week 10 Readings\",\"Week 4 Readings\",\"Week 1 Readings\",\"Week 7 Readings\",\"Week 2 Readings\",\"Week 13 Readings\",\"Week 3 Readings\",\"Week 5 Readings\",\"Week 8 Readings\"\n" +
+                "\"Test\",\"User\",\"test_user@mines.edu\",\"0.0\",\"\",\"\",\"\",\"4.0\",\"2.0\",\"3.0\",\"16.0\",\"23.0\",\"1.0\",\"13.0\",\"1.0\",\"0.0\"\n" +
+                "\"Alex\",\"User\",\"alex_user@mines.edu\",\"0.0\",\"\",\"\",\"\",\"\",\"2.0\",\"24.0\",\"16.0\",\"23.0\",\"\",\"13.0\",\"5.0\",\"0.0\"\n";
+
+        String filename = "test.csv";
+        MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
+        UUID testId = UUID.randomUUID();
+
+        // Should add scores to the list that were properly saved
+        List<RawScore> scores = rawScoreService.uploadRunestoneCSV(file.getInputStream(), testId);
+
+        Assertions.assertFalse(scores.isEmpty());
+
+        // TODO finish this test
+    }
 }

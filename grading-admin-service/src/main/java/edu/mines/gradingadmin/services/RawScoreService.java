@@ -64,6 +64,34 @@ public class RawScoreService {
         return scores;
     }
 
+    public List<RawScore> uploadRunestoneCSV(InputStream file, UUID migrationId) {
+        List<RawScore> scores = List.of();
+
+        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of Runestone scores started.", ExternalAssignmentType.RUNESTONE)){
+            log.error("Failed to start raw score import for Runestone!");
+            return scores;
+        }
+
+        Course course = migrationService.getCourseForMigration(migrationId.toString());
+        Assignment assignment = migrationService.getAssignmentForMigration(migrationId.toString());
+
+        try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
+                .build()) {
+            // find assignment column because Runestone doesn't put them in order
+            String[] headerLine = csvReader.readNext();
+
+            scores = csvReader.readAll().stream().map(l -> parseLineRunestone(headerLine, course, assignment, migrationId, l)).filter(Optional::isPresent).map(Optional::get).toList();
+        }
+        catch (Exception e){
+            log.error("Failed to read CSV", e);
+        }
+
+        if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
+            log.error("Failed to complete raw score import for Runestone!");
+        }
+        return scores;
+    }
+
     public List<RawScore> uploadPrairieLearnCSV(InputStream file, UUID migrationId){
         List<RawScore> scores = List.of();
 
@@ -140,6 +168,48 @@ public class RawScoreService {
         }
 
         return reducedSubmissions;
+    }
+
+    private Optional<RawScore> parseLineRunestone(String[] header, Course course, Assignment assignment, UUID migrationId, String[] line){
+        final int USER_ID_IDX = 2;
+        int ASSIGNMENT_IDX = -1;
+        for(int i = 0; i < header.length; i++) {
+            if(header[i].equalsIgnoreCase(assignment.getName())) {
+                ASSIGNMENT_IDX = i;
+            }
+        }
+
+        if(ASSIGNMENT_IDX == -1) {
+            log.warn("Could not find the specified assignment in the Runestone CSV!");
+            return Optional.empty();
+        }
+
+        RawScore s = new RawScore();
+
+        Optional<String> cwid = courseMemberService.getCwidGivenCourseAndEmail(line[USER_ID_IDX], course);
+
+        if (cwid.isEmpty()){
+            log.warn("Student '{}' is not a member of '{}'", line[USER_ID_IDX], course.getCode());
+            return Optional.empty();
+        }
+
+        s.setMigrationId(migrationId);
+        s.setCwid(cwid.get());
+        s.setHoursLate(0.0);
+        s.setSubmissionStatus(SubmissionStatus.ON_TIME);
+        s.setSubmissionTime(Instant.now()); // Runestone does not track submission times
+
+        double score = Integer.parseInt(line[ASSIGNMENT_IDX]);
+
+        // TODO need max score from Runestone
+        final int MAX_SCORE = 24;
+        score = (score / MAX_SCORE) * 100;
+
+        // TODO need max attainable score from Canvas (sometimes Rob does 4 or 5); this should also probably be policy.
+        // Rounded score: round to the nearest multiple of 12.5%
+        s.setScore(Math.ceil(score / 12.5) * 0.125 * 5);
+
+        return Optional.of(createOrIncrementScore(s));
     }
 
     private Optional<RawScore> parseLinePL(Course course, Assignment assignment, UUID migrationId, String[] line){
