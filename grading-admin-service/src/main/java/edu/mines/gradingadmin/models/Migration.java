@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.models;
 
+import edu.mines.gradingadmin.models.enums.ExternalAssignmentType;
 import edu.mines.gradingadmin.models.enums.RawScoreStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -28,6 +29,10 @@ public class Migration {
     private MasterMigration masterMigration;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "raw_score_type")
+    private ExternalAssignmentType rawScoreType;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "raw_score_status", nullable = false)
     private RawScoreStatus rawScoreStatus = RawScoreStatus.EMPTY;
 
@@ -37,7 +42,7 @@ public class Migration {
     // for now this relationship is one to one, later on this will be one to many
     // for now this relationship is one to one, later on this will be one to many
     // TO-DO: implement one to many so edge case like One Migration is for an assessment and reflection
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "assignment", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
     private Assignment assignment;

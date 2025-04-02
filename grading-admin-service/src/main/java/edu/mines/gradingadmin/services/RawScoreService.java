@@ -6,9 +6,12 @@ import com.opencsv.exceptions.CsvException;
 import edu.mines.gradingadmin.models.Assignment;
 import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.RawScore;
+import edu.mines.gradingadmin.models.enums.ExternalAssignmentType;
 import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import edu.mines.gradingadmin.repositories.RawScoreRepo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
@@ -23,41 +26,49 @@ import java.util.*;
 @Service
 @Slf4j
 public class RawScoreService {
+    private final String timeZone;
     private final RawScoreRepo rawScoreRepo;
     private final CourseMemberService courseMemberService;
     private final MigrationService migrationService;
 
-    public RawScoreService(RawScoreRepo rawScoreRepo, CourseMemberService courseMemberService, MigrationService migrationService){
+    public RawScoreService(
+            @Value("${grading-admin.time-zone}") String timeZone,
+            RawScoreRepo rawScoreRepo, CourseMemberService courseMemberService, MigrationService migrationService){
+        this.timeZone = timeZone;
         this.rawScoreRepo = rawScoreRepo;
         this.courseMemberService = courseMemberService;
         this.migrationService = migrationService;
     }
 
     public List<RawScore> uploadGradescopeCSV(InputStream file, UUID migrationId) {
-        List<RawScore> scores = new LinkedList<>();
+        List<RawScore> scores = List.of();
+
+        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of GradeScope scores started.", ExternalAssignmentType.GRADESCOPE)){
+            log.error("Failed to start raw score import for GS!");
+            return scores;
+        }
 
         try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
                 .withSkipLines(1)
                 .build()) {
 
-            String[] line;
-            while((line = csvReader.readNext()) != null){
-                RawScore rawScore = parseLineGS(migrationId, line);
-                scores.add(rawScore);
-            }
+            scores = csvReader.readAll().stream().map(l -> parseLineGS(migrationId, l)).toList();
         }
         catch (Exception e){
             log.error("Failed to read CSV", e);
         }
 
+        if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
+            log.error("Failed to complete raw score import for GS!");
+        }
         return scores;
     }
 
     public List<RawScore> uploadPrairieLearnCSV(InputStream file, UUID migrationId){
         List<RawScore> scores = List.of();
 
-        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of PrairieLearn scores started.")){
-            log.error("Failed to start raw score import!");
+        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of PrairieLearn scores started.", ExternalAssignmentType.PRAIRIELEARN)){
+            log.error("Failed to start raw score import for PL!");
             return scores;
         }
 
@@ -68,7 +79,6 @@ public class RawScoreService {
 
         try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
                 .build()
-
         ){
 
             List<String> header = Arrays.stream(csvReader.readNext()).toList();
@@ -88,8 +98,7 @@ public class RawScoreService {
         }
 
         if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
-            log.error("Failed to complete raw score import!");
-
+            log.error("Failed to complete raw score import for PL!");
         }
 
         return scores;
@@ -178,7 +187,7 @@ public class RawScoreService {
             return rawScoreRepo.save(incoming);
         }
 
-        RawScore existing = rawScoreRepo.getByCwidAndMigrationId(incoming.getCwid(), incoming.getMigrationId()).orElseThrow();
+        RawScore existing = getRawScoreForCwidAndMigrationId(incoming.getCwid(), incoming.getMigrationId()).orElseThrow();
 
         if (existing.getSubmissionTime().isAfter(incoming.getSubmissionTime())){
             existing.setSubmissionTime(incoming.getSubmissionTime());
@@ -193,79 +202,49 @@ public class RawScoreService {
 
 
     private RawScore parseLineGS(UUID migrationId, String[] line){
-
         final int CWID_IDX = 2;
         final int SCORE_IDX = 6;
         final int STATUS_IDX = 8;
         final int SUBMISSION_TIME_IDX = 10;
         final int HOURS_LATE_IDX = 11;
-        String cwid = line[CWID_IDX];
+
+        String cwid = line[CWID_IDX].trim();
 
         String status = line[STATUS_IDX].trim();
 
-        if(status.equals("Missing"))
-            return createOrUpdateRawScore(migrationId, cwid, null, null, null, SubmissionStatus.MISSING);
+        RawScore newScore = new RawScore();
+        newScore.setMigrationId(migrationId);
+        newScore.setCwid(cwid);
+
+        if(status.equals("Missing")){
+            newScore.setSubmissionStatus(SubmissionStatus.MISSING);
+            return rawScoreRepo.save(newScore);
+        }
 
         double score = Double.parseDouble(line[SCORE_IDX]);
 
         Instant submissionTime = LocalDateTime.parse(
                 line[SUBMISSION_TIME_IDX],
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z", Locale.US)
-        ).atZone(
-                ZoneId.of("America/Denver")
-        ).toInstant();
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z", Locale.US))
+        .atZone(ZoneId.of(timeZone)).toInstant();
 
         double hoursLate = 0.0;
         String[] lateTime = line[HOURS_LATE_IDX].split(":");
         hoursLate += Double.parseDouble(lateTime[0]);
         hoursLate += Double.parseDouble(lateTime[1])/60;
-        hoursLate += Double.parseDouble(lateTime[2])/3600;
+        hoursLate += Double.parseDouble(lateTime[2])/ (60 * 60);
 
         SubmissionStatus submissionStatus = SubmissionStatus.ON_TIME;
 
         if(hoursLate > 0)
             submissionStatus = SubmissionStatus.LATE;
 
-        return createOrUpdateRawScore(migrationId, cwid, score, submissionTime, hoursLate, submissionStatus);
-    }
-
-
-
-    public RawScore createOrUpdateRawScore(UUID migrationId, String cwid, Double score, Instant submissionTime, Double hoursLate, SubmissionStatus submissionStatus){
-        RawScore rawScore;
-        if(rawScoreRepo.existsByCwidAndMigrationId(cwid, migrationId)){
-            Optional<RawScore> oldRawScore = rawScoreRepo.getByCwidAndMigrationId(cwid, migrationId);
-            rawScore = updateRawScore(oldRawScore.get(), score, submissionTime, hoursLate, submissionStatus);
-        }else{
-            rawScore = createRawScore(migrationId, cwid, score, submissionTime, hoursLate, submissionStatus);
-        }
-        return rawScoreRepo.save(rawScore);
-    }
-
-    private RawScore updateRawScore(RawScore rawScore, Double score, Instant submissionTime, Double hoursLate, SubmissionStatus submissionStatus){
-        UUID migrationId = rawScore.getMigrationId();
-        String cwid = rawScore.getCwid();
-
-        log.warn("Overwriting raw score for migration {} with user {}", migrationId, cwid);
-        rawScore.setSubmissionStatus(submissionStatus);
-        rawScore.setMigrationId(migrationId);
-        rawScore.setCwid(cwid);
-        rawScore.setScore(score);
-        rawScore.setSubmissionTime(submissionTime);
-        rawScore.setHoursLate(hoursLate);
-        rawScore.setSubmissionStatus(submissionStatus);
-        return rawScore;
-    }
-
-    private RawScore createRawScore(UUID migrationId, String cwid, Double score, Instant submissionTime, Double hoursLate, SubmissionStatus submissionStatus){
-        RawScore newScore = new RawScore();
-        newScore.setMigrationId(migrationId);
-        newScore.setCwid(cwid);
         newScore.setScore(score);
         newScore.setSubmissionTime(submissionTime);
         newScore.setHoursLate(hoursLate);
         newScore.setSubmissionStatus(submissionStatus);
-        return newScore;
+
+        return rawScoreRepo.save(newScore);
     }
 
     public Optional<RawScore> getRawScoreForCwidAndMigrationId(String cwid, UUID migrationId){

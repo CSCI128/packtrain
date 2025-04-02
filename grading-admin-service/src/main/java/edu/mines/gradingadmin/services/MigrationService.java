@@ -5,10 +5,7 @@ import edu.mines.gradingadmin.data.messages.ScoredDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.factories.MigrationFactory;
 import edu.mines.gradingadmin.models.*;
-import edu.mines.gradingadmin.models.enums.LateRequestStatus;
-import edu.mines.gradingadmin.models.enums.MigrationStatus;
-import edu.mines.gradingadmin.models.enums.RawScoreStatus;
-import edu.mines.gradingadmin.models.enums.SubmissionStatus;
+import edu.mines.gradingadmin.models.enums.*;
 import edu.mines.gradingadmin.models.tasks.ProcessScoresAndExtensionsTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.repositories.*;
@@ -39,10 +36,10 @@ public class MigrationService {
     private final ApplicationEventPublisher eventPublisher;
     private final RabbitMqService rabbitMqService;
     private final PolicyServerService policyServerService;
-    private final RawScoreService rawScoreService;
+    private final RawScoreRepo rawScoreRepo;
     private final MasterMigrationStatsRepo masterMigrationStatsRepo;
 
-    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreService rawScoreService, MasterMigrationStatsRepo masterMigrationStatsRepo){
+    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreRepo rawScoreRepo, MasterMigrationStatsRepo masterMigrationStatsRepo){
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
@@ -53,7 +50,7 @@ public class MigrationService {
         this.eventPublisher = eventPublisher;
         this.rabbitMqService = rabbitMqService;
         this.policyServerService = policyServerService;
-        this.rawScoreService = rawScoreService;
+        this.rawScoreRepo = rawScoreRepo;
         this.masterMigrationStatsRepo = masterMigrationStatsRepo;
     }
 
@@ -226,7 +223,7 @@ public class MigrationService {
             throw new RuntimeException("Failed to start grading!");
         }
 
-        List<RawScore> scores = rawScoreService.getRawScoresFromMigration(task.getMigrationId());
+        List<RawScore> scores = rawScoreRepo.getByMigrationId(task.getMigrationId());
 
         Map<String, LateRequest> lateRequests = extensionService.getLateRequestsForAssignment(task.getAssignmentId());
 
@@ -303,7 +300,7 @@ public class MigrationService {
         return masterMigrationStatsRepo.findById(UUID.fromString(masterMigrationId));
     }
 
-    public boolean attemptToStartRawScoreImport(String migrationId, String message){
+    public boolean attemptToStartRawScoreImport(String migrationId, String message, ExternalAssignmentType type){
         Migration migration = getMigration(migrationId);
 
         if (migration.getRawScoreStatus() != RawScoreStatus.EMPTY){
@@ -312,6 +309,7 @@ public class MigrationService {
 
         migration.setRawScoreStatus(RawScoreStatus.IMPORTING);
         migration.setRawScoreMessage(message);
+        migration.setRawScoreType(type);
 
         migrationRepo.save(migration);
 
