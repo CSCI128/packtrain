@@ -206,7 +206,7 @@ services:
       openapi-docs:
         condition: service_started
       grading-policy-service:
-        condition: service_healthy
+        condition: service_started
 
   localhost.dev-local:
     hostname: localhost.dev
