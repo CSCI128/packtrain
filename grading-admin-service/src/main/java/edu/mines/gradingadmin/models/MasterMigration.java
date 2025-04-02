@@ -6,8 +6,8 @@ import jakarta.persistence.Entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.Instant;
 import java.util.UUID;
-import java.util.Date;
 import java.util.List;
 
 
@@ -21,7 +21,7 @@ public class MasterMigration {
     private UUID id;
 
     @Column(name = "date_started")
-    private Date dateStarted;
+    private Instant dateStarted;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
@@ -32,12 +32,12 @@ public class MasterMigration {
     @EqualsAndHashCode.Exclude
     protected List<Migration> migrations;
 
-    @ManyToOne()
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", referencedColumnName = "cwid")
     @EqualsAndHashCode.Exclude
     private User createdByUser;
 
-    @ManyToOne()
+    @ManyToOne(optional = false)
     @JoinColumn(name = "course_id", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
     private Course course;
