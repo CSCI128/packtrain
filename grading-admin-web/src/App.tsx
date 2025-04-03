@@ -65,11 +65,12 @@ const MiddlewareLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = store$.id.get();
+  const auth = useAuth();
   const currentPage = location.pathname;
 
   const { isError } = $api.useQuery("get", "/user");
-  if (isError && isAuthenticated){
-    navigate("/disabled")
+  if (isError && auth.isAuthenticated){
+    navigate("/disabled");
   }
 
   useEffect(() => {
