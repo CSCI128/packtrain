@@ -10,7 +10,7 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { store$, userManager } from "./api";
+import { $api, store$, userManager } from "./api";
 import "./index.css";
 import { AssignmentsPage } from "./pages/admin/Assignments";
 import { CoursePage } from "./pages/admin/course/Course";
@@ -47,6 +47,14 @@ const NotFoundPage = () => {
   );
 };
 
+const UserIsDisabled = () => {
+  return (
+  <>
+    <Text>This user is disabled, contact an administrator for this error!</Text>
+  </>
+  )
+}
+
 const MigrationMiddleware = ({ children }: { children: JSX.Element }) => {
   // Four step migrate process: send people to first or active state or
   // prevent them from going to future states
@@ -58,6 +66,11 @@ const MiddlewareLayout = () => {
   const location = useLocation();
   const isAuthenticated = store$.id.get();
   const currentPage = location.pathname;
+
+  const { isError } = $api.useQuery("get", "/user");
+  if (isError){
+    navigate("/disabled")
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -210,6 +223,10 @@ const router = createBrowserRouter([
           {
             path: "/profile",
             element: <ProfilePage />,
+          },
+          {
+            path: "/disabled",
+            element: <UserIsDisabled />
           },
           {
             path: "*",
