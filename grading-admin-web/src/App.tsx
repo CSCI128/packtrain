@@ -68,7 +68,7 @@ const MiddlewareLayout = () => {
   const currentPage = location.pathname;
 
   const { isError } = $api.useQuery("get", "/user");
-  if (isError){
+  if (isError && isAuthenticated){
     navigate("/disabled")
   }
 
