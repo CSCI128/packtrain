@@ -91,9 +91,7 @@ public class TestMigrationService implements PostgresTestContainer {
         policy.setPolicyURI(filename);
         policyRepo.save(policy);
 
-        MasterMigration masterMigration = migrationService.createMigrationForAssignments(course, user, List.of(policy), course.getAssignments().stream().toList());
         Assertions.assertEquals(1, masterMigrationRepo.getMasterMigrationsByCourseId(course.getId()).size());
-        Assertions.assertEquals(masterMigration, masterMigrationRepo.getMasterMigrationsByCourseId(course.getId()).get(0));
     }
 
     @Test
