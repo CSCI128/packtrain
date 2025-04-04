@@ -86,7 +86,16 @@ public class CourseSeeders {
         return course;
     }
 
+    public Section section(Course course){
+        Section section = new Section();
+        section.setName("Section A");
+        section.setCourse(course);
+
+        return sectionRepo.save(section);
+    }
+
     public void clear(){
+        sectionRepo.deleteAll();
         repo.deleteAll();
     }
 
