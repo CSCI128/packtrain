@@ -48,11 +48,18 @@ const NotFoundPage = () => {
 };
 
 const UserIsDisabled = () => {
-  return (
+  const auth = useAuth();
+  const email = auth.user?.profile.email || "None";
+
+  return email != "None" ? (
   <>
-    <Text>This user is disabled, contact an administrator for this error!</Text>
+    <Text>User '{email}' has been disabled! Contact an administrator for assistance!</Text>
   </>
   )
+  : 
+  <>
+    <Text>You are not logged in!</Text>
+  </>
 }
 
 const MigrationMiddleware = ({ children }: { children: JSX.Element }) => {
