@@ -1210,26 +1210,29 @@ export interface components {
         };
         /** @description The master migration that contains to the list of migration objects */
         MasterMigration: {
-            migrator?: components["schemas"]["CourseMember"];
+            /** @example 999-9999-9999-99 */
+            id?: string;
+            migrator?: components["schemas"]["User"];
             /**
              * Format: date-time
              * @example 2020-01-01T12:00:00.000Z
              */
-            timestamp?: string;
-            migration_list: components["schemas"]["Migration"][];
-            /** @example 999-9999-9999-99 */
-            id?: string;
+            date_started?: string;
+            migrations?: components["schemas"]["Migration"][];
+            stats?: components["schemas"]["MasterMigrationStatistics"];
         };
         /** @description The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit */
         MasterMigrationStatistics: {
             /** @example 2 */
-            missing: number;
+            total_submission: number;
             /** @example 12 */
-            extensions_applied: number;
+            late_requests: number;
             /** @example 1 */
-            no_credit: number;
+            total_extensions: number;
             /** @example 5 */
-            late_penalties: number;
+            total_late_passes: number;
+            /** @example 3 */
+            unapproved_requests: number;
         };
         /** @description Migration object that has a single assignment and a policy */
         Migration: {

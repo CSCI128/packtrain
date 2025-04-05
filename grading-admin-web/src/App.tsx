@@ -1,6 +1,7 @@
 import { MantineProvider, Text } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import axios from "axios";
 import { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import {
@@ -32,6 +33,12 @@ import ProtectedRoute from "./ProtectedRoute";
 import Root from "./templates/Root";
 
 const queryClient = new QueryClient({
+  // queryCache: new QueryCache({
+  //   onError: async (error, query) => {
+  //     console.log(`Something went wrong: ${error.message}`);
+  //     console.log(error.response?.status);
+  //   },
+  // }),
   defaultOptions: {
     queries: {
       retry: false,
@@ -53,11 +60,43 @@ const MigrationMiddleware = ({ children }: { children: JSX.Element }) => {
   return children;
 };
 
+const fetchData = async () => {
+  const response = await axios.get("/api/user");
+  return response.data;
+};
+
 const MiddlewareLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = store$.id.get();
   const currentPage = location.pathname;
+
+  // const { data, error } = useQuery({
+  //   queryKey: ["data"],
+  //   queryFn: fetchData,
+  //   onError: (error) => {
+  //     console.log(error.response.status);
+  //     if (axios.isAxiosError(error)) {
+  //       console.log("HTTP Status:", error.response?.status);
+  //     }
+  //   },
+  // });
+
+  // if (error) {
+  //   return <div>Error: {error.message}</div>;
+  // }
+
+  // return <div>Data: {JSON.stringify(data)}</div>;
+
+  // const { data, error: err } = $api.useQuery("get", "/user");
+
+  // if (data) {
+  //   console.log("DATA:", data);
+  // }
+
+  // if (err) {
+  //   console.log("ERR:", err);
+  // }
 
   useEffect(() => {
     const fetchData = async () => {
