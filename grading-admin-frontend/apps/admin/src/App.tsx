@@ -11,7 +11,7 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { store$, userManager } from "./api";
+import { $api, store$, userManager } from "./api";
 import "./index.css";
 import { AssignmentsPage } from "./pages/admin/Assignments";
 import { CoursePage } from "./pages/admin/course/Course";
@@ -54,6 +54,24 @@ const NotFoundPage = () => {
   );
 };
 
+const UserIsDisabled = () => {
+  const auth = useAuth();
+  const email = auth.user?.profile.email || "None";
+
+  return email != "None" ? (
+    <>
+      <Text>
+        User '{email}' has been disabled! Contact an administrator for
+        assistance!
+      </Text>
+    </>
+  ) : (
+    <>
+      <Text>You are not logged in!</Text>
+    </>
+  );
+};
+
 const MigrationMiddleware = ({ children }: { children: JSX.Element }) => {
   // Four step migrate process: send people to first or active state or
   // prevent them from going to future states
@@ -69,8 +87,13 @@ const MiddlewareLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = store$.id.get();
+  const auth = useAuth();
   const currentPage = location.pathname;
 
+  const { isError } = $api.useQuery("get", "/user");
+  if (isError && auth.isAuthenticated) {
+    navigate("/disabled");
+  }
   // const { data, error } = useQuery({
   //   queryKey: ["data"],
   //   queryFn: fetchData,
@@ -249,6 +272,10 @@ const router = createBrowserRouter([
           {
             path: "/profile",
             element: <ProfilePage />,
+          },
+          {
+            path: "/disabled",
+            element: <UserIsDisabled />,
           },
           {
             path: "*",
