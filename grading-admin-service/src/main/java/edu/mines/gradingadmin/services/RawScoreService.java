@@ -117,7 +117,6 @@ public class RawScoreService {
 
         try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
                 .build()) {
-            // find assignment column because Runestone doesn't put them in order
             String[] headerLine = csvReader.readNext();
 
             scores = csvReader.readAll().stream().map(l -> parseLineRunestone(headerLine, course, assignment, migrationId, l)).filter(Optional::isPresent).map(Optional::get).toList();
@@ -213,6 +212,7 @@ public class RawScoreService {
     private Optional<RawScore> parseLineRunestone(String[] header, Course course, Assignment assignment, UUID migrationId, String[] line){
         final int USER_ID_IDX = 2;
         int ASSIGNMENT_IDX = -1;
+        // find assignment column because Runestone doesn't put them in order
         for(int i = 0; i < header.length; i++) {
             if(header[i].equalsIgnoreCase(assignment.getName())) {
                 ASSIGNMENT_IDX = i;
