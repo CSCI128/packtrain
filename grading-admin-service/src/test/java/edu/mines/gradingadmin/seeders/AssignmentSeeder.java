@@ -31,6 +31,20 @@ public class AssignmentSeeder {
         return assignmentRepo.save(assignment);
     }
 
+    public Assignment reading(Course owningCourse){
+        Assignment assignment = new Assignment();
+        assignment.setName("Week 6 Readings");
+        assignment.setCategory("Readings");
+        assignment.setCanvasId(92349L);
+        assignment.setPoints(24.0);
+        assignment.setDueDate(Instant.parse("2020-01-30T23:59:59Z"));
+        assignment.setUnlockDate(Instant.parse("2020-01-20T00:00:01Z"));
+        assignment.setCourse(owningCourse);
+
+        return assignmentRepo.save(assignment);
+    }
+
+
     public void clearAll(){
         assignmentRepo.deleteAll();
     }

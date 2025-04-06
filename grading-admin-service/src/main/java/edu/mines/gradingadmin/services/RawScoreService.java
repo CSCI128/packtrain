@@ -13,14 +13,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -106,6 +104,34 @@ public class RawScoreService {
         }
     }
 
+    public void uploadRunestoneCSV(InputStream file, UUID migrationId) {
+        List<RawScore> scores = List.of();
+
+        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of Runestone scores started.", ExternalAssignmentType.RUNESTONE)){
+            log.error("Failed to start raw score import for Runestone!");
+            return;
+        }
+
+        Course course = migrationService.getCourseForMigration(migrationId.toString());
+        Assignment assignment = migrationService.getAssignmentForMigration(migrationId.toString());
+
+        try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
+                .build()) {
+            // find assignment column because Runestone doesn't put them in order
+            String[] headerLine = csvReader.readNext();
+
+            scores = csvReader.readAll().stream().map(l -> parseLineRunestone(headerLine, course, assignment, migrationId, l)).filter(Optional::isPresent).map(Optional::get).toList();
+        }
+        catch (Exception e){
+            log.error("Failed to read CSV", e);
+        }
+
+        if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
+            log.error("Failed to complete raw score import for Runestone!");
+        }
+
+    }
+
     private String[] extractMembersFromGroup(String groupMembers){
 
         groupMembers = groupMembers.replaceAll("[\\[\"\\]]", "");
@@ -180,6 +206,39 @@ public class RawScoreService {
         s.setSubmissionStatus(status);
         s.setSubmissionTime(submissionTime);
         s.setScore(score);
+
+        return Optional.of(createOrIncrementScore(s));
+    }
+
+    private Optional<RawScore> parseLineRunestone(String[] header, Course course, Assignment assignment, UUID migrationId, String[] line){
+        final int USER_ID_IDX = 2;
+        int ASSIGNMENT_IDX = -1;
+        for(int i = 0; i < header.length; i++) {
+            if(header[i].equalsIgnoreCase(assignment.getName())) {
+                ASSIGNMENT_IDX = i;
+            }
+        }
+
+        if(ASSIGNMENT_IDX == -1) {
+            log.warn("Could not find the specified assignment in the Runestone CSV!");
+            return Optional.empty();
+        }
+
+        RawScore s = new RawScore();
+
+        Optional<String> cwid = courseMemberService.getCwidGivenCourseAndEmail(line[USER_ID_IDX], course);
+
+        if (cwid.isEmpty()){
+            log.warn("Student '{}' is not a member of '{}'", line[USER_ID_IDX], course.getCode());
+            return Optional.empty();
+        }
+
+        s.setMigrationId(migrationId);
+        s.setCwid(cwid.get());
+        s.setHoursLate(0.0);
+        s.setSubmissionStatus(SubmissionStatus.ON_TIME);
+        s.setSubmissionTime(Instant.now()); // Runestone does not track submission times
+        s.setScore(Double.parseDouble(line[ASSIGNMENT_IDX]));
 
         return Optional.of(createOrIncrementScore(s));
     }

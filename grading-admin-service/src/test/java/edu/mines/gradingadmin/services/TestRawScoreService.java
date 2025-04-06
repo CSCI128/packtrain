@@ -41,6 +41,7 @@ public class TestRawScoreService implements PostgresTestContainer {
     private CourseMemberSeeder courseMemberSeeder;
 
     private Assignment assignment;
+    private Assignment assignment2;
     private MasterMigration masterMigration;
     private Course course;
 
@@ -54,6 +55,7 @@ public class TestRawScoreService implements PostgresTestContainer {
         User user = userSeeders.user1();
         course = courseSeeders.course1();
         assignment = assignmentSeeder.worksheet1(course);
+        assignment2 = assignmentSeeder.reading(course);
         masterMigration = migrationSeeder.masterMigration(course, user);
     }
 
@@ -65,6 +67,21 @@ public class TestRawScoreService implements PostgresTestContainer {
         courseSeeders.clear();
         rawScoreRepo.deleteAll();
         userSeeders.clearAll();
+    }
+
+    private MockMultipartFile getRunestoneGradesheet() {
+        String fileContent = "\"first_name\",\"last_name\",\"email\",\"Week 6 Readings\",\"Week 12 Readings\",\"Week 11 Readings\",\"Week 14 Readings\",\"Week 10 Readings\",\"Week 4 Readings\",\"Week 1 Readings\",\"Week 7 Readings\",\"Week 2 Readings\",\"Week 13 Readings\",\"Week 3 Readings\",\"Week 5 Readings\",\"Week 8 Readings\"\n" +
+                "\"Test\",\"User\",\"test_user@mines.edu\",\"0.0\",\"\",\"\",\"\",\"4.0\",\"2.0\",\"3.0\",\"16.0\",\"23.0\",\"1.0\",\"13.0\",\"1.0\",\"0.0\"\n" +
+                "\"Alex\",\"User\",\"alex_user@mines.edu\",\"24.0\",\"\",\"\",\"\",\"\",\"2.0\",\"24.0\",\"16.0\",\"23.0\",\"\",\"13.0\",\"5.0\",\"0.0\"\n";
+
+        Section s = courseSeeders.section(course);
+        List.of(
+                userSeeders.user("Test", "test_user@mines.edu", "test"),
+                userSeeders.user("Alex", "alex_user@mines.edu", "alex")
+        ).forEach(u -> courseMemberSeeder.student(u, course, s));
+
+        String filename = "test.csv";
+        return new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
     }
 
     private static MockMultipartFile getGradescopeGradesheet() {
@@ -228,5 +245,25 @@ Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-
         Assertions.assertTrue(score.isEmpty());
     }
 
+    @Test
+    @SneakyThrows
+    void testParseRunestoneGraded() {
+        Migration migration = migrationSeeder.migration(assignment2, masterMigration);
+        MockMultipartFile file = getRunestoneGradesheet();
 
+        rawScoreService.uploadRunestoneCSV(file.getInputStream(), migration.getId());
+        List<RawScore> rawScores = rawScoreService.getRawScoresFromMigration(migration.getId());
+
+        Assertions.assertEquals(2, rawScores.size());
+
+        Optional<RawScore> score = rawScoreService.getRawScoreForCwidAndMigration("alex", migration.getId());
+        Assertions.assertTrue(score.isPresent());
+        Assertions.assertEquals(SubmissionStatus.ON_TIME, score.get().getSubmissionStatus());
+        Assertions.assertEquals(24.0, score.get().getScore());
+
+        score = rawScoreService.getRawScoreForCwidAndMigration("test", migration.getId());
+        Assertions.assertTrue(score.isPresent());
+        Assertions.assertEquals(SubmissionStatus.ON_TIME, score.get().getSubmissionStatus());
+        Assertions.assertEquals(0.0, score.get().getScore());
+    }
 }
