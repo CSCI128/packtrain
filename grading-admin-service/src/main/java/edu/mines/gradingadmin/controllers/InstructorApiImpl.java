@@ -97,7 +97,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<MasterMigrationDTO> createMasterMigration(String courseId, MasterMigrationDTO masterMigrationDTO){
-        Optional<MasterMigrationDTO> masterMigration = migrationService.createMasterMigration(courseId).map(DTOFactory::toDto);
+        Optional<MasterMigrationDTO> masterMigration = migrationService.createMasterMigration(courseId, securityManager.getUser()).map(DTOFactory::toDto);
 
         if (masterMigration.isEmpty()){
             return ResponseEntity.badRequest().build();

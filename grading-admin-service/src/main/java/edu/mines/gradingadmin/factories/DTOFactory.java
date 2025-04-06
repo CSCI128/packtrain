@@ -141,7 +141,7 @@ public class DTOFactory {
                 .dateStarted(masterMigration.getDateStarted())
                 .migrator(toDto(masterMigration.getCreatedByUser()));
 
-        if (masterMigration.getMigrations() != null || !masterMigration.getMigrations().isEmpty()){
+        if (masterMigration.getMigrations() != null && !masterMigration.getMigrations().isEmpty()){
             dto.migrations(masterMigration.getMigrations().stream().map(DTOFactory::toDto).toList());
         }
 

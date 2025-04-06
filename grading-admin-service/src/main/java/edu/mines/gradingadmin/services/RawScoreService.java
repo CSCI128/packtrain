@@ -11,7 +11,6 @@ import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import edu.mines.gradingadmin.repositories.RawScoreRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
@@ -20,8 +19,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -40,19 +39,19 @@ public class RawScoreService {
         this.migrationService = migrationService;
     }
 
-    public List<RawScore> uploadGradescopeCSV(InputStream file, UUID migrationId) {
+    public void uploadGradescopeCSV(InputStream file, UUID migrationId) {
         List<RawScore> scores = List.of();
 
         if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of GradeScope scores started.", ExternalAssignmentType.GRADESCOPE)){
             log.error("Failed to start raw score import for GS!");
-            return scores;
+            return;
         }
 
         try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
                 .withSkipLines(1)
                 .build()) {
 
-            scores = csvReader.readAll().stream().map(l -> parseLineGS(migrationId, l)).toList();
+            scores = csvReader.readAll().stream().map(l -> parseLineGS(migrationId, l)).filter(Optional::isPresent).map(Optional::get).toList();
         }
         catch (Exception e){
             log.error("Failed to read CSV", e);
@@ -61,43 +60,14 @@ public class RawScoreService {
         if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
             log.error("Failed to complete raw score import for GS!");
         }
-        return scores;
     }
 
-    public List<RawScore> uploadRunestoneCSV(InputStream file, UUID migrationId) {
-        List<RawScore> scores = List.of();
-
-        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of Runestone scores started.", ExternalAssignmentType.RUNESTONE)){
-            log.error("Failed to start raw score import for Runestone!");
-            return scores;
-        }
-
-        Course course = migrationService.getCourseForMigration(migrationId.toString());
-        Assignment assignment = migrationService.getAssignmentForMigration(migrationId.toString());
-
-        try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
-                .build()) {
-            // find assignment column because Runestone doesn't put them in order
-            String[] headerLine = csvReader.readNext();
-
-            scores = csvReader.readAll().stream().map(l -> parseLineRunestone(headerLine, course, assignment, migrationId, l)).filter(Optional::isPresent).map(Optional::get).toList();
-        }
-        catch (Exception e){
-            log.error("Failed to read CSV", e);
-        }
-
-        if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
-            log.error("Failed to complete raw score import for Runestone!");
-        }
-        return scores;
-    }
-
-    public List<RawScore> uploadPrairieLearnCSV(InputStream file, UUID migrationId){
+    public void uploadPrairieLearnCSV(InputStream file, UUID migrationId){
         List<RawScore> scores = List.of();
 
         if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of PrairieLearn scores started.", ExternalAssignmentType.PRAIRIELEARN)){
             log.error("Failed to start raw score import for PL!");
-            return scores;
+            return;
         }
 
         boolean groupMode = false;
@@ -109,7 +79,13 @@ public class RawScoreService {
                 .build()
         ){
 
-            List<String> header = Arrays.stream(csvReader.readNext()).toList();
+            String[] s = csvReader.readNext();
+
+            if (s == null){
+                return;
+            }
+
+            List<String> header = Arrays.stream(s).toList();
 
             if (header.contains("Group name")){
                 groupMode = true;
@@ -128,8 +104,6 @@ public class RawScoreService {
         if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
             log.error("Failed to complete raw score import for PL!");
         }
-
-        return scores;
     }
 
     private String[] extractMembersFromGroup(String groupMembers){
@@ -150,7 +124,7 @@ public class RawScoreService {
         for (String[] line : csv){
             String[] members = extractMembersFromGroup(line[GROUP_MEMBERS_IDX]);
             for (String member : members){
-                normalizeGroupSubmissions.add(new String[]{member, line[SUBMISSION_DATE_IDX], line[QUESTION_POINTS_IDX]});
+                normalizeGroupSubmissions.add(new String[]{member.strip(), line[SUBMISSION_DATE_IDX], line[QUESTION_POINTS_IDX]});
             }
         }
 
@@ -168,48 +142,6 @@ public class RawScoreService {
         }
 
         return reducedSubmissions;
-    }
-
-    private Optional<RawScore> parseLineRunestone(String[] header, Course course, Assignment assignment, UUID migrationId, String[] line){
-        final int USER_ID_IDX = 2;
-        int ASSIGNMENT_IDX = -1;
-        for(int i = 0; i < header.length; i++) {
-            if(header[i].equalsIgnoreCase(assignment.getName())) {
-                ASSIGNMENT_IDX = i;
-            }
-        }
-
-        if(ASSIGNMENT_IDX == -1) {
-            log.warn("Could not find the specified assignment in the Runestone CSV!");
-            return Optional.empty();
-        }
-
-        RawScore s = new RawScore();
-
-        Optional<String> cwid = courseMemberService.getCwidGivenCourseAndEmail(line[USER_ID_IDX], course);
-
-        if (cwid.isEmpty()){
-            log.warn("Student '{}' is not a member of '{}'", line[USER_ID_IDX], course.getCode());
-            return Optional.empty();
-        }
-
-        s.setMigrationId(migrationId);
-        s.setCwid(cwid.get());
-        s.setHoursLate(0.0);
-        s.setSubmissionStatus(SubmissionStatus.ON_TIME);
-        s.setSubmissionTime(Instant.now()); // Runestone does not track submission times
-
-        double score = Integer.parseInt(line[ASSIGNMENT_IDX]);
-
-        // TODO need max score from Runestone
-        final int MAX_SCORE = 24;
-        score = (score / MAX_SCORE) * 100;
-
-        // TODO need max attainable score from Canvas (sometimes Rob does 4 or 5); this should also probably be policy.
-        // Rounded score: round to the nearest multiple of 12.5%
-        s.setScore(Math.ceil(score / 12.5) * 0.125 * 5);
-
-        return Optional.of(createOrIncrementScore(s));
     }
 
     private Optional<RawScore> parseLinePL(Course course, Assignment assignment, UUID migrationId, String[] line){
@@ -257,7 +189,7 @@ public class RawScoreService {
             return rawScoreRepo.save(incoming);
         }
 
-        RawScore existing = getRawScoreForCwidAndMigrationId(incoming.getCwid(), incoming.getMigrationId()).orElseThrow();
+        RawScore existing = getRawScoreForCwidAndMigration(incoming.getCwid(), incoming.getMigrationId()).orElseThrow();
 
         if (existing.getSubmissionTime().isAfter(incoming.getSubmissionTime())){
             existing.setSubmissionTime(incoming.getSubmissionTime());
@@ -271,7 +203,7 @@ public class RawScoreService {
     }
 
 
-    private RawScore parseLineGS(UUID migrationId, String[] line){
+    private Optional<RawScore> parseLineGS(UUID migrationId, String[] line){
         final int CWID_IDX = 2;
         final int SCORE_IDX = 6;
         final int STATUS_IDX = 8;
@@ -286,10 +218,16 @@ public class RawScoreService {
         newScore.setMigrationId(migrationId);
         newScore.setCwid(cwid);
 
+        if(status.equals("Ungraded")){
+            log.warn("Ungraded submission for '{}' for migration '{}'", cwid, migrationId);
+            return Optional.empty();
+        }
+
         if(status.equals("Missing")){
             newScore.setSubmissionStatus(SubmissionStatus.MISSING);
-            return rawScoreRepo.save(newScore);
+            return Optional.of(rawScoreRepo.save(newScore));
         }
+
 
         double score = Double.parseDouble(line[SCORE_IDX]);
 
@@ -314,10 +252,10 @@ public class RawScoreService {
         newScore.setHoursLate(hoursLate);
         newScore.setSubmissionStatus(submissionStatus);
 
-        return rawScoreRepo.save(newScore);
+        return Optional.of(rawScoreRepo.save(newScore));
     }
 
-    public Optional<RawScore> getRawScoreForCwidAndMigrationId(String cwid, UUID migrationId){
+    public Optional<RawScore> getRawScoreForCwidAndMigration(String cwid, UUID migrationId){
         Optional<RawScore> score = rawScoreRepo.getByCwidAndMigrationId(cwid, migrationId);
         if(score.isEmpty()){
             log.warn("Could not find raw score for cwid {} on migration id {}", cwid, migrationId);

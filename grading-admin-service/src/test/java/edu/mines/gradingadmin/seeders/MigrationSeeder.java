@@ -36,14 +36,8 @@ public class MigrationSeeder {
     }
 
 
-    public void cleanup(){
+    public void clearAll(){
         migrationRepo.deleteAll();
         masterMigrationRepo.deleteAll();
     }
-
-
-
-
-
-
 }
