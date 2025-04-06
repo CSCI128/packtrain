@@ -20,14 +20,6 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
-    origin: "http://localhost:5173",
-    proxy: {
-      "/api": {
-        target: "http://localhost.dev",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ""),
-      },
-    },
+    origin: "http://host.docker.internal:5173",
   },
 });

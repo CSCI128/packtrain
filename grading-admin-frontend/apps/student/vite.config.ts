@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/student",
   plugins: [react()],
   resolve: {
     alias: {
@@ -19,16 +20,8 @@ export default defineConfig({
     },
   },
   server: {
-    host: true,
+    host: "0.0.0.0",
     port: 5175,
-    origin: "http://localhost:5175",
-    proxy: {
-      "/api": {
-        target: "http://localhost.dev",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ""),
-      },
-    },
+    origin: "http://host.docker.internal:5175",
   },
 });
