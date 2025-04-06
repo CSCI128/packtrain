@@ -10,6 +10,7 @@ import java.util.UUID;
 @Data
 @Entity(name = "raw_score")
 @Table(name = "raw_scores")
+// todo - this should be a composite key of cwid + migrationId
 public class RawScore {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
