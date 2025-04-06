@@ -119,7 +119,16 @@ public class RawScoreService {
                 .build()) {
             String[] headerLine = csvReader.readNext();
 
-            scores = csvReader.readAll().stream().map(l -> parseLineRunestone(headerLine, course, assignment, migrationId, l)).filter(Optional::isPresent).map(Optional::get).toList();
+            int assignmentIdx = -1;
+            // find assignment column because Runestone doesn't put them in order
+            for(int i = 0; i < headerLine.length; i++) {
+                if(headerLine[i].equalsIgnoreCase(assignment.getName())) {
+                    assignmentIdx = i;
+                }
+            }
+
+            int finalAssignmentIdx = assignmentIdx; // lambda vars have to be final
+            scores = csvReader.readAll().stream().map(l -> parseLineRunestone(finalAssignmentIdx, course, assignment, migrationId, l)).filter(Optional::isPresent).map(Optional::get).toList();
         }
         catch (Exception e){
             log.error("Failed to read CSV", e);
@@ -209,20 +218,13 @@ public class RawScoreService {
         return Optional.of(createOrIncrementScore(s));
     }
 
-    private Optional<RawScore> parseLineRunestone(String[] header, Course course, Assignment assignment, UUID migrationId, String[] line){
-        final int USER_ID_IDX = 2;
-        int assignmentIdx = -1;
-        // find assignment column because Runestone doesn't put them in order
-        for(int i = 0; i < header.length; i++) {
-            if(header[i].equalsIgnoreCase(assignment.getName())) {
-                assignmentIdx = i;
-            }
-        }
-
+    private Optional<RawScore> parseLineRunestone(int assignmentIdx, Course course, Assignment assignment, UUID migrationId, String[] line){
         if(assignmentIdx == -1) {
             log.warn("Could not find the specified assignment in the Runestone CSV!");
             return Optional.empty();
         }
+
+        final int USER_ID_IDX = 2;
 
         RawScore s = new RawScore();
 
