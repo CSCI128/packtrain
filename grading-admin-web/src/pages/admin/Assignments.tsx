@@ -52,8 +52,10 @@ export function AssignmentsPage() {
     }
   );
 
-  const [value, setValue] = useState<Date | null>(null);
-  const [unlockDateValue, setUnlockDateValue] = useState<Date | null>(null);
+  const [value, setValue] = useState<Date | null>(new Date());
+  const [unlockDateValue, setUnlockDateValue] = useState<Date | null>(
+    new Date()
+  );
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedAssignment, setSelectedAssignment] = useState<
     components["schemas"]["Assignment"] | null
@@ -66,8 +68,8 @@ export function AssignmentsPage() {
       category: "",
       canvas_id: -1,
       points: 0,
-      due_date: new Date(),
-      unlock_date: new Date(),
+      due_date: value,
+      unlock_date: unlockDateValue,
       external_service: "",
       external_points: 0,
       enabled: true,
@@ -89,8 +91,6 @@ export function AssignmentsPage() {
   });
 
   const handleAssignmentEdit = (row: components["schemas"]["Assignment"]) => {
-    setValue(new Date(row.due_date));
-    setUnlockDateValue(new Date(row.unlock_date));
     setSelectedAssignment(row);
     form.setValues({
       name: row.name,
@@ -99,6 +99,8 @@ export function AssignmentsPage() {
       points: row.points,
       external_service: row.external_service,
       external_points: row.external_points,
+      due_date: new Date(row.due_date),
+      unlock_date: new Date(row.unlock_date),
       enabled: row.enabled,
       group_assignment: row.group_assignment,
       attention_required: row.attention_required,
@@ -153,9 +155,9 @@ export function AssignmentsPage() {
           id: selectedAssignment?.id,
           name: values.name,
           category: values.category,
-          due_date: values.due_date.toISOString(),
+          due_date: value?.toISOString()!,
           points: values.points,
-          unlock_date: values.unlock_date.toISOString(),
+          unlock_date: unlockDateValue?.toISOString()!,
           canvas_id: values.canvas_id,
           enabled: values.enabled,
           attention_required: values.attention_required,
@@ -166,6 +168,9 @@ export function AssignmentsPage() {
         onSuccess: () => {
           close();
           refetch();
+          setSearch("");
+          setValue(new Date());
+          setUnlockDateValue(new Date());
         },
       }
     );
@@ -263,6 +268,7 @@ export function AssignmentsPage() {
             label="Unlock Date"
             placeholder="Pick date"
             value={unlockDateValue}
+            {...form.getInputProps("unlock_date")}
             onChange={setUnlockDateValue}
           />
 
@@ -270,6 +276,7 @@ export function AssignmentsPage() {
             label="Due Date"
             placeholder="Pick date"
             value={value}
+            {...form.getInputProps("due_date")}
             onChange={setValue}
           />
 
