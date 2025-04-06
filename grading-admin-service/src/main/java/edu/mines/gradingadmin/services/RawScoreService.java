@@ -211,15 +211,15 @@ public class RawScoreService {
 
     private Optional<RawScore> parseLineRunestone(String[] header, Course course, Assignment assignment, UUID migrationId, String[] line){
         final int USER_ID_IDX = 2;
-        int ASSIGNMENT_IDX = -1;
+        int assignmentIdx = -1;
         // find assignment column because Runestone doesn't put them in order
         for(int i = 0; i < header.length; i++) {
             if(header[i].equalsIgnoreCase(assignment.getName())) {
-                ASSIGNMENT_IDX = i;
+                assignmentIdx = i;
             }
         }
 
-        if(ASSIGNMENT_IDX == -1) {
+        if(assignmentIdx == -1) {
             log.warn("Could not find the specified assignment in the Runestone CSV!");
             return Optional.empty();
         }
@@ -237,8 +237,8 @@ public class RawScoreService {
         s.setCwid(cwid.get());
         s.setHoursLate(0.0);
         s.setSubmissionStatus(SubmissionStatus.ON_TIME);
-        s.setSubmissionTime(Instant.now()); // Runestone does not track submission times
-        s.setScore(Double.parseDouble(line[ASSIGNMENT_IDX]));
+        s.setSubmissionTime(assignment.getDueDate().minus(Duration.ofMinutes(1))); // Runestone does not track submission times
+        s.setScore(Double.parseDouble(line[assignmentIdx]));
 
         return Optional.of(createOrIncrementScore(s));
     }

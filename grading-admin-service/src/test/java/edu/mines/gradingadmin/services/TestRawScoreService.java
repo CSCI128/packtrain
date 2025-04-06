@@ -40,8 +40,8 @@ public class TestRawScoreService implements PostgresTestContainer {
     @Autowired
     private CourseMemberSeeder courseMemberSeeder;
 
-    private Assignment assignment;
-    private Assignment assignment2;
+    private Assignment worksheet;
+    private Assignment reading;
     private MasterMigration masterMigration;
     private Course course;
 
@@ -54,8 +54,8 @@ public class TestRawScoreService implements PostgresTestContainer {
     void beforeEach(){
         User user = userSeeders.user1();
         course = courseSeeders.course1();
-        assignment = assignmentSeeder.worksheet1(course);
-        assignment2 = assignmentSeeder.reading(course);
+        worksheet = assignmentSeeder.worksheet1(course);
+        reading = assignmentSeeder.reading(course);
         masterMigration = migrationSeeder.masterMigration(course, user);
     }
 
@@ -124,7 +124,7 @@ Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-
     @Test
     @SneakyThrows
     void testEmptyPL(){
-        Migration migration = migrationSeeder.migration(assignment, masterMigration);
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
         String fileContent = "";
 
         String filename = "test.csv";
@@ -139,7 +139,7 @@ Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-
     @Test
     @SneakyThrows
     void testParsePLGroupsOnTime(){
-        Migration migration = migrationSeeder.migration(assignment, masterMigration);
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
 
         MockMultipartFile file = getPrairieLearnGradesheetGroup();
 
@@ -158,7 +158,7 @@ Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-
     @Test
     @SneakyThrows
     void testParsePLGroupsLate(){
-        Migration migration = migrationSeeder.migration(assignment, masterMigration);
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
 
         MockMultipartFile file = getPrairieLearnGradesheetGroup();
 
@@ -179,7 +179,7 @@ Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-
     @Test
     @SneakyThrows
     void testEmptyGS(){
-        Migration migration = migrationSeeder.migration(assignment, masterMigration);
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
         String fileContent = "";
 
         String filename = "test.csv";
@@ -194,7 +194,7 @@ Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-
     @Test
     @SneakyThrows
     void testParseGSGraded(){
-        Migration migration = migrationSeeder.migration(assignment, masterMigration);
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
         MockMultipartFile file = getGradescopeGradesheet();
 
         // Should add scores to the list that were properly saved
@@ -212,7 +212,7 @@ Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-
     @Test
     @SneakyThrows
     void testParseGSMissing(){
-        Migration migration = migrationSeeder.migration(assignment, masterMigration);
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
         MockMultipartFile file = getGradescopeGradesheet();
 
         // Should add scores to the list that were properly saved
@@ -232,7 +232,7 @@ Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-
     @Test
     @SneakyThrows
     void testParseGSUngraded(){
-        Migration migration = migrationSeeder.migration(assignment, masterMigration);
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
         MockMultipartFile file = getGradescopeGradesheet();
 
         // Should add scores to the list that were properly saved
@@ -248,7 +248,7 @@ Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-
     @Test
     @SneakyThrows
     void testParseRunestoneGraded() {
-        Migration migration = migrationSeeder.migration(assignment2, masterMigration);
+        Migration migration = migrationSeeder.migration(reading, masterMigration);
         MockMultipartFile file = getRunestoneGradesheet();
 
         rawScoreService.uploadRunestoneCSV(file.getInputStream(), migration.getId());
