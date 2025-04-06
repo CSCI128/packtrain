@@ -2276,6 +2276,10 @@ components:
           type: integer
           format: int64
           example: 123456
+        gradescope_id:
+          type: integer
+          format: int64
+          example: 123456
         members:
           type: array
           items:

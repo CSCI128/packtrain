@@ -1,11 +1,14 @@
 import {
-  Button, Checkbox,
-  Chip,
+  Button,
+  Checkbox,
   Container,
-  Divider, Fieldset,
+  Divider,
+  Fieldset,
   Group,
-  InputWrapper,
-  Loader, MultiSelect, NumberInput, Space,
+  Loader,
+  MultiSelect,
+  NumberInput,
+  Space,
   Text,
   TextInput,
 } from "@mantine/core";
@@ -34,8 +37,6 @@ export function CreatePage() {
     assignments: 0,
     sections: 0,
   });
-
-  // TODO add/link service mutation here
 
   const { data: credentialData, error: credentialError } = $api.useQuery(
     "get",
@@ -155,12 +156,13 @@ export function CreatePage() {
           term: values.courseTerm,
           enabled: true,
           canvas_id: Number(values.canvasId),
+          gradescope_id: Number(values.gradescopeId),
           late_request_config: {
             late_passes_enabled: values.latePassesEnabled,
             late_pass_name: values.latePassName,
             enabled_extension_reasons: values.enabledExtensionReasons,
             total_late_passes_allowed: values.totalLatePassesAllowed,
-          }
+          },
         },
       },
       {
@@ -188,6 +190,7 @@ export function CreatePage() {
       courseCode: "",
       courseTerm: "",
       canvasId: "",
+      gradescopeId: "",
       latePassesEnabled: false,
       totalLatePassesAllowed: 0,
       enabledExtensionReasons: [],
@@ -202,8 +205,12 @@ export function CreatePage() {
         value.length < 1 ? "Course code must have at least 1 character" : null,
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
+      gradescopeId: (value) =>
+        value.length == 5 ? null : "Gradescope ID must be 5 characters",
       totalLatePassesAllowed: (value) =>
-        value < 0 ? "Total number of late passes must be greater than or equal to 0" : null,
+        value < 0
+          ? "Total number of late passes must be greater than or equal to 0"
+          : null,
     },
   });
 
@@ -290,8 +297,10 @@ export function CreatePage() {
                   disabled={courseCreated}
                   pb={8}
                   label="Enable Late Passes"
-                  key = {form.key("latePassesEnabled")}
-                  {...form.getInputProps("latePassesEnabled", {type: "checkbox"})}
+                  key={form.key("latePassesEnabled")}
+                  {...form.getInputProps("latePassesEnabled", {
+                    type: "checkbox",
+                  })}
                 />
 
                 <NumberInput
@@ -309,7 +318,14 @@ export function CreatePage() {
                   label="Allowed Extension Reasons"
                   key={form.key("enabledExtensionReasons")}
                   {...form.getInputProps("enabledExtensionReasons")}
-                  data={['Bereavement', 'Excused Absence', 'Family', 'Illness', 'Personal', 'Other']}
+                  data={[
+                    "Bereavement",
+                    "Excused Absence",
+                    "Family",
+                    "Illness",
+                    "Personal",
+                    "Other",
+                  ]}
                 />
 
                 <TextInput
@@ -320,17 +336,16 @@ export function CreatePage() {
                   key={form.key("latePassName")}
                   {...form.getInputProps("latePassName")}
                 />
-              </Fieldset>
 
-              <InputWrapper label="External Services">
-                <Chip.Group multiple>
-                  <Group>
-                    <Chip value="1">Gradescope</Chip>
-                    <Chip value="2">Runestone</Chip>
-                    <Chip value="3">PrairieLearn</Chip>
-                  </Group>
-                </Chip.Group>
-              </InputWrapper>
+                <TextInput
+                  disabled={courseCreated}
+                  pb={8}
+                  label="Gradescope Course ID"
+                  placeholder="xxxxxxxx"
+                  key={form.key("gradescopeId")}
+                  {...form.getInputProps("gradescopeId")}
+                />
+              </Fieldset>
 
               {!courseCreated && (
                 <Group justify="flex-end" mt="md">
