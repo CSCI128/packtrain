@@ -40,10 +40,4 @@ public class MigrationSeeder {
         migrationRepo.deleteAll();
         masterMigrationRepo.deleteAll();
     }
-
-
-
-
-
-
 }
