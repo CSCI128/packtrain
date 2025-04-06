@@ -44,6 +44,10 @@ public class CourseMemberService {
         this.impersonationManager = impersonationManager;
     }
 
+    public Optional<CourseMember> getCourseMemberByCourseByCwid(Course course, String cwid) {
+        return courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().findFirst();
+    }
+
     public Optional<CourseMember> getFirstSectionInstructor(Section section) {
         return section.getMembers().stream().filter(member -> member.getRole() == CourseRole.INSTRUCTOR).findFirst();
     }

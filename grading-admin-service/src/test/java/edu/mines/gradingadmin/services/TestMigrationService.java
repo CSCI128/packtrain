@@ -1,271 +1,179 @@
 package edu.mines.gradingadmin.services;
 
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
-import com.opencsv.exceptions.CsvException;
-import edu.mines.gradingadmin.models.Assignment;
-import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.RawScore;
-import edu.mines.gradingadmin.models.enums.ExternalAssignmentType;
+
+import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.data.messages.ScoredDTO;
+import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.models.enums.LateRequestStatus;
 import edu.mines.gradingadmin.models.enums.SubmissionStatus;
-import edu.mines.gradingadmin.repositories.RawScoreRepo;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import edu.mines.gradingadmin.models.tasks.ProcessScoresAndExtensionsTaskDef;
+import edu.mines.gradingadmin.repositories.*;
+import edu.mines.gradingadmin.seeders.CourseSeeders;
+import edu.mines.gradingadmin.seeders.UserSeeders;
+import edu.mines.gradingadmin.services.external.PolicyServerService;
+import edu.mines.gradingadmin.services.external.RabbitMqService;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
 
-import javax.swing.text.html.Option;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-@Service
-@Slf4j
-public class RawScoreService {
-    private final String timeZone;
-    private final RawScoreRepo rawScoreRepo;
-    private final CourseMemberService courseMemberService;
-    private final MigrationService migrationService;
+@SpringBootTest
+public class TestMigrationService implements PostgresTestContainer {
+    MigrationService migrationService;
 
-    public RawScoreService(
-            @Value("${grading-admin.time-zone}") String timeZone,
-            RawScoreRepo rawScoreRepo, CourseMemberService courseMemberService, MigrationService migrationService){
-        this.timeZone = timeZone;
-        this.rawScoreRepo = rawScoreRepo;
-        this.courseMemberService = courseMemberService;
-        this.migrationService = migrationService;
+    @Autowired
+    private MigrationRepo migrationRepo;
+    @Autowired
+    private CourseSeeders courseSeeders;
+    @Autowired
+    private CourseService courseService;
+    @Autowired
+    private UserSeeders userSeeders;
+    @Autowired
+    private MasterMigrationRepo masterMigrationRepo;
+    @Autowired
+    private PolicyRepo policyRepo;
+    @Autowired
+    private AssignmentService assignmentService;
+    @Autowired
+    private MigrationTransactionLogRepo migrationTransactionLogRepo;
+    @Autowired
+    private ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo;
+    @Autowired
+    private MasterMigrationStatsRepo masterMigrationStatsRepo;
+    @Autowired
+    private ExtensionService extensionService;
+    @Autowired
+    private RawScoreRepo rawScoreRepo;
+    private Course course;
+    private User user;
+
+    @BeforeAll
+    static void setupClass(){
+        postgres.start();
+
     }
 
-    public void uploadGradescopeCSV(InputStream file, UUID migrationId) {
-        List<RawScore> scores = List.of();
+    @BeforeEach
+    void setup(){
+        migrationService = new MigrationService(migrationRepo, masterMigrationRepo, migrationTransactionLogRepo, taskRepo,
+                extensionService, courseService, assignmentService, Mockito.mock(ApplicationEventPublisher.class),
+                Mockito.mock(RabbitMqService.class), Mockito.mock(PolicyServerService.class), rawScoreRepo, masterMigrationStatsRepo);
 
-        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of GradeScope scores started.", ExternalAssignmentType.GRADESCOPE)){
-            log.error("Failed to start raw score import for GS!");
-            return;
-        }
+        course = courseSeeders.populatedCourse();
+        user = userSeeders.user1();
 
-        try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
-                .withSkipLines(1)
-                .build()) {
-
-            scores = csvReader.readAll().stream().map(l -> parseLineGS(migrationId, l)).filter(Optional::isPresent).map(Optional::get).toList();
-        }
-        catch (Exception e){
-            log.error("Failed to read CSV", e);
-        }
-
-        if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
-            log.error("Failed to complete raw score import for GS!");
-        }
     }
 
-    public void uploadPrairieLearnCSV(InputStream file, UUID migrationId){
-        List<RawScore> scores = List.of();
-
-        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of PrairieLearn scores started.", ExternalAssignmentType.PRAIRIELEARN)){
-            log.error("Failed to start raw score import for PL!");
-            return;
-        }
-
-        boolean groupMode = false;
-
-        Course course = migrationService.getCourseForMigration(migrationId.toString());
-        Assignment assignment = migrationService.getAssignmentForMigration(migrationId.toString());
-
-        try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
-                .build()
-        ){
-
-            String[] s = csvReader.readNext();
-
-            if (s == null){
-                return;
-            }
-
-            List<String> header = Arrays.stream(s).toList();
-
-            if (header.contains("Group name")){
-                groupMode = true;
-            }
-
-            List<String[]> contents = groupMode ? convertGroupSubmissionToIndividualSubmission(header, csvReader.readAll()) : reduceColumns(header, csvReader.readAll());
-
-            scores = contents.stream().map(l -> parseLinePL(course, assignment, migrationId, l)).filter(Optional::isPresent).map(Optional::get).toList();
-
-        } catch (IOException e) {
-            log.error("Failed to read CSV!", e);
-        } catch (CsvException e) {
-            log.error("Failed to parse CSV line!", e);
-        }
-
-        if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
-            log.error("Failed to complete raw score import for PL!");
-        }
+    @AfterEach
+    void tearDown(){
+        migrationRepo.deleteAll();
+        masterMigrationRepo.deleteAll();
+        policyRepo.deleteAll();
+        courseSeeders.clearAll();
+        userSeeders.clearAll();
     }
 
-    private String[] extractMembersFromGroup(String groupMembers){
+    @Test
+    void verifyCreateMasterMigration(){
+        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
+        Assertions.assertTrue(masterMigration.isPresent());
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        Assertions.assertEquals(0, migrationList.size());
 
-        groupMembers = groupMembers.replaceAll("[\\[\"\\]]", "");
-
-        return groupMembers.split(",");
     }
 
+    @Test
+    void verifyUpdatePolicy(){
+        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
+        Assertions.assertTrue(masterMigration.isPresent());
+        Optional<Assignment> assignment = course.getAssignments().stream().findFirst();
+        Assertions.assertTrue(assignment.isPresent());
 
-    private List<String[]> convertGroupSubmissionToIndividualSubmission(List<String> header, List<String[]> csv){
-        List<String[]> normalizeGroupSubmissions = new LinkedList<>();
+        Policy policy = new Policy();
+        policy.setAssignment(assignment.get());
+        policy.setPolicyName("test_policy");
+        policy.setPolicyURI("http://file.js");
+        policy.setCourse(course);
+        User user = userSeeders.user1();
+        policy.setCreatedByUser(user);
+        policyRepo.save(policy);
+        migrationService.addMigration(masterMigration.get().getId().toString(), assignment.get().getId().toString(), policy.getPolicyURI());
 
-        final int GROUP_MEMBERS_IDX = header.indexOf("Usernames");
-        final int SUBMISSION_DATE_IDX = header.indexOf("Submission date");
-        final int QUESTION_POINTS_IDX = header.indexOf("Question points");
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        Assertions.assertEquals(1, migrationList.size());
+        Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
 
-        for (String[] line : csv){
-            String[] members = extractMembersFromGroup(line[GROUP_MEMBERS_IDX]);
-            for (String member : members){
-                normalizeGroupSubmissions.add(new String[]{member.strip(), line[SUBMISSION_DATE_IDX], line[QUESTION_POINTS_IDX]});
-            }
-        }
+        Policy updatedPolicy = new Policy();
+        updatedPolicy.setAssignment(assignment.get());
+        updatedPolicy.setPolicyName("updated_test_policy");
+        updatedPolicy.setPolicyURI("http://file2.js");
+        updatedPolicy.setCourse(course);
+        updatedPolicy.setCreatedByUser(user);
+        policyRepo.save(updatedPolicy);
+        migrationService.updatePolicyForMigration(migrationList.get(0).getId().toString(), updatedPolicy.getPolicyURI());
 
-        return normalizeGroupSubmissions;
+        migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        Assertions.assertEquals(1, migrationList.size());
+        Assertions.assertEquals(updatedPolicy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
     }
 
-    private List<String[]> reduceColumns(List<String> header, List<String[]> csv){
-        List<String[]> reducedSubmissions = new LinkedList<>();
+    @Test
+    void verifyMigrationsCreated() {
+        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
+        Assertions.assertTrue(masterMigration.isPresent());
+        Optional<Assignment> assignment = course.getAssignments().stream().findFirst();
+        Assertions.assertTrue(assignment.isPresent());
 
-        final int USER_ID_INDEX = header.indexOf("UID");
-        final int SUBMISSION_DATE_IDX = header.indexOf("Submission date");
-        final int QUESTION_POINTS_IDX = header.indexOf("Question points");
-        for (String[] line : csv){
-            reducedSubmissions.add(new String[]{line[USER_ID_INDEX], line[SUBMISSION_DATE_IDX], line[QUESTION_POINTS_IDX]});
-        }
+        Policy policy = new Policy();
+        policy.setAssignment(assignment.get());
+        policy.setPolicyName("test_policy");
+        policy.setPolicyURI("http://file.js");
+        policy.setCourse(course);
+        User user = userSeeders.user1();
+        policy.setCreatedByUser(user);
+        policyRepo.save(policy);
+        migrationService.addMigration(masterMigration.get().getId().toString(), assignment.get().getId().toString(), policy.getPolicyURI());
 
-        return reducedSubmissions;
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        Assertions.assertEquals(1, migrationList.size());
+        Assertions.assertEquals(assignment.get().getId().toString(), migrationList.getFirst().getAssignment().getId().toString());
+        Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
     }
 
-    private Optional<RawScore> parseLinePL(Course course, Assignment assignment, UUID migrationId, String[] line){
-        final int USER_ID_IDX = 0;
-        final int SUBMISSION_DATE_IDX = 1;
-        final int POINTS_IDX = 2;
+    @Test
+    @Transactional
+    void verifyHandleScore(){
+        User user = userSeeders.user1();
 
-        RawScore s = new RawScore();
+        UUID migrationId = UUID.randomUUID();
 
-        Optional<String> cwid = courseMemberService.getCwidGivenCourseAndEmail(line[USER_ID_IDX], course);
-
-        if (cwid.isEmpty()){
-            log.warn("Student '{}' is not a member of '{}'", line[USER_ID_IDX], course.getCode());
-            return Optional.empty();
-        }
-
-        Instant submissionTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(line[SUBMISSION_DATE_IDX], Instant::from);
-
-        SubmissionStatus status = SubmissionStatus.ON_TIME;
-
-        double hoursLate = 0;
-
-        if (assignment.getDueDate() != null){
-            if (assignment.getDueDate().isBefore(submissionTime)){
-                status = SubmissionStatus.LATE;
-                Instant late = submissionTime.minusMillis(assignment.getDueDate().toEpochMilli());
-                hoursLate = (double) late.getEpochSecond() / (60 * 60);
-            }
-        }
-
-        double score = Double.parseDouble(line[POINTS_IDX]);
-
-        s.setMigrationId(migrationId);
-        s.setCwid(cwid.get());
-        s.setHoursLate(hoursLate);
-        s.setSubmissionStatus(status);
-        s.setSubmissionTime(submissionTime);
-        s.setScore(score);
-
-        return Optional.of(createOrIncrementScore(s));
-    }
-
-    private RawScore createOrIncrementScore(RawScore incoming){
-        if (!rawScoreRepo.existsByCwidAndMigrationId(incoming.getCwid(), incoming.getMigrationId())){
-            return rawScoreRepo.save(incoming);
-        }
-
-        RawScore existing = getRawScoreForCwidAndMigration(incoming.getCwid(), incoming.getMigrationId()).orElseThrow();
-
-        if (existing.getSubmissionTime().isAfter(incoming.getSubmissionTime())){
-            existing.setSubmissionTime(incoming.getSubmissionTime());
-            existing.setSubmissionStatus(incoming.getSubmissionStatus());
-            existing.setHoursLate(incoming.getHoursLate());
-        }
-
-        existing.setScore(existing.getScore() + incoming.getScore());
-
-        return rawScoreRepo.save(existing);
-    }
+        ScoredDTO dto = new ScoredDTO();
+        dto.setCwid("100000");
+        dto.setFinalScore(10);
+        dto.setAdjustedSubmissionTime(Instant.now());
+        dto.setExtensionStatus(LateRequestStatus.NO_EXTENSION);
+        dto.setSubmissionStatus(SubmissionStatus.ON_TIME);
 
 
-    private Optional<RawScore> parseLineGS(UUID migrationId, String[] line){
-        final int CWID_IDX = 2;
-        final int SCORE_IDX = 6;
-        final int STATUS_IDX = 8;
-        final int SUBMISSION_TIME_IDX = 10;
-        final int HOURS_LATE_IDX = 11;
+        migrationService.handleScoreReceived(user, migrationId, dto);
 
-        String cwid = line[CWID_IDX].trim();
+        List<MigrationTransactionLog> entries = migrationTransactionLogRepo.getAllByMigrationId(migrationId);
 
-        String status = line[STATUS_IDX].trim();
+        Assertions.assertEquals(1, entries.size());
 
-        RawScore newScore = new RawScore();
-        newScore.setMigrationId(migrationId);
-        newScore.setCwid(cwid);
+        Assertions.assertEquals(dto.getFinalScore(), entries.getFirst().getScore());
+        Assertions.assertEquals(dto.getCwid(), entries.getFirst().getCwid());
+        Assertions.assertEquals(migrationId, entries.getFirst().getMigrationId());
+        Assertions.assertEquals(user, entries.getFirst().getPerformedByUser());
 
-        if(status.equals("Ungraded")){
-            log.warn("Ungraded submission for '{}' for migration '{}'", cwid, migrationId);
-            return Optional.empty();
-        }
-
-        if(status.equals("Missing")){
-            newScore.setSubmissionStatus(SubmissionStatus.MISSING);
-            return Optional.of(rawScoreRepo.save(newScore));
-        }
-
-
-        double score = Double.parseDouble(line[SCORE_IDX]);
-
-        Instant submissionTime = LocalDateTime.parse(
-                line[SUBMISSION_TIME_IDX],
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z", Locale.US))
-        .atZone(ZoneId.of(timeZone)).toInstant();
-
-        double hoursLate = 0.0;
-        String[] lateTime = line[HOURS_LATE_IDX].split(":");
-        hoursLate += Double.parseDouble(lateTime[0]);
-        hoursLate += Double.parseDouble(lateTime[1])/60;
-        hoursLate += Double.parseDouble(lateTime[2])/ (60 * 60);
-
-        SubmissionStatus submissionStatus = SubmissionStatus.ON_TIME;
-
-        if(hoursLate > 0)
-            submissionStatus = SubmissionStatus.LATE;
-
-        newScore.setScore(score);
-        newScore.setSubmissionTime(submissionTime);
-        newScore.setHoursLate(hoursLate);
-        newScore.setSubmissionStatus(submissionStatus);
-
-        return Optional.of(rawScoreRepo.save(newScore));
-    }
-
-    public Optional<RawScore> getRawScoreForCwidAndMigration(String cwid, UUID migrationId){
-        Optional<RawScore> score = rawScoreRepo.getByCwidAndMigrationId(cwid, migrationId);
-        if(score.isEmpty()){
-            log.warn("Could not find raw score for cwid {} on migration id {}", cwid, migrationId);
-            return Optional.empty();
-        }
-        return score;
-    }
-
-    public List<RawScore> getRawScoresFromMigration(UUID migrationId){
-        return rawScoreRepo.getByMigrationId(migrationId);
     }
 
 }
