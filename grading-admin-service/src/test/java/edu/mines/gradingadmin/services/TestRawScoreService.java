@@ -174,8 +174,6 @@ Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-
         Assertions.assertEquals(30, charlie.get().getHoursLate().intValue());
     }
 
-
-
     @Test
     @SneakyThrows
     void testEmptyGS(){
@@ -243,6 +241,21 @@ Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-
 
         Optional<RawScore> score = rawScoreService.getRawScoreForCwidAndMigration("jimmyyyy", migration.getId());
         Assertions.assertTrue(score.isEmpty());
+    }
+
+    @Test
+    @SneakyThrows
+    void testEmptyRunestone(){
+        Migration migration = migrationSeeder.migration(reading, masterMigration);
+        String fileContent = "";
+
+        String filename = "test.csv";
+        MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
+
+        rawScoreService.uploadRunestoneCSV(file.getInputStream(), migration.getId());
+        List<RawScore> rawScores = rawScoreService.getRawScoresFromMigration(migration.getId());
+
+        Assertions.assertTrue(rawScores.isEmpty());
     }
 
     @Test
