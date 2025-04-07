@@ -8,6 +8,7 @@ import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
+import edu.mines.gradingadmin.services.ExtensionService;
 import edu.mines.gradingadmin.services.MigrationService;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
@@ -22,12 +23,14 @@ import static java.util.stream.Collectors.toList;
 @Controller
 public class InstructorApiImpl implements InstructorApiDelegate {
     private final CourseService courseService;
+    private final ExtensionService extensionService;
     private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
     private final MigrationService migrationService;
 
-    public InstructorApiImpl(CourseService courseService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService) {
+    public InstructorApiImpl(CourseService courseService, ExtensionService extensionService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService) {
         this.courseService = courseService;
+        this.extensionService = extensionService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
         this.migrationService = migrationService;
@@ -114,7 +117,6 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         return ResponseEntity.accepted().build();
     }
 
-
     @Override
     public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(String courseId, String masterMigrationId, MigrationDTO migrationDTO) {
         AssignmentDTO assignment = migrationDTO.getAssignment();
@@ -125,5 +127,43 @@ public class InstructorApiImpl implements InstructorApiDelegate {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(masterMigration.get());
+    }
+
+    @Override
+    public ResponseEntity<LateRequestDTO> approveExtension(String courseId, String assignmentId, String userId, String extensionId) {
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+
+        if(course.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        Optional<LateRequest> lateRequest = extensionService.approveExtension(assignmentId, userId, extensionId);
+
+        if(lateRequest.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(DTOFactory.toDto(lateRequest.get()));
+    }
+
+    @Override
+    public ResponseEntity<LateRequestDTO> denyExtension(String courseId, String assignmentId, String userId, String extensionId) {
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+
+        if(course.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        Optional<LateRequest> lateRequest = extensionService.denyExtension(assignmentId, userId, extensionId);
+
+        if(lateRequest.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(DTOFactory.toDto(lateRequest.get()));
     }
 }

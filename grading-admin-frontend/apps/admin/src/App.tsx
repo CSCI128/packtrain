@@ -20,6 +20,7 @@ import { EditCourse } from "./pages/admin/course/Edit";
 import { SelectClass } from "./pages/admin/course/Select";
 import { UsersPage } from "./pages/admin/Users";
 import { HomePage } from "./pages/Home";
+import { ApprovalPage } from "./pages/instructor/ApprovalPage";
 import { MembersPage } from "./pages/instructor/Members";
 import { MigrationsApplyPage } from "./pages/instructor/migration/MigrationsApply";
 import { MigrationsLoadPage } from "./pages/instructor/migration/MigrationsLoad";
@@ -200,6 +201,12 @@ const router = createBrowserRouter([
                 <EditCourse />
               </ProtectedRoute>
             ),
+          },
+          {
+            path: "/approval",
+            // TODO will move this to instructor application
+            // path: "/instructor/approval",
+            element: <ApprovalPage />,
           },
           {
             path: "/instructor/migrate",

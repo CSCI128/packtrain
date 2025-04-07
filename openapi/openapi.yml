@@ -954,6 +954,10 @@ paths:
       responses:
         202:
           description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LateRequest"
         400:
           description: "Failed to approve extension"
           content:
@@ -1012,6 +1016,10 @@ paths:
       responses:
         202:
           description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LateRequest"
         400:
           description: "Failed to deny extension"
           content:
@@ -1426,6 +1434,7 @@ paths:
               - approved
               - denied
               - pending
+              - all
       responses:
         200:
           description: "OK"
@@ -1600,7 +1609,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Extension"
+                  $ref: "#/components/schemas/LateRequest"
         404:
           description: "Extension not found"
           content:
