@@ -52,8 +52,4 @@ public class Course {
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "extension_config_id", referencedColumnName = "id")
     private CourseLateRequestConfig lateRequestConfig;
-
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "external_service_config_id", referencedColumnName = "id")
-    private ExternalServiceConfig externalServiceConfig;
 }
