@@ -21,7 +21,7 @@ export function CoursePage() {
 
   if (isLoading || !data) return "Loading...";
 
-  if (error) return `An error occured: ${error}`;
+  if (error) return `An error occurred: ${error}`;
 
   return (
     <>
@@ -55,6 +55,9 @@ export function CoursePage() {
         <Text size="xl" fw={700}>
           Course Policies
         </Text>
+        <Button component={Link} to="/admin/policies/new" variant="filled">
+          New
+        </Button>
 
         <Divider my="md" />
       </Container>

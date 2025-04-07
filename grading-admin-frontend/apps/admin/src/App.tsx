@@ -32,6 +32,7 @@ import { ExtensionForm } from "./pages/student/ExtensionForm";
 import { Requests } from "./pages/student/Requests";
 import ProtectedRoute from "./ProtectedRoute";
 import Root from "./templates/Root";
+import {CreatePolicy} from "./pages/admin/policies/Create.tsx";
 
 const queryClient = new QueryClient({
   // queryCache: new QueryCache({
@@ -207,7 +208,15 @@ const router = createBrowserRouter([
             path: "/approval",
             // TODO will move this to instructor application
             // path: "/instructor/approval",
-            element: <ApprovalPage />,
+            element: <ApprovalPage/>,
+          },
+          {
+            path: "/admin/policies/new",
+            element: (
+              <ProtectedRoute>
+                <CreatePolicy/>
+              </ProtectedRoute>
+            )
           },
           {
             path: "/instructor/migrate",
