@@ -295,4 +295,8 @@ public class CourseMemberService {
 
         return membership.get().getSections();
     }
+
+    public Set<CourseMember> getCourseMembersForUser(User user){
+        return user.getCourseMemberships();
+    }
 }

@@ -31,10 +31,12 @@ public class CourseService {
     private final CanvasService canvasService;
     private final S3Service s3Service;
     private final PolicyRepo policyRepo;
+    private final UserService userService;
+    private final CourseMemberService courseMemberService;
 
     public CourseService(CourseRepo courseRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
-                         CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo) {
+                         CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, UserService userService, CourseMemberService courseMemberService) {
         this.courseRepo = courseRepo;
         this.taskRepo = taskRepo;
         this.impersonationManager = impersonationManager;
@@ -42,13 +44,30 @@ public class CourseService {
         this.eventPublisher = eventPublisher;
         this.s3Service = s3Service;
         this.policyRepo = policyRepo;
+        this.userService = userService;
+        this.courseMemberService = courseMemberService;
     }
 
     public List<Course> getCourses(boolean enabled) {
-        if (enabled) {
-            return courseRepo.getAll(enabled);
+
+            if (enabled) {
+
+                return courseRepo.getAll(enabled);
+            }
+            return courseRepo.getAll();
+    }
+
+    public List<Course> getCoursesStudent(User user){
+        List<Course> memberships = courseMemberService.getCourseMembersForUser(user).stream().map(m -> m.getCourse()).toList();
+        List<Course> existingCourses = courseRepo.getAll(true);
+        List<Course> studentEnrolledCourses = new ArrayList<>();
+        for (Course course : memberships) {
+            if (existingCourses.contains(course)) {
+                studentEnrolledCourses.add(course);
+            }
         }
-        return courseRepo.getAll();
+
+        return studentEnrolledCourses;
     }
 
     public Optional<Course> getCourse(UUID courseId){

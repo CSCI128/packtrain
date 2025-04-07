@@ -192,9 +192,12 @@ public class UserService {
     }
 
     @Transactional
-    public Optional<List<Course>> getEnrollments(String cwid) {
+    public List<Course> getEnrollments(String cwid) {
         Optional<User> user = userRepo.getByCwid(cwid);
-        return user.map(member -> member.getCourseMemberships().stream().map(CourseMember::getCourse).toList());
+        if (user.isEmpty()){
+            return List.of();
+        }
+        return user.get().getCourseMemberships().stream().map(CourseMember::getCourse).toList();
     }
 
 }

@@ -177,6 +177,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<List<CourseDTO>> getCourses(Boolean enabled) {
+        User user = securityManager.getUser();
         List<Course> courses = courseService.getCourses(enabled);
         return ResponseEntity.ok(courses.stream().map(DTOFactory::toDto).toList());
     }

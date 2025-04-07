@@ -54,6 +54,10 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @Autowired
     private ScheduledTaskRepo<CourseSyncTaskDef> scheduledTaskRepo;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private CourseMemberService courseMemberService;
 
     @BeforeAll
     static void setupClass() {
@@ -67,7 +71,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
                 courseRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
-                s3Service, policyRepo
+                s3Service, policyRepo, userService, courseMemberService
 
         );
 
@@ -223,4 +227,20 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         Assertions.assertTrue(activeCourse.isEnabled());
         Assertions.assertFalse(inactiveCourse.isEnabled());
     }
+
+    @Test
+    void verifyGetCourseStudent(){
+        Course coursePopulated = courseSeeders.populatedCourse();
+        Course course2 = courseSeeders.course2();
+        User user = userSeeders.user1();
+        List<Course> studentCourses = List.of(coursePopulated);
+        List<Course> notStudentCourse = List.of(course2);
+
+        // the user is a member of populatedCourse and not a member of course2
+        Assertions.assertEquals(studentCourses, courseService.getCoursesStudent(user));
+        Assertions.assertNotEquals(notStudentCourse, courseService.getCoursesStudent(user));
+
+    }
+
+
 }

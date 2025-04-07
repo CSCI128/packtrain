@@ -40,7 +40,8 @@ public class StudentApiImpl implements StudentApiDelegate {
 
     @Override
     public ResponseEntity<List<CourseSlimDTO>> getCoursesStudent() {
-        List<Course> courses = courseService.getCourses(true);
+        User user = securityManager.getUser();
+        List<Course> courses = courseService.getCoursesStudent(user);
         return ResponseEntity.ok(courses.stream().map(DTOFactory::toSlimDto).toList());
     }
 
@@ -48,13 +49,13 @@ public class StudentApiImpl implements StudentApiDelegate {
     public ResponseEntity<List<CourseSlimDTO>> getEnrollments() {
         User user = securityManager.getUser();
 
-        Optional<List<Course>> enrollments = userService.getEnrollments(user.getCwid());
+        List<Course> enrollments = userService.getEnrollments(user.getCwid());
 
         if (enrollments.isEmpty()){
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(enrollments.get().stream().map(DTOFactory::toSlimDto).toList());
+        return ResponseEntity.ok(enrollments.stream().map(DTOFactory::toSlimDto).toList());
     }
 
     @Override

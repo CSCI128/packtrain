@@ -194,8 +194,7 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
         courseMemberService.addMemberToCourse(course1.getId().toString(), new CourseMemberDTO().cwid(user1.getCwid()).canvasId("99999").courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.STUDENT.getRole())));
         courseMemberService.addMemberToCourse(course2.getId().toString(), new CourseMemberDTO().cwid(user1.getCwid()).canvasId("99991").courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.STUDENT.getRole())));
 
-        Optional<List<Course>> enrollments = userService.getEnrollments(user1.getCwid());
-        Assertions.assertTrue(enrollments.isPresent());
-        Assertions.assertEquals(2, enrollments.get().size());
+        List<Course> enrollments = userService.getEnrollments(user1.getCwid());
+        Assertions.assertEquals(2, enrollments.size());
     }
 }
