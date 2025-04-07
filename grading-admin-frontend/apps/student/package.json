@@ -1,7 +1,7 @@
 {
   "name": "student",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "npx openapi-typescript ../../../openapi/openapi.yml -o ./src/lib/api/v1.d.ts && vite --host",

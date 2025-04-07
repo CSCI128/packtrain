@@ -18,6 +18,10 @@
     // "noUnusedLocals": true,
     // "noUnusedParameters": true,
     // "noFallthroughCasesInSwitch": true
+
+    "paths": {
+      "react": ["./node_modules/@types/react"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
