@@ -1110,6 +1110,11 @@ export interface components {
              * @example 123456
              */
             canvas_id: number;
+            /**
+             * Format: int64
+             * @example 123456
+             */
+            gradescope_id?: number;
             members?: components["schemas"]["CourseMember"][];
             assignments?: components["schemas"]["Assignment"][];
             /** @example [

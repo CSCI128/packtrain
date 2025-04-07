@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.data.CourseLateRequestConfigDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
@@ -168,6 +169,11 @@ public class CourseService {
         newCourse.setEnabled(true);
 
         Optional<CourseLateRequestConfig> lateRequestConfig = createCourseLateRequestConfig(courseDTO.getLateRequestConfig());
+
+        ExternalServiceConfig externalServiceConfig = new ExternalServiceConfig();
+        if(courseDTO.getGradescopeId() != null) {
+            externalServiceConfig.configureGradescope(true, URI.create("https://www.gradescope.com/courses/" + courseDTO.getGradescopeId().toString()));
+        }
 
         if (lateRequestConfig.isPresent()) {
             newCourse.setLateRequestConfig(lateRequestConfig.get());

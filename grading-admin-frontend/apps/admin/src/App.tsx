@@ -94,6 +94,7 @@ const MiddlewareLayout = () => {
   if (isError && auth.isAuthenticated) {
     navigate("/disabled");
   }
+
   // const { data, error } = useQuery({
   //   queryKey: ["data"],
   //   queryFn: fetchData,

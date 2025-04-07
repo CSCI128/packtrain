@@ -121,7 +121,4 @@ public class ExternalServiceConfig {
 
         return new GradescopeConfig(true, uri);
     }
-
-
-
 }
