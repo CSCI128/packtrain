@@ -2,6 +2,7 @@ import axios from "axios";
 import RawScoreDTO from "../data/RawScoreDTO";
 import PolicyScoredDTO from "../data/PolicyScoredDTO";
 import {AppliedExtensionStatus, SubmissionStatus} from "../data/common";
+import { agent } from "../config/https";
 
 export type ApplyPolicyFunctionSig = (x: RawScoreDTO) => PolicyScoredDTO;
 
@@ -101,7 +102,7 @@ function compilePolicy(policyText: string): ApplyPolicyFunctionSig | string{
 export async function downloadAndVerifyPolicy(
     uri: string,
 ): Promise<ApplyPolicyFunctionSig> {
-    const res = await axios.get(uri);
+    const res = await axios.get(uri, {httpsAgent: agent});
 
     const functionOrError = compilePolicy(res.data as string);
 

@@ -5,7 +5,6 @@ import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
-import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
 import edu.mines.gradingadmin.services.ExtensionService;
@@ -58,7 +57,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<PolicyDTO> newPolicy(String courseId, String name, String filePath, MultipartFile fileData) {
-        Optional<Policy> policy = courseService.createNewCourseWidePolicy(securityManager.getUser(), UUID.fromString(courseId), name, filePath, fileData);
+        Optional<Policy> policy = courseService.createNewPolicy(securityManager.getUser(), UUID.fromString(courseId), name, filePath, fileData);
 
         if (policy.isEmpty()) {
             return ResponseEntity.badRequest().build();

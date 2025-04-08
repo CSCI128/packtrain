@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.data.CourseLateRequestConfigDTO;
+import edu.mines.gradingadmin.data.policyServer.PolicyServerErrorDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
@@ -14,9 +15,9 @@ import edu.mines.gradingadmin.repositories.CourseRepo;
 import edu.mines.gradingadmin.repositories.PolicyRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.services.external.CanvasService;
+import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.S3Service;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,10 +37,11 @@ public class CourseService {
     private final CanvasService canvasService;
     private final S3Service s3Service;
     private final PolicyRepo policyRepo;
+    private final PolicyServerService policyServerService;
 
     public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
-                         CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo) {
+                         CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, PolicyServerService policyServerService) {
         this.courseRepo = courseRepo;
         this.lateRequestConfigRepo = lateRequestConfigRepo;
         this.taskRepo = taskRepo;
@@ -48,6 +50,7 @@ public class CourseService {
         this.eventPublisher = eventPublisher;
         this.s3Service = s3Service;
         this.policyRepo = policyRepo;
+        this.policyServerService = policyServerService;
     }
 
     public List<Course> getCourses(boolean enabled) {
@@ -202,7 +205,7 @@ public class CourseService {
         return Optional.of(lateRequestConfigRepo.save(lateRequestConfig));
     }
 
-    public Optional<Policy> createNewCourseWidePolicy(User actingUser, UUID courseId, String policyName, String fileName, MultipartFile file){
+    public Optional<Policy> createNewPolicy(User actingUser, UUID courseId, String policyName, String fileName, MultipartFile file){
         // if this is slow, we may need to make this a task
         Optional<Course> course = courseRepo.findById(courseId);
 
@@ -213,7 +216,7 @@ public class CourseService {
 
         log.debug("Creating new course wide policy '{}' for course '{}'", policyName, course.get().getCode());
 
-        Optional<String> policyUrl = s3Service.uploadCourseWidePolicy(actingUser, courseId, fileName, file);
+        Optional<String> policyUrl = s3Service.uploadNewPolicy(actingUser, courseId, fileName, file);
 
         if (policyUrl.isEmpty()){
             log.warn("Failed to upload policy '{}'", policyName);
@@ -223,6 +226,14 @@ public class CourseService {
         // this should never happen, but if it does, then we also need to reject it as the URIs must be unique
         if (policyRepo.existsByPolicyURI(policyUrl.get())){
             log.warn("Policy already exists at url '{}'", policyUrl.get());
+            return Optional.empty();
+        }
+
+        Optional<String> validationError = policyServerService.validatePolicy(policyUrl.get());
+
+        if (validationError.isPresent()){
+            log.error("Policy '{}' failed to validate due to: '{}'", policyName, validationError.get());
+            s3Service.deletePolicy(courseId, fileName);
             return Optional.empty();
         }
 

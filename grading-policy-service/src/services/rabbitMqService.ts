@@ -1,4 +1,4 @@
-import { RabbitMqConfig } from "../config";
+import { RabbitMqConfig } from "../config/config";
 import {
     Connection,
     connect as rabbitMqConnect,

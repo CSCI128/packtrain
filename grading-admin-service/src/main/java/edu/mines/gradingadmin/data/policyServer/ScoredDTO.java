@@ -1,4 +1,4 @@
-package edu.mines.gradingadmin.data.messages;
+package edu.mines.gradingadmin.data.policyServer;
 
 import edu.mines.gradingadmin.models.enums.LateRequestStatus;
 import edu.mines.gradingadmin.models.enums.SubmissionStatus;

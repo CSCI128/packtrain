@@ -1,7 +1,9 @@
 import express from "express";
 import GradingStartDTO from "../data/GradingStartDTO";
-import { GradingPolicyConfig } from "../config";
+import ValidateDTO from "../data/ValidateDTO";
+import { GradingPolicyConfig } from "../config/config";
 import { ready, startMigration } from "../services/rabbitMqService";
+import { downloadAndVerifyPolicy } from "../services/policyService";
 
 export function setup(config: GradingPolicyConfig, app: express.Application) {
     app.use(express.json());
@@ -39,6 +41,26 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
                 res.status(400);
                 res.send({ status: "failed", reason: e });
             });
+    });
+
+    app.post(`${config.serverConfig.basePath}/validate`, (req, res) =>{
+        if (!req.body) {
+            res.sendStatus(400);
+            return;
+        }
+
+        const body = req.body as ValidateDTO;
+
+        downloadAndVerifyPolicy(body.policyURI)
+          .then(_ => {
+              res.status(200);
+              res.send({status: "valid"});
+          })
+          .catch(e => {
+              console.log(e)
+              res.status(400);
+              res.send({ status: "invalid", reason: e });
+          });
     });
 
     return app;

@@ -6,7 +6,7 @@ import {
 } from "@testcontainers/rabbitmq";
 import * as ampq from "amqplib";
 import * as assert from "node:assert";
-import { RabbitMqConfig } from "../../src/config";
+import { RabbitMqConfig } from "../../src/config/config";
 import {
     connect,
     endConnection,

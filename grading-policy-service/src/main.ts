@@ -1,6 +1,6 @@
 import express from "express";
 import http from "http";
-import {config} from "./config";
+import {config} from "./config/config";
 import {setup} from "./api/api";
 import {connect} from "./services/rabbitMqService";
 

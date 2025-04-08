@@ -1,7 +1,7 @@
 package edu.mines.gradingadmin.services;
 
-import edu.mines.gradingadmin.data.messages.RawGradeDTO;
-import edu.mines.gradingadmin.data.messages.ScoredDTO;
+import edu.mines.gradingadmin.data.policyServer.RawGradeDTO;
+import edu.mines.gradingadmin.data.policyServer.ScoredDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.factories.MigrationFactory;
 import edu.mines.gradingadmin.models.*;

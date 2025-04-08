@@ -2,7 +2,7 @@ package edu.mines.gradingadmin.services;
 
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
-import edu.mines.gradingadmin.data.messages.ScoredDTO;
+import edu.mines.gradingadmin.data.policyServer.ScoredDTO;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.LateRequestStatus;
 import edu.mines.gradingadmin.models.enums.SubmissionStatus;

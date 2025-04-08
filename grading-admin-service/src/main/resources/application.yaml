@@ -49,7 +49,7 @@ grading-admin:
       exchange-name: "grading-admin-message-exchange"
     policy-server:
       enabled: true
-      uri: https://localhost.dev/
+      uri: https://localhost.dev/api/policies
     gradescope:
       enabled: true
       uri: https://gradescope.com

@@ -1,7 +1,7 @@
 package edu.mines.gradingadmin.factories;
 
 import com.rabbitmq.client.Channel;
-import edu.mines.gradingadmin.data.messages.ScoredDTO;
+import edu.mines.gradingadmin.data.policyServer.ScoredDTO;
 import edu.mines.gradingadmin.models.Assignment;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
