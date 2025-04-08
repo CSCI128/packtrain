@@ -41,16 +41,16 @@ export function Navbar() {
                   <a href="/instructor/migrate" className={classes.link}>
                     Migrate
                   </a>
-                  <a href="/admin/home" className={classes.link}>
+                  <a href="/home" className={classes.link}>
                     Course
                   </a>
-                  <a href="/admin/assignments" className={classes.link}>
+                  <a href="/assignments" className={classes.link}>
                     Assignments
                   </a>
-                  <a href="/admin/members" className={classes.link}>
+                  <a href="/members" className={classes.link}>
                     Members
                   </a>
-                  <a href="/admin/users" className={classes.link}>
+                  <a href="/users" className={classes.link}>
                     Users
                   </a>
                 </>

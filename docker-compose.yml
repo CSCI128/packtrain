@@ -19,10 +19,24 @@ services:
       localhost.dev-int:
         condition: service_started
 
-  frontend:
+  frontend-admin:
     build:
       context: .
-      dockerfile: ./grading-admin-frontend/Dockerfile
+      dockerfile: ./grading-admin-frontend/apps/admin/Dockerfile
+    env_file:
+      - .env
+
+  frontend-instructor:
+    build:
+      context: .
+      dockerfile: ./grading-admin-frontend/apps/instructor/Dockerfile
+    env_file:
+      - .env
+
+  frontend-student:
+    build:
+      context: .
+      dockerfile: ./grading-admin-frontend/apps/student/Dockerfile
     env_file:
       - .env
 

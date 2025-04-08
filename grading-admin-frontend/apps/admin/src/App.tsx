@@ -2,7 +2,7 @@ import { MantineProvider, Text } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import axios from "axios";
-import { useEffect } from "react";
+import { JSX, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import {
   createBrowserRouter,
@@ -11,13 +11,14 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { $api, store$, userManager } from "./api";
+import { store$, userManager } from "./api";
 import "./index.css";
 import { AssignmentsPage } from "./pages/admin/Assignments";
 import { CoursePage } from "./pages/admin/course/Course";
 import { CreatePage } from "./pages/admin/course/Create";
 import { EditCourse } from "./pages/admin/course/Edit";
 import { SelectClass } from "./pages/admin/course/Select";
+import { CreatePolicy } from "./pages/admin/policies/Create.tsx";
 import { UsersPage } from "./pages/admin/Users";
 import { HomePage } from "./pages/Home";
 import { ApprovalPage } from "./pages/instructor/ApprovalPage";
@@ -32,7 +33,6 @@ import { ExtensionForm } from "./pages/student/ExtensionForm";
 import { Requests } from "./pages/student/Requests";
 import ProtectedRoute from "./ProtectedRoute";
 import Root from "./templates/Root";
-import {CreatePolicy} from "./pages/admin/policies/Create.tsx";
 
 const queryClient = new QueryClient({
   // queryCache: new QueryCache({
@@ -92,10 +92,10 @@ const MiddlewareLayout = () => {
   const auth = useAuth();
   const currentPage = location.pathname;
 
-  const { isError } = $api.useQuery("get", "/user");
-  if (isError && auth.isAuthenticated) {
-    navigate("/disabled");
-  }
+  // const { isError } = $api.useQuery("get", "/user");
+  // if (isError && auth.isAuthenticated) {
+  //   navigate("/disabled");
+  // }
 
   // const { data, error } = useQuery({
   //   queryKey: ["data"],
@@ -127,6 +127,11 @@ const MiddlewareLayout = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // const { isError } = $api.useQuery("get", "/user");
+        // if (isError && auth.isAuthenticated) {
+        //   navigate("/disabled");
+        // }
+
         const user = await userManager.getUser();
         if (!isAuthenticated && user && user.profile.is_admin) {
           navigate("/select");
@@ -189,7 +194,7 @@ const router = createBrowserRouter([
             element: <ExtensionForm />,
           },
           {
-            path: "/admin/home",
+            path: "/home",
             element: (
               <ProtectedRoute>
                 <CoursePage />
@@ -197,7 +202,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/admin/edit",
+            path: "/edit",
             element: (
               <ProtectedRoute>
                 <EditCourse />
@@ -208,15 +213,15 @@ const router = createBrowserRouter([
             path: "/approval",
             // TODO will move this to instructor application
             // path: "/instructor/approval",
-            element: <ApprovalPage/>,
+            element: <ApprovalPage />,
           },
           {
             path: "/admin/policies/new",
             element: (
               <ProtectedRoute>
-                <CreatePolicy/>
+                <CreatePolicy />
               </ProtectedRoute>
-            )
+            ),
           },
           {
             path: "/instructor/migrate",
@@ -255,7 +260,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/admin/create",
+            path: "/create",
             element: (
               <ProtectedRoute>
                 <CreatePage />
@@ -263,7 +268,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/admin/assignments",
+            path: "/assignments",
             element: (
               <ProtectedRoute>
                 <AssignmentsPage />
@@ -271,7 +276,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/admin/members",
+            path: "/members",
             element: (
               <ProtectedRoute>
                 <MembersPage />
@@ -279,7 +284,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/admin/users",
+            path: "/users",
             element: (
               <ProtectedRoute>
                 <UsersPage />
