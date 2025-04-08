@@ -62,7 +62,7 @@ export function UsersPage() {
   });
 
   const editUserForm = useForm({
-    mode: "uncontrolled",
+    mode: "controlled",
     initialValues: {
       name: "",
       email: "",
@@ -216,8 +216,8 @@ export function UsersPage() {
 
           <InputWrapper withAsterisk label="Admin User">
             <Checkbox
-              disabled={selectedUser?.cwid === auth.user?.profile.cwid}
-              defaultChecked={editUserForm.values.admin}
+              disabled={!editUserForm.getValues().enabled || editUserForm.getValues().email === auth.user?.profile.email}
+              checked={editUserForm.getValues().admin}
               key={editUserForm.key("admin")}
               {...editUserForm.getInputProps("admin", { type: "checkbox" })}
             />
@@ -225,8 +225,8 @@ export function UsersPage() {
 
           <InputWrapper withAsterisk label="Enabled">
             <Checkbox
-              disabled={selectedUser?.cwid === auth.user?.profile.cwid}
-              defaultChecked={editUserForm.values.enabled}
+              disabled={editUserForm.getValues().admin || editUserForm.getValues().email === auth.user?.profile.email}
+              checked={editUserForm.getValues().enabled}
               key={editUserForm.key("enabled")}
               {...editUserForm.getInputProps("enabled", { type: "checkbox" })}
             />
