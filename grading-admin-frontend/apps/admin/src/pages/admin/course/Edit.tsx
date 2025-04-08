@@ -43,6 +43,7 @@ export function EditCourse() {
           term: values.courseTerm as string,
           enabled: true,
           canvas_id: Number(values.canvasId),
+          gradescope_id: Number(values.gradescopeId),
           late_request_config: {
             late_passes_enabled: values.latePassesEnabled,
             late_pass_name: values.latePassName,
@@ -65,6 +66,7 @@ export function EditCourse() {
       courseName: "",
       courseCode: "",
       courseTerm: "",
+      gradescopeId: "",
       canvasId: 0,
       latePassesEnabled: false,
       totalLatePassesAllowed: 0,
@@ -78,6 +80,8 @@ export function EditCourse() {
         value.length < 1 ? "Course code must have at least 1 character" : null,
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
+      gradescopeId: (value) =>
+        value.length == 6 ? null : "Gradescope ID must be 6 characters",
       totalLatePassesAllowed: (value) =>
         value < 0 ? "Total number of late passes must be greater than or equal to 0" : null,
     },
@@ -119,6 +123,7 @@ export function EditCourse() {
         courseCode: data.code,
         courseTerm: data.term,
         canvasId: data.canvas_id,
+        gradescopeId: String(data.gradescope_id),
         latePassesEnabled: data.late_request_config.late_passes_enabled,
         totalLatePassesAllowed: data.late_request_config.total_late_passes_allowed,
         latePassName: data.late_request_config.late_pass_name,
@@ -215,15 +220,17 @@ export function EditCourse() {
             />
           </Fieldset>
 
-          <InputWrapper label="External Services">
-            <Chip.Group multiple>
-              <Group>
-                <Chip value="1">Gradescope</Chip>
-                <Chip value="2">Runestone</Chip>
-                <Chip value="3">PrairieLearn</Chip>
-              </Group>
-            </Chip.Group>
-          </InputWrapper>
+          <Space h="md"/>
+
+          <Fieldset legend="External Course Config">
+            <TextInput
+              pb={8}
+              label="Gradescope Course ID"
+              placeholder="xxxxxxxx"
+              key={form.key("gradescopeId")}
+              {...form.getInputProps("gradescopeId")}
+            />
+          </Fieldset>
 
           <Group justify="flex-end" mt="md">
             <Button onClick={syncAssignments} variant="filled">

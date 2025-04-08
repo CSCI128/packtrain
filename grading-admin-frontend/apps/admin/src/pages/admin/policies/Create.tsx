@@ -1,32 +1,37 @@
-import {Box, Button, Container, Menu, Paper, Text, TextInput} from "@mantine/core";
-import { useForm } from "@mantine/form";
-import {$api, store$} from "../../../api.ts";
+import {Button, Container, Input, Paper, Space, TextInput} from "@mantine/core";
+import {useForm} from "@mantine/form";
+import {store$, userManager} from "../../../api.ts";
 import CodeMirror, {EditorState, Extension} from "@uiw/react-codemirror";
 import {javascript} from "@codemirror/lang-javascript";
+import axios from "axios";
 
 export function CreatePolicy() {
-  const createPolicyMutation = $api.useMutation("post", "/instructor/courses/{course_id}/policies");
-
   const createNewPolicy = (values: typeof form.values) => {
     const file = new File([values.content], values.fileName, {type: "application/javascript"});
-
-    createPolicyMutation.mutate({
-      params: {
-        path:{
-          course_id: store$.id.get() as string,
+    userManager.getUser().then(u => {
+        if (u == null) {
+          throw new Error("Failed to get user");
         }
-      },
-      body: {
-        name: values.policyName,
-        file_path: values.fileName,
-        // https://github.com/openapi-ts/openapi-typescript/issues/1214
-        file_data: file as unknown as string,
+
+        const formData = new FormData();
+
+        formData.append("name", values.policyName);
+        formData.append("file_path", values.fileName);
+        formData.append("file_data", file);
+
+        axios.post(`/api/instructor/courses/${store$.id.get()}/policies`, formData, {
+          headers: {
+            "authorization": `Bearer ${u.access_token}`,
+            "content-type": "multipart/form-data",
+          },
+        }).then(a => console.log(a));
       }
-    });
+    )
+
 
   };
 
-  const form  = useForm({
+  const form = useForm({
     mode: "uncontrolled",
     initialValues: {
       policyName: "",
@@ -44,9 +49,11 @@ export function CreatePolicy() {
   });
 
   // language=JavaScript
-  const fullCode = `function policy(rawScore){\n${form.values.content}\n}`;
+  const fullCode = `function policy(rawScore) {
+      ${form.values.content}
+  }`;
 
-  const preventEditingWrapperLines = (): Extension  =>
+  const preventEditingWrapperLines = (): Extension =>
     EditorState.changeFilter.of((tr) => {
       const doc = tr.startState.doc;
       const firstLine = doc.line(1);
@@ -66,7 +73,7 @@ export function CreatePolicy() {
       // Returning false blocks the entire change
       return !blocked;
     })
-  return(
+  return (
     <>
       <Container size="md">
         <form onSubmit={form.onSubmit(createNewPolicy)}>
@@ -76,6 +83,7 @@ export function CreatePolicy() {
             placeholder="New Policy Name"
             key={form.key("policyName")}
             {...form.getInputProps("policyName")}
+            required
           />
           <TextInput
             pb={8}
@@ -83,16 +91,28 @@ export function CreatePolicy() {
             placeholder="policy.js"
             key={form.key("fileName")}
             {...form.getInputProps("fileName")}
+            required
           />
 
-          <Text size={"md"}>
-            Policy Contents
-          </Text>
-          <CodeMirror
-            value={fullCode}
-            extensions={[javascript(), preventEditingWrapperLines()]}
-            onChange={c => form.setFieldValue("content", c.split("\n").slice(1, -1).join("\n"))}
-          />
+          <Input.Wrapper label="Policy Contents" required>
+            <Paper
+              withBorder
+              radius="md"
+              p={0}
+              style={{
+                borderColor: '#ced4da',
+                overflow: 'hidden',
+              }}
+            >
+              <CodeMirror
+                value={fullCode}
+                extensions={[javascript(), preventEditingWrapperLines()]}
+                onChange={c => form.setFieldValue("content", c.split("\n").slice(1, -1).join("\n"))}
+              />
+            </Paper>
+          </Input.Wrapper>
+
+          <Space h="md"/>
 
           <Button type={"submit"}>
             Create

@@ -206,7 +206,7 @@ export function CreatePage() {
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
       gradescopeId: (value) =>
-        value.length == 5 ? null : "Gradescope ID must be 5 characters",
+        value.length == 6 ? null : "Gradescope ID must be 6 characters",
       totalLatePassesAllowed: (value) =>
         value < 0
           ? "Total number of late passes must be greater than or equal to 0"
@@ -337,6 +337,11 @@ export function CreatePage() {
                   {...form.getInputProps("latePassName")}
                 />
 
+              </Fieldset>
+
+              <Space h="md"/>
+
+              <Fieldset legend="External Course Config">
                 <TextInput
                   disabled={courseCreated}
                   pb={8}
