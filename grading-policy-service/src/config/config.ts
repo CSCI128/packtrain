@@ -4,6 +4,7 @@ import { parse } from "yaml";
 export interface ServerConfig{
     port: number;
     basePath: string;
+    trustedCA: string | null;
 }
 
 export interface RabbitMqConfig {
