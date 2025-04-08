@@ -305,17 +305,6 @@ public class AdminApiImpl implements AdminApiDelegate {
     public ResponseEntity<UserDTO> adminUpdateUser(UserDTO userDTO) {
         Optional<User> user = Optional.empty();
 
-        if(userDTO.getEnabled()) {
-            user = userService.enableUser(userDTO.getCwid());
-        }
-        else {
-            user = userService.disableUser(securityManager.getUser(), userDTO.getCwid());
-        }
-
-        if (user.isEmpty()){
-            return ResponseEntity.badRequest().build();
-        }
-
         if(userDTO.getAdmin()) {
             user = userService.makeAdmin(userDTO.getCwid());
         } else{
@@ -323,6 +312,17 @@ public class AdminApiImpl implements AdminApiDelegate {
 
         }
         user = userService.updateUser(userDTO);
+
+        if (user.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+
+        if(userDTO.getEnabled()) {
+            user = userService.enableUser(userDTO.getCwid());
+        }
+        else {
+            user = userService.disableUser(securityManager.getUser(), userDTO.getCwid());
+        }
 
         if (user.isEmpty()){
             return ResponseEntity.badRequest().build();
