@@ -20,8 +20,9 @@ services:
         condition: service_started
 
   frontend:
-    build: ./grading-admin-web
-    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./grading-admin-frontend/Dockerfile
     env_file:
       - .env
 
