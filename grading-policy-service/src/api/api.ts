@@ -5,8 +5,8 @@ import { ready, startMigration } from "../services/rabbitMqService";
 
 export function setup(config: GradingPolicyConfig, app: express.Application) {
     app.use(express.json());
-    app.get("/-/ready", (req, res) => {
-        // unauthenticated endpoint
+    // keep this at base so health check works
+    app.get(`/-/ready`, (req, res) => {
         if (!ready()) {
             res.sendStatus(500);
             return;
@@ -14,7 +14,16 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
 
         res.sendStatus(200);
     });
-    app.post("/grading/start", (req, res) => {
+
+    app.get(`${config.serverConfig.basePath}/-/ready`, (req, res) => {
+        if (!ready()) {
+            res.sendStatus(500);
+            return;
+        }
+
+        res.sendStatus(200);
+    });
+    app.post(`${config.serverConfig.basePath}/grading/start`, (req, res) => {
         if (!req.body) {
             res.sendStatus(400);
             return;

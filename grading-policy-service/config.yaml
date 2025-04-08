@@ -1,4 +1,6 @@
-port: 80
+serverConfig:
+  port: 80
+  basePath: /api/policies
 
 policyConfig:
   trustedServer: "https://localhost.dev"

@@ -1,6 +1,11 @@
 import { readFileSync } from "node:fs";
 import { parse } from "yaml";
 
+export interface ServerConfig{
+    port: number;
+    basePath: string;
+}
+
 export interface RabbitMqConfig {
     username: string;
     password: string;
@@ -14,10 +19,9 @@ export interface PolicyConfig {
 }
 
 export interface GradingPolicyConfig {
+    serverConfig: ServerConfig;
     policyConfig: PolicyConfig;
     rabbitMqConfig: RabbitMqConfig;
-
-    port: number;
 }
 
 export const config: GradingPolicyConfig = parse(

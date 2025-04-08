@@ -13,6 +13,6 @@ connect(config.rabbitMqConfig).then(() => {
     console.error("Failed to connect to rabbitMQ", e)
 });
 
-http.createServer(app).listen(config.port, () => {
-    console.log(`Listening on :${config.port}`);
+http.createServer(app).listen(config.serverConfig.port, () => {
+    console.log(`Listening on :${config.serverConfig.port} under path ${config.serverConfig.basePath}`);
 });
