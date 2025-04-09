@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { parse } from "yaml";
 
-export interface ServerConfig{
+export interface ServerConfig {
     port: number;
     basePath: string;
     trustedCA: string | null;

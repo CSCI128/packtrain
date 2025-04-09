@@ -2,7 +2,7 @@ import { describe, it } from "node:test";
 import { before, after } from "node:test";
 import {
     RabbitMQContainer,
-    StartedRabbitMQContainer
+    StartedRabbitMQContainer,
 } from "@testcontainers/rabbitmq";
 import * as ampq from "amqplib";
 import * as assert from "node:assert";
@@ -12,9 +12,11 @@ import {
     endConnection,
     getMigration,
     ready,
-    startMigration
+    startMigration,
 } from "../../src/services/rabbitMqService";
-import GradingStartDTO, { GlobalAssignmentMetadata } from "../../src/data/GradingStartDTO";
+import GradingStartDTO, {
+    GlobalAssignmentMetadata,
+} from "../../src/data/GradingStartDTO";
 import { randomUUID } from "node:crypto";
 import ScoredDTO from "../../src/data/ScoredDTO";
 import { ConsumeMessage } from "amqplib";
@@ -31,7 +33,7 @@ describe("RabbitMq Service", () => {
         rabbitMq = await new RabbitMQContainer()
             .withEnvironment({
                 RABBITMQ_DEFAULT_USER: username,
-                RABBITMQ_DEFAULT_PASS: password
+                RABBITMQ_DEFAULT_PASS: password,
             })
             .start();
 
@@ -40,12 +42,12 @@ describe("RabbitMq Service", () => {
             password: password,
             endpoint: rabbitMq.getHost(),
             port: rabbitMq.getMappedPort(5672).toString(),
-            exchangeName: "default"
+            exchangeName: "default",
         };
         connection = await ampq.connect({
             username: username,
             password: password,
-            port: rabbitMq.getMappedPort(5672)
+            port: rabbitMq.getMappedPort(5672),
         });
     });
 
@@ -70,7 +72,7 @@ describe("RabbitMq Service", () => {
         await startMigration(
             config!.exchangeName,
             dto,
-            "console.log(\"default\");"
+            'console.log("default");',
         );
 
         const migration = getMigration(dto.migrationId)!;
@@ -107,66 +109,69 @@ return {
         dto.rawGradeRoutingKey = `${dto.migrationId}-raw`;
         dto.globalMetadata = global;
 
-        await startMigration(
-            config!.exchangeName,
-            dto,
-            policy
-        );
+        await startMigration(config!.exchangeName, dto, policy);
 
         let receivedData: ScoredDTO | null = null;
 
-        const scoredReceiver = await connection!.createChannel().then(async (ch) => {
-            const queue = await ch.assertQueue("");
-            await ch.assertExchange(config!.exchangeName, "direct");
-            await ch.bindQueue(
-                queue.queue,
-                config!.exchangeName,
-                dto.scoreCreatedRoutingKey
-            );
+        const scoredReceiver = await connection!
+            .createChannel()
+            .then(async (ch) => {
+                const queue = await ch.assertQueue("");
+                await ch.assertExchange(config!.exchangeName, "direct");
+                await ch.bindQueue(
+                    queue.queue,
+                    config!.exchangeName,
+                    dto.scoreCreatedRoutingKey,
+                );
 
-            await ch.consume(queue.queue, (msg: ConsumeMessage | null) => {
-                if (!msg) {
-                    return;
-                }
+                await ch.consume(queue.queue, (msg: ConsumeMessage | null) => {
+                    if (!msg) {
+                        return;
+                    }
 
-                receivedData = JSON.parse(msg.content.toString()) as ScoredDTO;
+                    receivedData = JSON.parse(
+                        msg.content.toString(),
+                    ) as ScoredDTO;
+                });
+
+                return ch;
             });
 
-            return ch;
-        });
+        const rawScoreProducer = await connection!
+            .createChannel()
+            .then(async (ch) => {
+                const queue = await ch.assertQueue("");
+                await ch.assertExchange(config!.exchangeName, "direct");
+                await ch.bindQueue(
+                    queue.queue,
+                    config!.exchangeName,
+                    dto.rawGradeRoutingKey,
+                );
 
-        const rawScoreProducer = await connection!.createChannel().then(async (ch) => {
-            const queue = await ch.assertQueue("");
-            await ch.assertExchange(config!.exchangeName, "direct");
-            await ch.bindQueue(
-                queue.queue,
-                config!.exchangeName,
-                dto.rawGradeRoutingKey
-            );
-
-            return ch;
-        });
+                return ch;
+            });
 
         const rawScore = new RawScoreDTO();
         rawScore.cwid = "10000";
         rawScore.rawScore = 10;
         rawScore.submissionDate = new Date();
 
-        rawScoreProducer.publish(config!.exchangeName, dto.rawGradeRoutingKey,
+        rawScoreProducer.publish(
+            config!.exchangeName,
+            dto.rawGradeRoutingKey,
             Buffer.from(JSON.stringify(rawScore)),
             {
                 contentType: "application/json",
-                type: "grade.raw_score"
-            }
+                type: "grade.raw_score",
+            },
         );
 
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         assert.notEqual(receivedData, null);
         assert.equal(receivedData!.cwid, rawScore.cwid);
         assert.equal(receivedData!.assignmentId, global.assignmentId);
         assert.equal(receivedData!.finalScore, rawScore.rawScore);
-
 
         await endConnection();
     });

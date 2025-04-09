@@ -43,7 +43,7 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
             });
     });
 
-    app.post(`${config.serverConfig.basePath}/validate`, (req, res) =>{
+    app.post(`${config.serverConfig.basePath}/validate`, (req, res) => {
         if (!req.body) {
             res.sendStatus(400);
             return;
@@ -52,15 +52,15 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
         const body = req.body as ValidateDTO;
 
         downloadAndVerifyPolicy(body.policyURI)
-          .then(_ => {
-              res.status(200);
-              res.send({status: "valid"});
-          })
-          .catch(e => {
-              console.log(e)
-              res.status(400);
-              res.send({ status: "invalid", reason: e });
-          });
+            .then((_) => {
+                res.status(200);
+                res.send({ status: "valid" });
+            })
+            .catch((e) => {
+                console.log(e);
+                res.status(400);
+                res.send({ status: "invalid", reason: e });
+            });
     });
 
     return app;

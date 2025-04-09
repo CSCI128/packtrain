@@ -1,3 +1,3 @@
-export default class ValidateDTO{
+export default class ValidateDTO {
     policyURI!: string;
 }
