@@ -19,4 +19,6 @@ public interface PolicyRepo extends CrudRepository<Policy, UUID> {
 
     @Query("select c from policy c where c.policyURI=?1")
     Optional<Policy> getPolicyByURI(String policyURI);
+
+    Optional<Policy> getPolicyById(UUID policyId);
 }

@@ -27,8 +27,10 @@ public class DTOFactory {
 
     public static PolicyDTO toDto(Policy policy) {
         return new PolicyDTO()
-            .course(DTOFactory.toDto(policy.getCourse()))
+            .id(policy.getId().toString())
             .name(policy.getPolicyName())
+            .description(policy.getDescription())
+            .numberOfMigrations(policy.getNumberOfMigrations())
             .uri(policy.getPolicyURI());
     }
 

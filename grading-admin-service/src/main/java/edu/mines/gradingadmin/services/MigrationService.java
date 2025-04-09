@@ -38,8 +38,10 @@ public class MigrationService {
     private final PolicyServerService policyServerService;
     private final RawScoreRepo rawScoreRepo;
     private final MasterMigrationStatsRepo masterMigrationStatsRepo;
+    private final PolicyService policyService;
 
-    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreRepo rawScoreRepo, MasterMigrationStatsRepo masterMigrationStatsRepo){
+
+    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreRepo rawScoreRepo, MasterMigrationStatsRepo masterMigrationStatsRepo, PolicyService policyService){
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
@@ -52,6 +54,7 @@ public class MigrationService {
         this.policyServerService = policyServerService;
         this.rawScoreRepo = rawScoreRepo;
         this.masterMigrationStatsRepo = masterMigrationStatsRepo;
+        this.policyService = policyService;
     }
 
     public MasterMigration createMigrationForAssignments(Course course, User createdByUser, List<Policy> policyList, List<Assignment> assignmentList){
@@ -94,9 +97,9 @@ public class MigrationService {
         }
 
         Migration migration = new Migration();
-        URI uri =URI.create(policyURI);
+        URI uri = URI.create(policyURI);
 
-        Optional<Policy> policy = courseService.getPolicy(uri);
+        Optional<Policy> policy = policyService.getPolicy(uri).map(policyService::incrementUsedBy);
 
         if (policy.isEmpty()){
             return Optional.empty();
@@ -104,9 +107,11 @@ public class MigrationService {
 
         migration.setPolicy(policy.get());
         Optional<Assignment> assignment = assignmentService.getAssignmentById(assignmentId);
-       if (assignment.isEmpty()){
-           return Optional.empty();
-       }
+
+        if (assignment.isEmpty()){
+            return Optional.empty();
+        }
+
         migration.setAssignment(assignment.get());
         migration.setMasterMigration(masterMigration.get());
         migrationRepo.save(migration);
@@ -148,7 +153,12 @@ public class MigrationService {
             return Optional.empty();
         }
 
-        Optional<Policy> policy = courseService.getPolicy(uri);
+        Optional<Policy> policy = policyService.getPolicy(uri).map(policyService::incrementUsedBy);
+        if (updatedMigration.getPolicy() != null){
+            policyService.decrementUsedBy(updatedMigration.getPolicy());
+            updatedMigration.setPolicy(null);
+        }
+
         if (policy.isEmpty()){
             return Optional.empty();
         }

@@ -127,8 +127,11 @@ public class S3Service {
             throw new ExternalServiceDisabledException("S3 Service is disabled!");
         }
         if (!bucketExists(courseId.toString())){
-            log.error("Failed to upload policy! Bucket for course '{}' does not exist!", courseId);
-            return Optional.empty();
+            log.warn("Bucket for course '{}' does not exist!", courseId);
+            if (createNewBucketForCourse(courseId).isEmpty()){
+                log.error("Failed to create bucket for course '{}'! Failed to upload policy!", courseId);
+                return Optional.empty();
+            }
         }
 
         if (objectExists(courseId.toString(), filename)){

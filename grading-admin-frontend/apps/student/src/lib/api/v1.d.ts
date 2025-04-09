@@ -484,6 +484,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/instructor/course/{course_id}/policies/{policy_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Create a new policy
+         * @description Create a new policy for the course
+         *
+         */
+        delete: operations["delete_policy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/instructor/courses/{course_id}": {
         parameters: {
             query?: never;
@@ -907,6 +928,9 @@ export interface components {
             name: string;
             /** @example default.js */
             file_path: string;
+            /** @example The default policy
+             *      */
+            description?: string;
             /**
              * Format: binary
              * @example // valid javascript code
@@ -916,12 +940,17 @@ export interface components {
         };
         /** @description A grading policy */
         Policy: {
+            /** @example 999-9999-9999-99 */
+            id?: string;
             /** @example Default Policy */
             name?: string;
+            /** @example the default grading policy :)
+             *      */
+            description?: string;
             /** @example https://s3.aws.com/999-9999-9999-99/default.js */
             uri?: string;
-            course?: components["schemas"]["Course"];
-            assignment?: components["schemas"]["Assignment"];
+            /** @example 1 */
+            number_of_migrations?: number;
         };
         /** @description An async task on the server */
         Task: {
@@ -2197,6 +2226,27 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Policy"];
                 };
+            };
+        };
+    };
+    delete_policy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+                policy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

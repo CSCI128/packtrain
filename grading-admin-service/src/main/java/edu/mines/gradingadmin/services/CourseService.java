@@ -36,12 +36,9 @@ public class CourseService {
     private final ImpersonationManager impersonationManager;
     private final CanvasService canvasService;
     private final S3Service s3Service;
-    private final PolicyRepo policyRepo;
-    private final PolicyServerService policyServerService;
-
     public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
-                         CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, PolicyServerService policyServerService) {
+                         CanvasService canvasService, S3Service s3Service) {
         this.courseRepo = courseRepo;
         this.lateRequestConfigRepo = lateRequestConfigRepo;
         this.taskRepo = taskRepo;
@@ -49,8 +46,6 @@ public class CourseService {
         this.canvasService = canvasService;
         this.eventPublisher = eventPublisher;
         this.s3Service = s3Service;
-        this.policyRepo = policyRepo;
-        this.policyServerService = policyServerService;
     }
 
     public List<Course> getCourses(boolean enabled) {
@@ -205,69 +200,5 @@ public class CourseService {
         return Optional.of(lateRequestConfigRepo.save(lateRequestConfig));
     }
 
-    public Optional<Policy> createNewPolicy(User actingUser, UUID courseId, String policyName, String fileName, MultipartFile file){
-        // if this is slow, we may need to make this a task
-        Optional<Course> course = courseRepo.findById(courseId);
-
-        if (course.isEmpty()){
-            log.warn("Course '{}' does not exist!", courseId);
-            return Optional.empty();
-        }
-
-        log.debug("Creating new course wide policy '{}' for course '{}'", policyName, course.get().getCode());
-
-        Optional<String> policyUrl = s3Service.uploadNewPolicy(actingUser, courseId, fileName, file);
-
-        if (policyUrl.isEmpty()){
-            log.warn("Failed to upload policy '{}'", policyName);
-            return Optional.empty();
-        }
-
-        // this should never happen, but if it does, then we also need to reject it as the URIs must be unique
-        if (policyRepo.existsByPolicyURI(policyUrl.get())){
-            log.warn("Policy already exists at url '{}'", policyUrl.get());
-            return Optional.empty();
-        }
-
-        Optional<String> validationError = policyServerService.validatePolicy(policyUrl.get());
-
-        if (validationError.isPresent()){
-            log.error("Policy '{}' failed to validate due to: '{}'", policyName, validationError.get());
-            s3Service.deletePolicy(courseId, fileName);
-            return Optional.empty();
-        }
-
-        Policy policy = new Policy();
-        policy.setCourse(course.get());
-        policy.setCreatedByUser(actingUser);
-        policy.setPolicyName(policyName);
-        policy.setPolicyURI(policyUrl.get());
-
-        policy = policyRepo.save(policy);
-
-        log.info("Created new policy '{}' for course '{}' at '{}'", policyName, course.get().getCode(), policyUrl.get());
-
-        return Optional.of(policy);
-    }
-
-    public List<Policy> getAllPolicies(UUID courseId){
-        Optional<Course> course = courseRepo.findById(courseId);
-
-        if (course.isEmpty()){
-            return List.of();
-        }
-
-        return policyRepo.getPoliciesByCourse(course.get());
-    }
-
-    public Optional<Policy> getPolicy(URI policyURI){
-        Optional<Policy> policy = policyRepo.getPolicyByURI(policyURI.toString());
-
-        if (policy.isEmpty()){
-            return Optional.empty();
-        }
-
-        return policy;
-    }
 
 }
