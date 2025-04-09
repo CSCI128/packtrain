@@ -102,6 +102,7 @@ public class TestMigrationService implements PostgresTestContainer {
         Policy policy = new Policy();
         policy.setPolicyName("test_policy");
         policy.setPolicyURI("http://file.js");
+        policy.setFileName("file.js");
         policy.setCourse(course);
         User user = userSeeders.user1();
         policy.setCreatedByUser(user);
@@ -115,6 +116,7 @@ public class TestMigrationService implements PostgresTestContainer {
         Policy updatedPolicy = new Policy();
         updatedPolicy.setPolicyName("updated_test_policy");
         updatedPolicy.setPolicyURI("http://file2.js");
+        updatedPolicy.setFileName("file2.js");
         updatedPolicy.setCourse(course);
         updatedPolicy.setCreatedByUser(user);
         policyRepo.save(updatedPolicy);
@@ -135,6 +137,7 @@ public class TestMigrationService implements PostgresTestContainer {
         Policy policy = new Policy();
         policy.setPolicyName("test_policy");
         policy.setPolicyURI("http://file.js");
+        policy.setFileName("file.js");
         policy.setCourse(course);
         User user = userSeeders.user1();
         policy.setCreatedByUser(user);

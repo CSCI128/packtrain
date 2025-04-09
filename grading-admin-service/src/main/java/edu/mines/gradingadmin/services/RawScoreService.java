@@ -118,6 +118,10 @@ public class RawScoreService {
         try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
                 .build()) {
             String[] headerLine = csvReader.readNext();
+            if (headerLine == null){
+                log.error("Missing header for Runestone import!");
+                return;
+            }
 
             int assignmentIdx = -1;
             // find assignment column because Runestone doesn't put them in order

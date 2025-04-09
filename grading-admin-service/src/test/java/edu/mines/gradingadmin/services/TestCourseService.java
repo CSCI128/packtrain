@@ -54,9 +54,6 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     private S3Service s3Service;
 
     @Autowired
-    private PolicyRepo policyRepo;
-
-    @Autowired
     private ScheduledTaskRepo<CourseSyncTaskDef> scheduledTaskRepo;
 
     @BeforeAll
@@ -71,7 +68,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
                 courseRepo, lateRequestConfigRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
-                s3Service, policyRepo, Mockito.mock(PolicyServerService.class)
+                s3Service
 
         );
 
