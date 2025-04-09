@@ -20,11 +20,13 @@ export interface PolicyConfig {
 }
 
 export interface GradingPolicyConfig {
-    serverConfig: ServerConfig;
-    policyConfig: PolicyConfig;
-    rabbitMqConfig: RabbitMqConfig;
+    serverConfig: ServerConfig | null;
+    policyConfig: PolicyConfig | null;
+    rabbitMqConfig: RabbitMqConfig | null;
 }
 
-export const config: GradingPolicyConfig = parse(
-    readFileSync(process.argv[2], "utf-8"),
-) as GradingPolicyConfig;
+export const config: GradingPolicyConfig = process.argv[2] != null
+    ? parse(
+        readFileSync(process.argv[2], "utf-8")
+    ) as GradingPolicyConfig
+    : {} as GradingPolicyConfig;
