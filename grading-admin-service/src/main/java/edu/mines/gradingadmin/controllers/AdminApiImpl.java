@@ -24,14 +24,16 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     private final CourseService courseService;
     private final SectionService sectionService;
+    private final ExtensionService extensionService;
     private final CourseMemberService courseMemberService;
     private final AssignmentService assignmentService;
     private final SecurityManager securityManager;
     private final UserService userService;
 
-    public AdminApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager, UserService userService) {
+    public AdminApiImpl(CourseService courseService, SectionService sectionService, ExtensionService extensionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager, UserService userService) {
         this.courseService = courseService;
         this.sectionService = sectionService;
+        this.extensionService = extensionService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
         this.userService = userService;
@@ -263,6 +265,13 @@ public class AdminApiImpl implements AdminApiDelegate {
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users.stream().map(DTOFactory::toDto).toList());
+    }
+
+    @Override
+    public ResponseEntity<List<LateRequestDTO>> getAllExtensionsForCourse(String courseId, String status) {
+        List<LateRequest> lateRequests = extensionService.getAllLateRequests(courseId, status);
+
+        return ResponseEntity.ok(lateRequests.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override

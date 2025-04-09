@@ -2555,7 +2555,7 @@ export interface operations {
     get_all_extensions_for_course: {
         parameters: {
             query?: {
-                status?: "approved" | "denied" | "pending";
+                status?: "approved" | "denied" | "pending" | "all";
             };
             header?: never;
             path: {
@@ -2572,7 +2572,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Extension"][];
+                    "application/json": components["schemas"]["LateRequest"][];
                 };
             };
             /** @description Extension not found */
