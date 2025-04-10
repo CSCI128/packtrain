@@ -32,11 +32,10 @@ public class CourseService {
     private final S3Service s3Service;
     private final PolicyRepo policyRepo;
     private final UserService userService;
-    private final CourseMemberService courseMemberService;
 
     public CourseService(CourseRepo courseRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
-                         CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, UserService userService, CourseMemberService courseMemberService) {
+                         CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, UserService userService) {
         this.courseRepo = courseRepo;
         this.taskRepo = taskRepo;
         this.impersonationManager = impersonationManager;
@@ -45,7 +44,6 @@ public class CourseService {
         this.s3Service = s3Service;
         this.policyRepo = policyRepo;
         this.userService = userService;
-        this.courseMemberService = courseMemberService;
     }
 
     public List<Course> getCourses(boolean enabled) {
@@ -58,15 +56,16 @@ public class CourseService {
     }
 
     public List<Course> getCoursesStudent(User user){
-        List<Course> memberships = courseMemberService.getCourseMembersForUser(user).stream().map(m -> m.getCourse()).toList();
+        List<CourseMember> memberships = userService.getCourseMemberships(user.getCwid());
         List<Course> existingCourses = courseRepo.getAll(true);
-        List<Course> studentEnrolledCourses = new ArrayList<>();
-        for (Course course : memberships) {
-            if (existingCourses.contains(course)) {
-                studentEnrolledCourses.add(course);
+        List<Course> studentEnrolledCourses = new ArrayList<>();;
+        for (CourseMember courseMember : memberships) {
+            for(Course course: existingCourses) {
+                if (courseMember.getCourse().equals(course)) {
+                    studentEnrolledCourses.add(course);
+                }
             }
         }
-
         return studentEnrolledCourses;
     }
 

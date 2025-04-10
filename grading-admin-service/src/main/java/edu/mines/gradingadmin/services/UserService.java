@@ -191,13 +191,21 @@ public class UserService {
         return Optional.of(userRepo.save(user.get()));
     }
 
-    @Transactional
+    public List<CourseMember> getCourseMemberships(String cwid) {
+        Optional<User> user = userRepo.getByCwid(cwid);
+        if (user.isEmpty()){
+            return List.of();
+        }
+        return userRepo.getUserEnrollmentsById(user.get().getCwid());
+    }
+
     public List<Course> getEnrollments(String cwid) {
         Optional<User> user = userRepo.getByCwid(cwid);
         if (user.isEmpty()){
             return List.of();
         }
-        return user.get().getCourseMemberships().stream().map(CourseMember::getCourse).toList();
+        return userRepo.getUserCoursesById(user.get().getCwid());
     }
+
 
 }

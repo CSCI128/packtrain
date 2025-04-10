@@ -5,6 +5,7 @@ import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
 import edu.mines.gradingadmin.repositories.*;
@@ -56,8 +57,6 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     private ScheduledTaskRepo<CourseSyncTaskDef> scheduledTaskRepo;
     @Autowired
     private UserService userService;
-    @Autowired
-    private CourseMemberService courseMemberService;
 
     @BeforeAll
     static void setupClass() {
@@ -71,7 +70,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
                 courseRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
-                s3Service, policyRepo, userService, courseMemberService
+                s3Service, policyRepo, userService
 
         );
 
@@ -241,6 +240,5 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         Assertions.assertNotEquals(notStudentCourse, courseService.getCoursesStudent(user));
 
     }
-
 
 }

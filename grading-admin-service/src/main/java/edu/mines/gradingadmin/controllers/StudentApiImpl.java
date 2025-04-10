@@ -42,6 +42,7 @@ public class StudentApiImpl implements StudentApiDelegate {
     public ResponseEntity<List<CourseSlimDTO>> getCoursesStudent() {
         User user = securityManager.getUser();
         List<Course> courses = courseService.getCoursesStudent(user);
+        // now these types don't match and they are used elsewhere
         return ResponseEntity.ok(courses.stream().map(DTOFactory::toSlimDto).toList());
     }
 
@@ -50,7 +51,6 @@ public class StudentApiImpl implements StudentApiDelegate {
         User user = securityManager.getUser();
 
         List<Course> enrollments = userService.getEnrollments(user.getCwid());
-
         if (enrollments.isEmpty()){
             return ResponseEntity.notFound().build();
         }
