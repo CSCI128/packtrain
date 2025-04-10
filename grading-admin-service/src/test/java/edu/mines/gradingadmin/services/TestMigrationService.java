@@ -2,7 +2,7 @@ package edu.mines.gradingadmin.services;
 
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
-import edu.mines.gradingadmin.data.messages.ScoredDTO;
+import edu.mines.gradingadmin.data.policyServer.ScoredDTO;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.LateRequestStatus;
 import edu.mines.gradingadmin.models.enums.SubmissionStatus;
@@ -54,6 +54,8 @@ public class TestMigrationService implements PostgresTestContainer {
     private RawScoreRepo rawScoreRepo;
     private Course course;
     private User user;
+    @Autowired
+    private PolicyService policyService;
 
     @BeforeAll
     static void setupClass(){
@@ -65,7 +67,7 @@ public class TestMigrationService implements PostgresTestContainer {
     void setup(){
         migrationService = new MigrationService(migrationRepo, masterMigrationRepo, migrationTransactionLogRepo, taskRepo,
                 extensionService, courseService, assignmentService, Mockito.mock(ApplicationEventPublisher.class),
-                Mockito.mock(RabbitMqService.class), Mockito.mock(PolicyServerService.class), rawScoreRepo, masterMigrationStatsRepo);
+                Mockito.mock(RabbitMqService.class), Mockito.mock(PolicyServerService.class), rawScoreRepo, masterMigrationStatsRepo, policyService);
 
         course = courseSeeders.populatedCourse();
         user = userSeeders.user1();
@@ -98,9 +100,9 @@ public class TestMigrationService implements PostgresTestContainer {
         Assertions.assertTrue(assignment.isPresent());
 
         Policy policy = new Policy();
-        policy.setAssignment(assignment.get());
         policy.setPolicyName("test_policy");
         policy.setPolicyURI("http://file.js");
+        policy.setFileName("file.js");
         policy.setCourse(course);
         User user = userSeeders.user1();
         policy.setCreatedByUser(user);
@@ -112,9 +114,9 @@ public class TestMigrationService implements PostgresTestContainer {
         Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
 
         Policy updatedPolicy = new Policy();
-        updatedPolicy.setAssignment(assignment.get());
         updatedPolicy.setPolicyName("updated_test_policy");
         updatedPolicy.setPolicyURI("http://file2.js");
+        updatedPolicy.setFileName("file2.js");
         updatedPolicy.setCourse(course);
         updatedPolicy.setCreatedByUser(user);
         policyRepo.save(updatedPolicy);
@@ -133,9 +135,9 @@ public class TestMigrationService implements PostgresTestContainer {
         Assertions.assertTrue(assignment.isPresent());
 
         Policy policy = new Policy();
-        policy.setAssignment(assignment.get());
         policy.setPolicyName("test_policy");
         policy.setPolicyURI("http://file.js");
+        policy.setFileName("file.js");
         policy.setCourse(course);
         User user = userSeeders.user1();
         policy.setCreatedByUser(user);

@@ -25,14 +25,18 @@ public class Policy {
     @EqualsAndHashCode.Exclude
     private Course course;
 
-    @ManyToOne
-    @JoinColumn(name = "assignment_id", referencedColumnName = "id", nullable = true)
-    @EqualsAndHashCode.Exclude
-    private Assignment assignment = null;
+    @Column(name = "description")
+    private String description;
 
-    @Column(name = "policy_name")
+    @Column(name = "policy_name", nullable = false)
     private String policyName;
 
-    @Column(name = "uri", unique = true)
+    @Column(name = "file_name", nullable = false)
+    private String fileName;
+
+    @Column(name = "uri", unique = true, nullable = false)
     private String policyURI;
+
+    @Column(name = "number_of_migrations", nullable = false)
+    private int numberOfMigrations = 0;
 }

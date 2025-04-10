@@ -5,11 +5,11 @@ import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
-import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
 import edu.mines.gradingadmin.services.ExtensionService;
 import edu.mines.gradingadmin.services.MigrationService;
+import edu.mines.gradingadmin.services.PolicyService;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,13 +27,15 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
     private final MigrationService migrationService;
+    private final PolicyService policyService;
 
-    public InstructorApiImpl(CourseService courseService, ExtensionService extensionService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService) {
+    public InstructorApiImpl(CourseService courseService, ExtensionService extensionService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService, PolicyService policyService) {
         this.courseService = courseService;
         this.extensionService = extensionService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
         this.migrationService = migrationService;
+        this.policyService = policyService;
     }
 
     @Override
@@ -57,8 +59,8 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
-    public ResponseEntity<PolicyDTO> newPolicy(String courseId, String name, String filePath, MultipartFile fileData) {
-        Optional<Policy> policy = courseService.createNewCourseWidePolicy(securityManager.getUser(), UUID.fromString(courseId), name, filePath, fileData);
+    public ResponseEntity<PolicyDTO> newPolicy(String courseId, String name, String filePath, MultipartFile fileData, String description) {
+        Optional<Policy> policy = policyService.createNewPolicy(securityManager.getUser(), UUID.fromString(courseId), name, description, filePath, fileData);
 
         if (policy.isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -68,8 +70,19 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
+    public ResponseEntity<Void> deletePolicy(String courseId, String policyId){
+        if(!policyService.deletePolicy(UUID.fromString(courseId), UUID.fromString(policyId))){
+            return ResponseEntity.badRequest().build();
+        }
+
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+
+    }
+
+    @Override
     public ResponseEntity<List<PolicyDTO>> getAllPolicies(String courseId) {
-        List<Policy> policies = courseService.getAllPolicies(UUID.fromString(courseId));
+        List<Policy> policies = policyService.getAllPolicies(UUID.fromString(courseId));
         return ResponseEntity.ok(policies.stream().map(DTOFactory::toDto).toList());
     }
 

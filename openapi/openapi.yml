@@ -1098,6 +1098,33 @@ paths:
                 items:
                   $ref: "#/components/schemas/Policy"
 
+  /instructor/course/{course_id}/policies/{policy_id}:
+    delete:
+      tags:
+        - instructor
+      operationId: delete_policy
+      summary: Create a new policy
+      description: |
+        Create a new policy for the course
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: policy_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        204:
+          description: "No Content"
+
   /instructor/courses/{course_id}:
     get:
       tags:
@@ -1997,6 +2024,10 @@ components:
         file_path:
           type: string
           example: "default.js"
+        description:
+          type: string
+          example: |
+            The default policy
         file_data:
           type: string
           format: binary
@@ -2007,16 +2038,22 @@ components:
       description: "A grading policy"
       type: object
       properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
         name:
           type: string
           example: "Default Policy"
+        description:
+          type: string
+          example: |
+            the default grading policy :)
         uri:
           type: string
           example: "https://s3.aws.com/999-9999-9999-99/default.js"
-        course:
-          $ref: "#/components/schemas/Course"
-        assignment:
-          $ref: "#/components/schemas/Assignment"
+        number_of_migrations:
+          type: integer
+          example: 1
 
     Task:
       description: "An async task on the server"

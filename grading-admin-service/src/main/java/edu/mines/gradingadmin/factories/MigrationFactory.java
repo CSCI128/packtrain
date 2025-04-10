@@ -1,9 +1,8 @@
 package edu.mines.gradingadmin.factories;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
-import edu.mines.gradingadmin.data.messages.GradingStartDTO;
-import edu.mines.gradingadmin.data.messages.ScoredDTO;
+import edu.mines.gradingadmin.data.policyServer.GradingStartDTO;
+import edu.mines.gradingadmin.data.policyServer.ScoredDTO;
 import edu.mines.gradingadmin.models.Assignment;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;

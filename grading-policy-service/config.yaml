@@ -1,4 +1,7 @@
-port: 80
+serverConfig:
+  port: 80
+  basePath: /api/policies
+  trustedCA: /opt/certs/localhost.CA.crt
 
 policyConfig:
   trustedServer: "https://localhost.dev"

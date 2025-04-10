@@ -124,8 +124,16 @@ services:
     build: ./grading-policy-service
     command:
       - /opt/config.yaml
+    healthcheck:
+      test: ["CMD-SHELL", "sh", "healthcheck.sh"]
+      start_period: 10s
+      interval: 30s
+      retries: 5
+      timeout: 3s
     volumes:
+      - "./certificates/certs/localhost-root/localhost-root.CA.pem:/opt/certs/localhost.CA.crt"
       - "./grading-policy-service/config.yaml:/opt/config.yaml"
+      - "./grading-policy-service/healthcheck.sh:/usr/bin/healthcheck.sh"
 
   minio:
     image: minio/minio:latest
@@ -206,7 +214,7 @@ services:
       openapi-docs:
         condition: service_started
       grading-policy-service:
-        condition: service_started
+        condition: service_healthy
 
   localhost.dev-local:
     hostname: localhost.dev

@@ -1,4 +1,4 @@
-package edu.mines.gradingadmin.data.messages;
+package edu.mines.gradingadmin.data.policyServer;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
