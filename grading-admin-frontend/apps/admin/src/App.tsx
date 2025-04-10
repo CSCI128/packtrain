@@ -96,7 +96,7 @@ const MiddlewareLayout = () => {
       }
     };
 
-    if (currentPage !== "/profile") {
+    if (currentPage !== "/profile" && currentPage !== "/users") {
       fetchData();
     }
   }, [isAuthenticated, navigate]);
