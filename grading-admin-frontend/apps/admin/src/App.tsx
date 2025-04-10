@@ -1,5 +1,8 @@
 import { MantineProvider, Text } from "@mantine/core";
 import "@mantine/core/styles.css";
+import { store$, userManager } from "@repo/api/api";
+import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
+import { SelectClass } from "@repo/ui/pages/Select";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import axios from "axios";
 import { JSX, useEffect } from "react";
@@ -11,8 +14,14 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { store$, userManager } from "./api";
+import { MembersPage } from "../../instructor/src/Members";
+import { MigrationsApplyPage } from "../../instructor/src/migration/MigrationsApply";
+import { MigrationsLoadPage } from "../../instructor/src/migration/MigrationsLoad";
+import { MigrationsPostPage } from "../../instructor/src/migration/MigrationsPost";
+import { MigrationsReviewPage } from "../../instructor/src/migration/MigrationsReview";
+import { MigrationsPage } from "../../instructor/src/Migrations";
 import "./index.css";
+<<<<<<< HEAD
 import { AssignmentsPage } from "./pages/admin/Assignments";
 import { CoursePage } from "./pages/admin/course/Course";
 import { CreatePage } from "./pages/admin/course/Create";
@@ -28,19 +37,18 @@ import { MigrationsLoadPage } from "./pages/instructor/migration/MigrationsLoad"
 import { MigrationsPostPage } from "./pages/instructor/migration/MigrationsPost";
 import { MigrationsReviewPage } from "./pages/instructor/migration/MigrationsReview";
 import { MigrationsPage } from "./pages/instructor/Migrations";
+=======
+import { AssignmentsPage } from "./pages/Assignments";
+import { CoursePage } from "./pages/course/Course";
+import { CreatePage } from "./pages/course/Create";
+import { EditCourse } from "./pages/course/Edit";
+>>>>>>> 4e3d923 (Separating projects)
 import { ProfilePage } from "./pages/Profile";
-import { ExtensionForm } from "./pages/student/ExtensionForm";
-import { Requests } from "./pages/student/Requests";
+import { UsersPage } from "./pages/Users";
 import ProtectedRoute from "./ProtectedRoute";
 import Root from "./templates/Root";
 
 const queryClient = new QueryClient({
-  // queryCache: new QueryCache({
-  //   onError: async (error, query) => {
-  //     console.log(`Something went wrong: ${error.message}`);
-  //     console.log(error.response?.status);
-  //   },
-  // }),
   defaultOptions: {
     queries: {
       retry: false,
@@ -48,15 +56,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const NotFoundPage = () => {
-  return (
-    <>
-      <Text>The specified page could not be found!</Text>
-    </>
-  );
-};
-
-const UserIsDisabled = () => {
+const DisabledPage = () => {
   const auth = useAuth();
   const email = auth.user?.profile.email || "None";
 
@@ -175,7 +175,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: "/",
-            element: <HomePage />,
+            element: <CoursePage />,
           },
           {
             path: "/select",
@@ -185,22 +185,22 @@ const router = createBrowserRouter([
             path: "/callback",
             element: <CallbackPage />,
           },
-          {
-            path: "/requests",
-            element: <Requests />,
-          },
-          {
-            path: "/extension",
-            element: <ExtensionForm />,
-          },
-          {
-            path: "/home",
-            element: (
-              <ProtectedRoute>
-                <CoursePage />
-              </ProtectedRoute>
-            ),
-          },
+          // {
+          //   path: "/requests",
+          //   element: <Requests />,
+          // },
+          // {
+          //   path: "/extension",
+          //   element: <ExtensionForm />,
+          // },
+          // {
+          //   path: "/home",
+          //   element: (
+          //     <ProtectedRoute>
+          //       <CoursePage />
+          //     </ProtectedRoute>
+          //   ),
+          // },
           {
             path: "/edit",
             element: (
@@ -297,7 +297,7 @@ const router = createBrowserRouter([
           },
           {
             path: "/disabled",
-            element: <UserIsDisabled />,
+            element: <DisabledPage />,
           },
           {
             path: "*",

@@ -13,9 +13,9 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
+import { $api } from "@repo/api/api";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
-import { $api } from "../api";
 import { components } from "../lib/api/v1";
 
 export function ProfilePage() {
