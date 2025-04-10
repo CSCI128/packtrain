@@ -29,6 +29,32 @@ const queryClient = new QueryClient({
   },
 });
 
+const HomePage = () => {
+  // TODO do landing page eventually
+  return (
+    <>
+      <p>Hello, world!</p>
+    </>
+  );
+};
+
+const CallbackPage = () => {
+  const auth = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (auth.isAuthenticated) {
+      if (auth.user?.profile.is_admin && !store$.id.get()) {
+        navigate("/select");
+      } else if (!auth.user?.profile.is_admin && !store$.id.get()) {
+        navigate("/");
+      }
+    }
+  }, [auth.isAuthenticated]);
+
+  return null;
+};
+
 const MiddlewareLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -96,13 +122,17 @@ const router = createBrowserRouter([
         element: <MiddlewareLayout />,
         children: [
           {
+            path: "/",
+            element: <HomePage />,
+          },
+          {
             path: "/select",
             element: <SelectClass />,
           },
-          // {
-          //   path: "/callback",
-          //   element: <CallbackPage />,
-          // },
+          {
+            path: "/callback",
+            element: <CallbackPage />,
+          },
           {
             path: "/requests",
             element: <Requests />,

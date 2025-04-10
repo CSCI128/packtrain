@@ -6,6 +6,6 @@
     "moduleResolution": "Bundler",
     "noUncheckedIndexedAccess": true
   },
-  "include": ["src"],
+  "include": ["src", "../../apps/admin/src/templates"],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,7 +1,7 @@
 import "@mantine/dates/styles.css";
 import { Outlet } from "react-router-dom";
-import { Navbar } from "../components/navbar/Navbar";
-import "./Root.scss";
+import { Navbar } from "../components/Navbar";
+import "@repo/ui/Root.scss";
 
 export default function Root() {
   return (

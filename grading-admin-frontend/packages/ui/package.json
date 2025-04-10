@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "exports": {
+    "./Root.scss": "./src/Root.scss",
+    "./Navbar.module.scss": "./src/Root.scss",
     "./DateUtil": "./src/DateUtil.ts",
     "./*": "./src/*.tsx"
   },
