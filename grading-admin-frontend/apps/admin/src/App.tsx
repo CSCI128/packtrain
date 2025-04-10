@@ -212,7 +212,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/profile",
+            path: "/admin/profile",
             element: <ProfilePage />,
           },
           {

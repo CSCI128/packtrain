@@ -35,7 +35,7 @@ export function Navbar() {
         <header className={classes.header}>
           <Group justify="space-between" h="100%">
             <Group h="100%" gap={0} visibleFrom="sm">
-              <p onClick={() => navigate("/")}>Grading Admin</p>
+              <p onClick={() => navigate("/admin")}>Grading Admin</p>
               {auth.user && auth.user.profile.is_admin ? (
                 <>
                   <a href="/admin" className={classes.link}>
@@ -80,7 +80,7 @@ export function Navbar() {
                   </Menu.Target>
 
                   <Menu.Dropdown>
-                    <Menu.Item component="a" href="/profile">
+                    <Menu.Item component="a" href="/admin/profile">
                       Profile
                     </Menu.Item>
 
@@ -119,13 +119,13 @@ export function Navbar() {
               <Divider my="sm" />
 
               <Box ml={20}>
-                <p onClick={() => navigate("/")}>Grading Admin</p>
+                <p onClick={() => navigate("/admin")}>Grading Admin</p>
                 {auth.user?.profile.is_admin ? (
                   <>
                     <a href="/instructor/migrate" className={classes.link}>
                       Migrate
                     </a>
-                    <a href="/admin/home" className={classes.link}>
+                    <a href="/admin" className={classes.link}>
                       Course
                     </a>
                     <a href="/admin/assignments" className={classes.link}>
