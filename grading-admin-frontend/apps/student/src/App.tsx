@@ -1,23 +1,24 @@
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
-import { store$ } from "@repo/api/api";
+import { store$, userManager } from "@repo/api/api";
+import { DisabledPage } from "@repo/ui/pages/DisabledPage";
 import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
+import { ProfilePage } from "@repo/ui/pages/Profile";
+import { SelectClass } from "@repo/ui/pages/Select";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import {
   createBrowserRouter,
+  Outlet,
   RouterProvider,
   useLocation,
   useNavigate,
 } from "react-router-dom";
 import "./App.css";
 import "./index.css";
-import { SelectClass } from "./pages/admin/course/Select";
-import { HomePage } from "./pages/Home";
-import { ProfilePage } from "./pages/Profile";
-import { ExtensionForm } from "./pages/student/ExtensionForm";
-import { Requests } from "./pages/student/Requests";
+import { ExtensionForm } from "./pages/ExtensionForm";
+import { Requests } from "./pages/Requests";
 import Root from "./templates/Root";
 
 const queryClient = new QueryClient({
@@ -95,17 +96,13 @@ const router = createBrowserRouter([
         element: <MiddlewareLayout />,
         children: [
           {
-            path: "/",
-            element: <HomePage />,
-          },
-          {
             path: "/select",
             element: <SelectClass />,
           },
-          {
-            path: "/callback",
-            element: <CallbackPage />,
-          },
+          // {
+          //   path: "/callback",
+          //   element: <CallbackPage />,
+          // },
           {
             path: "/requests",
             element: <Requests />,

@@ -14,14 +14,11 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { $api, store$ } from "@repo/api/api";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
+import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { MdDelete } from "react-icons/md";
 import { Link } from "react-router-dom";
-import {
-  sortData,
-  TableHeader,
-} from "../../../admin/src/components/table/Table";
 import { components } from "../../../admin/src/lib/api/v1";
 
 interface RequestRowData {

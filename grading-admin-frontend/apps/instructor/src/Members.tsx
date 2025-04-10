@@ -7,9 +7,9 @@ import {
   TextInput,
 } from "@mantine/core";
 import { $api, store$ } from "@repo/api/api";
+import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
-import { sortData, TableHeader } from "../../admin/src/components/table/Table";
 
 interface MemberRowData {
   cwid: string;

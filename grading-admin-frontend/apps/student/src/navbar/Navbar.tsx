@@ -36,18 +36,21 @@ export function Navbar() {
           <Group justify="space-between" h="100%">
             <Group h="100%" gap={0} visibleFrom="sm">
               <p onClick={() => navigate("/")}>Grading Admin</p>
-              {auth.user && auth.user.profile.is_admin ? (
+              {auth.user?.profile.is_admin ? (
                 <>
-                  <a href="/admin" className={classes.link}>
+                  <a href="/instructor/migrate" className={classes.link}>
+                    Migrate
+                  </a>
+                  <a href="/home" className={classes.link}>
                     Course
                   </a>
-                  <a href="/admin/assignments" className={classes.link}>
+                  <a href="/assignments" className={classes.link}>
                     Assignments
                   </a>
-                  <a href="/admin/members" className={classes.link}>
+                  <a href="/members" className={classes.link}>
                     Members
                   </a>
-                  <a href="/admin/users" className={classes.link}>
+                  <a href="/users" className={classes.link}>
                     Users
                   </a>
                 </>

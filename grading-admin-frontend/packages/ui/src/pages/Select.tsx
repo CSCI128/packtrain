@@ -22,7 +22,7 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     }
 
     if (auth.isAuthenticated && auth.user?.profile.is_admin) {
-      navigate("/admin/home");
+      navigate("/admin");
     } else {
       navigate("/requests");
     }

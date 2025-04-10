@@ -1,11 +1,12 @@
-import { MantineProvider, Text } from "@mantine/core";
+import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { store$, userManager } from "@repo/api/api";
+import { DisabledPage } from "@repo/ui/pages/DisabledPage";
 import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
 import { SelectClass } from "@repo/ui/pages/Select";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import axios from "axios";
-import { JSX, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import {
   createBrowserRouter,
@@ -15,11 +16,6 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { MembersPage } from "../../instructor/src/Members";
-import { MigrationsApplyPage } from "../../instructor/src/migration/MigrationsApply";
-import { MigrationsLoadPage } from "../../instructor/src/migration/MigrationsLoad";
-import { MigrationsPostPage } from "../../instructor/src/migration/MigrationsPost";
-import { MigrationsReviewPage } from "../../instructor/src/migration/MigrationsReview";
-import { MigrationsPage } from "../../instructor/src/Migrations";
 import "./index.css";
 <<<<<<< HEAD
 import { AssignmentsPage } from "./pages/admin/Assignments";
@@ -55,30 +51,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-const DisabledPage = () => {
-  const auth = useAuth();
-  const email = auth.user?.profile.email || "None";
-
-  return email != "None" ? (
-    <>
-      <Text>
-        User '{email}' has been disabled! Contact an administrator for
-        assistance!
-      </Text>
-    </>
-  ) : (
-    <>
-      <Text>You are not logged in!</Text>
-    </>
-  );
-};
-
-const MigrationMiddleware = ({ children }: { children: JSX.Element }) => {
-  // Four step migrate process: send people to first or active state or
-  // prevent them from going to future states
-  return children;
-};
 
 const fetchData = async () => {
   const response = await axios.get("/api/user");
@@ -174,7 +146,7 @@ const router = createBrowserRouter([
         element: <MiddlewareLayout />,
         children: [
           {
-            path: "/",
+            path: "/admin",
             element: <CoursePage />,
           },
           {
@@ -185,24 +157,8 @@ const router = createBrowserRouter([
             path: "/callback",
             element: <CallbackPage />,
           },
-          // {
-          //   path: "/requests",
-          //   element: <Requests />,
-          // },
-          // {
-          //   path: "/extension",
-          //   element: <ExtensionForm />,
-          // },
-          // {
-          //   path: "/home",
-          //   element: (
-          //     <ProtectedRoute>
-          //       <CoursePage />
-          //     </ProtectedRoute>
-          //   ),
-          // },
           {
-            path: "/edit",
+            path: "/admin/edit",
             element: (
               <ProtectedRoute>
                 <EditCourse />
@@ -224,43 +180,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/instructor/migrate",
-            element: <MigrationsPage />,
-          },
-          {
-            path: "/instructor/migrate/load",
-            element: (
-              <MigrationMiddleware>
-                <MigrationsLoadPage />
-              </MigrationMiddleware>
-            ),
-          },
-          {
-            path: "/instructor/migrate/apply",
-            element: (
-              <MigrationMiddleware>
-                <MigrationsApplyPage />
-              </MigrationMiddleware>
-            ),
-          },
-          {
-            path: "/instructor/migrate/review",
-            element: (
-              <MigrationMiddleware>
-                <MigrationsReviewPage />
-              </MigrationMiddleware>
-            ),
-          },
-          {
-            path: "/instructor/migrate/post",
-            element: (
-              <MigrationMiddleware>
-                <MigrationsPostPage />
-              </MigrationMiddleware>
-            ),
-          },
-          {
-            path: "/create",
+            path: "/admin/create",
             element: (
               <ProtectedRoute>
                 <CreatePage />
@@ -268,7 +188,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/assignments",
+            path: "/admin/assignments",
             element: (
               <ProtectedRoute>
                 <AssignmentsPage />
@@ -276,7 +196,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/members",
+            path: "/admin/members",
             element: (
               <ProtectedRoute>
                 <MembersPage />
@@ -284,7 +204,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/users",
+            path: "/admin/users",
             element: (
               <ProtectedRoute>
                 <UsersPage />

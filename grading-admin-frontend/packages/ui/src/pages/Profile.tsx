@@ -101,7 +101,7 @@ export function ProfilePage() {
 
   if (credentialIsLoading || !credentialData) return "Credentials loading..";
 
-  if (error || credentialError) return `An error occurred: ${error}`;
+  if (error || credentialError) return `An error occured: ${error}`;
 
   const editUser = (values: typeof editUserForm.values) => {
     updateUserMutation.mutate(

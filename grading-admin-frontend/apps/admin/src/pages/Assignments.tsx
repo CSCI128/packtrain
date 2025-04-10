@@ -17,10 +17,10 @@ import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { $api, store$ } from "@repo/api/api";
+import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
-import { sortData, TableHeader } from "../components/table/Table";
 import { components } from "../lib/api/v1";
 
 interface AssignmentRowData {

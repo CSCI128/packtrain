@@ -12,7 +12,7 @@ import {
   IconSelector,
 } from "@tabler/icons-react";
 import React from "react";
-import classes from "../../components/table/Table.module.scss";
+import classes from "./Table.module.scss";
 
 interface TableHeaderProps {
   children: React.ReactNode;
