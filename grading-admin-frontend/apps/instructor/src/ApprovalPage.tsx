@@ -7,11 +7,11 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
+import { $api, store$ } from "@repo/api/api";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
-import { $api, store$ } from "../../api";
 import { components } from "./lib/api/v1";
 
 interface RequestRowData {
@@ -90,9 +90,9 @@ export function ApprovalPage() {
         params: {
           path: {
             course_id: store$.id.get() as string,
-            assignment_id: request.assignment_id,
-            user_id: request.user_requester_id,
-            extension_id: request.id,
+            assignment_id: request.assignment_id as string,
+            user_id: request.user_requester_id as string,
+            extension_id: request.id as string,
           },
         },
       },
@@ -110,9 +110,9 @@ export function ApprovalPage() {
         params: {
           path: {
             course_id: store$.id.get() as string,
-            assignment_id: request.assignment_id,
-            user_id: request.user_requester_id,
-            extension_id: request.id,
+            assignment_id: request.assignment_id as string,
+            user_id: request.user_requester_id as string,
+            extension_id: request.id as string,
           },
         },
       },

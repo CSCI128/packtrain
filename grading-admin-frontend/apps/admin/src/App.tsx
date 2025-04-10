@@ -17,28 +17,11 @@ import {
 } from "react-router-dom";
 import { MembersPage } from "../../instructor/src/Members";
 import "./index.css";
-<<<<<<< HEAD
-import { AssignmentsPage } from "./pages/admin/Assignments";
-import { CoursePage } from "./pages/admin/course/Course";
-import { CreatePage } from "./pages/admin/course/Create";
-import { EditCourse } from "./pages/admin/course/Edit";
-import { SelectClass } from "./pages/admin/course/Select";
 import { CreatePolicy } from "./pages/admin/policies/Create.tsx";
-import { UsersPage } from "./pages/admin/Users";
-import { HomePage } from "./pages/Home";
-import { ApprovalPage } from "./pages/instructor/ApprovalPage";
-import { MembersPage } from "./pages/instructor/Members";
-import { MigrationsApplyPage } from "./pages/instructor/migration/MigrationsApply";
-import { MigrationsLoadPage } from "./pages/instructor/migration/MigrationsLoad";
-import { MigrationsPostPage } from "./pages/instructor/migration/MigrationsPost";
-import { MigrationsReviewPage } from "./pages/instructor/migration/MigrationsReview";
-import { MigrationsPage } from "./pages/instructor/Migrations";
-=======
 import { AssignmentsPage } from "./pages/Assignments";
 import { CoursePage } from "./pages/course/Course";
 import { CreatePage } from "./pages/course/Create";
 import { EditCourse } from "./pages/course/Edit";
->>>>>>> 4e3d923 (Separating projects)
 import { ProfilePage } from "./pages/Profile";
 import { UsersPage } from "./pages/Users";
 import ProtectedRoute from "./ProtectedRoute";
@@ -164,12 +147,6 @@ const router = createBrowserRouter([
                 <EditCourse />
               </ProtectedRoute>
             ),
-          },
-          {
-            path: "/approval",
-            // TODO will move this to instructor application
-            // path: "/instructor/approval",
-            element: <ApprovalPage />,
           },
           {
             path: "/admin/policies/new",

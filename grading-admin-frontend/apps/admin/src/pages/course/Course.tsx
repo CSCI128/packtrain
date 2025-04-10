@@ -7,13 +7,13 @@ import {
   Table,
   Text,
 } from "@mantine/core";
+import { $api, store$, userManager } from "@repo/api/api";
+import { TableHeader } from "@repo/ui/table/Table";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { BsBoxArrowUpRight, BsTrash } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
-import { $api, store$, userManager } from "../../../api";
-import { TableHeader } from "../../../components/table/Table.tsx";
-import { components } from "../../../lib/api/v1";
+import { components } from "../../lib/api/v1";
 
 export function CoursePage() {
   const navigate = useNavigate();

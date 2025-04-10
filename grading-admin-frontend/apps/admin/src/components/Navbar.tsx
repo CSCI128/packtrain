@@ -13,10 +13,10 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { store$ } from "@repo/api/api";
-import classes from "@repo/ui/Navbar.module.scss";
 import { SelectClass } from "@repo/ui/pages/Select";
 import { useAuth } from "react-oidc-context";
 import { useNavigate } from "react-router-dom";
+import classes from "./Navbar.module.scss";
 
 export function Navbar() {
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
@@ -36,24 +36,19 @@ export function Navbar() {
           <Group justify="space-between" h="100%">
             <Group h="100%" gap={0} visibleFrom="sm">
               <p onClick={() => navigate("/admin")}>Grading Admin</p>
-              {auth.user && auth.user.profile.is_admin ? (
-                <>
-                  <a href="/admin" className={classes.link}>
-                    Course
-                  </a>
-                  <a href="/admin/assignments" className={classes.link}>
-                    Assignments
-                  </a>
-                  <a href="/admin/members" className={classes.link}>
-                    Members
-                  </a>
-                  <a href="/admin/users" className={classes.link}>
-                    Users
-                  </a>
-                </>
-              ) : (
-                <></>
-              )}
+
+              <a href="/admin" className={classes.link}>
+                Course
+              </a>
+              <a href="/admin/assignments" className={classes.link}>
+                Assignments
+              </a>
+              <a href="/admin/members" className={classes.link}>
+                Members
+              </a>
+              <a href="/admin/users" className={classes.link}>
+                Users
+              </a>
             </Group>
 
             <Burger

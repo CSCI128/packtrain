@@ -2118,7 +2118,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LateRequest"];
+                };
             };
             /** @description Failed to approve extension */
             400: {
@@ -2159,7 +2161,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LateRequest"];
+                };
             };
             /** @description Failed to deny extension */
             400: {
@@ -2491,7 +2495,7 @@ export interface operations {
     get_all_approved_extensions_for_assignment: {
         parameters: {
             query?: {
-                status?: "approved" | "denied" | "pending";
+                status?: "approved" | "denied" | "pending" | "all";
             };
             header?: never;
             path: {
@@ -2605,7 +2609,7 @@ export interface operations {
     get_all_extensions_for_course: {
         parameters: {
             query?: {
-                status?: "approved" | "denied" | "pending" | "all";
+                status?: "approved" | "denied" | "pending";
             };
             header?: never;
             path: {

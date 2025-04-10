@@ -21,6 +21,7 @@ import { MigrationsLoadPage } from "../../instructor/src/migration/MigrationsLoa
 import { MigrationsPostPage } from "../../instructor/src/migration/MigrationsPost";
 import { MigrationsReviewPage } from "../../instructor/src/migration/MigrationsReview";
 import { MigrationsPage } from "../../instructor/src/Migrations";
+import { ApprovalPage } from "./ApprovalPage";
 import "./index.css";
 import Root from "./templates/Root";
 
@@ -106,6 +107,10 @@ const router = createBrowserRouter([
           {
             path: "/callback",
             element: <CallbackPage />,
+          },
+          {
+            path: "/",
+            element: <ApprovalPage />,
           },
           {
             path: "/instructor/migrate",

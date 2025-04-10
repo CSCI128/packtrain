@@ -484,6 +484,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/instructor/course/{course_id}/policies/{policy_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Create a new policy
+         * @description Create a new policy for the course
+         *
+         */
+        delete: operations["delete_policy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/instructor/courses/{course_id}": {
         parameters: {
             query?: never;
@@ -907,6 +928,9 @@ export interface components {
             name: string;
             /** @example default.js */
             file_path: string;
+            /** @example The default policy
+             *      */
+            description?: string;
             /**
              * Format: binary
              * @example // valid javascript code
@@ -916,12 +940,17 @@ export interface components {
         };
         /** @description A grading policy */
         Policy: {
+            /** @example 999-9999-9999-99 */
+            id?: string;
             /** @example Default Policy */
             name?: string;
+            /** @example the default grading policy :)
+             *      */
+            description?: string;
             /** @example https://s3.aws.com/999-9999-9999-99/default.js */
             uri?: string;
-            course?: components["schemas"]["Course"];
-            assignment?: components["schemas"]["Assignment"];
+            /** @example 1 */
+            number_of_migrations?: number;
         };
         /** @description An async task on the server */
         Task: {
@@ -1110,6 +1139,11 @@ export interface components {
              * @example 123456
              */
             canvas_id: number;
+            /**
+             * Format: int64
+             * @example 123456
+             */
+            gradescope_id?: number;
             members?: components["schemas"]["CourseMember"][];
             assignments?: components["schemas"]["Assignment"][];
             /** @example [
@@ -2084,7 +2118,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LateRequest"];
+                };
             };
             /** @description Failed to approve extension */
             400: {
@@ -2125,7 +2161,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LateRequest"];
+                };
             };
             /** @description Failed to deny extension */
             400: {
@@ -2192,6 +2230,27 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Policy"];
                 };
+            };
+        };
+    };
+    delete_policy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+                policy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2436,7 +2495,7 @@ export interface operations {
     get_all_approved_extensions_for_assignment: {
         parameters: {
             query?: {
-                status?: "approved" | "denied" | "pending";
+                status?: "approved" | "denied" | "pending" | "all";
             };
             header?: never;
             path: {
@@ -2567,7 +2626,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Extension"][];
+                    "application/json": components["schemas"]["LateRequest"][];
                 };
             };
             /** @description Extension not found */

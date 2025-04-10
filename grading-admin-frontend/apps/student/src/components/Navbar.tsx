@@ -16,7 +16,7 @@ import { store$ } from "@repo/api/api";
 import { SelectClass } from "@repo/ui/pages/Select";
 import { useAuth } from "react-oidc-context";
 import { useNavigate } from "react-router-dom";
-import classes from "@repo/ui/Navbar.module.scss";
+import classes from "./Navbar.module.scss";
 
 export function Navbar() {
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =

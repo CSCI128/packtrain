@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "npx openapi-typescript ../openapi/openapi.yml -o ./packages/ui/src/lib/api/v1.d.ts && npx openapi-typescript ../openapi/openapi.yml -o ./packages/api/src/lib/api/v1.d.ts && turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types"

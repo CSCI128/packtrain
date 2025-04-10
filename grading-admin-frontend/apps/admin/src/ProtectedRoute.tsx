@@ -1,5 +1,5 @@
 import { userManager } from "@repo/api/api";
-import { useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {

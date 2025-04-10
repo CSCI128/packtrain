@@ -59,7 +59,6 @@ const MiddlewareLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = store$.id.get();
-  const auth = useAuth();
   const currentPage = location.pathname;
 
   // const { data, error } = useQuery({
