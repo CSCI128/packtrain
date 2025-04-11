@@ -15,12 +15,12 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import { $api } from "@repo/api/api";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { useAuth } from "react-oidc-context";
+import { $api } from "../api";
 import { components } from "../lib/api/v1";
 
 interface UserRowData {
@@ -216,7 +216,10 @@ export function UsersPage() {
 
           <InputWrapper withAsterisk label="Admin User">
             <Checkbox
-              disabled={!editUserForm.getValues().enabled || editUserForm.getValues().email === auth.user?.profile.email}
+              disabled={
+                !editUserForm.getValues().enabled ||
+                editUserForm.getValues().email === auth.user?.profile.email
+              }
               checked={editUserForm.getValues().admin}
               key={editUserForm.key("admin")}
               {...editUserForm.getInputProps("admin", { type: "checkbox" })}
@@ -225,7 +228,10 @@ export function UsersPage() {
 
           <InputWrapper withAsterisk label="Enabled">
             <Checkbox
-              disabled={editUserForm.getValues().admin || editUserForm.getValues().email === auth.user?.profile.email}
+              disabled={
+                editUserForm.getValues().admin ||
+                editUserForm.getValues().email === auth.user?.profile.email
+              }
               checked={editUserForm.getValues().enabled}
               key={editUserForm.key("enabled")}
               {...editUserForm.getInputProps("enabled", { type: "checkbox" })}

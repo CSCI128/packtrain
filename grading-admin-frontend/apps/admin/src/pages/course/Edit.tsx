@@ -12,9 +12,10 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { $api, store$ } from "@repo/api/api";
+import { store$ } from "@repo/api/store";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { $api } from "../../api";
 
 export function EditCourse() {
   const navigate = useNavigate();

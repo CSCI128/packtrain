@@ -1,7 +1,8 @@
 import { Button, Center, Container, Stack } from "@mantine/core";
-import { $api, store$ } from "@repo/api/api";
+import { store$ } from "@repo/api/store";
 import { useAuth } from "react-oidc-context";
 import { Link, useNavigate } from "react-router-dom";
+import { $api } from "../api";
 import { components } from "../lib/api/v1";
 
 export const SelectClass = ({ close }: { close?: () => void }) => {

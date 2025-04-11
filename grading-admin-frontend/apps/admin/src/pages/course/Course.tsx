@@ -7,12 +7,13 @@ import {
   Table,
   Text,
 } from "@mantine/core";
-import { $api, store$, userManager } from "@repo/api/api";
+import { store$ } from "@repo/api/store";
 import { TableHeader } from "@repo/ui/table/Table";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { BsBoxArrowUpRight, BsTrash } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
+import { $api, userManager } from "../../api";
 import { components } from "../../lib/api/v1";
 
 export function CoursePage() {

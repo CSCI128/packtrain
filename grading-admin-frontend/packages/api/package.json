@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "exports": {
-    "./api": "./src/api.ts",
+    "./auth.config": "./src/auth.config.ts",
+    "./store": "./src/store.ts",
     "./*": "./src/*"
   },
   "scripts": {

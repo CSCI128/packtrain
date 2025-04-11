@@ -6,6 +6,6 @@
     "moduleResolution": "Bundler",
     "noUncheckedIndexedAccess": true
   },
-  "include": ["src", "../../apps/admin/src/templates"],
+  "include": ["src", "../../apps/admin/src/templates", "../../apps/student/src/pages/Profile.tsx"],
   "exclude": ["node_modules", "dist"]
 }

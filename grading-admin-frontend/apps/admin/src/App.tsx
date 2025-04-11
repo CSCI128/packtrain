@@ -1,9 +1,8 @@
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
-import { store$, userManager } from "@repo/api/api";
+import { store$ } from "@repo/api/store";
 import { DisabledPage } from "@repo/ui/pages/DisabledPage";
 import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
-import { SelectClass } from "@repo/ui/pages/Select";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect } from "react";
@@ -16,6 +15,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { MembersPage } from "../../instructor/src/Members";
+import { userManager } from "./api.ts";
 import "./index.css";
 import { CreatePolicy } from "./pages/admin/policies/Create.tsx";
 import { AssignmentsPage } from "./pages/Assignments";
@@ -25,6 +25,7 @@ import { EditCourse } from "./pages/course/Edit";
 import { ProfilePage } from "./pages/Profile";
 import { UsersPage } from "./pages/Users";
 import ProtectedRoute from "./ProtectedRoute";
+import { SelectClass } from "./Select.tsx";
 import Root from "./templates/Root";
 
 const queryClient = new QueryClient({

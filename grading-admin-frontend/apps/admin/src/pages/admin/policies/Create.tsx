@@ -9,10 +9,11 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { store$, userManager } from "@repo/api/api.ts";
+import { store$ } from "@repo/api/store";
 import CodeMirror, { EditorState, Extension } from "@uiw/react-codemirror";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { userManager } from "../../../api";
 
 export function CreatePolicy() {
   const navigate = useNavigate();

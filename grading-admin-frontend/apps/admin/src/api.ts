@@ -1,26 +1,8 @@
-import { observable } from "@legendapp/state";
-import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/local-storage";
-import { syncObservable } from "@legendapp/state/sync";
 import { UserManager } from "oidc-client-ts";
 import createFetchClient, { Middleware } from "openapi-fetch";
 import createClient from "openapi-react-query";
-import { AUTH_CONFIG } from "./auth.config";
 import type { paths } from "./lib/api/v1";
-
-interface CourseStore {
-  id: string;
-  name: string;
-}
-
-export const store$ = observable<CourseStore>();
-
-syncObservable(store$, {
-  persist: {
-    name: "activeCourse",
-    plugin: ObservablePersistLocalStorage,
-  },
-});
-// todo - need a better way to grab the user access_token
+import { AUTH_CONFIG } from "./main";
 
 export const userManager = new UserManager(AUTH_CONFIG);
 

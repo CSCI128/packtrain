@@ -12,11 +12,12 @@ import {
   Textarea,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { store$ } from "@repo/api/store.js";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
 import { Link, useNavigate } from "react-router-dom";
-import { $api, store$ } from "../../../../packages/api/src/api";
+import { $api } from "../api";
 
 export function ExtensionForm() {
   const auth = useAuth();

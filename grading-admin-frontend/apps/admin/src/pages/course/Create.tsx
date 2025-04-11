@@ -13,9 +13,10 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { $api, store$ } from "@repo/api/api";
+import { store$ } from "@repo/api/store";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { $api } from "../../api";
 import { components } from "../../lib/api/v1";
 
 export function CreatePage() {

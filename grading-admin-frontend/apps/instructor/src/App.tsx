@@ -1,10 +1,8 @@
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
-import { store$, userManager } from "@repo/api/api";
+import { store$ } from "@repo/api/store";
 import { DisabledPage } from "@repo/ui/pages/DisabledPage";
 import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
-import { ProfilePage } from "@repo/ui/pages/Profile";
-import { SelectClass } from "@repo/ui/pages/Select";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import axios from "axios";
 import { JSX, useEffect } from "react";
@@ -21,8 +19,11 @@ import { MigrationsLoadPage } from "../../instructor/src/migration/MigrationsLoa
 import { MigrationsPostPage } from "../../instructor/src/migration/MigrationsPost";
 import { MigrationsReviewPage } from "../../instructor/src/migration/MigrationsReview";
 import { MigrationsPage } from "../../instructor/src/Migrations";
+import { userManager } from "./api";
 import { ApprovalPage } from "./ApprovalPage";
 import "./index.css";
+import { ProfilePage } from "./Profile";
+import { SelectClass } from "./Select";
 import Root from "./templates/Root";
 
 const queryClient = new QueryClient({
