@@ -1,7 +1,15 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+function manualChunks(id: string) {
+  if (id.includes("node_modules")) {
+    return "vendor";
+  }
+  return null;
+}
+
 export default defineConfig({
+  base: "/admin",
   plugins: [react()],
   resolve: {
     alias: {
@@ -21,5 +29,13 @@ export default defineConfig({
     host: true,
     port: 5173,
     origin: "http://host.docker.internal:5173",
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks,
+      },
+    },
+    chunkSizeWarningLimit: 750,
   },
 });

@@ -75,9 +75,9 @@ export function ProfilePage() {
 
   const {
     data: credentialData,
-    refetch,
     error: credentialError,
     isLoading: credentialIsLoading,
+    refetch,
   } = $api.useQuery("get", "/user/credentials");
 
   const mutation = $api.useMutation("post", "/user/credentials");

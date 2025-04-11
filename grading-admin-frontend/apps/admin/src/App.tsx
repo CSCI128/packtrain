@@ -1,5 +1,8 @@
-import { MantineProvider, Text } from "@mantine/core";
+import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
+import { store$ } from "@repo/api/store";
+import { DisabledPage } from "@repo/ui/pages/DisabledPage";
+import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect } from "react";
@@ -11,74 +14,27 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { $api, store$, userManager } from "./api";
+import { MembersPage } from "../../instructor/src/Members";
+import { userManager } from "./api.ts";
 import "./index.css";
-import { AssignmentsPage } from "./pages/admin/Assignments";
-import { CoursePage } from "./pages/admin/course/Course";
-import { CreatePage } from "./pages/admin/course/Create";
-import { EditCourse } from "./pages/admin/course/Edit";
-import { SelectClass } from "./pages/admin/course/Select";
-import { UsersPage } from "./pages/admin/Users";
-import { HomePage } from "./pages/Home";
-import { ApprovalPage } from "./pages/instructor/ApprovalPage";
-import { MembersPage } from "./pages/instructor/Members";
-import { MigrationsApplyPage } from "./pages/instructor/migration/MigrationsApply";
-import { MigrationsLoadPage } from "./pages/instructor/migration/MigrationsLoad";
-import { MigrationsPostPage } from "./pages/instructor/migration/MigrationsPost";
-import { MigrationsReviewPage } from "./pages/instructor/migration/MigrationsReview";
-import { MigrationsPage } from "./pages/instructor/Migrations";
+import { CreatePolicy } from "./pages/admin/policies/Create.tsx";
+import { AssignmentsPage } from "./pages/Assignments";
+import { CoursePage } from "./pages/course/Course";
+import { CreatePage } from "./pages/course/Create";
+import { EditCourse } from "./pages/course/Edit";
 import { ProfilePage } from "./pages/Profile";
-import { ExtensionForm } from "./pages/student/ExtensionForm";
-import { Requests } from "./pages/student/Requests";
+import { UsersPage } from "./pages/Users";
 import ProtectedRoute from "./ProtectedRoute";
+import { SelectClass } from "./Select.tsx";
 import Root from "./templates/Root";
-import {CreatePolicy} from "./pages/admin/policies/Create.tsx";
 
 const queryClient = new QueryClient({
-  // queryCache: new QueryCache({
-  //   onError: async (error, query) => {
-  //     console.log(`Something went wrong: ${error.message}`);
-  //     console.log(error.response?.status);
-  //   },
-  // }),
   defaultOptions: {
     queries: {
       retry: false,
     },
   },
 });
-
-const NotFoundPage = () => {
-  return (
-    <>
-      <Text>The specified page could not be found!</Text>
-    </>
-  );
-};
-
-const UserIsDisabled = () => {
-  const auth = useAuth();
-  const email = auth.user?.profile.email || "None";
-
-  return email != "None" ? (
-    <>
-      <Text>
-        User '{email}' has been disabled! Contact an administrator for
-        assistance!
-      </Text>
-    </>
-  ) : (
-    <>
-      <Text>You are not logged in!</Text>
-    </>
-  );
-};
-
-const MigrationMiddleware = ({ children }: { children: JSX.Element }) => {
-  // Four step migrate process: send people to first or active state or
-  // prevent them from going to future states
-  return children;
-};
 
 const fetchData = async () => {
   const response = await axios.get("/api/user");
@@ -92,10 +48,10 @@ const MiddlewareLayout = () => {
   const auth = useAuth();
   const currentPage = location.pathname;
 
-  const { isError } = $api.useQuery("get", "/user");
-  if (isError && auth.isAuthenticated) {
-    navigate("/disabled");
-  }
+  // const { isError } = $api.useQuery("get", "/user");
+  // if (isError && auth.isAuthenticated) {
+  //   navigate("/disabled");
+  // }
 
   // const { data, error } = useQuery({
   //   queryKey: ["data"],
@@ -127,6 +83,11 @@ const MiddlewareLayout = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // const { isError } = $api.useQuery("get", "/user");
+        // if (isError && auth.isAuthenticated) {
+        //   navigate("/disabled");
+        // }
+
         const user = await userManager.getUser();
         if (!isAuthenticated && user && user.profile.is_admin) {
           navigate("/select");
@@ -136,7 +97,7 @@ const MiddlewareLayout = () => {
       }
     };
 
-    if (currentPage !== "/profile") {
+    if (currentPage !== "/profile" && currentPage !== "/users") {
       fetchData();
     }
   }, [isAuthenticated, navigate]);
@@ -169,8 +130,8 @@ const router = createBrowserRouter([
         element: <MiddlewareLayout />,
         children: [
           {
-            path: "/",
-            element: <HomePage />,
+            path: "/admin",
+            element: <CoursePage />,
           },
           {
             path: "/select",
@@ -181,22 +142,6 @@ const router = createBrowserRouter([
             element: <CallbackPage />,
           },
           {
-            path: "/requests",
-            element: <Requests />,
-          },
-          {
-            path: "/extension",
-            element: <ExtensionForm />,
-          },
-          {
-            path: "/admin/home",
-            element: (
-              <ProtectedRoute>
-                <CoursePage />
-              </ProtectedRoute>
-            ),
-          },
-          {
             path: "/admin/edit",
             element: (
               <ProtectedRoute>
@@ -205,53 +150,11 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/approval",
-            // TODO will move this to instructor application
-            // path: "/instructor/approval",
-            element: <ApprovalPage/>,
-          },
-          {
             path: "/admin/policies/new",
             element: (
               <ProtectedRoute>
-                <CreatePolicy/>
+                <CreatePolicy />
               </ProtectedRoute>
-            )
-          },
-          {
-            path: "/instructor/migrate",
-            element: <MigrationsPage />,
-          },
-          {
-            path: "/instructor/migrate/load",
-            element: (
-              <MigrationMiddleware>
-                <MigrationsLoadPage />
-              </MigrationMiddleware>
-            ),
-          },
-          {
-            path: "/instructor/migrate/apply",
-            element: (
-              <MigrationMiddleware>
-                <MigrationsApplyPage />
-              </MigrationMiddleware>
-            ),
-          },
-          {
-            path: "/instructor/migrate/review",
-            element: (
-              <MigrationMiddleware>
-                <MigrationsReviewPage />
-              </MigrationMiddleware>
-            ),
-          },
-          {
-            path: "/instructor/migrate/post",
-            element: (
-              <MigrationMiddleware>
-                <MigrationsPostPage />
-              </MigrationMiddleware>
             ),
           },
           {
@@ -287,12 +190,12 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/profile",
+            path: "/admin/profile",
             element: <ProfilePage />,
           },
           {
             path: "/disabled",
-            element: <UserIsDisabled />,
+            element: <DisabledPage />,
           },
           {
             path: "*",

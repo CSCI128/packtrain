@@ -1,40 +1,50 @@
-import {Button, Container, Input, Paper, Space, Textarea, TextInput} from "@mantine/core";
-import {useForm} from "@mantine/form";
-import {store$, userManager} from "../../../api.ts";
-import CodeMirror, {EditorState, Extension} from "@uiw/react-codemirror";
-import {javascript} from "@codemirror/lang-javascript";
+import { javascript } from "@codemirror/lang-javascript";
+import {
+  Button,
+  Container,
+  Input,
+  Paper,
+  Space,
+  Textarea,
+  TextInput,
+} from "@mantine/core";
+import { useForm } from "@mantine/form";
+import { store$ } from "@repo/api/store";
+import CodeMirror, { EditorState, Extension } from "@uiw/react-codemirror";
 import axios from "axios";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { userManager } from "../../../api";
 
 export function CreatePolicy() {
   const navigate = useNavigate();
   let errors = "";
 
   const createNewPolicy = (values: typeof form.values) => {
-    const file = new File([values.content], values.fileName, {type: "application/javascript"});
-    userManager.getUser().then(u => {
-        if (u == null) {
-          throw new Error("Failed to get user");
-        }
+    const file = new File([values.content], values.fileName, {
+      type: "application/javascript",
+    });
+    userManager.getUser().then((u) => {
+      if (u == null) {
+        throw new Error("Failed to get user");
+      }
 
-        const formData = new FormData();
+      const formData = new FormData();
 
-        formData.append("name", values.policyName);
-        formData.append("file_path", values.fileName);
-        formData.append("file_data", file);
-        formData.append("description", values.description);
+      formData.append("name", values.policyName);
+      formData.append("file_path", values.fileName);
+      formData.append("file_data", file);
+      formData.append("description", values.description);
 
-        axios.post(`/api/instructor/courses/${store$.id.get()}/policies`, formData, {
+      axios
+        .post(`/api/instructor/courses/${store$.id.get()}/policies`, formData, {
           headers: {
-            "authorization": `Bearer ${u.access_token}`,
+            authorization: `Bearer ${u.access_token}`,
             "content-type": "multipart/form-data",
           },
-        }).then(_ => navigate("/admin/home"))
-          .catch(e => errors = e);
-      }
-    )
-
-
+        })
+        .then((_) => navigate("/admin/home"))
+        .catch((e) => (errors = e));
+    });
   };
 
   const form = useForm({
@@ -49,12 +59,16 @@ export function CreatePolicy() {
       policyName: (value) =>
         value.length < 1 ? "Policy name must be set" : null,
       fileName: (value) =>
-        value.trim().length < 1 || /^(?!\w+\.js)/.test(value) ? "file name must be a valid js file name" : null,
+        value.trim().length < 1 || /^(?!\w+\.js)/.test(value)
+          ? "file name must be a valid js file name"
+          : null,
       description: (value) =>
-        value.trim().length < 1 || value.trim().length > 100 ? "description must between 1 and 100 characters": null,
+        value.trim().length < 1 || value.trim().length > 100
+          ? "description must between 1 and 100 characters"
+          : null,
       content: (value) =>
         value.trim().length < 1 ? "policy must be set!" : null,
-    }
+    },
   });
 
   // language=JavaScript
@@ -79,13 +93,11 @@ export function CreatePolicy() {
 
       // Returning false blocks the entire change
       return !blocked;
-    })
+    });
   return (
     <>
       <Container size="md">
-        {errors != null &&
-            errors
-        }
+        {errors != null && errors}
 
         <form onSubmit={form.onSubmit(createNewPolicy)}>
           <TextInput
@@ -119,29 +131,28 @@ export function CreatePolicy() {
               radius="md"
               p={0}
               style={{
-                borderColor: '#ced4da',
-                overflow: 'hidden',
+                borderColor: "#ced4da",
+                overflow: "hidden",
               }}
             >
               <CodeMirror
                 value={fullCode}
                 extensions={[javascript(), preventEditingWrapperLines()]}
-                onChange={c => form.setFieldValue("content", c.split("\n").slice(1, -1).join("\n"))}
+                onChange={(c) =>
+                  form.setFieldValue(
+                    "content",
+                    c.split("\n").slice(1, -1).join("\n")
+                  )
+                }
               />
             </Paper>
           </Input.Wrapper>
 
-          <Space h="md"/>
+          <Space h="md" />
 
-          <Button type={"submit"}>
-            Create
-          </Button>
-
+          <Button type={"submit"}>Create</Button>
         </form>
-
-
       </Container>
-
     </>
   );
 }

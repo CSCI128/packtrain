@@ -1,8 +1,11 @@
 {
   "extends": "@repo/typescript-config/react-library.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noUncheckedIndexedAccess": true
   },
-  "include": ["src"],
+  "include": ["src", "../../apps/admin/src/templates", "../../apps/student/src/pages/Profile.tsx"],
   "exclude": ["node_modules", "dist"]
 }
