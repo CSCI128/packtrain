@@ -300,7 +300,7 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<PolicyDTO>> getAllPolicies(String courseId) {
+    public ResponseEntity<List<PolicyDTO>> adminGetAllPolicies(String courseId) {
         List<Policy> policies = policyService.getAllPolicies(UUID.fromString(courseId));
         return ResponseEntity.ok(policies.stream().map(DTOFactory::toDto).toList());
     }

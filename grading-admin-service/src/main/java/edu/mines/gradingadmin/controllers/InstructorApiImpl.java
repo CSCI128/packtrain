@@ -27,13 +27,15 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
     private final MigrationService migrationService;
+    private final PolicyService policyService;
 
-    public InstructorApiImpl(CourseService courseService, ExtensionService extensionService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService) {
+    public InstructorApiImpl(CourseService courseService, ExtensionService extensionService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService, PolicyService policyService) {
         this.courseService = courseService;
         this.extensionService = extensionService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
         this.migrationService = migrationService;
+        this.policyService = policyService;
     }
 
     @Override
@@ -148,5 +150,11 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(DTOFactory.toDto(lateRequest.get()));
+    }
+
+    @Override
+    public ResponseEntity<List<PolicyDTO>> getAllPolicies(String courseId) {
+        List<Policy> policies = policyService.getAllPolicies(UUID.fromString(courseId));
+        return ResponseEntity.ok(policies.stream().map(DTOFactory::toDto).toList());
     }
 }

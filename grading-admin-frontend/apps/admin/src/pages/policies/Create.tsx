@@ -13,7 +13,7 @@ import { store$ } from "@repo/api/store";
 import CodeMirror, { EditorState, Extension } from "@uiw/react-codemirror";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { userManager } from "../../../api";
+import { userManager } from "../../api.ts";
 
 export function CreatePolicy() {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ export function CreatePolicy() {
       formData.append("description", values.description);
 
       axios
-        .post(`/api/instructor/courses/${store$.id.get()}/policies`, formData, {
+        .post(`/api/admin/courses/${store$.id.get()}/policies`, formData, {
           headers: {
             authorization: `Bearer ${u.access_token}`,
             "content-type": "multipart/form-data",
