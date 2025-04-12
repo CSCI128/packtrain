@@ -17,7 +17,7 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
         res.sendStatus(200);
     });
 
-    app.get(`${config.serverConfig.basePath}/-/ready`, (req, res) => {
+    app.get(`${config.serverConfig!.basePath}/-/ready`, (req, res) => {
         if (!ready()) {
             res.sendStatus(500);
             return;
@@ -25,14 +25,14 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
 
         res.sendStatus(200);
     });
-    app.post(`${config.serverConfig.basePath}/grading/start`, (req, res) => {
+    app.post(`${config.serverConfig!.basePath}/grading/start`, (req, res) => {
         if (!req.body) {
             res.sendStatus(400);
             return;
         }
         const body = req.body as GradingStartDTO;
 
-        startMigration(config.rabbitMqConfig.exchangeName, body)
+        startMigration(config.rabbitMqConfig!.exchangeName, body)
             .then(() => {
                 res.status(201);
                 res.send({ status: "created" });
@@ -43,7 +43,7 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
             });
     });
 
-    app.post(`${config.serverConfig.basePath}/validate`, (req, res) => {
+    app.post(`${config.serverConfig!.basePath}/validate`, (req, res) => {
         if (!req.body) {
             res.sendStatus(400);
             return;

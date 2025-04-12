@@ -4,6 +4,10 @@ import { config } from "./config/config";
 import { setup } from "./api/api";
 import { connect } from "./services/rabbitMqService";
 
+if (config.rabbitMqConfig == null || config.serverConfig == null || config.policyConfig == null){
+    throw new Error("Invalid Config File!");
+}
+
 const app = setup(config, express());
 
 connect(config.rabbitMqConfig)
@@ -16,6 +20,6 @@ connect(config.rabbitMqConfig)
 
 http.createServer(app).listen(config.serverConfig.port, () => {
     console.log(
-        `Listening on :${config.serverConfig.port} under path ${config.serverConfig.basePath}`,
+        `Listening on :${config.serverConfig!.port} under path ${config.serverConfig!.basePath}`,
     );
 });
