@@ -1,9 +1,9 @@
 import { Box, Button, Container, Divider, Text } from "@mantine/core";
 import { store$ } from "@repo/api/store";
+import { formattedDate } from "@repo/ui/DateUtil";
 import { Link } from "react-router-dom";
-import { formattedDate } from "../../../packages/ui/src/DateUtil";
-import { components } from "../../admin/src/lib/api/v1";
-import { $api } from "./api";
+import { $api } from "../../api";
+import { components } from "../../lib/api/v1";
 
 export function MigrationsPage() {
   const { data, error, isLoading } = $api.useQuery(

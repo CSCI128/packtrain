@@ -10,7 +10,7 @@ import { store$ } from "@repo/api/store";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
-import { $api } from "./api";
+import { $api } from "../api";
 
 interface MemberRowData {
   cwid: string;

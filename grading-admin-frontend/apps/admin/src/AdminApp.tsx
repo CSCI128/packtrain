@@ -14,19 +14,19 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { MembersPage } from "../../instructor/src/Members";
+import { MembersPage } from "../../instructor/src/pages/Members.tsx";
 import { userManager } from "./api.ts";
 import "./index.css";
-import { CreatePolicy } from "./pages/policies/Create.tsx";
 import { AssignmentsPage } from "./pages/Assignments";
 import { CoursePage } from "./pages/course/Course";
 import { CreatePage } from "./pages/course/Create";
 import { EditCourse } from "./pages/course/Edit";
+import { CreatePolicy } from "./pages/policies/Create.tsx";
 import { ProfilePage } from "./pages/Profile";
 import { UsersPage } from "./pages/Users";
 import ProtectedRoute from "./ProtectedRoute";
 import { SelectClass } from "./Select.tsx";
-import Root from "./templates/Root";
+import Root from "./templates/Root.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -12,8 +12,8 @@ import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
-import { $api } from "./api";
-import { components } from "./lib/api/v1";
+import { $api } from "../api";
+import { components } from "../lib/api/v1";
 
 interface RequestRowData {
   id?: string;

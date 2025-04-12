@@ -4,7 +4,7 @@ import { store$ } from "@repo/api/store";
 import { DisabledPage } from "@repo/ui/pages/DisabledPage";
 import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { JSX, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import {
@@ -14,16 +14,16 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { MigrationsApplyPage } from "../../instructor/src/migration/MigrationsApply";
-import { MigrationsLoadPage } from "../../instructor/src/migration/MigrationsLoad";
-import { MigrationsPostPage } from "../../instructor/src/migration/MigrationsPost";
-import { MigrationsReviewPage } from "../../instructor/src/migration/MigrationsReview";
-import { MigrationsPage } from "../../instructor/src/Migrations";
 import { userManager } from "./api";
-import { ApprovalPage } from "./ApprovalPage";
 import "./index.css";
-import { ProfilePage } from "./Profile";
-import { SelectClass } from "./Select";
+import { ApprovalPage } from "./pages/ApprovalPage";
+import { MigrationsPage } from "./pages/migration/Migrations";
+import { MigrationsApplyPage } from "./pages/migration/MigrationsApply";
+import { MigrationsLoadPage } from "./pages/migration/MigrationsLoad";
+import { MigrationsPostPage } from "./pages/migration/MigrationsPost";
+import { MigrationsReviewPage } from "./pages/migration/MigrationsReview";
+import { ProfilePage } from "./pages/Profile";
+import { SelectClass } from "./pages/Select";
 import Root from "./templates/Root";
 
 const queryClient = new QueryClient({
@@ -35,14 +35,22 @@ const queryClient = new QueryClient({
 });
 
 const MigrationMiddleware = ({ children }: { children: JSX.Element }) => {
-  // Four step migrate process: send people to first or active state or
-  // prevent them from going to future states
+  // Four step migrate process: send people to first or last or active state
+  // and prevent them from going to future states
   return children;
 };
 
-const fetchData = async () => {
-  const response = await axios.get("/api/user");
-  return response.data;
+const fetchUserData = async () => {
+  return await axios
+    .get("/api/user")
+    .catch((err: AxiosError) => {
+      if (err.response?.status === 401) {
+        console.log("ERR");
+      }
+    })
+    .then((resp) => {
+      console.log(resp);
+    });
 };
 
 const MiddlewareLayout = () => {
@@ -51,14 +59,15 @@ const MiddlewareLayout = () => {
   const isAuthenticated = store$.id.get();
   const auth = useAuth();
   const currentPage = location.pathname;
+  // const { isError } = $api.useQuery("get", fetchUserData);
+  // if (isError && auth.isAuthenticated) {
+  //   navigate("/disabled");
+  // }
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // const { isError } = $api.useQuery("get", "/user");
-        // if (isError && auth.isAuthenticated) {
-        //   navigate("/disabled");
-        // }
+        fetchUserData();
 
         const user = await userManager.getUser();
         if (!isAuthenticated && user && user.profile.is_admin) {
@@ -102,16 +111,16 @@ const router = createBrowserRouter([
         element: <MiddlewareLayout />,
         children: [
           {
+            path: "/instructor",
+            element: <ApprovalPage />,
+          },
+          {
             path: "/select",
             element: <SelectClass />,
           },
           {
             path: "/callback",
             element: <CallbackPage />,
-          },
-          {
-            path: "/",
-            element: <ApprovalPage />,
           },
           {
             path: "/instructor/migrate",

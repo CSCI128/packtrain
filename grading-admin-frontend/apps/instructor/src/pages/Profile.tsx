@@ -15,8 +15,8 @@ import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
-import { $api } from "./api";
-import { components } from "./lib/api/v1";
+import { $api } from "../api";
+import { components } from "../lib/api/v1";
 
 export function ProfilePage() {
   const auth = useAuth();
