@@ -873,9 +873,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Credential"
+                $ref: "#/components/schemas/Credentials"
         404:
           description: "User not found"
           content:
@@ -1132,6 +1130,7 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to deny extension for user"
 
+
   /instructor/courses/{course_id}:
     get:
       tags:
@@ -1238,164 +1237,6 @@ paths:
                 items:
                   $ref: "#/components/schemas/Policy"
 
-  /student/courses/{course_id}:
-    get:
-      tags:
-        - student
-      operationId: get_course_information_student
-      summary: Get information for a course
-      description: |
-        Get information from a course from
-        the student's perspective; members and
-        assignments are not returned but the
-        section the student is in is returned.
-      security:
-        - openIDC: [user:read]
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StudentInformation"
-
-  /student/courses:
-    get:
-      tags:
-        - student
-      operationId: get_courses_student
-      summary: "Get all courses"
-      description: |
-        Get all active courses for a student
-      security:
-        - openIDC: [user:read]
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CourseSlim"
-
-  /user/enrollments:
-    get:
-      tags:
-        - user
-      operationId: get_enrollments
-      security:
-        - openIDC: [user:read]
-      summary: "Get all enrollments for a user"
-      description: |
-        Gets all enrollments (classes) that a
-        user is apart of.
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Enrollment"
-        404:
-          description: "User not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_user"
-                error_message: "User '999-9999-9999-99' does not exist!"
-
-  /student/courses/{course_id}/assignments:
-    get:
-      tags:
-        - student
-      operationId: get_course_assignments_student
-      summary: Get assignments for course
-      description: |
-        Get currently released assignments for course
-      security:
-        - openIDC: [user:read]
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AssignmentSlim"
-
-  /tasks:
-    get:
-      tags:
-        - tasks
-      operationId: get_all_tasks_for_user
-      summary: Get all tasks for current user
-      description: |
-        This endpoint gets all the tasks for the currently signed in user
-      security:
-        - openIDC: [user:read]
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Task"
-  /tasks/{task_id}:
-    get:
-      tags:
-        - tasks
-      operationId: get_task
-      summary: Get task by id
-      description: |
-        This endpoint returns the requested task if the user has access to it.
-      security:
-        - openIDC: [user:read]
-      parameters:
-        - name: task_id
-          required: true
-          in: path
-          schema:
-            type: integer
-            format: int64
-            example: 219
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Task"
-        404:
-          description: "Not Found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "get_task"
-                error_message: "Requested task was not found"
 
   /instructor/courses/{course_id}/assignments/{assignment_id}/user/{user_id}/extensions:
     post:
@@ -1635,70 +1476,44 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /admin/courses/{course_id}/extensions:
-    get:
+  /instructor/courses/{course_id}/migrations:
+    post:
       tags:
-        - admin
-      operationId: get_all_extensions_for_course
-      summary: Get all the extensions for the course
+        - instructor
+      operationId: create_master_migration
+      summary: Create a new master migration
       description: |
-        This endpoint gets all extensions for a given course
+        Create a master migration - these can be thought as a set of assignments that will be migrated as a set.
       security:
-        - openIDC: [admin:read]
+        - openIDC: [instructor:write]
       parameters:
         - name: course_id
-          required: true
-          description: "The course ID"
           in: path
+          required: true
           schema:
             type: string
-            example: "999-9999-9999-99"
-        - name: status
-          in: query
-          required: false
-          schema:
-            type: string
-            enum:
-              - approved
-              - denied
-              - pending
+            example: "99-9999-9999-99"
       responses:
-        200:
-          description: "OK"
+        201:
+          description: "Created"
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/LateRequest"
-        404:
-          description: "Extension not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "User Service"
-                error_message: "Error: extension request not found"
-
-  /instructor/courses/{course_id}/migrations:
+                $ref: "#/components/schemas/MasterMigration"
     get:
       tags:
         - instructor
-      operationId: get_all_master_migrations_for_course
-      summary: Get all the master migrations for the course
-      description: |
-        This endpoint gets all master migrations for a given course
+      operationId: get_all_migrations
+      summary: Gets all master migrations
       security:
-        - openIDC: [admin:read]
+        - openIDC: [instructor:read]
       parameters:
         - name: course_id
-          required: true
-          description: "The course ID"
           in: path
+          required: true
           schema:
             type: string
-            example: "999-9999-9999-99"
+            example: "99-9999-9999-99"
       responses:
         200:
           description: "OK"
@@ -1708,23 +1523,45 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/MasterMigration"
-        404:
-          description: "Migration not found"
+
+
+  /instructor/courses/{course_id}/migrations/{master_migration_id}:
+    get:
+      tags:
+        - instructor
+      operationId: get_master_migrations
+      summary: Get master migrations
+      security:
+        - openIDC: [instructor:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "User Service"
-                error_message: "Error: migration not found"
+                $ref: "#/components/schemas/MasterMigration"
     post:
       tags:
         - instructor
-      operationId: create_master_migration
-      summary: "Create master migration for a course"
+      operationId: create_migration_for_master_migration
+      summary: "Create migration for a master migration"
       description: |
-        Create a new master migration for a course.
-        Replies with a master migration for a course.
+        Create a new migration for a master migration.
+        Replies with an master migration including the list of migrations, one for each assignment
       security:
         - openIDC: [instructor:write]
       parameters:
@@ -1735,29 +1572,576 @@ paths:
           schema:
             type: string
             example: "999-9999-9999-99"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/MasterMigration"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: assignment
+          required: true
+          in: query
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+            description: The assignment to add to this migration
       responses:
-        201:
-          description: "An master Migration has been created"
+        202:
+          description: "Accepted"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MasterMigration"
         404:
-          description: "Migration not found"
+          description: "Master Migration not found"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 error_source: "User Service"
-                error_message: "Error: master migration not found"
+                error_message: "Error: Master Migration not found"
 
+  /instructor/course/{course_id}/migrations/{master_migration_id}/{migration_id}/scores:
+    post:
+      tags:
+        - instructor
+      operationId: upload_raw_scores
+      summary: "Upload the scores for a migration"
+      description: |
+        Upload the raw scores for a student from an external service.
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: migration_id
+          required: true
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        202:
+          description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasterMigration"
+        404:
+          description: "Master Migration not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "User Service"
+                error_message: "Error: Master Migration not found"
+
+
+  /instructor/courses/{course_id}/migrations/{master_migration_id}/load_validate:
+    post:
+      tags:
+        - instructor
+      operationId: load_validate_master_migration
+      summary: "Verify that all information provided in master migration is valid"
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+        400:
+          description: "Invalid"
+
+  /instructor/courses/{course_id}/migrations/{master_migration_id}/load:
+    post:
+      tags:
+        - instructor
+      operationId: load_master_migration
+      summary: "Load data for master migration and then lock the migration from further edits"
+      description: |
+        This function loads all relevant data about the master migration and then locks it for edits
+        It additionally moves the migration to next step in the pipeline and prevents it from being moved back.
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+        400:
+          description: "Invalid"
+
+  /instructor/courses/{course_id}/migrations/{master_migration_id}/{migration_id}/policy:
+    post:
+      tags:
+        - instructor
+      operationId: set_policy
+      security:
+        - openIDC: [instructor:write]
+      summary: sets the policy for a migration
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: master_migration_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: migration_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: policy_id
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+      responses:
+        202:
+          description: "Policy set for assignment"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasterMigration"
+        400:
+          description: "Failed to update policy"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_policy"
+                error_message: "Failed to update policy for migration"
+        404:
+          description: "Policy not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_policy"
+                error_message: "Failed to update policy for migration"
+
+  /instructor/courses/{course_id}/migrations/{master_migration_id}/apply-validate:
+    post:
+      tags:
+        - instructor
+      operationId: apply_validate_master_migration
+      summary: "Verify that all information provided in master migration is valid"
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+        400:
+          description: "Invalid"
+
+  /instructor/courses/{course_id}/migrations/{master_migration_id}/apply:
+    post:
+      tags:
+        - instructor
+      operationId: apply_master_migration
+      summary: "Apply policies to raw score"
+      description: |
+        This function applies the policies to the raw scores that exist
+        As this is a long running task, it returns a list of tasks that the server is working through
+        The migration will be locked until all of the tasks have been completed.
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        202:
+          description: "Accepted"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+        400:
+          description: "Invalid"
+
+  /instructor/courses/{course_id}/migrations/{master_migration_id}/review:
+    get:
+      tags:
+        - instructor
+      operationId: get_master_migration_to_review
+      summary: "Get all current information about a master migration"
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MigrationWithScores"
+    post:
+      tags:
+        - instructor
+      operationId: review_master_migration
+      summary: "Finalize review step for master migration"
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+        400:
+          description: "Invalid"
+
+  /instructor/courses/{course_id}/migrations/{master_migration_id}/{migration_id}/score:
+    post:
+      tags:
+        - instructor
+      operationId: update_student_score
+      summary: "Update a student's score"
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: migration_id
+          required: true
+          description: "The migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MigrationScoreChange"
+      responses:
+        200:
+          description: "OK"
+        400:
+          description: "Invalid"
+
+  /instructor/courses/{course_id}/migrations/{master_migration_id}/post:
+    post:
+      tags:
+        - instructor
+      operationId: post_master_migration
+      summary: "post a master migration to canvas"
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          required: true
+          description: "The course ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        202:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+        400:
+          description: "Invalid"
+
+  /tasks:
+    get:
+      tags:
+        - tasks
+      operationId: get_all_tasks_for_user
+      summary: Get all tasks for current user
+      description: |
+        This endpoint gets all the tasks for the currently signed in user
+      security:
+        - openIDC: [user:read]
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+  /tasks/{task_id}:
+    get:
+      tags:
+        - tasks
+      operationId: get_task
+      summary: Get task by id
+      description: |
+        This endpoint returns the requested task if the user has access to it.
+      security:
+        - openIDC: [user:read]
+      parameters:
+        - name: task_id
+          required: true
+          in: path
+          schema:
+            type: integer
+            format: int64
+            example: 219
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        404:
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "get_task"
+                error_message: "Requested task was not found"
+
+
+  /student/courses/{course_id}:
+    get:
+      tags:
+        - student
+      operationId: get_course_information_student
+      summary: Get information for a course
+      description: |
+        Get information from a course from
+        the student's perspective; members and
+        assignments are not returned but the
+        section the student is in is returned.
+      security:
+        - openIDC: [user:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentInformation"
+
+  /student/courses:
+    get:
+      tags:
+        - student
+      operationId: get_courses_student
+      summary: "Get all courses"
+      description: |
+        Get all active courses for a student
+      security:
+        - openIDC: [user:read]
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CourseSlim"
+
+  /student/enrollments:
+    get:
+      tags:
+        - user
+      operationId: get_enrollments
+      security:
+        - openIDC: [user:read]
+      summary: "Get all enrollments for a user"
+      description: |
+        Gets all enrollments (classes) that a
+        user is apart of.
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CourseSlim"
+        404:
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error_source: "update_user"
+                error_message: "User '999-9999-9999-99' does not exist!"
+
+  /student/courses/{course_id}/assignments:
+    get:
+      tags:
+        - student
+      operationId: get_course_assignments_student
+      summary: Get assignments for course
+      description: |
+        Get currently released assignments for course
+      security:
+        - openIDC: [user:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssignmentSlim"
   /student/courses/{course_id}/extensions:
     get:
       tags:
@@ -1876,158 +2260,6 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructor/courses/{course_id}/migrations/{master_migration_id}:
-    put:
-      tags:
-        - instructor
-      operationId: update_grade
-      summary: Updates the grade for a migration for the user. Must include a reason for updating the grade.
-      description: |
-        Updates the grade for a migration for the user.
-      security:
-        - openIDC: [instructor:write]
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-        - name: master_migration_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-      responses:
-        202:
-          description: "Accepted"
-        400:
-          description: "Failed to update grade"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_user"
-                error_message: "Failed to update grade for migration for user"
-        404:
-          description: "Migration not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_user"
-                error_message: "Failed to update grade for migration for user"
-    post:
-      tags:
-        - instructor
-      operationId: create_migration_for_master_migration
-      summary: "Create migration for a master migration"
-      description: |
-        Create a new migration for a master migration.
-        Replies with an master migration including the list of migrations, one for each assignment and policy.
-      security:
-        - openIDC: [instructor:write]
-      parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Migration"
-      responses:
-        201:
-          description: "An Master Migration has been updated"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MasterMigration"
-        404:
-          description: "Master Migration not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "User Service"
-                error_message: "Error: Master Migration not found"
-
-  /instructor/courses/{course_id}/migrations/{migration_id}/assignments/{assignment_id}:
-    put:
-      tags:
-        - instructor
-      operationId: update_policy
-      security:
-        - openIDC: [instructor:write]
-      summary: Updates the policy for an assignment and migration
-      description: |
-        Updates the policy that corresponds to an assignment and a migration.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Policy"
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-        - name: migration_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-        - name: assignment_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-      responses:
-        202:
-          description: "Policy updated for assignment"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Migration"
-        400:
-          description: "Failed to update policy"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_policy"
-                error_message: "Failed to update policy for migration"
-        404:
-          description: "Policy not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "update_policy"
-                error_message: "Failed to update policy for migration"
 
 components:
   securitySchemes:
@@ -2171,6 +2403,12 @@ components:
           example: true
         owning_user:
           $ref: "#/components/schemas/User"
+
+    Credentials:
+      description: "A list of credentials"
+      type: array
+      items:
+        $ref: "#/components/schemas/Credential"
 
     User:
       description: "A server user"
@@ -2353,8 +2591,9 @@ components:
           format: int64
           example: 123456
         gradescope_id:
-          type: string
-          example: "932552"
+          type: integer
+          format: int64
+          example: 123456
         members:
           type: array
           items:
@@ -2416,40 +2655,6 @@ components:
         code:
           type: string
           example: "Fall.2020.EXCL.101"
-
-    Enrollment:
-      description: "A slim course and a CourseMember"
-      type: object
-      required:
-        - term
-        - name
-        - code
-        - cwid
-        - course_role
-      properties:
-        id:
-          type: string
-          example: "999-9999-9999-99"
-        term:
-          type: string
-          example: "Fall 2020"
-        name:
-          type: string
-          example: "EXCL101"
-        code:
-          type: string
-          example: "Fall.2020.EXCL.101"
-        cwid:
-          type: string
-          example: "99999999"
-        course_role:
-          type: string
-          enum:
-            - student
-            - instructor
-            - ta
-            - owner
-          example: "owner"
 
     StudentInformation:
       description: "Information relevant to a student"
@@ -2608,3 +2813,49 @@ components:
           $ref: "#/components/schemas/Assignment"
         policy:
           $ref: "#/components/schemas/Policy"
+
+    MigrationScoreChange:
+      description: "Change a students score during the review phase of a migration"
+      type: object
+      required:
+        - cwid
+        - new_score
+        - justification
+      properties:
+        cwid:
+          type: string
+          example: 9999999
+        new_score:
+          type: number
+          format: double
+          example: 10
+        justification:
+          type: string
+          example: "10 points bc you are cool :)"
+
+    Score:
+      description: "A score for a student"
+      type: object
+      properties:
+        student:
+          $ref: "#/components/schemas/CourseMember"
+        status:
+          type: string
+        score:
+          type: number
+          format: double
+          example: 10
+        days_late:
+          type: integer
+          example: 0
+
+    MigrationWithScores:
+      description: "A migration for an assignment that contains scores for each student"
+      type: object
+      properties:
+        assignment:
+          $ref: "#/components/schemas/AssignmentSlim"
+        scores:
+          type: array
+          items:
+            $ref: "#/components/schemas/Score"
