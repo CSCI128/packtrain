@@ -554,6 +554,92 @@ paths:
                 error_source: "update_course"
                 error_message: "Course '999-9999-9999-99' does not exist"
 
+  /admin/courses/{course_id}/policies:
+    post:
+      tags:
+        - admin
+      operationId: new_policy
+      summary: Create a new policy
+      description: |
+        Create a new policy for the course
+      security:
+        - openIDC: [admin:write]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/NewPolicy"
+            encoding:
+              file_data:
+                contentType: "text/javascript"
+      responses:
+        201:
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Policy"
+    get:
+      tags:
+        - admin
+      operationId: admin_get_all_policies
+      summary: Get all policies
+      description: |
+        Get all policies for a course
+      security:
+        - openIDC: [admin:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Policy"
+
+  /admin/course/{course_id}/policies/{policy_id}:
+    delete:
+      tags:
+        - admin
+      operationId: delete_policy
+      summary: Create a new policy
+      description: |
+        Create a new policy for the course
+      security:
+        - openIDC: [admin:write]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: policy_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        204:
+          description: "No Content"
+
   /admin/users:
     get:
       tags:
@@ -1039,91 +1125,6 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to deny extension for user"
 
-  /instructor/courses/{course_id}/policies:
-    post:
-      tags:
-        - instructor
-      operationId: new_policy
-      summary: Create a new policy
-      description: |
-        Create a new policy for the course
-      security:
-        - openIDC: [instructor:write]
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              $ref: "#/components/schemas/NewPolicy"
-            encoding:
-              file_data:
-                contentType: "text/javascript"
-      responses:
-        201:
-          description: "Created"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Policy"
-    get:
-      tags:
-        - instructor
-      operationId: get_all_policies
-      summary: Get all policies
-      description: |
-        Get all policies for a course
-      security:
-        - openIDC: [instructor:read]
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Policy"
-
-  /instructor/course/{course_id}/policies/{policy_id}:
-    delete:
-      tags:
-        - instructor
-      operationId: delete_policy
-      summary: Create a new policy
-      description: |
-        Create a new policy for the course
-      security:
-        - openIDC: [instructor:write]
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: policy_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      responses:
-        204:
-          description: "No Content"
 
   /instructor/courses/{course_id}:
     get:
@@ -1203,6 +1204,33 @@ paths:
               example:
                 error_source: "update_course"
                 error_message: "Course '999-9999-9999-99' does not exist"
+
+  /instructor/courses/{course_id}/policies:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_policies
+      summary: Get all policies
+      description: |
+        Get all policies for a course
+      security:
+        - openIDC: [instructor:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Policy"
 
   /student/courses/{course_id}:
     get:

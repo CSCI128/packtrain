@@ -36,7 +36,7 @@ export function CoursePage() {
     data: policyData,
     error: policyError,
     isLoading: policyIsLoading,
-  } = $api.useQuery("get", "/instructor/courses/{course_id}/policies", {
+  } = $api.useQuery("get", "/admin/courses/{course_id}/policies", {
     params: {
       path: { course_id: store$.id.get() },
     },
@@ -56,7 +56,7 @@ export function CoursePage() {
     userManager.getUser().then((u) => {
       axios
         .delete(
-          `/api/instructor/course/${store$.id.get()}/policies/${element.id}`,
+          `/api/admin/course/${store$.id.get()}/policies/${element.id}`,
           {
             headers: {
               authorization: `Bearer ${u.access_token}`,

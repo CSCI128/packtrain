@@ -59,34 +59,6 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
-    public ResponseEntity<PolicyDTO> newPolicy(String courseId, String name, String filePath, MultipartFile fileData, String description) {
-        Optional<Policy> policy = policyService.createNewPolicy(securityManager.getUser(), UUID.fromString(courseId), name, description, filePath, fileData);
-
-        if (policy.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(policy.get()));
-    }
-
-    @Override
-    public ResponseEntity<Void> deletePolicy(String courseId, String policyId){
-        if(!policyService.deletePolicy(UUID.fromString(courseId), UUID.fromString(policyId))){
-            return ResponseEntity.badRequest().build();
-        }
-
-
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-
-    }
-
-    @Override
-    public ResponseEntity<List<PolicyDTO>> getAllPolicies(String courseId) {
-        List<Policy> policies = policyService.getAllPolicies(UUID.fromString(courseId));
-        return ResponseEntity.ok(policies.stream().map(DTOFactory::toDto).toList());
-    }
-
-    @Override
     public ResponseEntity<List<CourseMemberDTO>> getInstructorEnrollments(String courseId, String name, String cwid) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
 
@@ -178,5 +150,11 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(DTOFactory.toDto(lateRequest.get()));
+    }
+
+    @Override
+    public ResponseEntity<List<PolicyDTO>> getAllPolicies(String courseId) {
+        List<Policy> policies = policyService.getAllPolicies(UUID.fromString(courseId));
+        return ResponseEntity.ok(policies.stream().map(DTOFactory::toDto).toList());
     }
 }

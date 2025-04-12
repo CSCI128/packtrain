@@ -17,7 +17,7 @@ import {
 import { MembersPage } from "../../instructor/src/Members";
 import { userManager } from "./api.ts";
 import "./index.css";
-import { CreatePolicy } from "./pages/admin/policies/Create.tsx";
+import { CreatePolicy } from "./pages/policies/Create.tsx";
 import { AssignmentsPage } from "./pages/Assignments";
 import { CoursePage } from "./pages/course/Course";
 import { CreatePage } from "./pages/course/Create";

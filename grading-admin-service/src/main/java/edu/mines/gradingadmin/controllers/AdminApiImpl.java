@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.List;
@@ -29,8 +30,9 @@ public class AdminApiImpl implements AdminApiDelegate {
     private final AssignmentService assignmentService;
     private final SecurityManager securityManager;
     private final UserService userService;
+    private final PolicyService policyService;
 
-    public AdminApiImpl(CourseService courseService, SectionService sectionService, ExtensionService extensionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager, UserService userService) {
+    public AdminApiImpl(CourseService courseService, SectionService sectionService, ExtensionService extensionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager, UserService userService, PolicyService policyService) {
         this.courseService = courseService;
         this.sectionService = sectionService;
         this.extensionService = extensionService;
@@ -38,6 +40,7 @@ public class AdminApiImpl implements AdminApiDelegate {
         this.securityManager = securityManager;
         this.userService = userService;
         this.assignmentService = assignmentService;
+        this.policyService = policyService;
     }
 
     @Override
@@ -272,6 +275,34 @@ public class AdminApiImpl implements AdminApiDelegate {
         List<LateRequest> lateRequests = extensionService.getAllLateRequests(courseId, status);
 
         return ResponseEntity.ok(lateRequests.stream().map(DTOFactory::toDto).toList());
+    }
+
+    @Override
+    public ResponseEntity<PolicyDTO> newPolicy(String courseId, String name, String filePath, MultipartFile fileData, String description) {
+        Optional<Policy> policy = policyService.createNewPolicy(securityManager.getUser(), UUID.fromString(courseId), name, description, filePath, fileData);
+
+        if (policy.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(policy.get()));
+    }
+
+    @Override
+    public ResponseEntity<Void> deletePolicy(String courseId, String policyId){
+        if(!policyService.deletePolicy(UUID.fromString(courseId), UUID.fromString(policyId))){
+            return ResponseEntity.badRequest().build();
+        }
+
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+
+    }
+
+    @Override
+    public ResponseEntity<List<PolicyDTO>> adminGetAllPolicies(String courseId) {
+        List<Policy> policies = policyService.getAllPolicies(UUID.fromString(courseId));
+        return ResponseEntity.ok(policies.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
