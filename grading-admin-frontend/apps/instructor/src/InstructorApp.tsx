@@ -1,17 +1,16 @@
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
+import { configureApiClient } from "@repo/api/index.ts";
 import { store$ } from "@repo/api/store";
+import { MiddlewareLayout } from "@repo/ui/MiddlewareLayout";
 import { DisabledPage } from "@repo/ui/pages/DisabledPage";
 import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
 import { JSX, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import {
   createBrowserRouter,
-  Outlet,
   RouterProvider,
-  useLocation,
   useNavigate,
 } from "react-router-dom";
 import { userManager } from "./api";
@@ -26,6 +25,8 @@ import { ProfilePage } from "./pages/Profile";
 import { SelectClass } from "./pages/Select";
 import Root from "./templates/Root";
 
+configureApiClient({ userManager: userManager });
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -38,52 +39,6 @@ const MigrationMiddleware = ({ children }: { children: JSX.Element }) => {
   // Four step migrate process: send people to first or last or active state
   // and prevent them from going to future states
   return children;
-};
-
-const fetchUserData = async () => {
-  return await axios
-    .get("/api/user")
-    .catch((err: AxiosError) => {
-      if (err.response?.status === 401) {
-        console.log("ERR");
-      }
-    })
-    .then((resp) => {
-      console.log(resp);
-    });
-};
-
-const MiddlewareLayout = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isAuthenticated = store$.id.get();
-  const auth = useAuth();
-  const currentPage = location.pathname;
-  // const { isError } = $api.useQuery("get", fetchUserData);
-  // if (isError && auth.isAuthenticated) {
-  //   navigate("/disabled");
-  // }
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        fetchUserData();
-
-        const user = await userManager.getUser();
-        if (!isAuthenticated && user && user.profile.is_admin) {
-          navigate("/select");
-        }
-      } catch (error) {
-        console.error("An error occurred:", error);
-      }
-    };
-
-    if (currentPage !== "/profile") {
-      fetchData();
-    }
-  }, [isAuthenticated, navigate]);
-
-  return <Outlet />;
 };
 
 const CallbackPage = () => {
@@ -108,7 +63,7 @@ const router = createBrowserRouter([
     element: <Root />,
     children: [
       {
-        element: <MiddlewareLayout />,
+        element: <MiddlewareLayout userManager={userManager} />,
         children: [
           {
             path: "/instructor",

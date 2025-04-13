@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "exports": {
+    "./index": "./src/index.ts",
     "./auth.config": "./src/auth.config.ts",
     "./store": "./src/store.ts",
     "./*": "./src/*"
