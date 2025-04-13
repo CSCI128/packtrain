@@ -27,7 +27,7 @@ export const MiddlewareLayout = ({
     enabled: !!store$.id.get(),
   });
 
-  const { data: userInfo } = useQuery({
+  const { data: userInfo, error: userError } = useQuery({
     queryKey: ["getUser"],
     queryFn: () =>
       getApiClient()
@@ -49,7 +49,7 @@ export const MiddlewareLayout = ({
           }
         }
 
-        if (auth.isAuthenticated && userInfo === undefined) {
+        if (auth.isAuthenticated && userError) {
           navigate("/disabled");
         }
 
@@ -65,7 +65,7 @@ export const MiddlewareLayout = ({
     if (currentPage !== "/profile" && currentPage !== "/users") {
       fetchData();
     }
-  }, [navigate, enrollmentInfo, currentPage]);
+  }, [userInfo, navigate, enrollmentInfo, currentPage]);
 
   return <Outlet />;
 };
