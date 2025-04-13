@@ -147,18 +147,36 @@ export function CoursePage() {
           (policyError && "An error occurred") || (
             <Table horizontalSpacing={"md"}>
               <Table.Tbody>
-                <TableHeader reversed={false} sorted={false} onSort={undefined}>
-                  Name
-                </TableHeader>
-                <TableHeader reversed={false} sorted={false} onSort={undefined}>
-                  Description
-                </TableHeader>
-                <TableHeader reversed={false} sorted={false} onSort={undefined}>
-                  URI
-                </TableHeader>
-                <TableHeader reversed={false} sorted={false} onSort={undefined}>
-                  Number of Migrations
-                </TableHeader>
+                <Table.Tr>
+                  <TableHeader
+                    reversed={false}
+                    sorted={false}
+                    onSort={undefined}
+                  >
+                    Name
+                  </TableHeader>
+                  <TableHeader
+                    reversed={false}
+                    sorted={false}
+                    onSort={undefined}
+                  >
+                    Description
+                  </TableHeader>
+                  <TableHeader
+                    reversed={false}
+                    sorted={false}
+                    onSort={undefined}
+                  >
+                    URI
+                  </TableHeader>
+                  <TableHeader
+                    reversed={false}
+                    sorted={false}
+                    onSort={undefined}
+                  >
+                    Number of Migrations
+                  </TableHeader>
+                </Table.Tr>
               </Table.Tbody>
               <Table.Tbody>{rows}</Table.Tbody>
             </Table>
