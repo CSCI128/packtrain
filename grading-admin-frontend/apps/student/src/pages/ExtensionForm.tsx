@@ -317,9 +317,10 @@ export function ExtensionForm() {
               Cancel
             </Button>
 
-            {(courseData.late_passes_used ?? 0) < LATE_PASSES_ALLOWED && (
-              <Button type="submit">Submit</Button>
-            )}
+            {selectedAssignmentId &&
+              (courseData.late_passes_used ?? 0) < LATE_PASSES_ALLOWED && (
+                <Button type="submit">Submit</Button>
+              )}
           </Group>
         </form>
       ) : (
@@ -405,7 +406,7 @@ export function ExtensionForm() {
             >
               Cancel
             </Button>
-            <Button type="submit">Submit</Button>
+            {selectedAssignmentId && <Button type="submit">Submit</Button>}
           </Group>
         </form>
       )}
