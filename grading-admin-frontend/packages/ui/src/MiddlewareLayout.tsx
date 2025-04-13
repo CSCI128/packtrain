@@ -31,7 +31,8 @@ export const MiddlewareLayout = ({
     const fetchData = async () => {
       try {
         if (userInfo) {
-          console.log(userInfo);
+          console.log(userInfo); // TODO handle error if caught
+
           if (auth.isAuthenticated && userInfo === undefined) {
             navigate("/disabled");
           }
