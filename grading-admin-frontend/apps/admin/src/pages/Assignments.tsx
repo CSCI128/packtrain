@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Center,
   Checkbox,
@@ -215,100 +216,103 @@ export function AssignmentsPage() {
   return (
     <>
       <Modal opened={opened} onClose={close} title="Edit Assignment">
-        <form onSubmit={form.onSubmit(editAssignment)}>
-          <TextInput
-            withAsterisk
-            label="Name"
-            key={form.key("name")}
-            {...form.getInputProps("name")}
-          />
-
-          <TextInput
-            withAsterisk
-            label="Category"
-            key={form.key("category")}
-            {...form.getInputProps("category")}
-          />
-
-          <TextInput
-            disabled
-            label="Canvas ID"
-            key={form.key("canvas_id")}
-            {...form.getInputProps("canvas_id")}
-          />
-
-          <TextInput
-            withAsterisk
-            label="Points"
-            key={form.key("points")}
-            {...form.getInputProps("points")}
-          />
-
-          <Select
-            withAsterisk
-            label="External Service:"
-            placeholder="Pick value"
-            data={[
-              { value: "GRADESCOPE", label: "Gradescope" },
-              { value: "PRAIRIELEARN", label: "PrairieLearn" },
-              { value: "RUNESTONE", label: "Runestone" },
-            ]}
-            key={form.key("external_service")}
-            {...form.getInputProps("external_service")}
-          />
-
-          <TextInput
-            withAsterisk
-            label="External Points"
-            key={form.key("external_points")}
-            {...form.getInputProps("external_points")}
-          />
-
-          <DateInput
-            disabled
-            label="Unlock Date"
-            placeholder="Pick date"
-            value={unlockDateValue}
-            {...form.getInputProps("unlock_date")}
-            onChange={setUnlockDateValue}
-          />
-
-          <DateInput
-            label="Due Date"
-            placeholder="Pick date"
-            value={value}
-            {...form.getInputProps("due_date")}
-            onChange={setValue}
-          />
-
-          <InputWrapper withAsterisk label="Enabled">
-            <Checkbox
-              defaultChecked={form.values.enabled}
-              key={form.key("enabled")}
-              {...form.getInputProps("enabled", { type: "checkbox" })}
+        <Box w="95%" mx="auto">
+          <form onSubmit={form.onSubmit(editAssignment)}>
+            <TextInput
+              withAsterisk
+              label="Name"
+              key={form.key("name")}
+              {...form.getInputProps("name")}
             />
-          </InputWrapper>
 
-          <Text>
-            Group assignment:{" "}
-            {selectedAssignment?.group_assignment ? "Yes" : "No"}
-          </Text>
+            <TextInput
+              withAsterisk
+              label="Category"
+              key={form.key("category")}
+              {...form.getInputProps("category")}
+            />
 
-          <Text>
-            Frozen from re-syncing: {selectedAssignment?.frozen ? "Yes" : "No"}
-          </Text>
+            <TextInput
+              disabled
+              label="Canvas ID"
+              key={form.key("canvas_id")}
+              {...form.getInputProps("canvas_id")}
+            />
 
-          <br />
+            <TextInput
+              withAsterisk
+              label="Points"
+              key={form.key("points")}
+              {...form.getInputProps("points")}
+            />
 
-          <Group gap="xs" justify="flex-end">
-            <Button color="gray" variant="light" onClick={close}>
-              Cancel
-            </Button>
-            <Button color="blue" type="submit">
-              Save
-            </Button>
-          </Group>
-        </form>
+            <Select
+              withAsterisk
+              label="External Service:"
+              placeholder="Pick value"
+              data={[
+                { value: "GRADESCOPE", label: "Gradescope" },
+                { value: "PRAIRIELEARN", label: "PrairieLearn" },
+                { value: "RUNESTONE", label: "Runestone" },
+              ]}
+              key={form.key("external_service")}
+              {...form.getInputProps("external_service")}
+            />
+
+            <TextInput
+              withAsterisk
+              label="External Points"
+              key={form.key("external_points")}
+              {...form.getInputProps("external_points")}
+            />
+
+            <DateInput
+              disabled
+              label="Unlock Date"
+              placeholder="Pick date"
+              value={unlockDateValue}
+              {...form.getInputProps("unlock_date")}
+              onChange={setUnlockDateValue}
+            />
+
+            <DateInput
+              label="Due Date"
+              placeholder="Pick date"
+              value={value}
+              {...form.getInputProps("due_date")}
+              onChange={setValue}
+            />
+
+            <InputWrapper withAsterisk label="Enabled">
+              <Checkbox
+                defaultChecked={form.values.enabled}
+                key={form.key("enabled")}
+                {...form.getInputProps("enabled", { type: "checkbox" })}
+              />
+            </InputWrapper>
+
+            <Text>
+              Group assignment:{" "}
+              {selectedAssignment?.group_assignment ? "Yes" : "No"}
+            </Text>
+
+            <Text>
+              Frozen from re-syncing:{" "}
+              {selectedAssignment?.frozen ? "Yes" : "No"}
+            </Text>
+
+            <br />
+
+            <Group gap="xs" justify="flex-end">
+              <Button color="gray" variant="light" onClick={close}>
+                Cancel
+              </Button>
+              <Button color="blue" type="submit">
+                Save
+              </Button>
+            </Group>
+          </form>
+        </Box>
       </Modal>
 
       <Container fluid w="100%" p={35}>
