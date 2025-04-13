@@ -183,7 +183,7 @@ export function ProfilePage() {
               Are you sure you want to delete the specified credential?
             </Text>
 
-            <Button color="gray" onClick={closeDelete}>
+            <Button color="gray" variant="light" onClick={closeDelete}>
               Cancel
             </Button>
 
@@ -232,7 +232,7 @@ export function ProfilePage() {
           <br />
 
           <Group gap="xs" justify="flex-end">
-            <Button color="gray" onClick={close}>
+            <Button color="gray" variant="light" onClick={close}>
               Cancel
             </Button>
             <Button color="green" type="submit">
@@ -266,7 +266,7 @@ export function ProfilePage() {
           <br />
 
           <Group gap="xs" justify="flex-end">
-            <Button color="gray" onClick={closeEditUser}>
+            <Button color="gray" variant="light" onClick={closeEditUser}>
               Cancel
             </Button>
             <Button color="blue" type="submit">

@@ -241,7 +241,7 @@ export function UsersPage() {
           <br />
 
           <Group gap="xs" justify="flex-end">
-            <Button color="gray" onClick={close}>
+            <Button color="gray" variant="light" onClick={close}>
               Cancel
             </Button>
             <Button color="blue" type="submit">
@@ -286,7 +286,7 @@ export function UsersPage() {
           <br />
 
           <Group gap="xs" justify="flex-end">
-            <Button color="gray" onClick={closeAddUser}>
+            <Button color="gray" variant="light" onClick={closeAddUser}>
               Cancel
             </Button>
             <Button color="green" type="submit">

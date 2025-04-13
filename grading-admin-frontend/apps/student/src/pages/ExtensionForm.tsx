@@ -298,7 +298,12 @@ export function ExtensionForm() {
           </Stack>
 
           <Group justify="flex-end" mt="md">
-            <Button component={Link} to="/requests" color="gray">
+            <Button
+              variant="light"
+              component={Link}
+              to="/requests"
+              color="gray"
+            >
               Cancel
             </Button>
 
@@ -380,7 +385,12 @@ export function ExtensionForm() {
           </Stack>
 
           <Group justify="flex-end" mt="md">
-            <Button component={Link} to="/requests" color="gray">
+            <Button
+              variant="light"
+              component={Link}
+              to="/requests"
+              color="gray"
+            >
               Cancel
             </Button>
             <Button type="submit">Submit</Button>

@@ -12,7 +12,7 @@ import {
 import { useForm } from "@mantine/form";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { components } from "../../../admin/src/lib/api/v1";
+import { components } from "../../lib/api/v1";
 
 export function MigrationsLoadPage() {
   const courseData: components["schemas"]["Course"][] = [
@@ -242,7 +242,12 @@ export function MigrationsLoadPage() {
             </Button>
 
             <Group>
-              <Button component={Link} to="/instructor/migrate" color="gray">
+              <Button
+                variant="light"
+                component={Link}
+                to="/instructor/migrate"
+                color="gray"
+              >
                 Cancel
               </Button>
 

@@ -176,7 +176,7 @@ export function Requests() {
               action <strong>cannot</strong> be undone!
             </Text>
 
-            <Button color="gray" onClick={closeDelete}>
+            <Button variant="light" color="gray" onClick={closeDelete}>
               Cancel
             </Button>
 
