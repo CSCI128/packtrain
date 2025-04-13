@@ -13,16 +13,15 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
+import { Credential } from "@repo/api/openapi";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
 import { $api } from "../api";
-import { components } from "../lib/api/v1";
 
 export function ProfilePage() {
   const auth = useAuth();
-  const [selectedCredential, setSelectedCredential] = useState<
-    components["schemas"]["Credential"] | null
-  >(null);
+  const [selectedCredential, setSelectedCredential] =
+    useState<Credential | null>(null);
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
     useDisclosure(false);
   const [editUserOpened, { open: openEditUser, close: closeEditUser }] =
@@ -164,7 +163,7 @@ export function ProfilePage() {
     closeDelete();
   };
 
-  const handleDelete = (credential: components["schemas"]["Credential"]) => {
+  const handleDelete = (credential: Credential) => {
     setSelectedCredential(credential);
     openDelete();
   };
@@ -307,7 +306,7 @@ export function ProfilePage() {
 
         <Divider my="sm" />
 
-        {credentialData.map((credential) => (
+        {credentialData.map((credential: Credential) => (
           <React.Fragment key={credential.id}>
             <Box size="sm" mt={15}>
               <Text size="md" fw={700}>

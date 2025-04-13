@@ -7,6 +7,7 @@ import {
   Table,
   Text,
 } from "@mantine/core";
+import { Policy } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { TableHeader } from "@repo/ui/table/Table";
 import axios from "axios";
@@ -14,7 +15,6 @@ import { useEffect, useState } from "react";
 import { BsBoxArrowUpRight, BsTrash } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { $api, userManager } from "../../api";
-import { components } from "../../lib/api/v1";
 
 export function CoursePage() {
   const navigate = useNavigate();
@@ -42,9 +42,7 @@ export function CoursePage() {
     },
   });
 
-  const [policyDataState, setPolicyData] = useState<
-    components["schemas"]["Policy"][]
-  >(policyData || []);
+  const [policyDataState, setPolicyData] = useState<Policy[]>(policyData || []);
 
   useEffect(() => {
     if (policyData) {
@@ -52,17 +50,14 @@ export function CoursePage() {
     }
   }, [policyData]);
 
-  const handlePolicyDelete = (element: components["schemas"]["Policy"]) => {
+  const handlePolicyDelete = (element: Policy) => {
     userManager.getUser().then((u) => {
       axios
-        .delete(
-          `/api/admin/course/${store$.id.get()}/policies/${element.id}`,
-          {
-            headers: {
-              authorization: `Bearer ${u.access_token}`,
-            },
-          }
-        )
+        .delete(`/api/admin/course/${store$.id.get()}/policies/${element.id}`, {
+          headers: {
+            authorization: `Bearer ${u.access_token}`,
+          },
+        })
         .then(() => location.reload());
     });
   };

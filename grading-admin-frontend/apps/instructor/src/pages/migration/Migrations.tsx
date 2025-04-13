@@ -1,9 +1,9 @@
 import { Box, Button, Container, Divider, Text } from "@mantine/core";
+import { MasterMigration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
 import { Link } from "react-router-dom";
 import { $api } from "../../api";
-import { components } from "../../lib/api/v1";
 
 export function MigrationsPage() {
   const { data, error, isLoading } = $api.useQuery(
@@ -30,7 +30,7 @@ export function MigrationsPage() {
         <Divider my="sm" />
 
         {data.length > 0 ? (
-          data.map((migration: components["schemas"]["MasterMigration"]) => (
+          data.map((migration: MasterMigration) => (
             <Box pb={20} key={migration.id}>
               <Text>
                 <strong>

@@ -15,13 +15,13 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
+import { User } from "@repo/api/openapi";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { useAuth } from "react-oidc-context";
 import { $api } from "../api";
-import { components } from "../lib/api/v1";
 
 interface UserRowData {
   email: string;
@@ -40,9 +40,7 @@ export function UsersPage() {
   const [opened, { open, close }] = useDisclosure(false);
   const [addUserOpened, { open: openAddUser, close: closeAddUser }] =
     useDisclosure(false);
-  const [selectedUser, setSelectedUser] = useState<
-    components["schemas"]["User"] | null
-  >(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const addUserForm = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -80,7 +78,7 @@ export function UsersPage() {
     },
   });
 
-  const handleEditOpen = (row: components["schemas"]["User"]) => {
+  const handleEditOpen = (row: User) => {
     setSelectedUser(row);
     editUserForm.setValues({
       name: row.name,

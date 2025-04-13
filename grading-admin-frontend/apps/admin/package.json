@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx openapi-typescript ../../../openapi/openapi.yml -o ./src/lib/api/v1.d.ts && vite --host",
-    "build": "npx openapi-typescript ../../../openapi/openapi.yml -o ./src/lib/api/v1.d.ts && tsc -b && vite build",
+    "dev": "vite --host",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

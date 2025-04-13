@@ -1,10 +1,10 @@
 import { Button, Center, Container, Stack } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
+import { Course, CourseSlim } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "react-oidc-context";
 import { Link, useNavigate } from "react-router-dom";
-import { components } from "../lib/api/v1";
 
 export const SelectClass = ({ close }: { close?: () => void }) => {
   const auth = useAuth();
@@ -69,21 +69,15 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     <Container size="sm">
       <Center>
         <Stack>
-          {data.map(
-            (
-              course:
-                | components["schemas"]["Course"]
-                | components["schemas"]["CourseSlim"]
-            ) => (
-              <Button
-                key={course.id}
-                onClick={() => switchCourse(course.id as string, course.name)}
-              >
-                {course.name} ({course.term}){" "}
-                {store$.id.get() == course.id && <>(selected)</>}
-              </Button>
-            )
-          )}
+          {data.map((course: Course | CourseSlim) => (
+            <Button
+              key={course.id}
+              onClick={() => switchCourse(course.id as string, course.name)}
+            >
+              {course.name} ({course.term}){" "}
+              {store$.id.get() == course.id && <>(selected)</>}
+            </Button>
+          ))}
           {auth.user?.profile.is_admin ? (
             <Button
               color="green"

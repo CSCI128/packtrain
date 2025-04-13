@@ -12,6 +12,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { Extension, LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
@@ -19,7 +20,6 @@ import { IconSearch } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { MdDelete } from "react-icons/md";
 import { Link } from "react-router-dom";
-import { components } from "../../../admin/src/lib/api/v1";
 import { $api } from "../api";
 
 interface RequestRowData {
@@ -29,7 +29,7 @@ interface RequestRowData {
   num_days_requested: number;
   assignment_id?: string;
   assignment_name?: string;
-  extension?: components["schemas"]["Extension"];
+  extension?: Extension;
   user_requester_id?: string;
   status: "pending" | "approved" | "rejected";
 }
@@ -61,9 +61,8 @@ export function Requests() {
     "/student/courses/{course_id}/extensions/{extension_id}/withdraw"
   );
 
-  const [selectedExtension, setSelectedExtension] = useState<
-    components["schemas"]["LateRequest"] | null
-  >(null);
+  const [selectedExtension, setSelectedExtension] =
+    useState<LateRequest | null>(null);
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
     useDisclosure(false);
   const [search, setSearch] = useState("");
@@ -132,7 +131,7 @@ export function Requests() {
     closeDelete();
   };
 
-  const rows = sortedData.map((row) => (
+  const rows = sortedData.map((row: LateRequest) => (
     <Table.Tr key={row.id}>
       <Table.Td>{formattedDate(new Date(row.date_submitted))}</Table.Td>
       <Table.Td>

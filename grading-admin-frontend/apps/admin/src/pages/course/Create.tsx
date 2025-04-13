@@ -13,11 +13,11 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { Task } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { $api } from "../../api";
-import { components } from "../../lib/api/v1";
 
 export function CreatePage() {
   const mutation = $api.useMutation("post", "/admin/courses");
@@ -26,9 +26,7 @@ export function CreatePage() {
     "/admin/courses/{course_id}/import"
   );
   const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
-  const [outstandingTasks, setOutstandingTasks] = useState<
-    components["schemas"]["Task"][]
-  >([]);
+  const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
   const [canvasId, setCanvasId] = useState("");
   const [courseId, setCourseId] = useState("");
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);

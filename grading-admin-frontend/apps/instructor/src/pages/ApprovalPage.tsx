@@ -7,13 +7,13 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
+import { Extension } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { $api } from "../api";
-import { components } from "../lib/api/v1";
 
 interface RequestRowData {
   id?: string;
@@ -22,7 +22,7 @@ interface RequestRowData {
   num_days_requested: number;
   assignment_id?: string;
   assignment_name?: string;
-  extension?: components["schemas"]["Extension"];
+  extension?: Extension;
   user_requester_id?: string;
   status: "pending" | "approved" | "rejected";
 }

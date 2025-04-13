@@ -17,13 +17,13 @@ import {
 import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
+import { Assignment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { $api } from "../api";
-import { components } from "../lib/api/v1";
 
 interface AssignmentRowData {
   id: string;
@@ -59,9 +59,8 @@ export function AssignmentsPage() {
     new Date()
   );
   const [opened, { open, close }] = useDisclosure(false);
-  const [selectedAssignment, setSelectedAssignment] = useState<
-    components["schemas"]["Assignment"] | null
-  >(null);
+  const [selectedAssignment, setSelectedAssignment] =
+    useState<Assignment | null>(null);
 
   const form = useForm({
     mode: "uncontrolled",
@@ -92,7 +91,7 @@ export function AssignmentsPage() {
     },
   });
 
-  const handleAssignmentEdit = (row: components["schemas"]["Assignment"]) => {
+  const handleAssignmentEdit = (row: Assignment) => {
     setSelectedAssignment(row);
     form.setValues({
       name: row.name,

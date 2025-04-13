@@ -12,6 +12,7 @@ import {
   Textarea,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { Assignment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store.js";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { useState } from "react";
@@ -75,7 +76,7 @@ export function ExtensionForm() {
 
   const getAssignmentDueDate = (assignmentId: string) => {
     return courseData?.course.assignments
-      ?.filter((x) => x.id === assignmentId)
+      ?.filter((x: Assignment) => x.id === assignmentId)
       .at(0)?.due_date;
   };
 
@@ -244,12 +245,14 @@ export function ExtensionForm() {
                   placeholder="Pick value"
                   data={
                     courseData.course.assignments &&
-                    courseData.course.assignments.flatMap((x) => [
-                      {
-                        label: x.name,
-                        value: x.id as string,
-                      },
-                    ])
+                    courseData.course.assignments.flatMap(
+                      (x: { name: string; id: string }) => [
+                        {
+                          label: x.name,
+                          value: x.id as string,
+                        },
+                      ]
+                    )
                   }
                   key={latePassForm.key("assignmentId")}
                   {...latePassForm.getInputProps("assignmentId")}
@@ -324,12 +327,14 @@ export function ExtensionForm() {
               placeholder="Pick value"
               data={
                 courseData.course.assignments &&
-                courseData.course.assignments.flatMap((x) => [
-                  {
-                    label: x.name,
-                    value: x.id as string,
-                  },
-                ])
+                courseData.course.assignments.flatMap(
+                  (x: { name: string; id: string }) => [
+                    {
+                      label: x.name,
+                      value: x.id as string,
+                    },
+                  ]
+                )
               }
               key={extensionForm.key("assignmentId")}
               {...extensionForm.getInputProps("assignmentId")}
