@@ -6,9 +6,9 @@ import {
   Fieldset,
   Group,
   Loader,
-  MultiSelect,
   NumberInput,
   Space,
+  TagsInput,
   Text,
   TextInput,
 } from "@mantine/core";
@@ -313,10 +313,11 @@ export function CreatePage() {
                   {...form.getInputProps("totalLatePassesAllowed")}
                 />
 
-                <MultiSelect
+                <TagsInput
                   disabled={courseCreated}
                   pb={8}
                   label="Allowed Extension Reasons"
+                  placeholder="Enter tag.."
                   key={form.key("enabledExtensionReasons")}
                   {...form.getInputProps("enabledExtensionReasons")}
                   data={[
