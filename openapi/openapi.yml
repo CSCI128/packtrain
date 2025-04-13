@@ -1125,7 +1125,6 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to deny extension for user"
 
-
   /instructor/courses/{course_id}:
     get:
       tags:

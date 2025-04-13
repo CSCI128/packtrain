@@ -636,6 +636,25 @@ declare namespace Paths {
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
+    namespace AdminGetAllPolicies {
+        namespace Parameters {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type CourseId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.CourseId;
+        }
+        namespace Responses {
+            export type $200 = /* A grading policy */ Components.Schemas.Policy[];
+        }
+    }
     namespace AdminUpdateUser {
         export type RequestBody = /* A server user */ Components.Schemas.User;
         namespace Responses {
@@ -1964,6 +1983,39 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.AddCourseMember.Responses.$201>
   /**
+   * admin_get_all_policies - Get all policies
+   * 
+   * Get all policies for a course
+   * 
+   */
+  'admin_get_all_policies'(
+    parameters?: Parameters<Paths.AdminGetAllPolicies.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.AdminGetAllPolicies.Responses.$200>
+  /**
+   * new_policy - Create a new policy
+   * 
+   * Create a new policy for the course
+   * 
+   */
+  'new_policy'(
+    parameters?: Parameters<Paths.NewPolicy.PathParameters> | null,
+    data?: Paths.NewPolicy.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.NewPolicy.Responses.$201>
+  /**
+   * delete_policy - Create a new policy
+   * 
+   * Create a new policy for the course
+   * 
+   */
+  'delete_policy'(
+    parameters?: Parameters<Paths.DeletePolicy.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.DeletePolicy.Responses.$204>
+  /**
    * get_all_users - Get all users
    * 
    * Gets all the users in the system
@@ -2122,39 +2174,6 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.DenyExtension.Responses.$202>
   /**
-   * get_all_policies - Get all policies
-   * 
-   * Get all policies for a course
-   * 
-   */
-  'get_all_policies'(
-    parameters?: Parameters<Paths.GetAllPolicies.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetAllPolicies.Responses.$200>
-  /**
-   * new_policy - Create a new policy
-   * 
-   * Create a new policy for the course
-   * 
-   */
-  'new_policy'(
-    parameters?: Parameters<Paths.NewPolicy.PathParameters> | null,
-    data?: Paths.NewPolicy.RequestBody,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.NewPolicy.Responses.$201>
-  /**
-   * delete_policy - Create a new policy
-   * 
-   * Create a new policy for the course
-   * 
-   */
-  'delete_policy'(
-    parameters?: Parameters<Paths.DeletePolicy.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.DeletePolicy.Responses.$204>
-  /**
    * get_course_information_instructor - Get information for a course
    * 
    * Get information from a course from
@@ -2180,6 +2199,17 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetInstructorEnrollments.Responses.$200>
+  /**
+   * get_all_policies - Get all policies
+   * 
+   * Get all policies for a course
+   * 
+   */
+  'get_all_policies'(
+    parameters?: Parameters<Paths.GetAllPolicies.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetAllPolicies.Responses.$200>
   /**
    * get_course_information_student - Get information for a course
    * 
@@ -2582,6 +2612,43 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.UpdateCourseMember.Responses.$201>
   }
+  ['/admin/courses/{course_id}/policies']: {
+    /**
+     * new_policy - Create a new policy
+     * 
+     * Create a new policy for the course
+     * 
+     */
+    'post'(
+      parameters?: Parameters<Paths.NewPolicy.PathParameters> | null,
+      data?: Paths.NewPolicy.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.NewPolicy.Responses.$201>
+    /**
+     * admin_get_all_policies - Get all policies
+     * 
+     * Get all policies for a course
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.AdminGetAllPolicies.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.AdminGetAllPolicies.Responses.$200>
+  }
+  ['/admin/course/{course_id}/policies/{policy_id}']: {
+    /**
+     * delete_policy - Create a new policy
+     * 
+     * Create a new policy for the course
+     * 
+     */
+    'delete'(
+      parameters?: Parameters<Paths.DeletePolicy.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.DeletePolicy.Responses.$204>
+  }
   ['/admin/users']: {
     /**
      * get_all_users - Get all users
@@ -2760,43 +2827,6 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.DenyExtension.Responses.$202>
   }
-  ['/instructor/courses/{course_id}/policies']: {
-    /**
-     * new_policy - Create a new policy
-     * 
-     * Create a new policy for the course
-     * 
-     */
-    'post'(
-      parameters?: Parameters<Paths.NewPolicy.PathParameters> | null,
-      data?: Paths.NewPolicy.RequestBody,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.NewPolicy.Responses.$201>
-    /**
-     * get_all_policies - Get all policies
-     * 
-     * Get all policies for a course
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetAllPolicies.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetAllPolicies.Responses.$200>
-  }
-  ['/instructor/course/{course_id}/policies/{policy_id}']: {
-    /**
-     * delete_policy - Create a new policy
-     * 
-     * Create a new policy for the course
-     * 
-     */
-    'delete'(
-      parameters?: Parameters<Paths.DeletePolicy.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.DeletePolicy.Responses.$204>
-  }
   ['/instructor/courses/{course_id}']: {
     /**
      * get_course_information_instructor - Get information for a course
@@ -2826,6 +2856,19 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetInstructorEnrollments.Responses.$200>
+  }
+  ['/instructor/courses/{course_id}/policies']: {
+    /**
+     * get_all_policies - Get all policies
+     * 
+     * Get all policies for a course
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetAllPolicies.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetAllPolicies.Responses.$200>
   }
   ['/student/courses/{course_id}']: {
     /**
