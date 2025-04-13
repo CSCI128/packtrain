@@ -1,12 +1,16 @@
 import {
   Button,
+  Center,
   Container,
   Divider,
   Group,
+  Modal,
+  Stack,
   Stepper,
   Tabs,
   Text,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { Course } from "@repo/api/openapi";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -81,6 +85,8 @@ export function MigrationsReviewPage() {
     },
   ];
 
+  const [confirmOpened, { open: openConfirm, close: closeConfirm }] =
+    useDisclosure(false);
   const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>([
     "999-9999-9999-99",
     "999-8888-7777-66",
@@ -88,6 +94,32 @@ export function MigrationsReviewPage() {
 
   return (
     <>
+      <Modal
+        opened={confirmOpened}
+        onClose={closeConfirm}
+        title="Are you sure?"
+        centered
+      >
+        <Center>
+          <Stack>
+            <Text size="md">Are you sure you want to post grades?</Text>
+
+            <Button color="gray" variant="light" onClick={closeConfirm}>
+              Cancel
+            </Button>
+
+            <Button
+              color="blue"
+              component={Link}
+              to="/instructor/migrate/post"
+              variant="filled"
+            >
+              Post
+            </Button>
+          </Stack>
+        </Center>
+      </Modal>
+
       <Container size="md">
         <Stepper
           pl={50}
@@ -143,14 +175,7 @@ export function MigrationsReviewPage() {
               Previous
             </Button>
 
-            <Button
-              color="blue"
-              component={Link}
-              to="/instructor/migrate/post"
-              variant="filled"
-            >
-              Post
-            </Button>
+            <Button onClick={openConfirm}>Post</Button>
           </Group>
         </Group>
       </Container>
