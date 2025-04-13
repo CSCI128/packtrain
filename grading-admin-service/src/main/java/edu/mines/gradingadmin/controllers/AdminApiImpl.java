@@ -240,6 +240,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
             if (enrollments.contains("instructors")) {
                 roles.add(CourseRole.INSTRUCTOR);
+                roles.add(CourseRole.OWNER);
             }
 
             if (enrollments.contains("students")) {
