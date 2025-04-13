@@ -62,11 +62,13 @@ export const MiddlewareLayout = ({
       }
     };
 
+    // TODO better solution/whitelist for this
     if (
       currentPage !== "/profile" &&
       currentPage !== "/instructor/profile" &&
       currentPage !== "/admin/profile" &&
-      currentPage !== "/users"
+      currentPage !== "/admin/users" &&
+      currentPage !== "/instructor/users"
     ) {
       fetchData();
     }

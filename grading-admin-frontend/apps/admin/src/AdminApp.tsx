@@ -7,9 +7,10 @@ import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
 import { SelectClass } from "@repo/ui/pages/Select";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { MembersPage } from "../../instructor/src/pages/Members.tsx";
+
 import { userManager } from "./api.ts";
 import "./index.css";
+import { MembersPage } from "./Members.tsx";
 import { AssignmentsPage } from "./pages/Assignments";
 import { CoursePage } from "./pages/course/Course";
 import { CreatePage } from "./pages/course/Create";

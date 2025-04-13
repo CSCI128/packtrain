@@ -43,7 +43,7 @@ export function Navbar() {
                   <a href="/instructor/migrate" className={classes.link}>
                     Migrate
                   </a>
-                  <a href="/members" className={classes.link}>
+                  <a href="/instructor/members" className={classes.link}>
                     Members
                   </a>
                 </>
