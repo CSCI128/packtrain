@@ -1198,6 +1198,24 @@ export interface components {
             /** @example Fall.2020.EXCL.101 */
             code: string;
         };
+        /** @description A slim course and a CourseMember */
+        Enrollment: {
+            /** @example 999-9999-9999-99 */
+            id?: string;
+            /** @example Fall 2020 */
+            term: string;
+            /** @example EXCL101 */
+            name: string;
+            /** @example Fall.2020.EXCL.101 */
+            code: string;
+            /** @example 99999999 */
+            cwid: string;
+            /**
+             * @example owner
+             * @enum {string}
+             */
+            course_role: "student" | "instructor" | "ta" | "owner";
+        };
         /** @description Information relevant to a student */
         StudentInformation: {
             /**
@@ -2410,7 +2428,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CourseSlim"][];
+                    "application/json": components["schemas"]["Enrollment"][];
                 };
             };
             /** @description User not found */

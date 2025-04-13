@@ -17,16 +17,6 @@ export const MiddlewareLayout = ({
   const auth = useAuth();
   const currentPage = location.pathname;
 
-  const { data: enrollmentInfo } = useQuery({
-    queryKey: ["getEnrollments"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_enrollments())
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
-    enabled: !!store$.id.get(),
-  });
-
   const { data: userInfo, error: userError } = useQuery({
     queryKey: ["getUser"],
     queryFn: () =>
@@ -40,21 +30,11 @@ export const MiddlewareLayout = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (enrollmentInfo) {
-          let enrollment = enrollmentInfo
-            .filter((c) => c.id === store$.id.get())
-            .at(0);
-          if (enrollment !== undefined) {
-            console.log(enrollment);
-          }
-        }
-
         if (auth.isAuthenticated && userError) {
           navigate("/disabled");
         }
 
-        const user = await userManager.getUser();
-        if (store$.id.get() === undefined) {
+        if (auth.isAuthenticated && store$.id.get() === undefined) {
           navigate("/select");
         }
       } catch (error) {
@@ -72,7 +52,7 @@ export const MiddlewareLayout = ({
     ) {
       fetchData();
     }
-  }, [userInfo, navigate, enrollmentInfo, currentPage]);
+  }, [userInfo, navigate, currentPage]);
 
   return <Outlet />;
 };

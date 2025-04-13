@@ -4,6 +4,7 @@
   "private": true,
   "exports": {
     "./index": "./src/index.ts",
+    "./openapi": "./src/openapi.d.ts",
     "./auth.config": "./src/auth.config.ts",
     "./store": "./src/store.ts",
     "./*": "./src/*"

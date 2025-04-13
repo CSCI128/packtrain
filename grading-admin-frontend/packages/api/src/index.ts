@@ -1,11 +1,10 @@
 import { OpenAPIClientAxios } from "openapi-client-axios";
 import { Client } from "./openapi";
-import openApiSpec from "./openapi.json";
+import openApi from "./openapi.json";
 
 const api = new OpenAPIClientAxios({
   // @ts-ignore
-  definition: openApiSpec,
-  // definition: "https://localhost.dev/docs/openapi/openapi.json",
+  definition: openApi,
   axiosConfigDefaults: {
     baseURL: "https://localhost.dev/api",
   },

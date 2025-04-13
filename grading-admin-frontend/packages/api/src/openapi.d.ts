@@ -308,6 +308,41 @@ declare namespace Components {
          */
         export type Credentials = /* A credential for external service */ Credential[];
         /**
+         * A slim course and a CourseMember
+         */
+        export interface Enrollment {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            id?: string;
+            /**
+             * example:
+             * Fall 2020
+             */
+            term: string;
+            /**
+             * example:
+             * EXCL101
+             */
+            name: string;
+            /**
+             * example:
+             * Fall.2020.EXCL.101
+             */
+            code: string;
+            /**
+             * example:
+             * 99999999
+             */
+            cwid: string;
+            /**
+             * example:
+             * owner
+             */
+            course_role: "student" | "instructor" | "ta" | "owner";
+        }
+        /**
          * An error occurred while processing that query
          */
         export interface ErrorResponse {
@@ -1346,7 +1381,7 @@ declare namespace Paths {
     }
     namespace GetEnrollments {
         namespace Responses {
-            export type $200 = /* A slim course */ Components.Schemas.CourseSlim[];
+            export type $200 = /* A slim course and a CourseMember */ Components.Schemas.Enrollment[];
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
@@ -3135,6 +3170,7 @@ export type CourseSlim = Components.Schemas.CourseSlim;
 export type CourseSyncTask = Components.Schemas.CourseSyncTask;
 export type Credential = Components.Schemas.Credential;
 export type Credentials = Components.Schemas.Credentials;
+export type Enrollment = Components.Schemas.Enrollment;
 export type ErrorResponse = Components.Schemas.ErrorResponse;
 export type Extension = Components.Schemas.Extension;
 export type LateRequest = Components.Schemas.LateRequest;

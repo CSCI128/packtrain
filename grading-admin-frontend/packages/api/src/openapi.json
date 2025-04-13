@@ -2013,7 +2013,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/CourseSlim"
+                    "$ref": "#/components/schemas/Enrollment"
                   }
                 }
               }
@@ -3637,6 +3637,49 @@
           "code": {
             "type": "string",
             "example": "Fall.2020.EXCL.101"
+          }
+        }
+      },
+      "Enrollment": {
+        "description": "A slim course and a CourseMember",
+        "type": "object",
+        "required": [
+          "term",
+          "name",
+          "code",
+          "cwid",
+          "course_role"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "999-9999-9999-99"
+          },
+          "term": {
+            "type": "string",
+            "example": "Fall 2020"
+          },
+          "name": {
+            "type": "string",
+            "example": "EXCL101"
+          },
+          "code": {
+            "type": "string",
+            "example": "Fall.2020.EXCL.101"
+          },
+          "cwid": {
+            "type": "string",
+            "example": "99999999"
+          },
+          "course_role": {
+            "type": "string",
+            "enum": [
+              "student",
+              "instructor",
+              "ta",
+              "owner"
+            ],
+            "example": "owner"
           }
         }
       },

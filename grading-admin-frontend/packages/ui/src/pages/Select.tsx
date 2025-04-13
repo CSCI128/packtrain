@@ -23,6 +23,16 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     enabled: !!auth.isAuthenticated,
   });
 
+  const { data: enrollmentInfo } = useQuery({
+    queryKey: ["getEnrollments"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) => client.get_enrollments())
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+    enabled: !!auth.isAuthenticated,
+  });
+
   const navigate = useNavigate();
 
   const switchCourse = (id: string, name: string) => {
@@ -32,11 +42,22 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
       close();
     }
 
-    if (auth.isAuthenticated && auth.user?.profile.is_admin) {
-      navigate("/admin", { replace: true });
-      window.location.href = "/admin"; // TODO this is cursed
-    } else {
-      navigate("/requests");
+    if (enrollmentInfo) {
+      let enrollment = enrollmentInfo
+        .filter((c) => c.id === store$.id.get())
+        .at(0);
+      if (enrollment !== undefined) {
+        if (enrollment.course_role === "owner") {
+          navigate("/admin", { replace: true });
+          window.location.href = "/admin"; // TODO this is cursed
+        } else if (enrollment.course_role === "instructor") {
+          navigate("/instructor", { replace: true });
+          window.location.href = "/instructor"; // TODO this is cursed
+        } else if (enrollment.course_role === "student") {
+          navigate("/requests", { replace: true });
+          window.location.href = "/requests"; // TODO this is cursed
+        }
+      }
     }
   };
 
