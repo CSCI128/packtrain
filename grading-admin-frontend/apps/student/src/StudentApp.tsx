@@ -1,25 +1,19 @@
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { configureApiClient } from "@repo/api/index";
-import { store$ } from "@repo/api/store";
 import { MiddlewareLayout } from "@repo/ui/MiddlewareLayout";
+import { CallbackPage } from "@repo/ui/pages/CallbackPage";
 import { DisabledPage } from "@repo/ui/pages/DisabledPage";
 import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
+import { SelectClass } from "@repo/ui/pages/Select";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { useAuth } from "react-oidc-context";
-import {
-  createBrowserRouter,
-  RouterProvider,
-  useNavigate,
-} from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { userManager } from "./api";
 import "./App.css";
 import "./index.css";
 import { ExtensionForm } from "./pages/ExtensionForm";
 import { ProfilePage } from "./pages/Profile";
 import { Requests } from "./pages/Requests";
-import { SelectClass } from "./pages/Select";
 import Root from "./templates/Root";
 
 configureApiClient({ userManager: userManager });
@@ -39,23 +33,6 @@ const HomePage = () => {
       <p>Hello, world!</p>
     </>
   );
-};
-
-const CallbackPage = () => {
-  const auth = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (auth.isAuthenticated) {
-      if (auth.user?.profile.is_admin && !store$.id.get()) {
-        navigate("/select");
-      } else if (!auth.user?.profile.is_admin && !store$.id.get()) {
-        navigate("/");
-      }
-    }
-  }, [auth.isAuthenticated]);
-
-  return null;
 };
 
 const router = createBrowserRouter([

@@ -1,18 +1,13 @@
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { configureApiClient } from "@repo/api/index";
-import { store$ } from "@repo/api/store";
 import { MiddlewareLayout } from "@repo/ui/MiddlewareLayout";
+import { CallbackPage } from "@repo/ui/pages/CallbackPage";
 import { DisabledPage } from "@repo/ui/pages/DisabledPage";
 import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
+import { SelectClass } from "@repo/ui/pages/Select";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { useAuth } from "react-oidc-context";
-import {
-  createBrowserRouter,
-  RouterProvider,
-  useNavigate,
-} from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { MembersPage } from "../../instructor/src/pages/Members.tsx";
 import { userManager } from "./api.ts";
 import "./index.css";
@@ -24,7 +19,6 @@ import { CreatePolicy } from "./pages/policies/Create.tsx";
 import { ProfilePage } from "./pages/Profile";
 import { UsersPage } from "./pages/Users";
 import ProtectedRoute from "./ProtectedRoute";
-import { SelectClass } from "./Select.tsx";
 import Root from "./templates/Root.tsx";
 
 configureApiClient({ userManager: userManager });
@@ -37,22 +31,22 @@ const queryClient = new QueryClient({
   },
 });
 
-const CallbackPage = () => {
-  const auth = useAuth();
-  const navigate = useNavigate();
+// const CallbackPage = () => {
+//   const auth = useAuth();
+//   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (auth.isAuthenticated) {
-      if (auth.user?.profile.is_admin && !store$.id.get()) {
-        navigate("/select");
-      } else if (!auth.user?.profile.is_admin && !store$.id.get()) {
-        navigate("/");
-      }
-    }
-  }, [auth.isAuthenticated]);
+//   useEffect(() => {
+//     if (auth.isAuthenticated) {
+//       if (auth.user?.profile.is_admin && !store$.id.get()) {
+//         navigate("/select");
+//       } else if (!auth.user?.profile.is_admin && !store$.id.get()) {
+//         navigate("/");
+//       }
+//     }
+//   }, [auth.isAuthenticated]);
 
-  return null;
-};
+//   return null;
+// };
 
 const router = createBrowserRouter([
   {

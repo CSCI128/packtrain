@@ -1,17 +1,26 @@
 import { Button, Center, Container, Stack } from "@mantine/core";
+import { getApiClient } from "@repo/api/index";
 import { store$ } from "@repo/api/store";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "react-oidc-context";
 import { Link, useNavigate } from "react-router-dom";
-import { $api } from "../api";
 import { components } from "../lib/api/v1";
 
 export const SelectClass = ({ close }: { close?: () => void }) => {
   const auth = useAuth();
-  const route =
-    auth.isAuthenticated && auth.user?.profile.is_admin
-      ? "/admin/courses"
-      : "/student/courses";
-  const { data, error, isLoading } = $api.useQuery("get", route);
+
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["getCourses"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          auth.isAuthenticated && auth.user?.profile.is_admin
+            ? client.get_courses()
+            : client.get_courses_student()
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
   const navigate = useNavigate();
 

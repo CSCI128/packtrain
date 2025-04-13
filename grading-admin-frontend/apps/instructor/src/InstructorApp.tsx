@@ -1,18 +1,14 @@
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { configureApiClient } from "@repo/api/index.ts";
-import { store$ } from "@repo/api/store";
 import { MiddlewareLayout } from "@repo/ui/MiddlewareLayout";
+import { CallbackPage } from "@repo/ui/pages/CallbackPage";
 import { DisabledPage } from "@repo/ui/pages/DisabledPage";
 import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
+import { SelectClass } from "@repo/ui/pages/Select";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { JSX, useEffect } from "react";
-import { useAuth } from "react-oidc-context";
-import {
-  createBrowserRouter,
-  RouterProvider,
-  useNavigate,
-} from "react-router-dom";
+import { JSX } from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { userManager } from "./api";
 import "./index.css";
 import { ApprovalPage } from "./pages/ApprovalPage";
@@ -22,7 +18,6 @@ import { MigrationsLoadPage } from "./pages/migration/MigrationsLoad";
 import { MigrationsPostPage } from "./pages/migration/MigrationsPost";
 import { MigrationsReviewPage } from "./pages/migration/MigrationsReview";
 import { ProfilePage } from "./pages/Profile";
-import { SelectClass } from "./pages/Select";
 import Root from "./templates/Root";
 
 configureApiClient({ userManager: userManager });
@@ -39,23 +34,6 @@ const MigrationMiddleware = ({ children }: { children: JSX.Element }) => {
   // Four step migrate process: send people to first or last or active state
   // and prevent them from going to future states
   return children;
-};
-
-const CallbackPage = () => {
-  const auth = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (auth.isAuthenticated) {
-      if (auth.user?.profile.is_admin && !store$.id.get()) {
-        navigate("/select");
-      } else if (!auth.user?.profile.is_admin && !store$.id.get()) {
-        navigate("/");
-      }
-    }
-  }, [auth.isAuthenticated]);
-
-  return null;
 };
 
 const router = createBrowserRouter([

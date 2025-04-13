@@ -16,6 +16,7 @@ export const AUTH_CONFIG = createAuthConfig(
 
 export const userManager = new UserManager(AUTH_CONFIG);
 
+// TODO delete this once everything migrated
 const middleware: Middleware = {
   async onRequest({ request }) {
     const user = await userManager.getUser();

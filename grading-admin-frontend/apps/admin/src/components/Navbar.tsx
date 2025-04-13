@@ -13,9 +13,9 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { store$ } from "@repo/api/store";
+import { SelectClass } from "@repo/ui/pages/Select";
 import { useAuth } from "react-oidc-context";
 import { useNavigate } from "react-router-dom";
-import { SelectClass } from "../Select";
 import classes from "./Navbar.module.scss";
 
 export function Navbar() {

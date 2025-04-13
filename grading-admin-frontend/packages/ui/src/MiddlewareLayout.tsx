@@ -39,8 +39,10 @@ export const MiddlewareLayout = ({
         }
 
         const user = await userManager.getUser();
-        if (!isAuthenticated && user && user.profile.is_admin) {
+        if (isAuthenticated && !store$.id.get()) {
           navigate("/select");
+        } else if (store$.id.get() && user?.profile.is_admin) {
+          navigate("/admin");
         }
       } catch (error) {
         console.error("An error occurred:", error);
