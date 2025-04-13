@@ -85,6 +85,9 @@ export function Requests() {
 
   if (studentError) return `An error occured: ${studentError}`;
 
+  const LATE_PASSES_ALLOWED =
+    studentData.course.late_request_config.total_late_passes_allowed;
+
   const setSorting = (field: keyof RequestRowData) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
@@ -280,7 +283,7 @@ export function Requests() {
 
         <Group grow mt={25}>
           <Stack>
-            {studentData.late_passes_used === 5 ? (
+            {studentData.late_passes_used === LATE_PASSES_ALLOWED ? (
               <>
                 <Text size="md" ta="center" c="red.9" fw={700}>
                   You have no late passes remaining!
@@ -294,7 +297,9 @@ export function Requests() {
               <>
                 <Text size="md" ta="center">
                   You have{" "}
-                  <strong>{5 - (studentData.late_passes_used ?? 0)}</strong>{" "}
+                  <strong>
+                    {LATE_PASSES_ALLOWED - (studentData.late_passes_used ?? 0)}
+                  </strong>{" "}
                   late passes remaining.
                 </Text>
               </>

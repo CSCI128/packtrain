@@ -388,7 +388,7 @@ export function CreatePage() {
                     disabled={!allTasksCompleted}
                     color={allTasksCompleted ? "blue" : "gray"}
                     component={Link}
-                    to="/admin/home"
+                    to="/admin"
                   >
                     Continue
                   </Button>

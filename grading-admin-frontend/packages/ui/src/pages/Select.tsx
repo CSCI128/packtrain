@@ -1,4 +1,4 @@
-import { Button, Center, Container, Stack } from "@mantine/core";
+import { Button, Center, Container, Stack, Text } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
 import { Course, CourseSlim } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
@@ -69,15 +69,19 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     <Container size="sm">
       <Center>
         <Stack>
-          {data.map((course: Course | CourseSlim) => (
-            <Button
-              key={course.id}
-              onClick={() => switchCourse(course.id as string, course.name)}
-            >
-              {course.name} ({course.term}){" "}
-              {store$.id.get() == course.id && <>(selected)</>}
-            </Button>
-          ))}
+          {data.length === 0 ? (
+            <Text>No courses were found!</Text>
+          ) : (
+            data.map((course: Course | CourseSlim) => (
+              <Button
+                key={course.id}
+                onClick={() => switchCourse(course.id as string, course.name)}
+              >
+                {course.name} ({course.term}){" "}
+                {store$.id.get() == course.id && <>(selected)</>}
+              </Button>
+            ))
+          )}
           {auth.user?.profile.is_admin ? (
             <Button
               color="green"

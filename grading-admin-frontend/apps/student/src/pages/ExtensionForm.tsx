@@ -145,6 +145,9 @@ export function ExtensionForm() {
 
   if (error) return `An error occured: ${error}`;
 
+  const LATE_PASSES_ALLOWED =
+    courseData.course.late_request_config.total_late_passes_allowed;
+
   function CalculatedDate() {
     return (
       <>
@@ -224,7 +227,7 @@ export function ExtensionForm() {
       {latePassView ? (
         <form onSubmit={latePassForm.onSubmit(submitLatePass)}>
           <Stack>
-            {(courseData.late_passes_used ?? 0) >= 5 ? (
+            {(courseData.late_passes_used ?? 0) >= LATE_PASSES_ALLOWED ? (
               <>
                 <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
                   You have no late passes remaining!
@@ -264,9 +267,11 @@ export function ExtensionForm() {
 
                 <Text>
                   You have{" "}
-                  <strong>{5 - (courseData.late_passes_used ?? 0)}</strong> late
-                  passes remaining. Late passes are five, free passes to use
-                  over the course of the semester to extend your work.
+                  <strong>
+                    {LATE_PASSES_ALLOWED - (courseData.late_passes_used ?? 0)}
+                  </strong>{" "}
+                  late passes remaining. Late passes are five, free passes to
+                  use over the course of the semester to extend your work.
                 </Text>
 
                 <Group>
@@ -274,7 +279,9 @@ export function ExtensionForm() {
                     withAsterisk
                     label="Days to extend:"
                     defaultValue={1}
-                    max={5 - (courseData.late_passes_used ?? 0)}
+                    max={
+                      LATE_PASSES_ALLOWED - (courseData.late_passes_used ?? 0)
+                    }
                     min={1}
                     key={latePassForm.key("daysRequested")}
                     {...latePassForm.getInputProps("daysRequested")}
@@ -286,7 +293,7 @@ export function ExtensionForm() {
                   <Text>
                     (
                     <strong>
-                      {5 -
+                      {LATE_PASSES_ALLOWED -
                         (courseData.late_passes_used ?? 0) -
                         numDaysRequested}{" "}
                       remaining
@@ -310,7 +317,7 @@ export function ExtensionForm() {
               Cancel
             </Button>
 
-            {(courseData.late_passes_used ?? 0) < 5 && (
+            {(courseData.late_passes_used ?? 0) < LATE_PASSES_ALLOWED && (
               <Button type="submit">Submit</Button>
             )}
           </Group>
