@@ -1,12 +1,15 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.UserApiDelegate;
+import edu.mines.gradingadmin.data.CourseSlimDTO;
 import edu.mines.gradingadmin.data.CredentialDTO;
 import edu.mines.gradingadmin.data.UserDTO;
 import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
+import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.Credential;
 import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +47,19 @@ public class UserApiImpl implements UserApiDelegate {
         }
 
         return ResponseEntity.accepted().body(DTOFactory.toDto(user.get()));
+    }
+
+    @Override
+    public ResponseEntity<List<CourseSlimDTO>> getEnrollments() {
+        User user = securityManager.getUser();
+
+        Optional<List<Course>> enrollments = userService.getEnrollments(user.getCwid());
+
+        if (enrollments.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(enrollments.get().stream().map(DTOFactory::toSlimDto).toList());
     }
 
     @Override

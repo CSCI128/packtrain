@@ -46,19 +46,6 @@ public class StudentApiImpl implements StudentApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<CourseSlimDTO>> getEnrollments() {
-        User user = securityManager.getUser();
-
-        Optional<List<Course>> enrollments = userService.getEnrollments(user.getCwid());
-
-        if (enrollments.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(enrollments.get().stream().map(DTOFactory::toSlimDto).toList());
-    }
-
-    @Override
     public ResponseEntity<StudentInformationDTO> getCourseInformationStudent(String courseId) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
 
