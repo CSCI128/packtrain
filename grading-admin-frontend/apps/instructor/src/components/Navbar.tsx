@@ -10,10 +10,12 @@ import {
   ScrollArea,
   Stack,
   Text,
+  UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { store$ } from "@repo/api/store";
 import { SelectClass } from "@repo/ui/pages/Select";
+import { IconChevronDown } from "@tabler/icons-react";
 import { useAuth } from "react-oidc-context";
 import { useNavigate } from "react-router-dom";
 import classes from "./Navbar.module.scss";
@@ -72,7 +74,14 @@ export function Navbar() {
               ) : (
                 <Menu shadow="md" width={200}>
                   <Menu.Target>
-                    <p>{auth.user.profile.name}</p>
+                    <UnstyledButton>
+                      <Group gap={7}>
+                        <Text fw={500} size="sm" lh={1} mr={3}>
+                          {auth.user.profile.name}
+                        </Text>
+                        <IconChevronDown size={12} stroke={1.5} />
+                      </Group>
+                    </UnstyledButton>
                   </Menu.Target>
 
                   <Menu.Dropdown>
