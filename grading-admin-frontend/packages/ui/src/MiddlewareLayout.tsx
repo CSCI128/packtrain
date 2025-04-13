@@ -14,9 +14,18 @@ export const MiddlewareLayout = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isAuthenticated = store$.id.get();
   const auth = useAuth();
   const currentPage = location.pathname;
+
+  const { data: enrollmentInfo } = useQuery({
+    queryKey: ["getEnrollments"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) => client.get_enrollments())
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+    enabled: !!store$.id.get(),
+  });
 
   const { data: userInfo } = useQuery({
     queryKey: ["getUser"],
@@ -25,24 +34,28 @@ export const MiddlewareLayout = ({
         .then((client) => client.get_user())
         .then((res) => res.data)
         .catch((err) => console.log(err)),
+    enabled: !!auth.isAuthenticated,
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (userInfo) {
-          console.log(userInfo); // TODO handle error if caught
-
-          if (auth.isAuthenticated && userInfo === undefined) {
-            navigate("/disabled");
+        if (enrollmentInfo) {
+          let enrollment = enrollmentInfo
+            .filter((c) => c.id === store$.id.get())
+            .at(0);
+          if (enrollment !== undefined) {
+            console.log(enrollment);
           }
         }
 
+        if (auth.isAuthenticated && userInfo === undefined) {
+          navigate("/disabled");
+        }
+
         const user = await userManager.getUser();
-        if (isAuthenticated && !store$.id.get()) {
+        if (store$.id.get() === undefined) {
           navigate("/select");
-        } else if (store$.id.get() && user?.profile.is_admin) {
-          navigate("/admin");
         }
       } catch (error) {
         console.error("An error occurred:", error);
@@ -52,7 +65,7 @@ export const MiddlewareLayout = ({
     if (currentPage !== "/profile" && currentPage !== "/users") {
       fetchData();
     }
-  }, [userInfo, isAuthenticated, navigate, currentPage]);
+  }, [navigate, enrollmentInfo, currentPage]);
 
   return <Outlet />;
 };

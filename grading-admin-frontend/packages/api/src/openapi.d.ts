@@ -2856,7 +2856,7 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetCoursesStudent.Responses.$200>
   }
-  ['/student/enrollments']: {
+  ['/user/enrollments']: {
     /**
      * get_enrollments - Get all enrollments for a user
      * 

@@ -1280,7 +1280,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/CourseSlim"
 
-  /student/enrollments:
+  /user/enrollments:
     get:
       tags:
         - user

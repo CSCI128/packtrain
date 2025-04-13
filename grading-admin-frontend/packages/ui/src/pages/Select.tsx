@@ -20,6 +20,7 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
         )
         .then((res) => res.data)
         .catch((err) => console.log(err)),
+    enabled: !!auth.isAuthenticated,
   });
 
   const navigate = useNavigate();
@@ -32,7 +33,8 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     }
 
     if (auth.isAuthenticated && auth.user?.profile.is_admin) {
-      navigate("/admin");
+      navigate("/admin", { replace: true });
+      window.location.href = "/admin"; // TODO this is cursed
     } else {
       navigate("/requests");
     }

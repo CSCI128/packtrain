@@ -617,7 +617,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/student/enrollments": {
+    "/user/enrollments": {
         parameters: {
             query?: never;
             header?: never;

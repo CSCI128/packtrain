@@ -16,7 +16,9 @@
   },
   "security": [
     {
-      "openIDC": ["user:read"]
+      "openIDC": [
+        "user:read"
+      ]
     }
   ],
   "tags": [
@@ -48,7 +50,9 @@
   "paths": {
     "/-/health": {
       "get": {
-        "tags": ["health"],
+        "tags": [
+          "health"
+        ],
         "operationId": "check_health",
         "summary": "Checks the health of the server",
         "responses": {
@@ -63,13 +67,17 @@
     },
     "/admin/courses": {
       "get": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "get_courses",
         "summary": "Get all courses",
         "description": "Get all courses, returning\nonly active courses by default, and\ninactive courses if specified. Will\nreturn an empty list if there are no\ncourses.\n",
         "security": [
           {
-            "openIDC": ["admin:read"]
+            "openIDC": [
+              "admin:read"
+            ]
           }
         ],
         "parameters": [
@@ -101,13 +109,17 @@
         }
       },
       "post": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "new_course",
         "summary": "Create a new course",
         "description": "Create a new course.\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "requestBody": {
@@ -136,13 +148,17 @@
     },
     "/admin/courses/{course_id}": {
       "put": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "update_course",
         "summary": "Update existing course",
         "description": "Update an existing course.\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "parameters": [
@@ -186,13 +202,17 @@
         }
       },
       "get": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "get_course",
         "summary": "Get existing course",
         "description": "Gets a course\n",
         "security": [
           {
-            "openIDC": ["admin:read"]
+            "openIDC": [
+              "admin:read"
+            ]
           }
         ],
         "parameters": [
@@ -213,7 +233,11 @@
               "type": "array",
               "items": {
                 "type": "string",
-                "enum": ["members", "assignments", "sections"]
+                "enum": [
+                  "members",
+                  "assignments",
+                  "sections"
+                ]
               }
             }
           }
@@ -248,13 +272,17 @@
     },
     "/admin/courses/{course_id}/import": {
       "post": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "import_course",
         "summary": "Import course from Canvas",
         "description": "Imports data from Canvas into an existing course\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "parameters": [
@@ -326,13 +354,17 @@
     },
     "/admin/courses/{course_id}/sync": {
       "post": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "sync_course",
         "summary": "Sync with established course controller",
         "description": "Syncs with a course in the controller.\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "parameters": [
@@ -402,13 +434,17 @@
     },
     "/admin/courses/{course_id}/assignments": {
       "put": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "update_assignment",
         "summary": "Update an assignment in a course",
         "description": "Update an assignment in a course\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "parameters": [
@@ -453,13 +489,17 @@
         }
       },
       "post": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "add_assignment",
         "summary": "Add assignment to a course",
         "description": "Add assignments to a course.\nIf any assignment already exists in the class,\nits information will be updated.\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "parameters": [
@@ -513,13 +553,17 @@
     },
     "/admin/courses/{course_id}/assignment/{assignment_id}/disable": {
       "put": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "disable_assignment",
         "summary": "Disable the specified assignment.",
         "description": "Disable the specified assignment.\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "parameters": [
@@ -565,13 +609,17 @@
     },
     "/admin/courses/{course_id}/assignment/{assignment_id}/enable": {
       "put": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "enable_assignment",
         "summary": "Enable the specified assignment.",
         "description": "Enable the specified assignment.\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "parameters": [
@@ -617,11 +665,15 @@
     },
     "/admin/courses/{course_id}/members": {
       "get": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "get_members",
         "security": [
           {
-            "openIDC": ["admin:read"]
+            "openIDC": [
+              "admin:read"
+            ]
           }
         ],
         "summary": "Get all members for a course",
@@ -644,7 +696,11 @@
               "type": "array",
               "items": {
                 "type": "string",
-                "enum": ["tas", "instructors", "students"]
+                "enum": [
+                  "tas",
+                  "instructors",
+                  "students"
+                ]
               }
             }
           },
@@ -700,13 +756,17 @@
         }
       },
       "post": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "add_course_member",
         "summary": "Add a member to a course",
         "description": "Adds a member to a course. \nIf they already exist, the request is rejected.\nIf the user does not exist in system, then the request is rejected.\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "parameters": [
@@ -751,13 +811,17 @@
         }
       },
       "put": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "update_course_member",
         "summary": "Updates a member's membership in a course",
         "description": "Updates a member in a course. If they do not exist, then they are rejected.\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "parameters": [
@@ -804,13 +868,17 @@
     },
     "/admin/users": {
       "get": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "get_all_users",
         "summary": "Get all users",
         "description": "Gets all the users in the system\n",
         "security": [
           {
-            "openIDC": ["admin:read"]
+            "openIDC": [
+              "admin:read"
+            ]
           }
         ],
         "responses": {
@@ -830,13 +898,17 @@
         }
       },
       "post": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "create_user",
         "summary": "Create a new user",
         "description": "Creates a new user.\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "requestBody": {
@@ -870,11 +942,15 @@
         }
       },
       "put": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "admin_update_user",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "summary": "Updates a user's information, including admin and disabled/enabled status",
@@ -905,13 +981,17 @@
     },
     "/admin/users/{cwid}/enable": {
       "put": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "enable_user",
         "summary": "enable a user",
         "description": "Enables a user\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "parameters": [
@@ -948,13 +1028,17 @@
     },
     "/admin/users/{cwid}/disable": {
       "put": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "disable_user",
         "summary": "disable a user",
         "description": "Disables a user\n",
         "security": [
           {
-            "openIDC": ["admin:write"]
+            "openIDC": [
+              "admin:write"
+            ]
           }
         ],
         "parameters": [
@@ -991,11 +1075,15 @@
     },
     "/user": {
       "get": {
-        "tags": ["user"],
+        "tags": [
+          "user"
+        ],
         "operationId": "get_user",
         "security": [
           {
-            "openIDC": ["user:read"]
+            "openIDC": [
+              "user:read"
+            ]
           }
         ],
         "summary": "Gets a user's information",
@@ -1014,11 +1102,15 @@
         }
       },
       "put": {
-        "tags": ["user"],
+        "tags": [
+          "user"
+        ],
         "operationId": "update_user",
         "security": [
           {
-            "openIDC": ["user:write"]
+            "openIDC": [
+              "user:write"
+            ]
           }
         ],
         "summary": "Updates a user's information",
@@ -1049,13 +1141,17 @@
     },
     "/user/credentials": {
       "post": {
-        "tags": ["user"],
+        "tags": [
+          "user"
+        ],
         "operationId": "new_credential",
         "summary": "Create a new credential for the user",
         "description": "Create a new credential for a user.\n\nThe credential must have a unique name for the user.\nIt must also be the only credential for a service.\n",
         "security": [
           {
-            "openIDC": ["user:write"]
+            "openIDC": [
+              "user:write"
+            ]
           }
         ],
         "requestBody": {
@@ -1110,13 +1206,17 @@
         }
       },
       "get": {
-        "tags": ["user"],
+        "tags": [
+          "user"
+        ],
         "operationId": "get_credentials",
         "summary": "Get all credentials for a user",
         "description": "Gets all credentials for the signed in user.\nA user can only view their own credentials (including admins)\n",
         "security": [
           {
-            "openIDC": ["user:read"]
+            "openIDC": [
+              "user:read"
+            ]
           }
         ],
         "responses": {
@@ -1149,13 +1249,17 @@
     },
     "/user/credentials/{credential_id}/delete": {
       "delete": {
-        "tags": ["user"],
+        "tags": [
+          "user"
+        ],
         "operationId": "delete_credential",
         "summary": "Deletes a credential for the user.",
         "description": "Deletes a selected credential for the user.\n",
         "security": [
           {
-            "openIDC": ["user:write"]
+            "openIDC": [
+              "user:write"
+            ]
           }
         ],
         "parameters": [
@@ -1206,13 +1310,17 @@
     },
     "/user/credentials/{credential_id}/public": {
       "put": {
-        "tags": ["user"],
+        "tags": [
+          "user"
+        ],
         "operationId": "mark_credential_as_public",
         "summary": "Changes the visibility of the credential to public for the user.",
         "description": "Sets a credential's status to public for the user.\n",
         "security": [
           {
-            "openIDC": ["user:write"]
+            "openIDC": [
+              "user:write"
+            ]
           }
         ],
         "parameters": [
@@ -1263,13 +1371,17 @@
     },
     "/user/credentials/{credential_id}/private": {
       "put": {
-        "tags": ["user"],
+        "tags": [
+          "user"
+        ],
         "operationId": "mark_credential_as_private",
         "summary": "Changes the visibility of the credential to private for the user.",
         "description": "Sets a credential's status to private for the user.\n",
         "security": [
           {
-            "openIDC": ["user:write"]
+            "openIDC": [
+              "user:write"
+            ]
           }
         ],
         "parameters": [
@@ -1320,13 +1432,17 @@
     },
     "/instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/approve": {
       "put": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "approve_extension",
         "summary": "Approves an extension for an assignment for the user.",
         "description": "Approves an extension for an assignment for the user.\n",
         "security": [
           {
-            "openIDC": ["instructor:write"]
+            "openIDC": [
+              "instructor:write"
+            ]
           }
         ],
         "parameters": [
@@ -1369,7 +1485,14 @@
         ],
         "responses": {
           "202": {
-            "description": "Accepted"
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LateRequest"
+                }
+              }
+            }
           },
           "400": {
             "description": "Failed to approve extension",
@@ -1404,13 +1527,17 @@
     },
     "/instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/deny": {
       "put": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "deny_extension",
         "summary": "Denies an extension for an assignment for the user.",
         "description": "Denies an extension for an assignment for the user.\n",
         "security": [
           {
-            "openIDC": ["instructor:write"]
+            "openIDC": [
+              "instructor:write"
+            ]
           }
         ],
         "parameters": [
@@ -1453,7 +1580,14 @@
         ],
         "responses": {
           "202": {
-            "description": "Accepted"
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LateRequest"
+                }
+              }
+            }
           },
           "400": {
             "description": "Failed to deny extension",
@@ -1488,13 +1622,17 @@
     },
     "/instructor/courses/{course_id}/policies": {
       "post": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "new_policy",
         "summary": "Create a new policy",
         "description": "Create a new policy for the course\n",
         "security": [
           {
-            "openIDC": ["instructor:write"]
+            "openIDC": [
+              "instructor:write"
+            ]
           }
         ],
         "parameters": [
@@ -1537,13 +1675,17 @@
         }
       },
       "get": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "get_all_policies",
         "summary": "Get all policies",
         "description": "Get all policies for a course\n",
         "security": [
           {
-            "openIDC": ["instructor:read"]
+            "openIDC": [
+              "instructor:read"
+            ]
           }
         ],
         "parameters": [
@@ -1574,15 +1716,61 @@
         }
       }
     },
+    "/instructor/course/{course_id}/policies/{policy_id}": {
+      "delete": {
+        "tags": [
+          "instructor"
+        ],
+        "operationId": "delete_policy",
+        "summary": "Create a new policy",
+        "description": "Create a new policy for the course\n",
+        "security": [
+          {
+            "openIDC": [
+              "instructor:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          },
+          {
+            "name": "policy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
     "/instructor/courses/{course_id}": {
       "get": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "get_course_information_instructor",
         "summary": "Get information for a course",
         "description": "Get information from a course from\nthe instructor's perspective; returns\nmembers as an aggregate of all members\nin their sections.\n",
         "security": [
           {
-            "openIDC": ["instructor:read"]
+            "openIDC": [
+              "instructor:read"
+            ]
           }
         ],
         "parameters": [
@@ -1612,11 +1800,15 @@
     },
     "/instructor/courses/{course_id}/enrollments": {
       "get": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "get_instructor_enrollments",
         "security": [
           {
-            "openIDC": ["instructor:read"]
+            "openIDC": [
+              "instructor:read"
+            ]
           }
         ],
         "summary": "Get all enrollments for all sections",
@@ -1685,13 +1877,17 @@
     },
     "/student/courses/{course_id}": {
       "get": {
-        "tags": ["student"],
+        "tags": [
+          "student"
+        ],
         "operationId": "get_course_information_student",
         "summary": "Get information for a course",
         "description": "Get information from a course from\nthe student's perspective; members and\nassignments are not returned but the\nsection the student is in is returned.\n",
         "security": [
           {
-            "openIDC": ["user:read"]
+            "openIDC": [
+              "user:read"
+            ]
           }
         ],
         "parameters": [
@@ -1721,13 +1917,17 @@
     },
     "/student/courses": {
       "get": {
-        "tags": ["student"],
+        "tags": [
+          "student"
+        ],
         "operationId": "get_courses_student",
         "summary": "Get all courses",
         "description": "Get all active courses for a student\n",
         "security": [
           {
-            "openIDC": ["user:read"]
+            "openIDC": [
+              "user:read"
+            ]
           }
         ],
         "responses": {
@@ -1747,13 +1947,17 @@
         }
       }
     },
-    "/student/enrollments": {
+    "/user/enrollments": {
       "get": {
-        "tags": ["user"],
+        "tags": [
+          "user"
+        ],
         "operationId": "get_enrollments",
         "security": [
           {
-            "openIDC": ["user:read"]
+            "openIDC": [
+              "user:read"
+            ]
           }
         ],
         "summary": "Get all enrollments for a user",
@@ -1791,13 +1995,17 @@
     },
     "/student/courses/{course_id}/assignments": {
       "get": {
-        "tags": ["student"],
+        "tags": [
+          "student"
+        ],
         "operationId": "get_course_assignments_student",
         "summary": "Get assignments for course",
         "description": "Get currently released assignments for course\n",
         "security": [
           {
-            "openIDC": ["user:read"]
+            "openIDC": [
+              "user:read"
+            ]
           }
         ],
         "parameters": [
@@ -1830,13 +2038,17 @@
     },
     "/tasks": {
       "get": {
-        "tags": ["tasks"],
+        "tags": [
+          "tasks"
+        ],
         "operationId": "get_all_tasks_for_user",
         "summary": "Get all tasks for current user",
         "description": "This endpoint gets all the tasks for the currently signed in user\n",
         "security": [
           {
-            "openIDC": ["user:read"]
+            "openIDC": [
+              "user:read"
+            ]
           }
         ],
         "responses": {
@@ -1858,13 +2070,17 @@
     },
     "/tasks/{task_id}": {
       "get": {
-        "tags": ["tasks"],
+        "tags": [
+          "tasks"
+        ],
         "operationId": "get_task",
         "summary": "Get task by id",
         "description": "This endpoint returns the requested task if the user has access to it.\n",
         "security": [
           {
-            "openIDC": ["user:read"]
+            "openIDC": [
+              "user:read"
+            ]
           }
         ],
         "parameters": [
@@ -1909,13 +2125,17 @@
     },
     "/instructor/courses/{course_id}/assignments/{assignment_id}/user/{user_id}/extensions": {
       "post": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "new_extension",
         "summary": "Create Extension request",
         "description": "Create a new extension request for an assignment.\nReplies with an extension request for a user and assignment.\n",
         "security": [
           {
-            "openIDC": ["instructor:write"]
+            "openIDC": [
+              "instructor:write"
+            ]
           }
         ],
         "parameters": [
@@ -1990,13 +2210,17 @@
     },
     "/instructor/courses/{course_id}/assignments/{assignment_id}/extensions/{extension_id}": {
       "get": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "get_all_approved_extensions_for_assignment",
         "summary": "Get all the approved extensions for the provided course and assignment",
         "description": "This endpoint gets all approved extensions for a given instructor\n",
         "security": [
           {
-            "openIDC": ["instructor:read"]
+            "openIDC": [
+              "instructor:read"
+            ]
           }
         ],
         "parameters": [
@@ -2036,7 +2260,12 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["approved", "denied", "pending"]
+              "enum": [
+                "approved",
+                "denied",
+                "pending",
+                "all"
+              ]
             }
           }
         ],
@@ -2073,13 +2302,17 @@
     },
     "/instructor/courses/{course_id}/users/{user_id}/extensions/{extension_id}": {
       "get": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "get_all_approved_extensions_for_member",
         "summary": "Get all the approved extensions for the provided member",
         "description": "This endpoint gets all approved extensions for a given member\n",
         "security": [
           {
-            "openIDC": ["instructor:read"]
+            "openIDC": [
+              "instructor:read"
+            ]
           }
         ],
         "parameters": [
@@ -2119,7 +2352,11 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["approved", "denied", "pending"]
+              "enum": [
+                "approved",
+                "denied",
+                "pending"
+              ]
             }
           }
         ],
@@ -2156,13 +2393,17 @@
     },
     "/instructor/courses/{course_id}/sections/{section_id}/extensions/{extension_id}": {
       "get": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "get_all_extensions_for_section",
         "summary": "Get all the extensions for the provided section",
         "description": "This endpoint gets all extensions for a given section\n",
         "security": [
           {
-            "openIDC": ["instructor:read"]
+            "openIDC": [
+              "instructor:read"
+            ]
           }
         ],
         "parameters": [
@@ -2202,7 +2443,11 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["approved", "denied", "pending"]
+              "enum": [
+                "approved",
+                "denied",
+                "pending"
+              ]
             }
           }
         ],
@@ -2239,13 +2484,17 @@
     },
     "/admin/courses/{course_id}/extensions": {
       "get": {
-        "tags": ["admin"],
+        "tags": [
+          "admin"
+        ],
         "operationId": "get_all_extensions_for_course",
         "summary": "Get all the extensions for the course",
         "description": "This endpoint gets all extensions for a given course\n",
         "security": [
           {
-            "openIDC": ["admin:read"]
+            "openIDC": [
+              "admin:read"
+            ]
           }
         ],
         "parameters": [
@@ -2265,7 +2514,11 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["approved", "denied", "pending"]
+              "enum": [
+                "approved",
+                "denied",
+                "pending"
+              ]
             }
           }
         ],
@@ -2277,7 +2530,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Extension"
+                    "$ref": "#/components/schemas/LateRequest"
                   }
                 }
               }
@@ -2302,13 +2555,17 @@
     },
     "/instructor/courses/{course_id}/migrations": {
       "get": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "get_all_master_migrations_for_course",
         "summary": "Get all the master migrations for the course",
         "description": "This endpoint gets all master migrations for a given course\n",
         "security": [
           {
-            "openIDC": ["admin:read"]
+            "openIDC": [
+              "admin:read"
+            ]
           }
         ],
         "parameters": [
@@ -2354,13 +2611,17 @@
         }
       },
       "post": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "create_master_migration",
         "summary": "Create master migration for a course",
         "description": "Create a new master migration for a course.\nReplies with a master migration for a course.\n",
         "security": [
           {
-            "openIDC": ["instructor:write"]
+            "openIDC": [
+              "instructor:write"
+            ]
           }
         ],
         "parameters": [
@@ -2415,13 +2676,17 @@
     },
     "/student/courses/{course_id}/extensions": {
       "get": {
-        "tags": ["student"],
+        "tags": [
+          "student"
+        ],
         "operationId": "get_all_extensions",
         "summary": "Get all extensions for a student",
         "description": "Gets all extensions a student has submitted, regardless\nof status.\n",
         "security": [
           {
-            "openIDC": ["student:write"]
+            "openIDC": [
+              "student:write"
+            ]
           }
         ],
         "parameters": [
@@ -2467,13 +2732,17 @@
         }
       },
       "post": {
-        "tags": ["student"],
+        "tags": [
+          "student"
+        ],
         "operationId": "create_extension_request",
         "summary": "Student Extension request",
         "description": "Create a new extension request for a student.\nReplies with an extension request including the request date, assignment impacted, new due date,\nstatus, and reason for extension.\n",
         "security": [
           {
-            "openIDC": ["student:write"]
+            "openIDC": [
+              "student:write"
+            ]
           }
         ],
         "parameters": [
@@ -2528,13 +2797,17 @@
     },
     "/student/courses/{course_id}/extensions/{extension_id}/withdraw": {
       "delete": {
-        "tags": ["student"],
+        "tags": [
+          "student"
+        ],
         "operationId": "withdraw_extension",
         "summary": "Withdraw a submitted extension",
         "description": "Deletes (withdraws) a submitted extension\nby id for the given student.\n",
         "security": [
           {
-            "openIDC": ["student:write"]
+            "openIDC": [
+              "student:write"
+            ]
           }
         ],
         "parameters": [
@@ -2582,13 +2855,17 @@
     },
     "/instructor/courses/{course_id}/migrations/{master_migration_id}": {
       "put": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "update_grade",
         "summary": "Updates the grade for a migration for the user. Must include a reason for updating the grade.",
         "description": "Updates the grade for a migration for the user.\n",
         "security": [
           {
-            "openIDC": ["instructor:write"]
+            "openIDC": [
+              "instructor:write"
+            ]
           }
         ],
         "parameters": [
@@ -2646,13 +2923,17 @@
         }
       },
       "post": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "create_migration_for_master_migration",
         "summary": "Create migration for a master migration",
         "description": "Create a new migration for a master migration.\nReplies with an master migration including the list of migrations, one for each assignment and policy.\n",
         "security": [
           {
-            "openIDC": ["instructor:write"]
+            "openIDC": [
+              "instructor:write"
+            ]
           }
         ],
         "parameters": [
@@ -2717,11 +2998,15 @@
     },
     "/instructor/courses/{course_id}/migrations/{migration_id}/assignments/{assignment_id}": {
       "put": {
-        "tags": ["instructor"],
+        "tags": [
+          "instructor"
+        ],
         "operationId": "update_policy",
         "security": [
           {
-            "openIDC": ["instructor:write"]
+            "openIDC": [
+              "instructor:write"
+            ]
           }
         ],
         "summary": "Updates the policy for an assignment and migration",
@@ -2831,7 +3116,11 @@
       "NewPolicy": {
         "description": "Create a new policy file",
         "type": "object",
-        "required": ["name", "file_path", "file_data"],
+        "required": [
+          "name",
+          "file_path",
+          "file_data"
+        ],
         "properties": {
           "name": {
             "type": "string",
@@ -2840,6 +3129,10 @@
           "file_path": {
             "type": "string",
             "example": "default.js"
+          },
+          "description": {
+            "type": "string",
+            "example": "The default policy\n"
           },
           "file_data": {
             "type": "string",
@@ -2852,26 +3145,36 @@
         "description": "A grading policy",
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "example": "999-9999-9999-99"
+          },
           "name": {
             "type": "string",
             "example": "Default Policy"
+          },
+          "description": {
+            "type": "string",
+            "example": "the default grading policy :)\n"
           },
           "uri": {
             "type": "string",
             "example": "https://s3.aws.com/999-9999-9999-99/default.js"
           },
-          "course": {
-            "$ref": "#/components/schemas/Course"
-          },
-          "assignment": {
-            "$ref": "#/components/schemas/Assignment"
+          "number_of_migrations": {
+            "type": "integer",
+            "example": 1
           }
         }
       },
       "Task": {
         "description": "An async task on the server",
         "type": "object",
-        "required": ["id", "submitted_time", "status"],
+        "required": [
+          "id",
+          "submitted_time",
+          "status"
+        ],
         "properties": {
           "id": {
             "type": "integer",
@@ -2904,7 +3207,9 @@
       },
       "CourseSyncTask": {
         "description": "Import a new course from canvas",
-        "required": ["canvas_id"],
+        "required": [
+          "canvas_id"
+        ],
         "properties": {
           "canvas_id": {
             "type": "integer",
@@ -2936,7 +3241,10 @@
       "Credential": {
         "description": "A credential for external service",
         "type": "object",
-        "required": ["service", "owning_user"],
+        "required": [
+          "service",
+          "owning_user"
+        ],
         "properties": {
           "id": {
             "type": "string",
@@ -2948,7 +3256,10 @@
           },
           "service": {
             "type": "string",
-            "enum": ["canvas", "gradescope"],
+            "enum": [
+              "canvas",
+              "gradescope"
+            ],
             "example": "canvas"
           },
           "api_key": {
@@ -2974,7 +3285,12 @@
       "User": {
         "description": "A server user",
         "type": "object",
-        "required": ["email", "cwid", "name", "admin"],
+        "required": [
+          "email",
+          "cwid",
+          "name",
+          "admin"
+        ],
         "properties": {
           "email": {
             "type": "string",
@@ -3002,7 +3318,11 @@
       "CourseMember": {
         "description": "A user in a course",
         "type": "object",
-        "required": ["cwid", "canvas_id", "course_role"],
+        "required": [
+          "cwid",
+          "canvas_id",
+          "course_role"
+        ],
         "properties": {
           "cwid": {
             "type": "string",
@@ -3014,7 +3334,12 @@
           },
           "course_role": {
             "type": "string",
-            "enum": ["student", "instructor", "ta", "owner"],
+            "enum": [
+              "student",
+              "instructor",
+              "ta",
+              "owner"
+            ],
             "example": "owner"
           },
           "sections": {
@@ -3180,6 +3505,11 @@
             "format": "int64",
             "example": 123456
           },
+          "gradescope_id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 123456
+          },
           "members": {
             "type": "array",
             "items": {
@@ -3197,7 +3527,9 @@
             "items": {
               "type": "string"
             },
-            "example": ["fall.2020.excl.101.section.a"]
+            "example": [
+              "fall.2020.excl.101.section.a"
+            ]
           },
           "late_request_config": {
             "$ref": "#/components/schemas/CourseLateRequestConfig"
@@ -3223,7 +3555,10 @@
             "items": {
               "type": "string"
             },
-            "example": ["illness", "excused absence"]
+            "example": [
+              "illness",
+              "excused absence"
+            ]
           },
           "total_late_passes_allowed": {
             "type": "integer",
@@ -3238,7 +3573,11 @@
       "CourseSlim": {
         "description": "A slim course",
         "type": "object",
-        "required": ["term", "name", "code"],
+        "required": [
+          "term",
+          "name",
+          "code"
+        ],
         "properties": {
           "id": {
             "type": "string",
@@ -3261,11 +3600,20 @@
       "StudentInformation": {
         "description": "Information relevant to a student",
         "type": "object",
-        "required": ["course_role", "professor", "course"],
+        "required": [
+          "course_role",
+          "professor",
+          "course"
+        ],
         "properties": {
           "course_role": {
             "type": "string",
-            "enum": ["student", "instructor", "ta", "owner"],
+            "enum": [
+              "student",
+              "instructor",
+              "ta",
+              "owner"
+            ],
             "example": "student"
           },
           "professor": {
@@ -3324,12 +3672,19 @@
           },
           "status": {
             "type": "string",
-            "enum": ["pending", "approved", "rejected"],
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ],
             "example": "Extension pending instructor approval"
           },
           "request_type": {
             "type": "string",
-            "enum": ["extension", "late_pass"],
+            "enum": [
+              "extension",
+              "late_pass"
+            ],
             "example": "Late Pass"
           }
         }
@@ -3337,7 +3692,10 @@
       "Extension": {
         "description": "An extension for an assignment",
         "type": "object",
-        "required": ["reason", "comments"],
+        "required": [
+          "reason",
+          "comments"
+        ],
         "properties": {
           "id": {
             "type": "string",
@@ -3368,7 +3726,9 @@
       "MasterMigration": {
         "description": "The master migration that contains to the list of migration objects",
         "type": "object",
-        "required": ["migration_list"],
+        "required": [
+          "migration_list"
+        ],
         "properties": {
           "id": {
             "type": "string",
@@ -3429,7 +3789,10 @@
       "Migration": {
         "description": "Migration object that has a single assignment and a policy",
         "type": "object",
-        "required": ["assignment", "policy"],
+        "required": [
+          "assignment",
+          "policy"
+        ],
         "properties": {
           "assignment": {
             "$ref": "#/components/schemas/Assignment"

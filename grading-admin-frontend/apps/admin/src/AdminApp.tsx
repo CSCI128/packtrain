@@ -2,7 +2,6 @@ import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { configureApiClient } from "@repo/api/index";
 import { MiddlewareLayout } from "@repo/ui/MiddlewareLayout";
-import { CallbackPage } from "@repo/ui/pages/CallbackPage";
 import { DisabledPage } from "@repo/ui/pages/DisabledPage";
 import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
 import { SelectClass } from "@repo/ui/pages/Select";
@@ -45,10 +44,6 @@ const router = createBrowserRouter([
           {
             path: "/select",
             element: <SelectClass />,
-          },
-          {
-            path: "/callback",
-            element: <CallbackPage />,
           },
           {
             path: "/admin/edit",
