@@ -11,6 +11,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { userManager } from "./api";
 import "./index.css";
 import { ApprovalPage } from "./pages/ApprovalPage";
+import { MembersPage } from "./pages/Members";
 import { MigrationsPage } from "./pages/migration/Migrations";
 import { MigrationsApplyPage } from "./pages/migration/MigrationsApply";
 import { MigrationsLoadPage } from "./pages/migration/MigrationsLoad";
@@ -85,6 +86,10 @@ const router = createBrowserRouter([
                 <MigrationsPostPage />
               </MigrationMiddleware>
             ),
+          },
+          {
+            path: "/instructor/members",
+            element: <MembersPage />,
           },
           {
             path: "/instructor/profile",
