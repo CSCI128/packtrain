@@ -62,7 +62,12 @@ export const MiddlewareLayout = ({
       }
     };
 
-    if (currentPage !== "/profile" && currentPage !== "/users") {
+    if (
+      currentPage !== "/profile" &&
+      currentPage !== "/instructor/profile" &&
+      currentPage !== "/admin/profile" &&
+      currentPage !== "/users"
+    ) {
       fetchData();
     }
   }, [userInfo, navigate, enrollmentInfo, currentPage]);

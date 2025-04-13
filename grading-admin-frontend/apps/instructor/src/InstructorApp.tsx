@@ -87,7 +87,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "/profile",
+            path: "/instructor/profile",
             element: <ProfilePage />,
           },
           {

@@ -76,7 +76,7 @@ export function Navbar() {
                   </Menu.Target>
 
                   <Menu.Dropdown>
-                    <Menu.Item component="a" href="/profile">
+                    <Menu.Item component="a" href="/instructor/profile">
                       Profile
                     </Menu.Item>
 
