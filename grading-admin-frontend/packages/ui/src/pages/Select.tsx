@@ -63,14 +63,18 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
               </Button>
             )
           )}
-          <Button
-            color="green"
-            component={Link}
-            to="/admin/create"
-            onClick={close}
-          >
-            Create Class
-          </Button>
+          {auth.user?.profile.is_admin ? (
+            <Button
+              color="green"
+              component={Link}
+              to="/admin/create"
+              onClick={close}
+            >
+              Create Class
+            </Button>
+          ) : (
+            <></>
+          )}
         </Stack>
       </Center>
     </Container>
