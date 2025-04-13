@@ -52,7 +52,7 @@ export const MiddlewareLayout = ({
     if (currentPage !== "/profile" && currentPage !== "/users") {
       fetchData();
     }
-  }, [userInfo, isAuthenticated, navigate]);
+  }, [userInfo, isAuthenticated, navigate, currentPage]);
 
   return <Outlet />;
 };

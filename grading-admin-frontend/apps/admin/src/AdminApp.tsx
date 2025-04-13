@@ -31,23 +31,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// const CallbackPage = () => {
-//   const auth = useAuth();
-//   const navigate = useNavigate();
-
-//   useEffect(() => {
-//     if (auth.isAuthenticated) {
-//       if (auth.user?.profile.is_admin && !store$.id.get()) {
-//         navigate("/select");
-//       } else if (!auth.user?.profile.is_admin && !store$.id.get()) {
-//         navigate("/");
-//       }
-//     }
-//   }, [auth.isAuthenticated]);
-
-//   return null;
-// };
-
 const router = createBrowserRouter([
   {
     element: <Root />,
