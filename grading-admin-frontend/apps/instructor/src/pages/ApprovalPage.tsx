@@ -7,13 +7,14 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
-import { Extension } from "@repo/api/openapi";
+import { getApiClient } from "@repo/api/index";
+import { Extension, LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { $api } from "../api";
 
 interface RequestRowData {
   id?: string;
@@ -28,25 +29,69 @@ interface RequestRowData {
 }
 
 export function ApprovalPage() {
-  const { data, error, isLoading, refetch } = $api.useQuery(
-    "get",
-    "/admin/courses/{course_id}/extensions",
-    {
-      params: {
-        path: { course_id: store$.id.get() as string },
-      },
-    }
-  );
+  const { data, error, isLoading, refetch } = useQuery<LateRequest[] | null>({
+    queryKey: ["getExtensions"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_all_extensions_for_course({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
-  const approveExtensionMutation = $api.useMutation(
-    "put",
-    "/instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/approve"
-  );
+  const approveExtensionMutation = useMutation({
+    mutationKey: ["approveExtension"],
+    mutationFn: ({
+      assignment_id,
+      user_id,
+      extension_id,
+    }: {
+      assignment_id: string;
+      user_id: string;
+      extension_id: string;
+    }) =>
+      getApiClient()
+        .then((client) =>
+          client.approve_extension({
+            course_id: store$.id.get() as string,
+            assignment_id: assignment_id,
+            user_id: user_id,
+            extension_id: extension_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
-  const denyExtensionMutation = $api.useMutation(
-    "put",
-    "/instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/deny"
-  );
+  const denyExtensionMutation = useMutation({
+    mutationKey: ["denyExtension"],
+    mutationFn: ({
+      assignment_id,
+      user_id,
+      extension_id,
+    }: {
+      assignment_id: string;
+      user_id: string;
+      extension_id: string;
+    }) =>
+      getApiClient()
+        .then((client) =>
+          client.deny_extension({
+            course_id: store$.id.get() as string,
+            assignment_id: assignment_id,
+            user_id: user_id,
+            extension_id: extension_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
   const [search, setSearch] = useState("");
   const [sortedData, setSortedData] = useState(data || []);
@@ -88,14 +133,9 @@ export function ApprovalPage() {
   const approveExtension = (request: RequestRowData) => {
     approveExtensionMutation.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-            assignment_id: request.assignment_id as string,
-            user_id: request.user_requester_id as string,
-            extension_id: request.id as string,
-          },
-        },
+        assignment_id: request.assignment_id as string,
+        user_id: request.user_requester_id as string,
+        extension_id: request.id as string,
       },
       {
         onSuccess: () => {
@@ -108,14 +148,9 @@ export function ApprovalPage() {
   const denyExtension = (request: RequestRowData) => {
     denyExtensionMutation.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-            assignment_id: request.assignment_id as string,
-            user_id: request.user_requester_id as string,
-            extension_id: request.id as string,
-          },
-        },
+        assignment_id: request.assignment_id as string,
+        user_id: request.user_requester_id as string,
+        extension_id: request.id as string,
       },
       {
         onSuccess: () => {

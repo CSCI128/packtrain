@@ -15,26 +15,27 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
+import { getApiClient } from "@repo/api/index";
 import { User } from "@repo/api/openapi";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { useAuth } from "react-oidc-context";
-import { $api } from "../api";
-
-interface UserRowData {
-  email: string;
-  cwid: string;
-  name: string;
-  admin: boolean;
-}
 
 export function UsersPage() {
-  const { data, error, isLoading, refetch } = $api.useQuery(
-    "get",
-    "/admin/users"
-  );
+  const { data, error, isLoading, refetch } = useQuery<User[]>({
+    queryKey: ["getUsers"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) => client.get_all_users())
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   const auth = useAuth();
   const [opened, { open, close }] = useDisclosure(false);
@@ -90,19 +91,48 @@ export function UsersPage() {
     open();
   };
 
-  const addUserMutation = $api.useMutation("post", "/admin/users");
-  const editUserMutation = $api.useMutation("put", "/admin/users");
+  const addUserMutation = useMutation({
+    mutationFn: (userData: {
+      cwid: string;
+      email: string;
+      admin: boolean;
+      name: string;
+      enabled: boolean;
+    }) =>
+      getApiClient()
+        .then((client) => client.create_user({}, userData))
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const editUserMutation = useMutation({
+    mutationFn: (userData: {
+      cwid: string;
+      email: string;
+      admin: boolean;
+      name: string;
+      enabled: boolean;
+    }) =>
+      getApiClient()
+        .then((client) => client.update_user({}, userData))
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   const addUser = (values: typeof addUserForm.values) => {
     addUserMutation.mutate(
       {
-        body: {
-          cwid: values.cwid,
-          email: values.email,
-          admin: values.admin,
-          name: values.name,
-          enabled: true,
-        },
+        cwid: values.cwid,
+        email: values.email,
+        admin: values.admin,
+        name: values.name,
+        enabled: true,
       },
       {
         onSuccess: () => {
@@ -117,13 +147,13 @@ export function UsersPage() {
   const editUser = (values: typeof editUserForm.values) => {
     editUserMutation.mutate(
       {
-        body: {
-          cwid: selectedUser?.cwid as string,
-          email: selectedUser?.email as string,
-          admin: values.admin,
-          name: values.name,
-          enabled: values.enabled,
-        },
+        // body: {
+        cwid: selectedUser?.cwid as string,
+        email: selectedUser?.email as string,
+        admin: values.admin,
+        name: values.name,
+        enabled: values.enabled,
+        // },
       },
       {
         onSuccess: () => {
@@ -136,7 +166,7 @@ export function UsersPage() {
 
   const [search, setSearch] = useState("");
   const [sortedData, setSortedData] = useState(data || []);
-  const [sortBy, setSortBy] = useState<keyof UserRowData | null>(null);
+  const [sortBy, setSortBy] = useState<keyof User | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
   // sync sortedData with data
@@ -150,20 +180,18 @@ export function UsersPage() {
 
   if (error) return `An error occured: ${error}`;
 
-  const setSorting = (field: keyof UserRowData) => {
+  const setSorting = (field: keyof User) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
-    setSortedData(
-      sortData<UserRowData>(data, { sortBy: field, reversed, search })
-    );
+    setSortedData(sortData<User>(data, { sortBy: field, reversed, search }));
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.currentTarget;
     setSearch(value);
     setSortedData(
-      sortData<UserRowData>(data, {
+      sortData<User>(data, {
         sortBy,
         reversed: reverseSortDirection,
         search: value,

@@ -1363,7 +1363,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Credentials"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Credential"
+                  }
                 }
               }
             }
@@ -3316,13 +3319,6 @@
           "owning_user": {
             "$ref": "#/components/schemas/User"
           }
-        }
-      },
-      "Credentials": {
-        "description": "A list of credentials",
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/Credential"
         }
       },
       "User": {

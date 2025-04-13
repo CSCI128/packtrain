@@ -17,13 +17,14 @@ import {
 import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import { Assignment } from "@repo/api/openapi";
+import { getApiClient } from "@repo/api/index";
+import { Assignment, Course } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
-import { $api } from "../api";
 
 interface AssignmentRowData {
   id: string;
@@ -43,16 +44,22 @@ interface AssignmentRowData {
 }
 
 export function AssignmentsPage() {
-  const { data, error, isLoading, refetch } = $api.useQuery(
-    "get",
-    "/admin/courses/{course_id}",
-    {
-      params: {
-        path: { course_id: store$.id.get() as string },
-        query: { include: ["assignments"] },
-      },
-    }
-  );
+  const { data, error, isLoading, refetch } = useQuery<Course>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course({
+            course_id: store$.id.get() as string,
+            include: ["assignments"],
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   const [value, setValue] = useState<Date | null>(new Date());
   const [unlockDateValue, setUnlockDateValue] = useState<Date | null>(
@@ -139,19 +146,25 @@ export function AssignmentsPage() {
     );
   };
 
-  const updateAssignment = $api.useMutation(
-    "put",
-    "/admin/courses/{course_id}/assignments"
-  );
+  const updateAssignment = useMutation({
+    mutationKey: ["updateAssignment"],
+    mutationFn: ({ body }: { body: Assignment }) =>
+      getApiClient()
+        .then((client) =>
+          client.update_assignment(
+            {
+              course_id: store$.id.get() as string,
+            },
+            body
+          )
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
   const editAssignment = (values: typeof form.values) => {
     updateAssignment.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-          },
-        },
         body: {
           id: selectedAssignment?.id,
           name: values.name,

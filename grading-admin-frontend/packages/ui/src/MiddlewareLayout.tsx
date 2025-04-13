@@ -18,7 +18,10 @@ export const MiddlewareLayout = () => {
       getApiClient()
         .then((client) => client.get_user())
         .then((res) => res.data)
-        .catch((err) => console.log(err)),
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
     enabled: !!auth.isAuthenticated,
   });
 

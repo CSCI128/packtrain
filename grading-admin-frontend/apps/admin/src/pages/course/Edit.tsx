@@ -12,35 +12,54 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { getApiClient } from "@repo/api/index";
+import { Course, CourseSyncTask } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { $api } from "../../api";
 
 export function EditCourse() {
   const navigate = useNavigate();
-  const { data, error, isLoading } = $api.useQuery(
-    "get",
-    "/admin/courses/{course_id}",
-    {
-      params: {
-        path: { course_id: store$.id.get() as string },
-      },
-    }
-  );
+  const { data, error, isLoading } = useQuery<Course>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course({
+            course_id: store$.id.get() as string,
+            include: ["members", "assignments", "sections"],
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
-  const mutation = $api.useMutation("put", "/admin/courses/{course_id}");
-
-  // TODO add/link service mutation here
+  const mutation = useMutation({
+    mutationKey: ["updateCourse"],
+    mutationFn: ({ body }: { body: Course }) =>
+      getApiClient()
+        .then((client) =>
+          client.update_course(
+            {
+              course_id: store$.id.get() as string,
+            },
+            body
+          )
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   const updateCourse = (values: typeof form.values) => {
     mutation.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-          },
-        },
         body: {
           name: values.courseName as string,
           code: values.courseCode as string,
@@ -93,19 +112,28 @@ export function EditCourse() {
     },
   });
 
-  const syncAssignmentsMutation = $api.useMutation(
-    "post",
-    "/admin/courses/{course_id}/sync"
-  );
+  const syncAssignmentsMutation = useMutation({
+    mutationKey: ["syncAssignments"],
+    mutationFn: ({ body }: { body: CourseSyncTask }) =>
+      getApiClient()
+        .then((client) =>
+          client.sync_course(
+            {
+              course_id: store$.id.get() as string,
+            },
+            body
+          )
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   const syncAssignments = () => {
     syncAssignmentsMutation.mutate(
       {
-        params: {
-          path: {
-            course_id: "1",
-          },
-        },
         body: {
           canvas_id: 1,
           overwrite_name: false,

@@ -304,10 +304,6 @@ declare namespace Components {
             owning_user: /* A server user */ User;
         }
         /**
-         * A list of credentials
-         */
-        export type Credentials = /* A credential for external service */ Credential[];
-        /**
          * A slim course and a CourseMember
          */
         export interface Enrollment {
@@ -1375,7 +1371,7 @@ declare namespace Paths {
     }
     namespace GetCredentials {
         namespace Responses {
-            export type $200 = /* A list of credentials */ Components.Schemas.Credentials;
+            export type $200 = /* A credential for external service */ Components.Schemas.Credential[];
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
@@ -3169,7 +3165,6 @@ export type CourseMember = Components.Schemas.CourseMember;
 export type CourseSlim = Components.Schemas.CourseSlim;
 export type CourseSyncTask = Components.Schemas.CourseSyncTask;
 export type Credential = Components.Schemas.Credential;
-export type Credentials = Components.Schemas.Credentials;
 export type Enrollment = Components.Schemas.Enrollment;
 export type ErrorResponse = Components.Schemas.ErrorResponse;
 export type Extension = Components.Schemas.Extension;

@@ -873,7 +873,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Credentials"
+                type: array
+                items:
+                  $ref: "#/components/schemas/Credential"
         404:
           description: "User not found"
           content:
@@ -2165,12 +2167,6 @@ components:
           example: true
         owning_user:
           $ref: "#/components/schemas/User"
-
-    Credentials:
-      description: "A list of credentials"
-      type: array
-      items:
-        $ref: "#/components/schemas/Credential"
 
     User:
       description: "A server user"

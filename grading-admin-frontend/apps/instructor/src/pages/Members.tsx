@@ -6,11 +6,12 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
+import { getApiClient } from "@repo/api/index";
 import { store$ } from "@repo/api/store";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
-import { $api } from "../api";
 
 interface MemberRowData {
   cwid: string;
@@ -20,30 +21,36 @@ interface MemberRowData {
 }
 
 export function MembersPage() {
-  const { data, error, isLoading } = $api.useQuery(
-    "get",
-    "/admin/courses/{course_id}/members",
-    {
-      params: {
-        path: { course_id: store$.id.get() as string },
-        query: {
-          enrollments: ["students"],
-        },
-      },
-    }
-  );
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["getMembers"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_members({
+            course_id: store$.id.get() as string,
+            enrollments: ["students"],
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
   const {
     data: instructorData,
     error: instructorError,
     isLoading: instructorIsLoading,
-  } = $api.useQuery("get", "/admin/courses/{course_id}/members", {
-    params: {
-      path: { course_id: store$.id.get() as string },
-      query: {
-        enrollments: ["instructors"],
-      },
-    },
+  } = useQuery({
+    queryKey: ["getInstructors"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_members({
+            course_id: store$.id.get() as string,
+            enrollments: ["instructors"],
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
   });
 
   const [search, setSearch] = useState("");

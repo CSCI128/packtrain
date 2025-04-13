@@ -1,4 +1,5 @@
 import { OpenAPIClientAxios } from "openapi-client-axios";
+import qs from "qs";
 import { Client } from "./openapi";
 import openApi from "./openapi.json";
 
@@ -28,6 +29,11 @@ export const getApiClient = async () => {
   }
 
   client.defaults.headers["authorization"] = `Bearer ${u.access_token}`;
+
+  // axios doesn't serialize array params properly as Spring wants it:
+  // https://github.com/axios/axios/issues/5058#issuecomment-1272107602
+  client.defaults.paramsSerializer = (params) =>
+    qs.stringify(params, { arrayFormat: "repeat" });
 
   return client;
 };

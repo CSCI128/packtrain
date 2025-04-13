@@ -7,14 +7,16 @@ import {
   Table,
   Text,
 } from "@mantine/core";
-import { Policy } from "@repo/api/openapi";
+import { getApiClient } from "@repo/api/index";
+import { Course, Policy } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { TableHeader } from "@repo/ui/table/Table";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { BsBoxArrowUpRight, BsTrash } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
-import { $api, userManager } from "../../api";
+import { userManager } from "../../api";
 
 export function CoursePage() {
   const navigate = useNavigate();
@@ -23,23 +25,41 @@ export function CoursePage() {
     data: courseData,
     error: courseError,
     isLoading: courseIsLoading,
-  } = $api.useQuery("get", "/admin/courses/{course_id}", {
-    params: {
-      path: { course_id: store$.id.get() as string },
-      query: {
-        include: ["members", "assignments", "sections"],
-      },
-    },
+  } = useQuery<Course>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course({
+            course_id: store$.id.get() as string,
+            include: ["members", "assignments", "sections"],
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
   });
 
   const {
     data: policyData,
     error: policyError,
     isLoading: policyIsLoading,
-  } = $api.useQuery("get", "/admin/courses/{course_id}/policies", {
-    params: {
-      path: { course_id: store$.id.get() },
-    },
+  } = useQuery<Policy[]>({
+    queryKey: ["getPolicies"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.admin_get_all_policies({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
   });
 
   const [policyDataState, setPolicyData] = useState<Policy[]>(policyData || []);

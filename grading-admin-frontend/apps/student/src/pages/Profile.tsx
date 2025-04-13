@@ -13,10 +13,11 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import { Credential } from "@repo/api/openapi";
+import { getApiClient } from "@repo/api/index";
+import { Credential, User } from "@repo/api/openapi";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
-import { $api } from "../api";
 
 export function ProfilePage() {
   const auth = useAuth();
@@ -54,7 +55,18 @@ export function ProfilePage() {
     error,
     isLoading,
     refetch: refetchUser,
-  } = $api.useQuery("get", "/user");
+  } = useQuery({
+    queryKey: ["getUser"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) => client.get_user())
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+    enabled: !!auth.isAuthenticated,
+  });
 
   const editUserForm = useForm({
     mode: "controlled",
@@ -77,16 +89,44 @@ export function ProfilePage() {
     error: credentialError,
     isLoading: credentialIsLoading,
     refetch,
-  } = $api.useQuery("get", "/user/credentials");
+  } = useQuery<Credential[] | null>({
+    queryKey: ["getCredentials"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) => client.get_credentials())
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
-  const mutation = $api.useMutation("post", "/user/credentials");
+  const mutation = useMutation({
+    mutationKey: ["newCredential"],
+    mutationFn: ({ body }: { body: Credential }) =>
+      getApiClient()
+        .then((client) => client.new_credential({}, body))
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
-  const deleteCredentialMutation = $api.useMutation(
-    "delete",
-    "/user/credentials/{credential_id}/delete"
-  );
+  const deleteCredentialMutation = useMutation({
+    mutationKey: ["deleteCredential"],
+    mutationFn: ({ credential_id }: { credential_id: string }) =>
+      getApiClient()
+        .then((client) => client.delete_credential(credential_id))
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
-  const updateUserMutation = $api.useMutation("put", "/user");
+  const updateUserMutation = useMutation({
+    mutationKey: ["updateUser"],
+    mutationFn: ({ body }: { body: User }) =>
+      getApiClient()
+        .then((client) => client.update_user({}, body))
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
   useEffect(() => {
     editUserForm.setValues({
@@ -100,7 +140,7 @@ export function ProfilePage() {
 
   if (credentialIsLoading || !credentialData) return "Credentials loading..";
 
-  if (error || credentialError) return `An error occured: ${error}`;
+  if (error || credentialError) return `An error occurred: ${error}`;
 
   const editUser = (values: typeof editUserForm.values) => {
     updateUserMutation.mutate(
@@ -150,9 +190,10 @@ export function ProfilePage() {
   const deleteCredential = (credential_id: string) => {
     deleteCredentialMutation.mutate(
       {
-        params: {
-          path: { credential_id: credential_id },
-        },
+        credential_id: credential_id,
+        // params: {
+        // path: { credential_id: credential_id },
+        // },
       },
       {
         onSuccess: () => {
@@ -182,7 +223,7 @@ export function ProfilePage() {
               Are you sure you want to delete the specified credential?
             </Text>
 
-            <Button variant="light" color="gray" onClick={closeDelete}>
+            <Button color="gray" variant="light" onClick={closeDelete}>
               Cancel
             </Button>
 
@@ -231,7 +272,7 @@ export function ProfilePage() {
           <br />
 
           <Group gap="xs" justify="flex-end">
-            <Button variant="light" color="gray" onClick={close}>
+            <Button color="gray" variant="light" onClick={close}>
               Cancel
             </Button>
             <Button color="green" type="submit">
@@ -265,7 +306,7 @@ export function ProfilePage() {
           <br />
 
           <Group gap="xs" justify="flex-end">
-            <Button variant="light" color="gray" onClick={closeEditUser}>
+            <Button color="gray" variant="light" onClick={closeEditUser}>
               Cancel
             </Button>
             <Button color="blue" type="submit">

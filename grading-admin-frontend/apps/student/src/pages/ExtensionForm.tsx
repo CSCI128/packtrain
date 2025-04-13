@@ -12,13 +12,14 @@ import {
   Textarea,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { Assignment } from "@repo/api/openapi";
+import { getApiClient } from "@repo/api/index";
+import { Assignment, LateRequest, StudentInformation } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store.js";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
 import { Link, useNavigate } from "react-router-dom";
-import { $api } from "../api";
 
 export function ExtensionForm() {
   const auth = useAuth();
@@ -64,14 +65,22 @@ export function ExtensionForm() {
 
   const {
     data: courseData,
-    isLoading,
     error,
-  } = $api.useQuery("get", "/student/courses/{course_id}", {
-    params: {
-      path: {
-        course_id: store$.id.get() as string,
-      },
-    },
+    isLoading,
+  } = useQuery<StudentInformation | null>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course_information_student({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
   });
 
   const getAssignmentDueDate = (assignmentId: string) => {
@@ -80,19 +89,25 @@ export function ExtensionForm() {
       .at(0)?.due_date;
   };
 
-  const postForm = $api.useMutation(
-    "post",
-    "/student/courses/{course_id}/extensions"
-  );
+  const postForm = useMutation({
+    mutationKey: ["createExtensionRequest"],
+    mutationFn: ({ body }: { body: LateRequest }) =>
+      getApiClient()
+        .then((client) =>
+          client.create_extension_request(
+            {
+              course_id: store$.id.get() as string,
+            },
+            body
+          )
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
   const submitExtension = (values: typeof extensionForm.values) => {
     postForm.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-          },
-        },
         body: {
           user_requester_id: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
@@ -118,11 +133,6 @@ export function ExtensionForm() {
   const submitLatePass = (values: typeof latePassForm.values) => {
     postForm.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-          },
-        },
         body: {
           user_requester_id: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
@@ -248,14 +258,12 @@ export function ExtensionForm() {
                   placeholder="Pick value"
                   data={
                     courseData.course.assignments &&
-                    courseData.course.assignments.flatMap(
-                      (x: { name: string; id: string }) => [
-                        {
-                          label: x.name,
-                          value: x.id as string,
-                        },
-                      ]
-                    )
+                    courseData.course.assignments.flatMap((x) => [
+                      {
+                        label: x.name,
+                        value: x.id as string,
+                      },
+                    ])
                   }
                   key={latePassForm.key("assignmentId")}
                   {...latePassForm.getInputProps("assignmentId")}
@@ -335,14 +343,12 @@ export function ExtensionForm() {
               placeholder="Pick value"
               data={
                 courseData.course.assignments &&
-                courseData.course.assignments.flatMap(
-                  (x: { name: string; id: string }) => [
-                    {
-                      label: x.name,
-                      value: x.id as string,
-                    },
-                  ]
-                )
+                courseData.course.assignments.flatMap((x) => [
+                  {
+                    label: x.name,
+                    value: x.id as string,
+                  },
+                ])
               }
               key={extensionForm.key("assignmentId")}
               {...extensionForm.getInputProps("assignmentId")}

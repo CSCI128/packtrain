@@ -12,15 +12,16 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { Extension, LateRequest } from "@repo/api/openapi";
+import { getApiClient } from "@repo/api/index";
+import { Extension, LateRequest, StudentInformation } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { MdDelete } from "react-icons/md";
 import { Link } from "react-router-dom";
-import { $api } from "../api";
 
 interface RequestRowData {
   id?: string;
@@ -40,26 +41,51 @@ export function Requests() {
     error: studentError,
     isLoading: studentIsLoading,
     refetch: refetchStudent,
-  } = $api.useQuery("get", "/student/courses/{course_id}", {
-    params: {
-      path: { course_id: store$.id.get() as string },
-    },
+  } = useQuery<StudentInformation | null>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course_information_student({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
   });
 
-  const { data, error, isLoading, refetch } = $api.useQuery(
-    "get",
-    "/student/courses/{course_id}/extensions",
-    {
-      params: {
-        path: { course_id: store$.id.get() as string },
-      },
-    }
-  );
+  const { data, error, isLoading, refetch } = useQuery<LateRequest[] | null>({
+    queryKey: ["getExtensions"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_all_extensions({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
-  const withdrawExtension = $api.useMutation(
-    "delete",
-    "/student/courses/{course_id}/extensions/{extension_id}/withdraw"
-  );
+  const withdrawExtension = useMutation({
+    mutationKey: ["withdrawExtension"],
+    mutationFn: ({ extension_id }: { extension_id: string }) =>
+      getApiClient()
+        .then((client) =>
+          client.withdraw_extension({
+            course_id: store$.id.get() as string,
+            extension_id: extension_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
   const [selectedExtension, setSelectedExtension] =
     useState<LateRequest | null>(null);
@@ -117,12 +143,7 @@ export function Requests() {
   const deleteExtension = (extension_id: string) => {
     withdrawExtension.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-            extension_id: extension_id,
-          },
-        },
+        extension_id: extension_id,
       },
       {
         onSuccess: () => {
