@@ -36,7 +36,7 @@ const router = createBrowserRouter([
     element: <Root />,
     children: [
       {
-        element: <MiddlewareLayout userManager={userManager} />,
+        element: <MiddlewareLayout />,
         children: [
           {
             path: "/admin",

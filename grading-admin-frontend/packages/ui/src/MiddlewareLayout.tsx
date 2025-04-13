@@ -2,16 +2,11 @@ import "@mantine/core/styles.css";
 import { getApiClient } from "@repo/api/index";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
-import { UserManager } from "oidc-client-ts";
 import { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
-export const MiddlewareLayout = ({
-  userManager,
-}: {
-  userManager: UserManager;
-}) => {
+export const MiddlewareLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const auth = useAuth();
@@ -29,16 +24,12 @@ export const MiddlewareLayout = ({
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        if (auth.isAuthenticated && userError) {
-          navigate("/disabled");
-        }
+      if (auth.isAuthenticated && userError) {
+        navigate("/disabled");
+      }
 
-        if (auth.isAuthenticated && store$.id.get() === undefined) {
-          navigate("/select");
-        }
-      } catch (error) {
-        console.error("An error occurred:", error);
+      if (auth.isAuthenticated && store$.id.get() === undefined) {
+        navigate("/select");
       }
     };
 
