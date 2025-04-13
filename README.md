@@ -1,6 +1,8 @@
-# Grading Admin
+# 🐴📦 packtrain
 
 The 128 grading management and migration website monorepo.
+
+packtrain is software for grading and student extension management.
 
 # Development Environment
 
@@ -55,6 +57,8 @@ Run `npm i` to install all the dependencies.
 Run `npm run dev` to launch the development server.
 
 To rebuild TypeScript types from OpenAPI, run `npm run types`.
+
+Additionally, copy `.env.sample` to `.env` in **all** of the `grading-admin-frontend/apps` directories.
 
 ## Authentik
 
