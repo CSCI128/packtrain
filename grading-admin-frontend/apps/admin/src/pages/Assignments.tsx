@@ -111,7 +111,7 @@ export function AssignmentsPage() {
 
   const [search, setSearch] = useState("");
   const [sortedData, setSortedData] = useState(data?.assignments || []);
-  const [sortBy, setSortBy] = useState<keyof AssignmentRowData | null>(null);
+  const [sortBy, setSortBy] = useState<keyof AssignmentRowData>("name");
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
   const setSorting = (field: keyof AssignmentRowData) => {
@@ -180,9 +180,15 @@ export function AssignmentsPage() {
   // sync sortedData with data
   useEffect(() => {
     if (data?.assignments) {
-      setSortedData(data.assignments);
+      setSortedData(
+        sortData<AssignmentRowData>(data.assignments as AssignmentRowData[], {
+          sortBy: sortBy ?? "name",
+          reversed: reverseSortDirection,
+          search,
+        })
+      );
     }
-  }, [data?.assignments]);
+  }, [data?.assignments, sortBy, reverseSortDirection, search]);
 
   if (isLoading || !data) return "Loading...";
 
@@ -226,6 +232,7 @@ export function AssignmentsPage() {
 
             <TextInput
               withAsterisk
+              disabled
               label="Category"
               key={form.key("category")}
               {...form.getInputProps("category")}
