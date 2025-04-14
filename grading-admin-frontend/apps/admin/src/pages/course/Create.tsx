@@ -22,11 +22,11 @@ import { Link } from "react-router-dom";
 
 export function CreatePage() {
   const mutation = useMutation({
-    mutationKey: ["updateCourse"],
+    mutationKey: ["newCourse"],
     mutationFn: ({ body }: { body: Course }) =>
       getApiClient()
         .then((client) =>
-          client.update_course(
+          client.new_course(
             {
               course_id: store$.id.get() as string,
             },

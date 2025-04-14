@@ -77,7 +77,7 @@ export function EditCourse() {
       },
       {
         onSuccess: () => {
-          navigate("/admin/home");
+          navigate("/admin");
         },
       }
     );
