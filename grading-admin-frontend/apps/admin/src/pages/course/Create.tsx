@@ -203,7 +203,7 @@ export function CreatePage() {
           term: values.courseTerm,
           enabled: true,
           canvas_id: Number(values.canvasId),
-          gradescope_id: Number(values.gradescopeId),
+          gradescope_id: values.gradescopeId,
           late_request_config: {
             late_passes_enabled: values.latePassesEnabled,
             late_pass_name: values.latePassName,
