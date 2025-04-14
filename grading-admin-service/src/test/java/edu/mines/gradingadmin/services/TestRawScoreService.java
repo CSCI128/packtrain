@@ -1,11 +1,14 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
-import edu.mines.gradingadmin.models.RawScore;
+import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import edu.mines.gradingadmin.repositories.RawScoreRepo;
+import edu.mines.gradingadmin.seeders.*;
 import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,7 +19,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @SpringBootTest
 @Transactional
@@ -27,255 +29,254 @@ public class TestRawScoreService implements PostgresTestContainer {
 
     @Autowired
     private RawScoreService rawScoreService;
+    @Autowired
+    private UserSeeders userSeeders;
+    @Autowired
+    private CourseSeeders courseSeeders;
+    @Autowired
+    private AssignmentSeeder assignmentSeeder;
+    @Autowired
+    private MigrationSeeder migrationSeeder;
+    @Autowired
+    private CourseMemberSeeder courseMemberSeeder;
+
+    private Assignment worksheet;
+    private Assignment reading;
+    private MasterMigration masterMigration;
+    private Course course;
 
     @BeforeAll
     static void setupClass(){
         postgres.start();
     }
 
+    @BeforeEach
+    void beforeEach(){
+        User user = userSeeders.user1();
+        course = courseSeeders.course1();
+        worksheet = assignmentSeeder.worksheet1(course);
+        reading = assignmentSeeder.reading(course);
+        masterMigration = migrationSeeder.masterMigration(course, user);
+    }
+
     @AfterEach
     void tearDown(){
+        migrationSeeder.clearAll();
+        assignmentSeeder.clearAll();
+        courseMemberSeeder.clearAll();
+        courseSeeders.clear();
         rawScoreRepo.deleteAll();
+        userSeeders.clearAll();
+    }
+
+    private MockMultipartFile getRunestoneGradesheet() {
+        String fileContent = "\"first_name\",\"last_name\",\"email\",\"Week 6 Readings\",\"Week 12 Readings\",\"Week 11 Readings\",\"Week 14 Readings\",\"Week 10 Readings\",\"Week 4 Readings\",\"Week 1 Readings\",\"Week 7 Readings\",\"Week 2 Readings\",\"Week 13 Readings\",\"Week 3 Readings\",\"Week 5 Readings\",\"Week 8 Readings\"\n" +
+                "\"Test\",\"User\",\"test_user@mines.edu\",\"0.0\",\"\",\"\",\"\",\"4.0\",\"2.0\",\"3.0\",\"16.0\",\"23.0\",\"1.0\",\"13.0\",\"1.0\",\"0.0\"\n" +
+                "\"Alex\",\"User\",\"alex_user@mines.edu\",\"24.0\",\"\",\"\",\"\",\"\",\"2.0\",\"24.0\",\"16.0\",\"23.0\",\"\",\"13.0\",\"5.0\",\"0.0\"\n";
+
+        Section s = courseSeeders.section(course);
+        List.of(
+                userSeeders.user("Test", "test_user@mines.edu", "test"),
+                userSeeders.user("Alex", "alex_user@mines.edu", "alex")
+        ).forEach(u -> courseMemberSeeder.student(u, course, s));
+
+        String filename = "test.csv";
+        return new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
+    }
+
+    private static MockMultipartFile getGradescopeGradesheet() {
+        String fileContent = """
+First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)
+Jane,Doe,12344321,,,,12.0,12.0,Graded,,2022-06-25 13:16:26 -0600,13:29:30
+Tester,Testing,testtest,,,,12.0,12.0,Graded,,2022-06-25 13:16:58 -0600,00:00:00
+Jimmy,yyy,jimmyyyy,,,,11.5,12.0,Ungraded,,2022-06-25 13:25:12 -0600,07:32:50
+Joe,Jam,121212,,,,,12.0,Missing
+                """;
+
+        String filename = "test.csv";
+        return new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
+    }
+
+    private MockMultipartFile getPrairieLearnGradesheetGroup(){
+        String fileContent = """
+Group name,Usernames,Score,Question points,Max points,Question % score,Auto points,Max auto points,Manual points,Max manual points,Submission date
+Group A,"[""alice@example.com"", ""bob@example.com""]",5,10,10,50,5,10,0,0,2020-01-22T00:00:01-06
+Group A,"[""alice@example.com"", ""bob@example.com""]",5,10,10,50,5,10,0,0,2020-01-22T00:00:01-06
+Group B,"[""charlie@example.com"", ""david@example.com""]",5,10,10,50,5,10,0,0,2020-02-01T00:00:01-06
+Group B,"[""charlie@example.com"", ""david@example.com""]",5,10,10,50,5,10,0,0,2020-02-01T00:00:01-06
+Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-01-22T00:00:01-06
+                """;
+
+        Section s = courseSeeders.section(course);
+        List.of(
+                userSeeders.user("Alice", "alice@example.com", "alice"),
+                userSeeders.user("Bob", "bob@example.com", "bob"),
+                userSeeders.user("Charlie", "charlie@example.com", "charlie"),
+                userSeeders.user("David", "david@example.com", "david"),
+                userSeeders.user("Eve", "eve@example.com", "eve"),
+                userSeeders.user("Frank", "frank@example.com", "frank")
+        ).forEach(u -> courseMemberSeeder.student(u, course, s));
+
+        String filename = "sheet.csv";
+        return new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
     }
 
     @Test
     @SneakyThrows
-    void testEmpty(){
+    void testEmptyPL(){
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
         String fileContent = "";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
 
-        List<RawScore> rawScores = rawScoreService.parseCSV(file, testId);
-
-        Assertions.assertTrue(rawScores.isEmpty());
-    }
-
-    @Test
-    @SneakyThrows
-    void testSkipFirst(){
-        String fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n";
-
-        String filename = "test.csv";
-        MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
-
-        List<RawScore> rawScores = rawScoreService.parseCSV(file, testId);
+        rawScoreService.uploadPrairieLearnCSV(file.getInputStream(), migration.getId());
+        List<RawScore> rawScores = rawScoreService.getRawScoresFromMigration(migration.getId());
 
         Assertions.assertTrue(rawScores.isEmpty());
     }
 
     @Test
     @SneakyThrows
-    void testParse(){
+    void testParsePLGroupsOnTime(){
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
 
-        String fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n" +
-                "Jane,Doe,12344321,,,,12.0,12.0,Graded,,2022-06-25 13:16:26 -0600,13:29:30\n" +
-                "Tester,Testing,testtest,,,,12.0,12.0,Graded,,2022-06-25 13:16:58 -0600,00:00:00\n" +
-                "Jimmy,yyy,jimmyyyy,,,,11.5,12.0,Graded,,2022-06-25 13:25:12 -0600,07:32:50\n" +
-                "Joe,Jam,121212,,,,,12.0,Missing\n";
+        MockMultipartFile file = getPrairieLearnGradesheetGroup();
+
+        rawScoreService.uploadPrairieLearnCSV(file.getInputStream(), migration.getId());
+        List<RawScore> rawScores = rawScoreService.getRawScoresFromMigration(migration.getId());
+
+        Assertions.assertEquals(6, rawScores.size());
+
+        Optional<RawScore> aliceSummedScore = rawScoreService.getRawScoreForCwidAndMigration("alice", migration.getId());
+        Assertions.assertTrue(aliceSummedScore.isPresent());
+        Assertions.assertEquals(20, aliceSummedScore.get().getScore());
+        Assertions.assertEquals(SubmissionStatus.ON_TIME, aliceSummedScore.get().getSubmissionStatus());
+        Assertions.assertEquals(0, aliceSummedScore.get().getHoursLate().intValue());
+    }
+
+    @Test
+    @SneakyThrows
+    void testParsePLGroupsLate(){
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
+
+        MockMultipartFile file = getPrairieLearnGradesheetGroup();
+
+        rawScoreService.uploadPrairieLearnCSV(file.getInputStream(), migration.getId());
+        List<RawScore> rawScores = rawScoreService.getRawScoresFromMigration(migration.getId());
+
+        Assertions.assertEquals(6, rawScores.size());
+
+        Optional<RawScore> charlie = rawScoreService.getRawScoreForCwidAndMigration("charlie", migration.getId());
+        Assertions.assertTrue(charlie.isPresent());
+        Assertions.assertEquals(20, charlie.get().getScore());
+        Assertions.assertEquals(SubmissionStatus.LATE, charlie.get().getSubmissionStatus());
+        Assertions.assertEquals(30, charlie.get().getHoursLate().intValue());
+    }
+
+    @Test
+    @SneakyThrows
+    void testEmptyGS(){
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
+        String fileContent = "";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
+
+        rawScoreService.uploadGradescopeCSV(file.getInputStream(), migration.getId());
+        List<RawScore> rawScores = rawScoreService.getRawScoresFromMigration(migration.getId());
+
+        Assertions.assertTrue(rawScores.isEmpty());
+    }
+
+    @Test
+    @SneakyThrows
+    void testParseGSGraded(){
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
+        MockMultipartFile file = getGradescopeGradesheet();
 
         // Should add scores to the list that were properly saved
-        List<RawScore> scores = rawScoreService.parseCSV(file, testId);
-        Assertions.assertFalse(scores.isEmpty());
+        rawScoreService.uploadGradescopeCSV(file.getInputStream(), migration.getId());
+        List<RawScore> rawScores = rawScoreService.getRawScoresFromMigration(migration.getId());
+
+        Assertions.assertEquals(3, rawScores.size());
 
         // Singular test get on saved score
-        Optional<RawScore> score = rawScoreService.getRawScoreForCwidAndMigrationId("12344321", testId);
-        Assertions.assertFalse(score.isEmpty());
+        Optional<RawScore> score = rawScoreService.getRawScoreForCwidAndMigration("12344321", migration.getId());
+        Assertions.assertTrue(score.isPresent());
         Assertions.assertEquals(SubmissionStatus.LATE, score.get().getSubmissionStatus());
+    }
 
-        // Test weird conversion fields
-        score = rawScoreService.getRawScoreForCwidAndMigrationId("121212", testId);
+    @Test
+    @SneakyThrows
+    void testParseGSMissing(){
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
+        MockMultipartFile file = getGradescopeGradesheet();
+
+        // Should add scores to the list that were properly saved
+        rawScoreService.uploadGradescopeCSV(file.getInputStream(), migration.getId());
+        List<RawScore> rawScores = rawScoreService.getRawScoresFromMigration(migration.getId());
+
+        Assertions.assertEquals(3, rawScores.size());
+
+        Optional<RawScore> score = rawScoreService.getRawScoreForCwidAndMigration("121212", migration.getId());
+        Assertions.assertTrue(score.isPresent());
         Assertions.assertNull(score.get().getScore());
         Assertions.assertEquals(SubmissionStatus.MISSING, score.get().getSubmissionStatus());
         Assertions.assertNull(score.get().getHoursLate());
         Assertions.assertNull(score.get().getSubmissionTime());
-
-        // Test weird conversion fields
-        score = rawScoreService.getRawScoreForCwidAndMigrationId("jimmyyyy", testId);
-        Assertions.assertEquals(11.5, score.get().getScore());
-        Assertions.assertEquals(7.5472, score.get().getHoursLate(), 0.001);
-
-        LocalDateTime localDateTime = LocalDateTime.of(2022, 6, 25, 13, 25, 12);
-        ZoneOffset zoneOffset = ZoneOffset.of("-06:00");
-        Instant instant = localDateTime.toInstant(zoneOffset);
-
-        Assertions.assertEquals(instant, score.get().getSubmissionTime());
-
     }
 
     @Test
     @SneakyThrows
-    void testOverwrite(){
-        String fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n" +
-                "Jane,Doe,12344321,,,,0.0,12.0,Graded,,2022-06-25 13:16:26 -0600,13:29:30\n";
+    void testParseGSUngraded(){
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
+        MockMultipartFile file = getGradescopeGradesheet();
 
-        String filename = "test.csv";
-        MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
+        // Should add scores to the list that were properly saved
+        rawScoreService.uploadGradescopeCSV(file.getInputStream(), migration.getId());
+        List<RawScore> rawScores = rawScoreService.getRawScoresFromMigration(migration.getId());
 
-        RawScore firstRawScore = rawScoreService.parseCSV(file, testId).getFirst();
+        Assertions.assertEquals(3, rawScores.size());
 
-        fileContent = "First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)\n" +
-                "Jane,Doe,12344321,,,,12.0,12.0,Graded,,2022-07-25 23:20:26 -0600,15:29:30\n";
-
-        file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        testId = UUID.randomUUID();
-
-        RawScore secondRawScore = rawScoreService.parseCSV(file, testId).getFirst();
-
-        Assertions.assertNotEquals(firstRawScore.getScore(), secondRawScore.getScore());
-        Assertions.assertNotEquals(firstRawScore.getSubmissionTime(), secondRawScore.getSubmissionTime());
-        Assertions.assertNotEquals(firstRawScore.getHoursLate(), secondRawScore.getHoursLate(), 0.0001);
-
+        Optional<RawScore> score = rawScoreService.getRawScoreForCwidAndMigration("jimmyyyy", migration.getId());
+        Assertions.assertTrue(score.isEmpty());
     }
 
     @Test
     @SneakyThrows
-    void testAllGraded(){
-        String fileContent = "First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S)\n" +
-                "Samual,Mcsam,101,samualmcsam@mines.edu,,,8.0,12.0,Graded,128746829,2022-06-25 13:16:26 -0600,00:00:00\n" +
-                "Robert,Bob,robbob,robbob@mines.edu,,,6.0,12.0,Graded,128746844,2022-06-25 13:16:58 -0600,00:00:00\n" +
-                "Null,IdontNull,abcdefg,nullnullnull@mymail.mines.edu,,,12.0,12.0,Graded,128746851,2022-06-25 13:17:12 -0600,02:00:00";
+    void testEmptyRunestone(){
+        Migration migration = migrationSeeder.migration(reading, masterMigration);
+        String fileContent = "";
 
         String filename = "test.csv";
         MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
 
-        List<RawScore> rawScoreList = rawScoreService.parseCSV(file, testId);
+        rawScoreService.uploadRunestoneCSV(file.getInputStream(), migration.getId());
+        List<RawScore> rawScores = rawScoreService.getRawScoresFromMigration(migration.getId());
 
-        Assertions.assertEquals("101", rawScoreList.get(0).getCwid());
-        Assertions.assertEquals("robbob", rawScoreList.get(1).getCwid());
-        Assertions.assertEquals("abcdefg", rawScoreList.get(2).getCwid());
-
-        LocalDateTime localDateTime = LocalDateTime.of(2022, 6, 25, 13, 16, 26);
-        ZoneOffset zoneOffset = ZoneOffset.of("-06:00");
-        Instant instant = localDateTime.toInstant(zoneOffset);
-
-        Assertions.assertEquals(instant, rawScoreList.get(0).getSubmissionTime());
-
-        localDateTime = LocalDateTime.of(2022, 6, 25, 13, 16, 58);
-        instant = localDateTime.toInstant(zoneOffset);
-
-        Assertions.assertEquals(instant, rawScoreList.get(1).getSubmissionTime());
-
-        localDateTime = LocalDateTime.of(2022, 6, 25, 13, 17, 12);
-        instant = localDateTime.toInstant(zoneOffset);
-
-        Assertions.assertEquals(instant, rawScoreList.get(2).getSubmissionTime());
-
-        Assertions.assertNotNull(rawScoreList.get(0));
-        Assertions.assertNotNull(rawScoreList.get(1));
-        Assertions.assertNotNull(rawScoreList.get(2));
-
-        Assertions.assertEquals(8.0, rawScoreList.get(0).getScore());
-        Assertions.assertEquals(6.0, rawScoreList.get(1).getScore());
-        Assertions.assertEquals(12.0, rawScoreList.get(2).getScore());
-
-        Assertions.assertEquals(SubmissionStatus.ON_TIME, rawScoreList.get(0).getSubmissionStatus());
-        Assertions.assertEquals(SubmissionStatus.ON_TIME, rawScoreList.get(1).getSubmissionStatus());
-        Assertions.assertEquals(SubmissionStatus.LATE, rawScoreList.get(2).getSubmissionStatus());
-
-        Assertions.assertEquals(0, rawScoreList.get(0).getHoursLate());
-        Assertions.assertEquals(0, rawScoreList.get(1).getHoursLate());
-        Assertions.assertEquals(2, rawScoreList.get(2).getHoursLate());
-
+        Assertions.assertTrue(rawScores.isEmpty());
     }
 
     @Test
     @SneakyThrows
-    void testAllUngraded(){
-        String fileContent = "First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S)\n" +
-                "Samual,Mcsam,101,samualmcsam@mines.edu,,,6.0,12.0,Ungraded,128746829,2022-06-25 13:16:26 -0600,00:00:00\n" +
-                "Robert,Bob,robbob,robbob@mines.edu,,,4.0,12.0,Ungraded,128746844,2022-06-25 13:16:58 -0600,00:00:00\n" +
-                "Null,IdontNull,abcdefg,nullnullnull@mymail.mines.edu,,,0.0,12.0,Ungraded,128746851,2022-06-25 13:17:12 -0600,02:00:00";
+    void testParseRunestoneGraded() {
+        Migration migration = migrationSeeder.migration(reading, masterMigration);
+        MockMultipartFile file = getRunestoneGradesheet();
 
-        String filename = "test.csv";
-        MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
+        rawScoreService.uploadRunestoneCSV(file.getInputStream(), migration.getId());
+        List<RawScore> rawScores = rawScoreService.getRawScoresFromMigration(migration.getId());
 
-        List<RawScore> rawScoreList = rawScoreService.parseCSV(file, testId);
+        Assertions.assertEquals(2, rawScores.size());
 
-        Assertions.assertEquals("101", rawScoreList.get(0).getCwid());
-        Assertions.assertEquals("robbob", rawScoreList.get(1).getCwid());
-        Assertions.assertEquals("abcdefg", rawScoreList.get(2).getCwid());
+        Optional<RawScore> score = rawScoreService.getRawScoreForCwidAndMigration("alex", migration.getId());
+        Assertions.assertTrue(score.isPresent());
+        Assertions.assertEquals(SubmissionStatus.ON_TIME, score.get().getSubmissionStatus());
+        Assertions.assertEquals(24.0, score.get().getScore());
 
-        LocalDateTime localDateTime = LocalDateTime.of(2022, 6, 25, 13, 16, 26);
-        ZoneOffset zoneOffset = ZoneOffset.of("-06:00");
-        Instant instant = localDateTime.toInstant(zoneOffset);
-
-        Assertions.assertEquals(instant, rawScoreList.get(0).getSubmissionTime());
-
-        localDateTime = LocalDateTime.of(2022, 6, 25, 13, 16, 58);
-        instant = localDateTime.toInstant(zoneOffset);
-
-        Assertions.assertEquals(instant, rawScoreList.get(1).getSubmissionTime());
-
-        localDateTime = LocalDateTime.of(2022, 6, 25, 13, 17, 12);
-        instant = localDateTime.toInstant(zoneOffset);
-
-        Assertions.assertEquals(instant, rawScoreList.get(2).getSubmissionTime());
-
-        Assertions.assertNotNull(rawScoreList.get(0));
-        Assertions.assertNotNull(rawScoreList.get(1));
-        Assertions.assertNotNull(rawScoreList.get(2));
-
-        Assertions.assertEquals(6.0, rawScoreList.get(0).getScore());
-        Assertions.assertEquals(4.0, rawScoreList.get(1).getScore());
-        Assertions.assertEquals(0.0, rawScoreList.get(2).getScore());
-
-        Assertions.assertEquals(SubmissionStatus.ON_TIME, rawScoreList.get(0).getSubmissionStatus());
-        Assertions.assertEquals(SubmissionStatus.ON_TIME, rawScoreList.get(1).getSubmissionStatus());
-        Assertions.assertEquals(SubmissionStatus.LATE, rawScoreList.get(2).getSubmissionStatus());
-
-        Assertions.assertEquals(0, rawScoreList.get(0).getHoursLate());
-        Assertions.assertEquals(0, rawScoreList.get(1).getHoursLate());
-        Assertions.assertEquals(2, rawScoreList.get(2).getHoursLate());
-
+        score = rawScoreService.getRawScoreForCwidAndMigration("test", migration.getId());
+        Assertions.assertTrue(score.isPresent());
+        Assertions.assertEquals(SubmissionStatus.ON_TIME, score.get().getSubmissionStatus());
+        Assertions.assertEquals(0.0, score.get().getScore());
     }
-
-    @Test
-    @SneakyThrows
-    void testAllMissing() {
-        String fileContent = "First Name,Last Name,SID,Email,Sections,section_name,Total Score,Max Points,Status,Submission ID,Submission Time,Lateness (H:M:S)\n" +
-                "Samual,Mcsam,101,samualmcsam@mines.edu,,,,12.0,Missing,128746829,,\n" +
-                "Robert,Bob,robbob,robbob@mines.edu,,,,12.0,Missing,128746844,,\n" +
-                "Null,IdontNull,abcdefg,nullnullnull@mymail.mines.edu,,,,12.0,Missing,128746851,,";
-
-        String filename = "test.csv";
-        MockMultipartFile file = new MockMultipartFile(filename, filename, "text/csv", fileContent.getBytes());
-        UUID testId = UUID.randomUUID();
-
-        List<RawScore> rawScoreList = rawScoreService.parseCSV(file, testId);
-
-        Assertions.assertEquals("101", rawScoreList.get(0).getCwid());
-        Assertions.assertEquals("robbob", rawScoreList.get(1).getCwid());
-        Assertions.assertEquals("abcdefg", rawScoreList.get(2).getCwid());
-
-        Assertions.assertNull(rawScoreList.get(0).getSubmissionTime());
-        Assertions.assertNull(rawScoreList.get(1).getSubmissionTime());
-        Assertions.assertNull(rawScoreList.get(2).getSubmissionTime());
-
-        Assertions.assertNull(rawScoreList.get(0).getScore());
-        Assertions.assertNull(rawScoreList.get(1).getScore());
-        Assertions.assertNull(rawScoreList.get(2).getScore());
-
-        Assertions.assertNull(rawScoreList.get(0).getHoursLate());
-        Assertions.assertNull(rawScoreList.get(1).getHoursLate());
-        Assertions.assertNull(rawScoreList.get(2).getHoursLate());
-
-        Assertions.assertEquals(SubmissionStatus.MISSING, rawScoreList.get(0).getSubmissionStatus());
-        Assertions.assertEquals(SubmissionStatus.MISSING, rawScoreList.get(1).getSubmissionStatus());
-        Assertions.assertEquals(SubmissionStatus.MISSING, rawScoreList.get(2).getSubmissionStatus());
-
-        Assertions.assertNotNull(rawScoreList.get(0));
-        Assertions.assertNotNull(rawScoreList.get(1));
-        Assertions.assertNotNull(rawScoreList.get(2));
-    }
-
 }

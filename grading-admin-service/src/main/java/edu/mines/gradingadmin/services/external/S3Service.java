@@ -122,13 +122,16 @@ public class S3Service {
         return Optional.of(courseId.toString());
     }
 
-    public Optional<String> uploadCourseWidePolicy(User creatingUser, UUID courseId, String filename, MultipartFile policyDocument){
+    public Optional<String> uploadNewPolicy(User creatingUser, UUID courseId, String filename, MultipartFile policyDocument){
         if (!config.isEnabled()){
             throw new ExternalServiceDisabledException("S3 Service is disabled!");
         }
         if (!bucketExists(courseId.toString())){
-            log.error("Failed to upload policy! Bucket for course '{}' does not exist!", courseId);
-            return Optional.empty();
+            log.warn("Bucket for course '{}' does not exist!", courseId);
+            if (createNewBucketForCourse(courseId).isEmpty()){
+                log.error("Failed to create bucket for course '{}'! Failed to upload policy!", courseId);
+                return Optional.empty();
+            }
         }
 
         if (objectExists(courseId.toString(), filename)){
@@ -176,6 +179,31 @@ public class S3Service {
             return Optional.empty();
         }
 
+    }
+
+    public boolean deletePolicy(UUID courseId, String filename){
+        if (!config.isEnabled()){
+            throw new ExternalServiceDisabledException("S3 Service is disabled!");
+        }
+        if (!bucketExists(courseId.toString())){
+            log.error("Failed to delete policy! Bucket for course '{}' does not exist!", courseId);
+            return false;
+        }
+
+        if (!objectExists(courseId.toString(), filename)){
+            return true;
+        }
+
+        try {
+            RemoveObjectArgs args = RemoveObjectArgs.builder().bucket(courseId.toString()).object(filename).build();
+            s3Client.removeObject(args);
+        } catch (MinioException | IOException | InvalidKeyException | NoSuchAlgorithmException e) {
+            log.error("Failed to remove policy '{}' for course '{}'", filename, courseId);
+            log.error("Failed due to: ", e);
+            return false;
+        }
+
+        return true;
     }
 
 

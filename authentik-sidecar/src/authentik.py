@@ -305,7 +305,7 @@ class Authentik:
                 # im going to leave these hard coded
                 {
                     "matching_mode": "strict",
-                    "url": "https://localhost.dev/callback"
+                    "url": "https://localhost.dev/select"
                 },
                 {
                     "matching_mode": "strict",

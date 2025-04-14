@@ -1,7 +1,11 @@
 import { describe, it, before, after } from "node:test";
 import { MinioContainer, StartedMinioContainer } from "@testcontainers/minio";
 import * as Minio from "minio";
-import { ApplyPolicyFunctionSig, downloadAndVerifyPolicy, verifyPolicy } from "../../src/services/policyService";
+import {
+    ApplyPolicyFunctionSig,
+    downloadAndVerifyPolicy,
+    verifyPolicy,
+} from "../../src/services/policyService";
 import * as assert from "node:assert";
 
 describe("Policy Service", () => {
@@ -10,14 +14,12 @@ describe("Policy Service", () => {
         Version: "2012-10-17",
         Statement: [
             {
-                Action: [
-                    "s3:GetObject"
-                ],
+                Action: ["s3:GetObject"],
                 Effect: "Allow",
                 Resource: `arn:aws:s3:::${course_id}/*`,
-                Principal: "*"
-            }
-        ]
+                Principal: "*",
+            },
+        ],
     });
 
     const access_key = "admin";
@@ -41,7 +43,7 @@ describe("Policy Service", () => {
             secretKey: secret_key,
         });
 
-        await client?.makeBucket(course_id)
+        await client?.makeBucket(course_id);
         await client?.setBucketPolicy(course_id, security_policy);
     });
 
@@ -63,7 +65,7 @@ return {
         assert.strictEqual(res.errors.length, 0);
     });
 
-    it("should reject an invalid policy", () =>{
+    it("should reject an invalid policy", () => {
         const policy = `
 return {
     finalScore: "A",
@@ -78,7 +80,6 @@ return {
 
         assert.strictEqual(res.overallStatus, false);
         assert.strictEqual(res.errors.length, 5);
-
     });
 
     it("should crash gracefully", () => {
@@ -120,7 +121,7 @@ return {
         const policyName = "policy.js";
 
         await client?.putObject(course_id, policyName, policy);
-        const url = `${minio?.getConnectionUrl()}/${course_id}/${policyName}`
+        const url = `${minio?.getConnectionUrl()}/${course_id}/${policyName}`;
 
         const res = await downloadAndVerifyPolicy(url);
 
@@ -129,8 +130,5 @@ return {
 
     after(() => {
         minio?.stop();
-    })
-
-
-
+    });
 });

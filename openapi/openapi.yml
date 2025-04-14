@@ -102,8 +102,7 @@ paths:
       operationId: update_course
       summary: Update existing course
       description: |
-        Update an existing course by replacing all content in the course.
-        If any assignments have been graded, then this will fail.
+        Update an existing course.
       security:
         - openIDC: [admin:write]
       parameters:
@@ -130,15 +129,6 @@ paths:
               example:
                 error_source: "course_creation"
                 error_message: "Course '999-9999-9999-99' does not exist"
-        400:
-          description: "Refused to update course"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "course_creation"
-                error_message: "Refusing to update course. At least one assignment has been graded."
     get:
       tags:
         - admin
@@ -564,6 +554,92 @@ paths:
                 error_source: "update_course"
                 error_message: "Course '999-9999-9999-99' does not exist"
 
+  /admin/courses/{course_id}/policies:
+    post:
+      tags:
+        - admin
+      operationId: new_policy
+      summary: Create a new policy
+      description: |
+        Create a new policy for the course
+      security:
+        - openIDC: [admin:write]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/NewPolicy"
+            encoding:
+              file_data:
+                contentType: "text/javascript"
+      responses:
+        201:
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Policy"
+    get:
+      tags:
+        - admin
+      operationId: admin_get_all_policies
+      summary: Get all policies
+      description: |
+        Get all policies for a course
+      security:
+        - openIDC: [admin:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Policy"
+
+  /admin/course/{course_id}/policies/{policy_id}:
+    delete:
+      tags:
+        - admin
+      operationId: delete_policy
+      summary: Create a new policy
+      description: |
+        Create a new policy for the course
+      security:
+        - openIDC: [admin:write]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+        - name: policy_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        204:
+          description: "No Content"
+
   /admin/users:
     get:
       tags:
@@ -797,7 +873,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Credentials"
+                type: array
+                items:
+                  $ref: "#/components/schemas/Credential"
         404:
           description: "User not found"
           content:
@@ -964,6 +1042,10 @@ paths:
       responses:
         202:
           description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LateRequest"
         400:
           description: "Failed to approve extension"
           content:
@@ -1022,6 +1104,10 @@ paths:
       responses:
         202:
           description: "Accepted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LateRequest"
         400:
           description: "Failed to deny extension"
           content:
@@ -1040,65 +1126,6 @@ paths:
               example:
                 error_source: "update_user"
                 error_message: "Failed to deny extension for user"
-
-  /instructor/courses/{course_id}/policies:
-    post:
-      tags:
-        - instructor
-      operationId: new_policy
-      summary: Create a new policy
-      description: |
-        Create a new policy for the course
-      security:
-        - openIDC: [instructor:write]
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              $ref: "#/components/schemas/NewPolicy"
-            encoding:
-              file_data:
-                contentType: "text/javascript"
-      responses:
-        201:
-          description: "Created"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Policy"
-    get:
-      tags:
-        - instructor
-      operationId: get_all_policies
-      summary: Get all policies
-      description: |
-        Get all policies for a course
-      security:
-        - openIDC: [instructor:read]
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Policy"
 
   /instructor/courses/{course_id}:
     get:
@@ -1179,6 +1206,33 @@ paths:
                 error_source: "update_course"
                 error_message: "Course '999-9999-9999-99' does not exist"
 
+  /instructor/courses/{course_id}/policies:
+    get:
+      tags:
+        - instructor
+      operationId: get_all_policies
+      summary: Get all policies
+      description: |
+        Get all policies for a course
+      security:
+        - openIDC: [instructor:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Policy"
+
   /student/courses/{course_id}:
     get:
       tags:
@@ -1227,7 +1281,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/CourseSlim"
 
-  /student/enrollments:
+  /user/enrollments:
     get:
       tags:
         - user
@@ -1246,7 +1300,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/CourseSlim"
+                  $ref: "#/components/schemas/Enrollment"
         404:
           description: "User not found"
           content:
@@ -1436,6 +1490,7 @@ paths:
               - approved
               - denied
               - pending
+              - all
       responses:
         200:
           description: "OK"
@@ -1610,7 +1665,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Extension"
+                  $ref: "#/components/schemas/LateRequest"
         404:
           description: "Extension not found"
           content:
@@ -1998,6 +2053,10 @@ components:
         file_path:
           type: string
           example: "default.js"
+        description:
+          type: string
+          example: |
+            The default policy
         file_data:
           type: string
           format: binary
@@ -2008,16 +2067,22 @@ components:
       description: "A grading policy"
       type: object
       properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
         name:
           type: string
           example: "Default Policy"
+        description:
+          type: string
+          example: |
+            the default grading policy :)
         uri:
           type: string
           example: "https://s3.aws.com/999-9999-9999-99/default.js"
-        course:
-          $ref: "#/components/schemas/Course"
-        assignment:
-          $ref: "#/components/schemas/Assignment"
+        number_of_migrations:
+          type: integer
+          example: 1
 
     Task:
       description: "An async task on the server"
@@ -2103,12 +2168,6 @@ components:
         owning_user:
           $ref: "#/components/schemas/User"
 
-    Credentials:
-      description: "A list of credentials"
-      type: array
-      items:
-        $ref: "#/components/schemas/Credential"
-
     User:
       description: "A server user"
       type: object
@@ -2164,6 +2223,7 @@ components:
             example: "fall.2020.excl.101.section.a"
         late_passes_used:
           type: number
+          format: double
           example: 3
 
     Assignment:
@@ -2264,6 +2324,7 @@ components:
         - name
         - code
         - canvas_id
+        - late_request_config
       properties:
         id:
           type: string
@@ -2284,6 +2345,10 @@ components:
           type: integer
           format: int64
           example: 123456
+        gradescope_id:
+          type: integer
+          format: int64
+          example: 123456
         members:
           type: array
           items:
@@ -2298,6 +2363,32 @@ components:
             type: string
           example:
             - "fall.2020.excl.101.section.a"
+        late_request_config:
+          $ref: "#/components/schemas/CourseLateRequestConfig"
+
+    CourseLateRequestConfig:
+      description: "The late request config for a course"
+      type: object
+      required:
+        - late_passes_enabled
+        - late_pass_name
+        - enabled_extension_reasons
+        - total_late_passes_allowed
+      properties:
+        late_passes_enabled:
+          type: boolean
+          example: true
+        enabled_extension_reasons:
+          type: array
+          items:
+            type: string
+          example: ["illness", "excused absence"]
+        total_late_passes_allowed:
+          type: integer
+          example: 5
+        late_pass_name:
+          type: string
+          example: "Late Passes"
 
     CourseSlim:
       description: "A slim course"
@@ -2320,6 +2411,40 @@ components:
           type: string
           example: "Fall.2020.EXCL.101"
 
+    Enrollment:
+      description: "A slim course and a CourseMember"
+      type: object
+      required:
+        - term
+        - name
+        - code
+        - cwid
+        - course_role
+      properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
+        term:
+          type: string
+          example: "Fall 2020"
+        name:
+          type: string
+          example: "EXCL101"
+        code:
+          type: string
+          example: "Fall.2020.EXCL.101"
+        cwid:
+          type: string
+          example: "99999999"
+        course_role:
+          type: string
+          enum:
+            - student
+            - instructor
+            - ta
+            - owner
+          example: "owner"
+
     StudentInformation:
       description: "Information relevant to a student"
       type: object
@@ -2339,6 +2464,10 @@ components:
         professor:
           type: string
           example: "Jane Doe"
+        late_passes_used:
+          type: number
+          format: double
+          example: 3
         course:
           $ref: "#/components/schemas/Course"
 
@@ -2420,41 +2549,47 @@ components:
       required:
         - migration_list
       properties:
-        migrator:
-          $ref: "#/components/schemas/CourseMember"
-        timestamp:
-          type: string
-          format: date-time
-          example: "2020-01-01T12:00:00.000Z"
-        migration_list:
-          type: array
-          items:
-            $ref: "#/components/schemas/Migration"
         id:
           type: string
           example: "999-9999-9999-99"
+        migrator:
+          $ref: "#/components/schemas/User"
+        date_started:
+          type: string
+          format: date-time
+          example: "2020-01-01T12:00:00.000Z"
+        migrations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Migration"
+        stats:
+          $ref: "#/components/schemas/MasterMigrationStatistics"
 
     MasterMigrationStatistics:
       description: "The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit"
       type: object
       required:
-        - missing
-        - extensions_applied
-        - no_credit
-        - late_penalties
+        - total_submission
+        - late_requests
+        - total_extensions
+        - total_late_passes
+        - unapproved_requests
       properties:
-        missing:
+        total_submission:
           type: integer
           example: 2
-        extensions_applied:
+        late_requests:
           type: integer
           example: 12
-        no_credit:
+        total_extensions:
           type: integer
           example: 1
-        late_penalties:
+        total_late_passes:
           type: integer
           example: 5
+        unapproved_requests:
+          type: integer
+          example: 3
 
     Migration:
       description: "Migration object that has a single assignment and a policy"

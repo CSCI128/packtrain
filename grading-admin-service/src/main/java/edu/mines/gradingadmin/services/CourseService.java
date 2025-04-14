@@ -1,16 +1,21 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.data.CourseDTO;
+import edu.mines.gradingadmin.data.CourseLateRequestConfigDTO;
+import edu.mines.gradingadmin.data.policyServer.PolicyServerErrorDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
+import edu.mines.gradingadmin.repositories.CourseLateRequestConfigRepo;
 import edu.mines.gradingadmin.repositories.CourseRepo;
 import edu.mines.gradingadmin.repositories.PolicyRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.services.external.CanvasService;
+import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.S3Service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -24,6 +29,7 @@ import java.util.*;
 @Service
 public class CourseService {
     private final CourseRepo courseRepo;
+    private final CourseLateRequestConfigRepo lateRequestConfigRepo;
     private final ScheduledTaskRepo<CourseSyncTaskDef> taskRepo;
 
     private final ApplicationEventPublisher eventPublisher;
@@ -36,7 +42,9 @@ public class CourseService {
     public CourseService(CourseRepo courseRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
                          CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, UserService userService) {
+
         this.courseRepo = courseRepo;
+        this.lateRequestConfigRepo = lateRequestConfigRepo;
         this.taskRepo = taskRepo;
         this.impersonationManager = impersonationManager;
         this.canvasService = canvasService;
@@ -84,6 +92,15 @@ public class CourseService {
         course.get().setCode(courseDTO.getCode());
         course.get().setTerm(courseDTO.getTerm());
         course.get().setEnabled(courseDTO.getEnabled());
+        CourseLateRequestConfig config = course.get().getLateRequestConfig();
+        if (config != null) {
+            config.setLatePassesEnabled(courseDTO.getLateRequestConfig().getLatePassesEnabled());
+            config.setLatePassName(courseDTO.getLateRequestConfig().getLatePassName());
+            config.setEnabledExtensionReasons(courseDTO.getLateRequestConfig().getEnabledExtensionReasons());
+            config.setTotalLatePassesAllowed(courseDTO.getLateRequestConfig().getTotalLatePassesAllowed());
+
+            course.get().setLateRequestConfig(lateRequestConfigRepo.save(config));
+        }
 
         return Optional.of(courseRepo.save(course.get()));
     }
@@ -170,6 +187,18 @@ public class CourseService {
         newCourse.setCode(courseDTO.getCode());
         newCourse.setTerm(courseDTO.getTerm());
         newCourse.setEnabled(true);
+
+        Optional<CourseLateRequestConfig> lateRequestConfig = createCourseLateRequestConfig(courseDTO.getLateRequestConfig());
+
+        ExternalServiceConfig externalServiceConfig = new ExternalServiceConfig();
+        if(courseDTO.getGradescopeId() != null) {
+            externalServiceConfig.configureGradescope(true, URI.create("https://www.gradescope.com/courses/" + courseDTO.getGradescopeId().toString()));
+        }
+
+        if (lateRequestConfig.isPresent()) {
+            newCourse.setLateRequestConfig(lateRequestConfig.get());
+        }
+
         newCourse = courseRepo.save(newCourse);
 
         Optional<String> bucketName = s3Service.createNewBucketForCourse(newCourse.getId());
@@ -181,61 +210,17 @@ public class CourseService {
         return Optional.of(newCourse);
     }
 
-    public Optional<Policy> createNewCourseWidePolicy(User actingUser, UUID courseId, String policyName, String fileName, MultipartFile file){
-        // if this is slow, we may need to make this a task
-        Optional<Course> course = courseRepo.findById(courseId);
-
-        if (course.isEmpty()){
-            log.warn("Course '{}' does not exist!", courseId);
+    private Optional<CourseLateRequestConfig> createCourseLateRequestConfig(CourseLateRequestConfigDTO dto) {
+        if (dto == null){
             return Optional.empty();
         }
-
-        log.debug("Creating new course wide policy '{}' for course '{}'", policyName, course.get().getCode());
-
-        Optional<String> policyUrl = s3Service.uploadCourseWidePolicy(actingUser, courseId, fileName, file);
-
-        if (policyUrl.isEmpty()){
-            log.warn("Failed to upload policy '{}'", policyName);
-            return Optional.empty();
-        }
-
-        // this should never happen, but if it does, then we also need to reject it as the URIs must be unique
-        if (policyRepo.existsByPolicyURI(policyUrl.get())){
-            log.warn("Policy already exists at url '{}'", policyUrl.get());
-            return Optional.empty();
-        }
-
-        Policy policy = new Policy();
-        policy.setCourse(course.get());
-        policy.setCreatedByUser(actingUser);
-        policy.setPolicyName(policyName);
-        policy.setPolicyURI(policyUrl.get());
-
-        policy = policyRepo.save(policy);
-
-        log.info("Created new policy '{}' for course '{}' at '{}'", policyName, course.get().getCode(), policyUrl.get());
-
-        return Optional.of(policy);
+        CourseLateRequestConfig lateRequestConfig = new CourseLateRequestConfig();
+        lateRequestConfig.setLatePassesEnabled(dto.getLatePassesEnabled());
+        lateRequestConfig.setEnabledExtensionReasons(dto.getEnabledExtensionReasons());
+        lateRequestConfig.setTotalLatePassesAllowed(dto.getTotalLatePassesAllowed());
+        lateRequestConfig.setLatePassName(dto.getLatePassName());
+        return Optional.of(lateRequestConfigRepo.save(lateRequestConfig));
     }
 
-    public List<Policy> getAllPolicies(UUID courseId){
-        Optional<Course> course = courseRepo.findById(courseId);
-
-        if (course.isEmpty()){
-            return List.of();
-        }
-
-        return policyRepo.getPoliciesByCourse(course.get());
-    }
-
-    public Optional<Policy> getPolicy(URI policyURI){
-        Optional<Policy> policy = policyRepo.getPolicyByURI(policyURI.toString());
-
-        if (policy.isEmpty()){
-            return Optional.empty();
-        }
-
-        return policy;
-    }
 
 }

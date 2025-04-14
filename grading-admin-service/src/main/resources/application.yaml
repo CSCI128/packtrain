@@ -28,6 +28,9 @@ server:
       enabled: false
 
 grading-admin:
+  # needs to be 16, 32, or 64 bytes long - this should also be randomly generated.
+  secret-key: password91023451
+  time-zone: "America/Denver"
   external-services:
     canvas:
       enabled: true
@@ -46,5 +49,7 @@ grading-admin:
       exchange-name: "grading-admin-message-exchange"
     policy-server:
       enabled: true
-      uri: https://localhost.dev/
-
+      uri: https://localhost.dev/api/policies
+    gradescope:
+      enabled: true
+      uri: https://gradescope.com

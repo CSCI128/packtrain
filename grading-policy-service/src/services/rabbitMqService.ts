@@ -1,4 +1,4 @@
-import { RabbitMqConfig } from "../config";
+import { RabbitMqConfig } from "../config/config";
 import {
     Connection,
     connect as rabbitMqConnect,
@@ -24,7 +24,8 @@ export interface MigrationSet {
     consumer: ConsumerChannel;
     producer: Channel;
 }
-const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms))
+const delay = (ms: number): Promise<void> =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
 const activeMigrations: Map<string, MigrationSet> = new Map();
 
@@ -39,17 +40,18 @@ export async function connect(rabbitMqConfig: RabbitMqConfig): Promise<void> {
 
     let attempts = 0;
     do {
-        try{
+        try {
             connection = await rabbitMqConnect(connectionURI);
-        } catch (e){
-            console.error(`Connection attempt failed! Retrying ${attempts+1}/10...`);
+        } catch (e) {
+            console.error(
+                `Connection attempt failed! Retrying ${attempts + 1}/10...`,
+            );
         }
 
         await delay(5000);
-
     } while (connection === null && ++attempts < 10);
 
-    if (connection === null){
+    if (connection === null) {
         return Promise.reject("Failed to connect!");
     }
 }
@@ -175,7 +177,6 @@ function onRawScoreReceive(
         scored.extensionStatus = policyScored.extensionStatus;
         scored.extensionMessage = policyScored.extensionMessage ?? "";
         scored.submissionMessage = policyScored.submissionMessage ?? "";
-
 
         publishChannel.publish(
             exchange,

@@ -5,10 +5,11 @@ import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
-import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CourseService;
+import edu.mines.gradingadmin.services.ExtensionService;
 import edu.mines.gradingadmin.services.MigrationService;
+import edu.mines.gradingadmin.services.PolicyService;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,17 +23,19 @@ import static java.util.stream.Collectors.toList;
 @Controller
 public class InstructorApiImpl implements InstructorApiDelegate {
     private final CourseService courseService;
+    private final ExtensionService extensionService;
     private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
     private final MigrationService migrationService;
-    private final MasterMigrationRepo masterMigrationRepo;
+    private final PolicyService policyService;
 
-    public InstructorApiImpl(CourseService courseService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService, MasterMigrationRepo masterMigrationRepo) {
+    public InstructorApiImpl(CourseService courseService, ExtensionService extensionService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService, PolicyService policyService) {
         this.courseService = courseService;
+        this.extensionService = extensionService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
         this.migrationService = migrationService;
-        this.masterMigrationRepo = masterMigrationRepo;
+        this.policyService = policyService;
     }
 
     @Override
@@ -53,23 +56,6 @@ public class InstructorApiImpl implements InstructorApiDelegate {
                 .sections(sections.stream().map(Section::getName).toList());
 
         return ResponseEntity.ok(courseDTO);
-    }
-
-    @Override
-    public ResponseEntity<PolicyDTO> newPolicy(String courseId, String name, String filePath, MultipartFile fileData) {
-        Optional<Policy> policy = courseService.createNewCourseWidePolicy(securityManager.getUser(), UUID.fromString(courseId), name, filePath, fileData);
-
-        if (policy.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(policy.get()));
-    }
-
-    @Override
-    public ResponseEntity<List<PolicyDTO>> getAllPolicies(String courseId) {
-        List<Policy> policies = courseService.getAllPolicies(UUID.fromString(courseId));
-        return ResponseEntity.ok(policies.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
@@ -94,24 +80,17 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     public ResponseEntity<List<MasterMigrationDTO>> getAllMasterMigrationsForCourse(String courseId){
         List<MasterMigration> masterMigrations = migrationService.getAllMasterMigrations(courseId);
 
-        // TODO clean this up
-        return ResponseEntity.ok(masterMigrations.stream().map(
-                mastermigration -> new MasterMigrationDTO()
-                        .migrationList( mastermigration.getMigrations().stream().map(
-                                migration -> new MigrationDTO()
-                                        .policy( new PolicyDTO().uri(migration.getPolicy().getPolicyURI()))
-                                        .assignment(new AssignmentDTO().id(migration.getAssignment().getId().toString())
-                                                .name(migration.getAssignment().getName()))).toList()))
-                .toList());
+        return ResponseEntity.ok(masterMigrations.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
     public ResponseEntity<MasterMigrationDTO> createMasterMigration(String courseId, MasterMigrationDTO masterMigrationDTO){
-        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(courseId);
+        Optional<MasterMigrationDTO> masterMigration = migrationService.createMasterMigration(courseId, securityManager.getUser()).map(DTOFactory::toDto);
+
         if (masterMigration.isEmpty()){
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().id(masterMigration.get().getId().toString()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(masterMigration.get());
     }
 
     @Override
@@ -123,15 +102,59 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         return ResponseEntity.accepted().build();
     }
 
-
     @Override
     public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(String courseId, String masterMigrationId, MigrationDTO migrationDTO) {
         AssignmentDTO assignment = migrationDTO.getAssignment();
         PolicyDTO policy = migrationDTO.getPolicy();
-        Optional<MasterMigration> masterMigration = migrationService.addMigration(masterMigrationId, assignment.getId(), policy.getUri());
+        Optional<MasterMigrationDTO> masterMigration = migrationService.addMigration(masterMigrationId, assignment.getId(), policy.getUri()).map(DTOFactory::toDto);;
+
         if (masterMigration.isEmpty()){
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MasterMigrationDTO().id(masterMigration.get().getId().toString()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(masterMigration.get());
+    }
+
+    @Override
+    public ResponseEntity<LateRequestDTO> approveExtension(String courseId, String assignmentId, String userId, String extensionId) {
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+
+        if(course.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        Optional<LateRequest> lateRequest = extensionService.approveExtension(assignmentId, userId, extensionId);
+
+        if(lateRequest.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(DTOFactory.toDto(lateRequest.get()));
+    }
+
+    @Override
+    public ResponseEntity<LateRequestDTO> denyExtension(String courseId, String assignmentId, String userId, String extensionId) {
+        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+
+        if(course.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        Optional<LateRequest> lateRequest = extensionService.denyExtension(assignmentId, userId, extensionId);
+
+        if(lateRequest.isEmpty()) {
+            // need to do this with error controller
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(DTOFactory.toDto(lateRequest.get()));
+    }
+
+    @Override
+    public ResponseEntity<List<PolicyDTO>> getAllPolicies(String courseId) {
+        List<Policy> policies = policyService.getAllPolicies(UUID.fromString(courseId));
+        return ResponseEntity.ok(policies.stream().map(DTOFactory::toDto).toList());
     }
 }

@@ -14,6 +14,7 @@ import edu.mines.gradingadmin.repositories.CourseRepo;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
 import edu.mines.gradingadmin.services.external.CanvasService;
+import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.S3Service;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
@@ -37,6 +38,9 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @Autowired
     private CourseRepo courseRepo;
 
+    @Autowired
+    private CourseLateRequestConfigRepo lateRequestConfigRepo;
+
     private CourseService courseService;
     @Mock
     private CanvasService canvasService;
@@ -49,9 +53,6 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @Autowired
     private S3Service s3Service;
-
-    @Autowired
-    private PolicyRepo policyRepo;
 
     @Autowired
     private ScheduledTaskRepo<CourseSyncTaskDef> scheduledTaskRepo;
@@ -67,11 +68,10 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @BeforeEach
     void setup(){
         courseService = new CourseService(
-                courseRepo, scheduledTaskRepo,
+                courseRepo, lateRequestConfigRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
                 s3Service, policyRepo, userService
-
         );
 
         applyMocks(canvasService);

@@ -1,12 +1,14 @@
 import express from "express";
 import GradingStartDTO from "../data/GradingStartDTO";
-import { GradingPolicyConfig } from "../config";
+import ValidateDTO from "../data/ValidateDTO";
+import { GradingPolicyConfig } from "../config/config";
 import { ready, startMigration } from "../services/rabbitMqService";
+import { downloadAndVerifyPolicy } from "../services/policyService";
 
 export function setup(config: GradingPolicyConfig, app: express.Application) {
     app.use(express.json());
-    app.get("/-/ready", (req, res) => {
-        // unauthenticated endpoint
+    // keep this at base so health check works
+    app.get(`/-/ready`, (req, res) => {
         if (!ready()) {
             res.sendStatus(500);
             return;
@@ -14,14 +16,23 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
 
         res.sendStatus(200);
     });
-    app.post("/grading/start", (req, res) => {
+
+    app.get(`${config.serverConfig!.basePath}/-/ready`, (req, res) => {
+        if (!ready()) {
+            res.sendStatus(500);
+            return;
+        }
+
+        res.sendStatus(200);
+    });
+    app.post(`${config.serverConfig!.basePath}/grading/start`, (req, res) => {
         if (!req.body) {
             res.sendStatus(400);
             return;
         }
         const body = req.body as GradingStartDTO;
 
-        startMigration(config.rabbitMqConfig.exchangeName, body)
+        startMigration(config.rabbitMqConfig!.exchangeName, body)
             .then(() => {
                 res.status(201);
                 res.send({ status: "created" });
@@ -29,6 +40,26 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
             .catch((e) => {
                 res.status(400);
                 res.send({ status: "failed", reason: e });
+            });
+    });
+
+    app.post(`${config.serverConfig!.basePath}/validate`, (req, res) => {
+        if (!req.body) {
+            res.sendStatus(400);
+            return;
+        }
+
+        const body = req.body as ValidateDTO;
+
+        downloadAndVerifyPolicy(body.policyURI)
+            .then((_) => {
+                res.status(200);
+                res.send({ status: "valid" });
+            })
+            .catch((e) => {
+                console.log(e);
+                res.status(400);
+                res.send({ status: "invalid", reason: e });
             });
     });
 

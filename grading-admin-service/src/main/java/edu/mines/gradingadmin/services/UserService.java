@@ -30,6 +30,10 @@ public class UserService {
         return userRepo.getByCwid(cwid);
     }
 
+    public Optional<User> getUserByEmail(String email){
+        return userRepo.getByEmail(email);
+    }
+
     public Optional<User> getUserByOauthId(String id){
         return userRepo.getByOAuthId(UUID.fromString(id));
     }

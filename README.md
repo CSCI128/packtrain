@@ -1,13 +1,15 @@
-# Grading Admin
+# 🐴📦 packtrain
 
 The 128 grading management and migration website monorepo.
 
+packtrain is software for grading and student extension management.
+
 # Development Environment
 
-All development environments will have a Docker Compose which launches
-them, but to run them individually, read the next sections for directions.
+To setup the development environment with [Docker](https://www.docker.com) and [Docker Compose](https://docs.docker.com/compose/),
+first setup the environment file.
 
-Rename `.env.sample` to `.env` and set `PG_PASS` and `AUTHENTIK_SECRET_KEY` in `.env` as follows:
+Rename `.env.sample` to `.env` and generate the following tokens as follows:
 
 ```
 echo "PG_PASS=$(openssl rand -base64 36 | tr -d '\n')" >> .env
@@ -15,11 +17,7 @@ echo "AUTHENTIK_SECRET_KEY=$(openssl rand -base64 60 | tr -d '\n')" >> .env
 echo "AUTHENTIK_BOOTSTRAP_PASSWORD=$(openssl rand -base64 36 | tr -d '\n')" >> .env
 echo "AUTHENTIK_BOOTSTRAP_TOKEN=$(openssl rand -base64 36 | tr -d '\n')" >> .env
 echo "MINIO_ROOT_PASSWORD=$(openssl rand -base64 36 | tr -d '\n')" >> .env
-```
-
-Create a file called `passwords` in the `certificates/certs/` directory. Run the following commands to populate that file:
-
-```
+touch certificates/certs/passwords
 echo "CA_PASS=$(openssl rand -base64 36 | tr -d '\n')" >> certificates/certs/passwords
 echo "KEY_PASS=$(openssl rand -base64 36 | tr -d '\n')" >> certificates/certs/passwords
 ```
@@ -37,14 +35,12 @@ Add `localhost.dev 127.0.0.1` to your hosts file.
 
 Install [JDK 23](https://www.oracle.com/java/technologies/downloads/#jdk23-mac) and [Docker Desktop](https://www.docker.com).
 
-To run the backend on Linux/Mac, run: `./mvnw spring-boot:run`
+To run the backend on Linux/Mac, enter the `grading-admin-service` directory and run: `./mvnw spring-boot:run`
 
-If you run into an issue building on windows, make sure that your user has permission to create symlinks.
+To run the backend tests, run: `./mvnw test "-Dspring.profiles.active=test"`
+
+If you run into an issue building on Windows, make sure that your user has permission to create symlinks.
 [StackOverflow thread about this issue](https://stackoverflow.com/a/65504258).
-
-### Running Backend Tests
-
-`./mvnw test "-Dspring.profiles.active=test"`
 
 ## Frontend
 
@@ -55,6 +51,8 @@ Run `npm i` to install all the dependencies.
 Run `npm run dev` to launch the development server.
 
 To rebuild TypeScript types from OpenAPI, run `npm run types`.
+
+Additionally, copy `.env.sample` to `.env` in **all** of the `grading-admin-frontend/apps` directories.
 
 ## Authentik
 

@@ -3,9 +3,8 @@ package edu.mines.gradingadmin.services.external;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 import edu.mines.gradingadmin.config.ExternalServiceConfig;
-import edu.mines.gradingadmin.data.messages.RawGradeDTO;
-import edu.mines.gradingadmin.data.messages.ScoredDTO;
-import edu.mines.gradingadmin.factories.MigrationFactory;
+import edu.mines.gradingadmin.data.policyServer.RawGradeDTO;
+import edu.mines.gradingadmin.data.policyServer.ScoredDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

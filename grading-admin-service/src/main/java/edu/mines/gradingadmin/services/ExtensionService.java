@@ -5,6 +5,7 @@ import edu.mines.gradingadmin.data.LateRequestDTO;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.LateRequestStatus;
 import edu.mines.gradingadmin.models.enums.LateRequestType;
+import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ExtensionRepo;
 import edu.mines.gradingadmin.repositories.LateRequestRepo;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,46 @@ public class ExtensionService {
 
     public List<Extension> getExtensionsByMigrationId(String migrationId) {
         return extensionRepo.getExtensionsByMigrationId(UUID.fromString(migrationId));
+    }
+
+    public List<LateRequest> getAllLateRequests(String courseId, String lateRequestStatus) {
+        if(lateRequestStatus == null) {
+            return lateRequestRepo.getAllLateRequests(UUID.fromString(courseId));
+        }
+        else if(lateRequestStatus.equalsIgnoreCase("approved")) {
+            return lateRequestRepo.getAllLateRequests(UUID.fromString(courseId)).stream().filter(c -> c.getStatus() == LateRequestStatus.APPROVED).toList();
+        }
+        else if(lateRequestStatus.equalsIgnoreCase("denied")) {
+            return lateRequestRepo.getAllLateRequests(UUID.fromString(courseId)).stream().filter(c -> c.getStatus() == LateRequestStatus.REJECTED || c.getStatus() == LateRequestStatus.IGNORED).toList();
+        }
+        else if(lateRequestStatus.equalsIgnoreCase("pending")) {
+            return lateRequestRepo.getAllLateRequests(UUID.fromString(courseId)).stream().filter(c -> c.getStatus() == LateRequestStatus.PENDING).toList();
+        }
+        return List.of();
+    }
+
+    public Optional<LateRequest> approveExtension(String assignmentId, String userId, String extensionId) {
+        Optional<LateRequest> lateRequest = getLateRequest(UUID.fromString(extensionId));
+        if(lateRequest.isPresent()) {
+            LateRequest request = lateRequest.get();
+
+            request.setStatus(LateRequestStatus.APPROVED);
+
+            return Optional.of(lateRequestRepo.save(request));
+        }
+        return Optional.empty();
+    }
+
+    public Optional<LateRequest> denyExtension(String assignmentId, String userId, String extensionId) {
+        Optional<LateRequest> lateRequest = getLateRequest(UUID.fromString(extensionId));
+        if(lateRequest.isPresent()) {
+            LateRequest request = lateRequest.get();
+
+            request.setStatus(LateRequestStatus.REJECTED);
+
+            return Optional.of(lateRequestRepo.save(request));
+        }
+        return Optional.empty();
     }
 
     public List<LateRequest> getAllLateRequestsForStudent(String courseId, User user) {

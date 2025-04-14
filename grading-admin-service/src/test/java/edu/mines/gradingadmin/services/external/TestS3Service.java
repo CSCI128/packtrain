@@ -106,7 +106,7 @@ public class TestS3Service implements MinioTestContainer, PostgresTestContainer 
         String filename = "file.js";
         MockMultipartFile file = new MockMultipartFile(filename, expectedContent.getBytes());
 
-        Optional<String> resourceURI = s3Service.uploadCourseWidePolicy(user, id, filename, file);
+        Optional<String> resourceURI = s3Service.uploadNewPolicy(user, id, filename, file);
 
         Assertions.assertTrue(resourceURI.isPresent());
 

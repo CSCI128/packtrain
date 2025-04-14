@@ -1,18 +1,25 @@
 import express from "express";
 import http from "http";
-import {config} from "./config";
-import {setup} from "./api/api";
-import {connect} from "./services/rabbitMqService";
+import { config } from "./config/config";
+import { setup } from "./api/api";
+import { connect } from "./services/rabbitMqService";
+
+if (config.rabbitMqConfig == null || config.serverConfig == null || config.policyConfig == null){
+    throw new Error("Invalid Config File!");
+}
 
 const app = setup(config, express());
 
-connect(config.rabbitMqConfig).then(() => {
-    console.log("RabbitMQ Connection Established!");
-})
-.catch(e => {
-    console.error("Failed to connect to rabbitMQ", e)
-});
+connect(config.rabbitMqConfig)
+    .then(() => {
+        console.log("RabbitMQ Connection Established!");
+    })
+    .catch((e) => {
+        console.error("Failed to connect to rabbitMQ", e);
+    });
 
-http.createServer(app).listen(config.port, () => {
-    console.log(`Listening on :${config.port}`);
+http.createServer(app).listen(config.serverConfig.port, () => {
+    console.log(
+        `Listening on :${config.serverConfig!.port} under path ${config.serverConfig!.basePath}`,
+    );
 });

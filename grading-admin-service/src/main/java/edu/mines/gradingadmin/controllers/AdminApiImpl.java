@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.List;
@@ -24,18 +25,22 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     private final CourseService courseService;
     private final SectionService sectionService;
+    private final ExtensionService extensionService;
     private final CourseMemberService courseMemberService;
     private final AssignmentService assignmentService;
     private final SecurityManager securityManager;
     private final UserService userService;
+    private final PolicyService policyService;
 
-    public AdminApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager, UserService userService) {
+    public AdminApiImpl(CourseService courseService, SectionService sectionService, ExtensionService extensionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager, UserService userService, PolicyService policyService) {
         this.courseService = courseService;
         this.sectionService = sectionService;
+        this.extensionService = extensionService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
         this.userService = userService;
         this.assignmentService = assignmentService;
+        this.policyService = policyService;
     }
 
     @Override
@@ -236,6 +241,7 @@ public class AdminApiImpl implements AdminApiDelegate {
 
             if (enrollments.contains("instructors")) {
                 roles.add(CourseRole.INSTRUCTOR);
+                roles.add(CourseRole.OWNER);
             }
 
             if (enrollments.contains("students")) {
@@ -264,6 +270,41 @@ public class AdminApiImpl implements AdminApiDelegate {
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users.stream().map(DTOFactory::toDto).toList());
+    }
+
+    @Override
+    public ResponseEntity<List<LateRequestDTO>> getAllExtensionsForCourse(String courseId, String status) {
+        List<LateRequest> lateRequests = extensionService.getAllLateRequests(courseId, status);
+
+        return ResponseEntity.ok(lateRequests.stream().map(DTOFactory::toDto).toList());
+    }
+
+    @Override
+    public ResponseEntity<PolicyDTO> newPolicy(String courseId, String name, String filePath, MultipartFile fileData, String description) {
+        Optional<Policy> policy = policyService.createNewPolicy(securityManager.getUser(), UUID.fromString(courseId), name, description, filePath, fileData);
+
+        if (policy.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(policy.get()));
+    }
+
+    @Override
+    public ResponseEntity<Void> deletePolicy(String courseId, String policyId){
+        if(!policyService.deletePolicy(UUID.fromString(courseId), UUID.fromString(policyId))){
+            return ResponseEntity.badRequest().build();
+        }
+
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+
+    }
+
+    @Override
+    public ResponseEntity<List<PolicyDTO>> adminGetAllPolicies(String courseId) {
+        List<Policy> policies = policyService.getAllPolicies(UUID.fromString(courseId));
+        return ResponseEntity.ok(policies.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
@@ -306,21 +347,10 @@ public class AdminApiImpl implements AdminApiDelegate {
     public ResponseEntity<UserDTO> adminUpdateUser(UserDTO userDTO) {
         Optional<User> user = Optional.empty();
 
-        if(userDTO.getEnabled()) {
-            user = userService.enableUser(user.get().getCwid());
-        }
-        else {
-            user = userService.disableUser(securityManager.getUser(), user.get().getCwid());
-        }
-
-        if (user.isEmpty()){
-            return ResponseEntity.badRequest().build();
-        }
-
         if(userDTO.getAdmin()) {
-            user = userService.makeAdmin(user.get().getCwid());
+            user = userService.makeAdmin(userDTO.getCwid());
         } else{
-            user = userService.demoteAdmin(securityManager.getUser(), user.get().getCwid());
+            user = userService.demoteAdmin(securityManager.getUser(), userDTO.getCwid());
 
         }
         user = userService.updateUser(userDTO);
@@ -329,12 +359,18 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        return ResponseEntity.accepted().body(new UserDTO()
-            .cwid(user.get().getCwid())
-            .email(user.get().getEmail())
-            .name(user.get().getName())
-            .admin(user.get().isAdmin())
-            .enabled(user.get().isEnabled()));
+        if(userDTO.getEnabled()) {
+            user = userService.enableUser(userDTO.getCwid());
+        }
+        else {
+            user = userService.disableUser(securityManager.getUser(), userDTO.getCwid());
+        }
+
+        if (user.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.accepted().body(DTOFactory.toDto(user.get()));
     }
 
     @Override

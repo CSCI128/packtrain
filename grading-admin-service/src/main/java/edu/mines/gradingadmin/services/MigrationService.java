@@ -1,19 +1,14 @@
 package edu.mines.gradingadmin.services;
 
-import edu.mines.gradingadmin.data.messages.RawGradeDTO;
-import edu.mines.gradingadmin.data.messages.ScoredDTO;
+import edu.mines.gradingadmin.data.policyServer.RawGradeDTO;
+import edu.mines.gradingadmin.data.policyServer.ScoredDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.factories.MigrationFactory;
 import edu.mines.gradingadmin.models.*;
-import edu.mines.gradingadmin.models.enums.LateRequestStatus;
-import edu.mines.gradingadmin.models.enums.MigrationStatus;
-import edu.mines.gradingadmin.models.enums.SubmissionStatus;
+import edu.mines.gradingadmin.models.enums.*;
 import edu.mines.gradingadmin.models.tasks.ProcessScoresAndExtensionsTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
-import edu.mines.gradingadmin.repositories.MasterMigrationRepo;
-import edu.mines.gradingadmin.repositories.MigrationRepo;
-import edu.mines.gradingadmin.repositories.MigrationTransactionLogRepo;
-import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
+import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.RabbitMqService;
 import jakarta.transaction.Transactional;
@@ -41,9 +36,12 @@ public class MigrationService {
     private final ApplicationEventPublisher eventPublisher;
     private final RabbitMqService rabbitMqService;
     private final PolicyServerService policyServerService;
-    private final RawScoreService rawScoreService;
+    private final RawScoreRepo rawScoreRepo;
+    private final MasterMigrationStatsRepo masterMigrationStatsRepo;
+    private final PolicyService policyService;
 
-    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreService rawScoreService){
+
+    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreRepo rawScoreRepo, MasterMigrationStatsRepo masterMigrationStatsRepo, PolicyService policyService){
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
@@ -54,12 +52,15 @@ public class MigrationService {
         this.eventPublisher = eventPublisher;
         this.rabbitMqService = rabbitMqService;
         this.policyServerService = policyServerService;
-        this.rawScoreService = rawScoreService;
+        this.rawScoreRepo = rawScoreRepo;
+        this.masterMigrationStatsRepo = masterMigrationStatsRepo;
+        this.policyService = policyService;
     }
 
-    public MasterMigration createMigrationForAssignments(Course course, List<Policy> policyList, List<Assignment> assignmentList){
+    public MasterMigration createMigrationForAssignments(Course course, User createdByUser, List<Policy> policyList, List<Assignment> assignmentList){
         MasterMigration masterMigration = new MasterMigration();
         masterMigration.setCourse(course);
+        masterMigration.setCreatedByUser(createdByUser);
         List<Migration> migrations = new ArrayList<>();
         for (int i = 0; i < assignmentList.size(); i++){
             Migration migration = new Migration();
@@ -74,19 +75,18 @@ public class MigrationService {
     @Transactional
     public List<MasterMigration> getAllMasterMigrations(String courseId){
        return masterMigrationRepo.getMasterMigrationsByCourseId(UUID.fromString(courseId));
-
     }
 
 
-    public Optional<MasterMigration> createMasterMigration(String courseId){
+    public Optional<MasterMigration> createMasterMigration(String courseId, User createdByUser){
         MasterMigration masterMigration = new MasterMigration();
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if (course.isEmpty()) {
             return Optional.empty();
         }
         masterMigration.setCourse(course.get());
-        masterMigrationRepo.save(masterMigration);
-        return Optional.of(masterMigration);
+        masterMigration.setCreatedByUser(createdByUser);
+        return Optional.of(masterMigrationRepo.save(masterMigration));
     }
 
     public Optional<MasterMigration> addMigration(String masterMigrationId, String assignmentId, String policyURI){
@@ -97,9 +97,9 @@ public class MigrationService {
         }
 
         Migration migration = new Migration();
-        URI uri =URI.create(policyURI);
+        URI uri = URI.create(policyURI);
 
-        Optional<Policy> policy = courseService.getPolicy(uri);
+        Optional<Policy> policy = policyService.getPolicy(uri).map(policyService::incrementUsedBy);
 
         if (policy.isEmpty()){
             return Optional.empty();
@@ -107,9 +107,11 @@ public class MigrationService {
 
         migration.setPolicy(policy.get());
         Optional<Assignment> assignment = assignmentService.getAssignmentById(assignmentId);
-       if (assignment.isEmpty()){
-           return Optional.empty();
-       }
+
+        if (assignment.isEmpty()){
+            return Optional.empty();
+        }
+
         migration.setAssignment(assignment.get());
         migration.setMasterMigration(masterMigration.get());
         migrationRepo.save(migration);
@@ -124,6 +126,22 @@ public class MigrationService {
         return migrationRepo.getMigrationById(UUID.fromString(migrationId));
     }
 
+    @Transactional
+    public Course getCourseForMigration(String migrationId){
+        Migration migration = getMigration(migrationId);
+
+        MasterMigration master = migration.getMasterMigration();
+
+        return master.getCourse();
+    }
+
+    @Transactional
+    public Assignment getAssignmentForMigration(String migrationId){
+        Migration migration = getMigration(migrationId);
+
+        return migration.getAssignment();
+    }
+
     public Optional<Migration> updatePolicyForMigration(String migrationId, String policyURI){
         Migration updatedMigration = migrationRepo.getMigrationById(UUID.fromString(migrationId));
         URI uri;
@@ -135,7 +153,12 @@ public class MigrationService {
             return Optional.empty();
         }
 
-        Optional<Policy> policy = courseService.getPolicy(uri);
+        Optional<Policy> policy = policyService.getPolicy(uri).map(policyService::incrementUsedBy);
+        if (updatedMigration.getPolicy() != null){
+            policyService.decrementUsedBy(updatedMigration.getPolicy());
+            updatedMigration.setPolicy(null);
+        }
+
         if (policy.isEmpty()){
             return Optional.empty();
         }
@@ -211,7 +234,7 @@ public class MigrationService {
             throw new RuntimeException("Failed to start grading!");
         }
 
-        List<RawScore> scores = rawScoreService.getRawScoresFromMigration(task.getMigrationId());
+        List<RawScore> scores = rawScoreRepo.getByMigrationId(task.getMigrationId());
 
         Map<String, LateRequest> lateRequests = extensionService.getLateRequestsForAssignment(task.getAssignmentId());
 
@@ -282,6 +305,41 @@ public class MigrationService {
         masterMigrationRepo.save(master.get());
 
         return tasks;
+    }
+
+    public Optional<MasterMigrationStats> getStatsForMigration(String masterMigrationId) {
+        return masterMigrationStatsRepo.findById(UUID.fromString(masterMigrationId));
+    }
+
+    public boolean attemptToStartRawScoreImport(String migrationId, String message, ExternalAssignmentType type){
+        Migration migration = getMigration(migrationId);
+
+        if (migration.getRawScoreStatus() != RawScoreStatus.EMPTY){
+            return false;
+        }
+
+        migration.setRawScoreStatus(RawScoreStatus.IMPORTING);
+        migration.setRawScoreMessage(message);
+        migration.setRawScoreType(type);
+
+        migrationRepo.save(migration);
+
+        return true;
+    }
+
+    public boolean finishRawScoreImport(String migrationId, String message){
+        Migration migration = getMigration(migrationId);
+
+        if (migration.getRawScoreStatus() != RawScoreStatus.IMPORTING){
+            return false;
+        }
+
+        migration.setRawScoreStatus(RawScoreStatus.PRESENT);
+        migration.setRawScoreMessage(message);
+
+        migrationRepo.save(migration);
+
+        return true;
     }
 
 }

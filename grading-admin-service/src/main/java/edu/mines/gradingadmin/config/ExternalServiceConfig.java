@@ -51,6 +51,14 @@ public class ExternalServiceConfig {
         private URI uri;
     }
 
+    @AllArgsConstructor
+    @RequiredArgsConstructor
+    @Getter
+    public static class GradescopeConfig{
+        private final boolean enabled;
+        private URI uri;
+    }
+
     @Bean
     public CanvasConfig configureCanvas(
             @Value("${grading-admin.external-services.canvas.enabled}") boolean enabled,
@@ -102,6 +110,15 @@ public class ExternalServiceConfig {
         return new PolicyServerConfig(true, uri);
     }
 
+    @Bean
+    public GradescopeConfig configureGradescope(
+            @Value("${grading-admin.external-services.gradescope.enabled}") boolean enabled,
+            @Value("${grading-admin.external-services.gradescope.uri}") URI uri
+    ){
+        if (!enabled){
+            return new GradescopeConfig(false);
+        }
 
-
+        return new GradescopeConfig(true, uri);
+    }
 }
