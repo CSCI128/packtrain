@@ -5,42 +5,61 @@ import {
   Divider,
   Fieldset,
   Group,
-  MultiSelect,
   NumberInput,
   Space,
+  TagsInput,
   Text,
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { getApiClient } from "@repo/api/index";
+import { Course, CourseSyncTask, Task } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { useEffect } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { $api } from "../../api";
 
 export function EditCourse() {
   const navigate = useNavigate();
-  const { data, error, isLoading } = $api.useQuery(
-    "get",
-    "/admin/courses/{course_id}",
-    {
-      params: {
-        path: { course_id: store$.id.get() as string },
-      },
-    }
-  );
+  const { data, error, isLoading } = useQuery<Course>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course({
+            course_id: store$.id.get() as string,
+            include: ["members", "assignments", "sections"],
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
-  const mutation = $api.useMutation("put", "/admin/courses/{course_id}");
-
-  // TODO add/link service mutation here
+  const mutation = useMutation({
+    mutationKey: ["updateCourse"],
+    mutationFn: ({ body }: { body: Course }) =>
+      getApiClient()
+        .then((client) =>
+          client.update_course(
+            {
+              course_id: store$.id.get() as string,
+            },
+            body
+          )
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   const updateCourse = (values: typeof form.values) => {
     mutation.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-          },
-        },
         body: {
           name: values.courseName as string,
           code: values.courseCode as string,
@@ -93,37 +112,30 @@ export function EditCourse() {
     },
   });
 
-  const syncAssignmentsMutation = $api.useMutation(
-    "post",
-    "/admin/courses/{course_id}/sync"
-  );
+  const [syncing, setSyncing] = useState(false);
+  const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
+  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
+  const [canvasId, setCanvasId] = useState("");
 
-  const syncAssignments = () => {
-    syncAssignmentsMutation.mutate(
-      {
-        params: {
-          path: {
-            course_id: "1",
-          },
-        },
-        body: {
-          canvas_id: 1,
-          overwrite_name: false,
-          overwrite_code: false,
-          import_users: true,
-          import_assignments: true,
-        },
-      },
-      {
-        onSuccess: (response) => {
-          console.log(response);
-        },
-      }
-    );
-  };
+  const { mutateAsync: fetchTask } = useMutation({
+    mutationKey: ["getTask"],
+    mutationFn: ({ task_id }: { task_id: number }) =>
+      getApiClient()
+        .then((client) =>
+          client.get_task({
+            task_id: task_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   useEffect(() => {
     if (data) {
+      setCanvasId(String(data.canvas_id));
       form.setValues({
         courseName: data.name,
         courseCode: data.code,
@@ -139,6 +151,92 @@ export function EditCourse() {
       });
     }
   }, [data]);
+
+  const pollTaskUntilComplete = useCallback(
+    async (taskId: number, delay = 5000) => {
+      while (true) {
+        try {
+          const response = await fetchTask({ task_id: taskId });
+
+          if (response.status === "COMPLETED") {
+            console.log(`Task ${taskId} is completed!`);
+            return response;
+          } else if (response.status === "FAILED") {
+            console.log(`Task ${taskId} failed`);
+            throw new Error("ERR");
+          } else {
+            console.log(
+              `Task ${taskId} is still in progress, retrying in ${delay}ms...`
+            );
+            await new Promise((res) => setTimeout(res, delay));
+          }
+        } catch (error) {
+          console.error(`Error fetching task ${taskId}:`, error);
+          return;
+        }
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (outstandingTasks.length === 0) return;
+
+    const pollTasks = async () => {
+      Promise.all(
+        outstandingTasks.map((task) => pollTaskUntilComplete(task.id))
+      )
+        .then((results) => {
+          console.log("All tasks are completed:", results);
+          setAllTasksCompleted(true);
+          setOutstandingTasks([]);
+        })
+        .catch((error) => {
+          console.error("Some tasks failed:", error);
+        });
+    };
+
+    pollTasks();
+  }, [syncing, outstandingTasks, pollTaskUntilComplete]);
+
+  const syncAssignmentsMutation = useMutation({
+    mutationKey: ["syncAssignments"],
+    mutationFn: ({ body }: { body: CourseSyncTask }) =>
+      getApiClient()
+        .then((client) =>
+          client.sync_course(
+            {
+              course_id: store$.id.get() as string,
+            },
+            body
+          )
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const syncAssignments = () => {
+    setSyncing(true);
+    syncAssignmentsMutation.mutate(
+      {
+        body: {
+          canvas_id: Number(canvasId),
+          overwrite_name: false,
+          overwrite_code: false,
+          import_users: true,
+          import_assignments: true,
+        },
+      },
+      {
+        onSuccess: (response) => {
+          setOutstandingTasks(response);
+        },
+      }
+    );
+  };
 
   if (isLoading || !data) return "Loading...";
 
@@ -210,9 +308,10 @@ export function EditCourse() {
               {...form.getInputProps("totalLatePassesAllowed")}
             />
 
-            <MultiSelect
+            <TagsInput
               pb={8}
               label="Allowed Extension Reasons"
+              placeholder="Enter tag.."
               key={form.key("enabledExtensionReasons")}
               {...form.getInputProps("enabledExtensionReasons")}
               data={[
@@ -247,10 +346,24 @@ export function EditCourse() {
           </Fieldset>
 
           <Group justify="flex-end" mt="md">
-            <Button onClick={syncAssignments} variant="filled">
-              Sync Assignments
-            </Button>
-
+            {!allTasksCompleted ? (
+              <>
+                {syncing ? (
+                  <>
+                    <Text>Syncing course with Canvas..</Text>
+                    <Button disabled color="gray" variant="filled">
+                      Sync Course
+                    </Button>
+                  </>
+                ) : (
+                  <Button onClick={syncAssignments} variant="filled">
+                    Sync Course
+                  </Button>
+                )}
+              </>
+            ) : (
+              <Text>Canvas re-sync complete!</Text>
+            )}
             <Button type="submit">Save</Button>
           </Group>
         </form>

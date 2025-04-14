@@ -15,4 +15,3 @@ syncObservable(store$, {
     plugin: ObservablePersistLocalStorage,
   },
 });
-// todo - need a better way to grab the user access_token

@@ -10,12 +10,12 @@ import {
   Text,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { Course } from "@repo/api/openapi";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { components } from "../../../admin/src/lib/api/v1";
 
 export function MigrationsLoadPage() {
-  const courseData: components["schemas"]["Course"][] = [
+  const courseData: Course[] = [
     {
       late_request_config: {
         enabled_extension_reasons: ["ext1"],
@@ -242,7 +242,12 @@ export function MigrationsLoadPage() {
             </Button>
 
             <Group>
-              <Button component={Link} to="/instructor/migrate" color="gray">
+              <Button
+                variant="light"
+                component={Link}
+                to="/instructor/migrate"
+                color="gray"
+              >
                 Cancel
               </Button>
 

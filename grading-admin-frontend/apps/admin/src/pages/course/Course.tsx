@@ -7,14 +7,16 @@ import {
   Table,
   Text,
 } from "@mantine/core";
+import { getApiClient } from "@repo/api/index";
+import { Course, Policy } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { TableHeader } from "@repo/ui/table/Table";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { BsBoxArrowUpRight, BsTrash } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
-import { $api, userManager } from "../../api";
-import { components } from "../../lib/api/v1";
+import { userManager } from "../../api";
 
 export function CoursePage() {
   const navigate = useNavigate();
@@ -23,28 +25,44 @@ export function CoursePage() {
     data: courseData,
     error: courseError,
     isLoading: courseIsLoading,
-  } = $api.useQuery("get", "/admin/courses/{course_id}", {
-    params: {
-      path: { course_id: store$.id.get() as string },
-      query: {
-        include: ["members", "assignments", "sections"],
-      },
-    },
+  } = useQuery<Course>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course({
+            course_id: store$.id.get() as string,
+            include: ["members", "assignments", "sections"],
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
   });
 
   const {
     data: policyData,
     error: policyError,
     isLoading: policyIsLoading,
-  } = $api.useQuery("get", "/admin/courses/{course_id}/policies", {
-    params: {
-      path: { course_id: store$.id.get() },
-    },
+  } = useQuery<Policy[]>({
+    queryKey: ["getPolicies"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.admin_get_all_policies({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
   });
 
-  const [policyDataState, setPolicyData] = useState<
-    components["schemas"]["Policy"][]
-  >(policyData || []);
+  const [policyDataState, setPolicyData] = useState<Policy[]>(policyData || []);
 
   useEffect(() => {
     if (policyData) {
@@ -52,17 +70,14 @@ export function CoursePage() {
     }
   }, [policyData]);
 
-  const handlePolicyDelete = (element: components["schemas"]["Policy"]) => {
+  const handlePolicyDelete = (element: Policy) => {
     userManager.getUser().then((u) => {
       axios
-        .delete(
-          `/api/admin/course/${store$.id.get()}/policies/${element.id}`,
-          {
-            headers: {
-              authorization: `Bearer ${u.access_token}`,
-            },
-          }
-        )
+        .delete(`/api/admin/course/${store$.id.get()}/policies/${element.id}`, {
+          headers: {
+            authorization: `Bearer ${u.access_token}`,
+          },
+        })
         .then(() => location.reload());
     });
   };
@@ -147,18 +162,36 @@ export function CoursePage() {
           (policyError && "An error occurred") || (
             <Table horizontalSpacing={"md"}>
               <Table.Tbody>
-                <TableHeader reversed={false} sorted={false} onSort={undefined}>
-                  Name
-                </TableHeader>
-                <TableHeader reversed={false} sorted={false} onSort={undefined}>
-                  Description
-                </TableHeader>
-                <TableHeader reversed={false} sorted={false} onSort={undefined}>
-                  URI
-                </TableHeader>
-                <TableHeader reversed={false} sorted={false} onSort={undefined}>
-                  Number of Migrations
-                </TableHeader>
+                <Table.Tr>
+                  <TableHeader
+                    reversed={false}
+                    sorted={false}
+                    onSort={undefined}
+                  >
+                    Name
+                  </TableHeader>
+                  <TableHeader
+                    reversed={false}
+                    sorted={false}
+                    onSort={undefined}
+                  >
+                    Description
+                  </TableHeader>
+                  <TableHeader
+                    reversed={false}
+                    sorted={false}
+                    onSort={undefined}
+                  >
+                    URI
+                  </TableHeader>
+                  <TableHeader
+                    reversed={false}
+                    sorted={false}
+                    onSort={undefined}
+                  >
+                    Number of Migrations
+                  </TableHeader>
+                </Table.Tr>
               </Table.Tbody>
               <Table.Tbody>{rows}</Table.Tbody>
             </Table>

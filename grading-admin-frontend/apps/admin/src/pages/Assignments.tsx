@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Center,
   Checkbox,
@@ -16,13 +17,14 @@ import {
 import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
+import { getApiClient } from "@repo/api/index";
+import { Assignment, Course } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
-import { $api } from "../api";
-import { components } from "../lib/api/v1";
 
 interface AssignmentRowData {
   id: string;
@@ -42,25 +44,30 @@ interface AssignmentRowData {
 }
 
 export function AssignmentsPage() {
-  const { data, error, isLoading, refetch } = $api.useQuery(
-    "get",
-    "/admin/courses/{course_id}",
-    {
-      params: {
-        path: { course_id: store$.id.get() as string },
-        query: { include: ["assignments"] },
-      },
-    }
-  );
+  const { data, error, isLoading, refetch } = useQuery<Course>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course({
+            course_id: store$.id.get() as string,
+            include: ["assignments"],
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   const [value, setValue] = useState<Date | null>(new Date());
   const [unlockDateValue, setUnlockDateValue] = useState<Date | null>(
     new Date()
   );
   const [opened, { open, close }] = useDisclosure(false);
-  const [selectedAssignment, setSelectedAssignment] = useState<
-    components["schemas"]["Assignment"] | null
-  >(null);
+  const [selectedAssignment, setSelectedAssignment] =
+    useState<Assignment | null>(null);
 
   const form = useForm({
     mode: "uncontrolled",
@@ -91,7 +98,7 @@ export function AssignmentsPage() {
     },
   });
 
-  const handleAssignmentEdit = (row: components["schemas"]["Assignment"]) => {
+  const handleAssignmentEdit = (row: Assignment) => {
     setSelectedAssignment(row);
     form.setValues({
       name: row.name,
@@ -111,7 +118,7 @@ export function AssignmentsPage() {
 
   const [search, setSearch] = useState("");
   const [sortedData, setSortedData] = useState(data?.assignments || []);
-  const [sortBy, setSortBy] = useState<keyof AssignmentRowData | null>(null);
+  const [sortBy, setSortBy] = useState<keyof AssignmentRowData>("name");
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
   const setSorting = (field: keyof AssignmentRowData) => {
@@ -139,19 +146,25 @@ export function AssignmentsPage() {
     );
   };
 
-  const updateAssignment = $api.useMutation(
-    "put",
-    "/admin/courses/{course_id}/assignments"
-  );
+  const updateAssignment = useMutation({
+    mutationKey: ["updateAssignment"],
+    mutationFn: ({ body }: { body: Assignment }) =>
+      getApiClient()
+        .then((client) =>
+          client.update_assignment(
+            {
+              course_id: store$.id.get() as string,
+            },
+            body
+          )
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
   const editAssignment = (values: typeof form.values) => {
     updateAssignment.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-          },
-        },
         body: {
           id: selectedAssignment?.id,
           name: values.name,
@@ -180,9 +193,15 @@ export function AssignmentsPage() {
   // sync sortedData with data
   useEffect(() => {
     if (data?.assignments) {
-      setSortedData(data.assignments);
+      setSortedData(
+        sortData<AssignmentRowData>(data.assignments as AssignmentRowData[], {
+          sortBy: sortBy ?? "name",
+          reversed: reverseSortDirection,
+          search,
+        })
+      );
     }
-  }, [data?.assignments]);
+  }, [data?.assignments, sortBy, reverseSortDirection, search]);
 
   if (isLoading || !data) return "Loading...";
 
@@ -215,100 +234,104 @@ export function AssignmentsPage() {
   return (
     <>
       <Modal opened={opened} onClose={close} title="Edit Assignment">
-        <form onSubmit={form.onSubmit(editAssignment)}>
-          <TextInput
-            withAsterisk
-            label="Name"
-            key={form.key("name")}
-            {...form.getInputProps("name")}
-          />
-
-          <TextInput
-            withAsterisk
-            label="Category"
-            key={form.key("category")}
-            {...form.getInputProps("category")}
-          />
-
-          <TextInput
-            disabled
-            label="Canvas ID"
-            key={form.key("canvas_id")}
-            {...form.getInputProps("canvas_id")}
-          />
-
-          <TextInput
-            withAsterisk
-            label="Points"
-            key={form.key("points")}
-            {...form.getInputProps("points")}
-          />
-
-          <Select
-            withAsterisk
-            label="External Service:"
-            placeholder="Pick value"
-            data={[
-              { value: "GRADESCOPE", label: "Gradescope" },
-              { value: "PRAIRIELEARN", label: "PrairieLearn" },
-              { value: "RUNESTONE", label: "Runestone" },
-            ]}
-            key={form.key("external_service")}
-            {...form.getInputProps("external_service")}
-          />
-
-          <TextInput
-            withAsterisk
-            label="External Points"
-            key={form.key("external_points")}
-            {...form.getInputProps("external_points")}
-          />
-
-          <DateInput
-            disabled
-            label="Unlock Date"
-            placeholder="Pick date"
-            value={unlockDateValue}
-            {...form.getInputProps("unlock_date")}
-            onChange={setUnlockDateValue}
-          />
-
-          <DateInput
-            label="Due Date"
-            placeholder="Pick date"
-            value={value}
-            {...form.getInputProps("due_date")}
-            onChange={setValue}
-          />
-
-          <InputWrapper withAsterisk label="Enabled">
-            <Checkbox
-              defaultChecked={form.values.enabled}
-              key={form.key("enabled")}
-              {...form.getInputProps("enabled", { type: "checkbox" })}
+        <Box w="95%" mx="auto">
+          <form onSubmit={form.onSubmit(editAssignment)}>
+            <TextInput
+              withAsterisk
+              label="Name"
+              key={form.key("name")}
+              {...form.getInputProps("name")}
             />
-          </InputWrapper>
 
-          <Text>
-            Group assignment:{" "}
-            {selectedAssignment?.group_assignment ? "Yes" : "No"}
-          </Text>
+            <TextInput
+              withAsterisk
+              disabled
+              label="Category"
+              key={form.key("category")}
+              {...form.getInputProps("category")}
+            />
 
-          <Text>
-            Frozen from re-syncing: {selectedAssignment?.frozen ? "Yes" : "No"}
-          </Text>
+            <TextInput
+              disabled
+              label="Canvas ID"
+              key={form.key("canvas_id")}
+              {...form.getInputProps("canvas_id")}
+            />
 
-          <br />
+            <TextInput
+              withAsterisk
+              label="Points"
+              key={form.key("points")}
+              {...form.getInputProps("points")}
+            />
 
-          <Group gap="xs" justify="flex-end">
-            <Button color="gray" onClick={close}>
-              Cancel
-            </Button>
-            <Button color="blue" type="submit">
-              Save
-            </Button>
-          </Group>
-        </form>
+            <Select
+              withAsterisk
+              label="External Service:"
+              placeholder="Pick value"
+              data={[
+                { value: "GRADESCOPE", label: "Gradescope" },
+                { value: "PRAIRIELEARN", label: "PrairieLearn" },
+                { value: "RUNESTONE", label: "Runestone" },
+              ]}
+              key={form.key("external_service")}
+              {...form.getInputProps("external_service")}
+            />
+
+            <TextInput
+              withAsterisk
+              label="External Points"
+              key={form.key("external_points")}
+              {...form.getInputProps("external_points")}
+            />
+
+            <DateInput
+              disabled
+              label="Unlock Date"
+              placeholder="Pick date"
+              value={unlockDateValue}
+              {...form.getInputProps("unlock_date")}
+              onChange={setUnlockDateValue}
+            />
+
+            <DateInput
+              label="Due Date"
+              placeholder="Pick date"
+              value={value}
+              {...form.getInputProps("due_date")}
+              onChange={setValue}
+            />
+
+            <InputWrapper withAsterisk label="Enabled">
+              <Checkbox
+                defaultChecked={form.values.enabled}
+                key={form.key("enabled")}
+                {...form.getInputProps("enabled", { type: "checkbox" })}
+              />
+            </InputWrapper>
+
+            <Text>
+              Group assignment:{" "}
+              {selectedAssignment?.group_assignment ? "Yes" : "No"}
+            </Text>
+
+            <Text>
+              Frozen from re-syncing:{" "}
+              {selectedAssignment?.frozen ? "Yes" : "No"}
+            </Text>
+
+            <br />
+
+            <Group gap="xs" justify="flex-end">
+              <Button color="gray" variant="light" onClick={close}>
+                Cancel
+              </Button>
+              <Button color="blue" type="submit">
+                Save
+              </Button>
+            </Group>
+          </form>
+        </Box>
       </Modal>
 
       <Container fluid w="100%" p={35}>

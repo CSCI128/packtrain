@@ -1,20 +1,27 @@
 import { Box, Button, Container, Divider, Text } from "@mantine/core";
+import { getApiClient } from "@repo/api/index";
+import { MasterMigration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { formattedDate } from "@repo/ui/DateUtil";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { formattedDate } from "../../../packages/ui/src/DateUtil";
-import { components } from "../../admin/src/lib/api/v1";
-import { $api } from "./api";
 
 export function MigrationsPage() {
-  const { data, error, isLoading } = $api.useQuery(
-    "get",
-    "/instructor/courses/{course_id}/migrations",
-    {
-      params: {
-        path: { course_id: store$.id.get() as string },
-      },
-    }
-  );
+  const { data, error, isLoading } = useQuery<MasterMigration[] | null>({
+    queryKey: ["getMigrations"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_all_master_migrations_for_course({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   if (isLoading || !data) return "Loading...";
 
@@ -30,7 +37,7 @@ export function MigrationsPage() {
         <Divider my="sm" />
 
         {data.length > 0 ? (
-          data.map((migration: components["schemas"]["MasterMigration"]) => (
+          data.map((migration: MasterMigration) => (
             <Box pb={20} key={migration.id}>
               <Text>
                 <strong>

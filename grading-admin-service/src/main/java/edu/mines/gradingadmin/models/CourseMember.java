@@ -34,7 +34,7 @@ public class CourseMember {
     @EqualsAndHashCode.Exclude
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

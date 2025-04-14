@@ -12,15 +12,16 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { getApiClient } from "@repo/api/index";
+import { Extension, LateRequest, StudentInformation } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { MdDelete } from "react-icons/md";
 import { Link } from "react-router-dom";
-import { components } from "../../../admin/src/lib/api/v1";
-import { $api } from "../api";
 
 interface RequestRowData {
   id?: string;
@@ -29,7 +30,7 @@ interface RequestRowData {
   num_days_requested: number;
   assignment_id?: string;
   assignment_name?: string;
-  extension?: components["schemas"]["Extension"];
+  extension?: Extension;
   user_requester_id?: string;
   status: "pending" | "approved" | "rejected";
 }
@@ -40,30 +41,54 @@ export function Requests() {
     error: studentError,
     isLoading: studentIsLoading,
     refetch: refetchStudent,
-  } = $api.useQuery("get", "/student/courses/{course_id}", {
-    params: {
-      path: { course_id: store$.id.get() as string },
-    },
+  } = useQuery<StudentInformation | null>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course_information_student({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
   });
 
-  const { data, error, isLoading, refetch } = $api.useQuery(
-    "get",
-    "/student/courses/{course_id}/extensions",
-    {
-      params: {
-        path: { course_id: store$.id.get() as string },
-      },
-    }
-  );
+  const { data, error, isLoading, refetch } = useQuery<LateRequest[] | null>({
+    queryKey: ["getExtensions"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_all_extensions({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
-  const withdrawExtension = $api.useMutation(
-    "delete",
-    "/student/courses/{course_id}/extensions/{extension_id}/withdraw"
-  );
+  const withdrawExtension = useMutation({
+    mutationKey: ["withdrawExtension"],
+    mutationFn: ({ extension_id }: { extension_id: string }) =>
+      getApiClient()
+        .then((client) =>
+          client.withdraw_extension({
+            course_id: store$.id.get() as string,
+            extension_id: extension_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
-  const [selectedExtension, setSelectedExtension] = useState<
-    components["schemas"]["LateRequest"] | null
-  >(null);
+  const [selectedExtension, setSelectedExtension] =
+    useState<LateRequest | null>(null);
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
     useDisclosure(false);
   const [search, setSearch] = useState("");
@@ -85,6 +110,9 @@ export function Requests() {
   if (studentIsLoading || !studentData) return "Loading...";
 
   if (studentError) return `An error occured: ${studentError}`;
+
+  const LATE_PASSES_ALLOWED =
+    studentData.course.late_request_config.total_late_passes_allowed;
 
   const setSorting = (field: keyof RequestRowData) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
@@ -115,12 +143,7 @@ export function Requests() {
   const deleteExtension = (extension_id: string) => {
     withdrawExtension.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-            extension_id: extension_id,
-          },
-        },
+        extension_id: extension_id,
       },
       {
         onSuccess: () => {
@@ -132,7 +155,7 @@ export function Requests() {
     closeDelete();
   };
 
-  const rows = sortedData.map((row) => (
+  const rows = sortedData.map((row: LateRequest) => (
     <Table.Tr key={row.id}>
       <Table.Td>{formattedDate(new Date(row.date_submitted))}</Table.Td>
       <Table.Td>
@@ -176,7 +199,7 @@ export function Requests() {
               action <strong>cannot</strong> be undone!
             </Text>
 
-            <Button color="gray" onClick={closeDelete}>
+            <Button variant="light" color="gray" onClick={closeDelete}>
               Cancel
             </Button>
 
@@ -281,7 +304,7 @@ export function Requests() {
 
         <Group grow mt={25}>
           <Stack>
-            {studentData.late_passes_used === 5 ? (
+            {studentData.late_passes_used === LATE_PASSES_ALLOWED ? (
               <>
                 <Text size="md" ta="center" c="red.9" fw={700}>
                   You have no late passes remaining!
@@ -295,7 +318,9 @@ export function Requests() {
               <>
                 <Text size="md" ta="center">
                   You have{" "}
-                  <strong>{5 - (studentData.late_passes_used ?? 0)}</strong>{" "}
+                  <strong>
+                    {LATE_PASSES_ALLOWED - (studentData.late_passes_used ?? 0)}
+                  </strong>{" "}
                   late passes remaining.
                 </Text>
               </>

@@ -12,12 +12,14 @@ import {
   Textarea,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { getApiClient } from "@repo/api/index";
+import { Assignment, LateRequest, StudentInformation } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store.js";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
 import { Link, useNavigate } from "react-router-dom";
-import { $api } from "../api";
 
 export function ExtensionForm() {
   const auth = useAuth();
@@ -63,35 +65,49 @@ export function ExtensionForm() {
 
   const {
     data: courseData,
-    isLoading,
     error,
-  } = $api.useQuery("get", "/student/courses/{course_id}", {
-    params: {
-      path: {
-        course_id: store$.id.get() as string,
-      },
-    },
+    isLoading,
+  } = useQuery<StudentInformation | null>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course_information_student({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
   });
 
   const getAssignmentDueDate = (assignmentId: string) => {
     return courseData?.course.assignments
-      ?.filter((x) => x.id === assignmentId)
+      ?.filter((x: Assignment) => x.id === assignmentId)
       .at(0)?.due_date;
   };
 
-  const postForm = $api.useMutation(
-    "post",
-    "/student/courses/{course_id}/extensions"
-  );
+  const postForm = useMutation({
+    mutationKey: ["createExtensionRequest"],
+    mutationFn: ({ body }: { body: LateRequest }) =>
+      getApiClient()
+        .then((client) =>
+          client.create_extension_request(
+            {
+              course_id: store$.id.get() as string,
+            },
+            body
+          )
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
   const submitExtension = (values: typeof extensionForm.values) => {
     postForm.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-          },
-        },
         body: {
           user_requester_id: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
@@ -117,11 +133,6 @@ export function ExtensionForm() {
   const submitLatePass = (values: typeof latePassForm.values) => {
     postForm.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-          },
-        },
         body: {
           user_requester_id: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
@@ -143,6 +154,9 @@ export function ExtensionForm() {
   if (isLoading || !courseData) return "Loading...";
 
   if (error) return `An error occured: ${error}`;
+
+  const LATE_PASSES_ALLOWED =
+    courseData.course.late_request_config.total_late_passes_allowed;
 
   function CalculatedDate() {
     return (
@@ -223,7 +237,7 @@ export function ExtensionForm() {
       {latePassView ? (
         <form onSubmit={latePassForm.onSubmit(submitLatePass)}>
           <Stack>
-            {(courseData.late_passes_used ?? 0) >= 5 ? (
+            {(courseData.late_passes_used ?? 0) >= LATE_PASSES_ALLOWED ? (
               <>
                 <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
                   You have no late passes remaining!
@@ -261,9 +275,11 @@ export function ExtensionForm() {
 
                 <Text>
                   You have{" "}
-                  <strong>{5 - (courseData.late_passes_used ?? 0)}</strong> late
-                  passes remaining. Late passes are five, free passes to use
-                  over the course of the semester to extend your work.
+                  <strong>
+                    {LATE_PASSES_ALLOWED - (courseData.late_passes_used ?? 0)}
+                  </strong>{" "}
+                  late passes remaining. Late passes are five, free passes to
+                  use over the course of the semester to extend your work.
                 </Text>
 
                 <Group>
@@ -271,7 +287,9 @@ export function ExtensionForm() {
                     withAsterisk
                     label="Days to extend:"
                     defaultValue={1}
-                    max={5 - (courseData.late_passes_used ?? 0)}
+                    max={
+                      LATE_PASSES_ALLOWED - (courseData.late_passes_used ?? 0)
+                    }
                     min={1}
                     key={latePassForm.key("daysRequested")}
                     {...latePassForm.getInputProps("daysRequested")}
@@ -283,7 +301,7 @@ export function ExtensionForm() {
                   <Text>
                     (
                     <strong>
-                      {5 -
+                      {LATE_PASSES_ALLOWED -
                         (courseData.late_passes_used ?? 0) -
                         numDaysRequested}{" "}
                       remaining
@@ -298,13 +316,19 @@ export function ExtensionForm() {
           </Stack>
 
           <Group justify="flex-end" mt="md">
-            <Button component={Link} to="/requests" color="gray">
+            <Button
+              variant="light"
+              component={Link}
+              to="/requests"
+              color="gray"
+            >
               Cancel
             </Button>
 
-            {(courseData.late_passes_used ?? 0) < 5 && (
-              <Button type="submit">Submit</Button>
-            )}
+            {selectedAssignmentId &&
+              (courseData.late_passes_used ?? 0) < LATE_PASSES_ALLOWED && (
+                <Button type="submit">Submit</Button>
+              )}
           </Group>
         </form>
       ) : (
@@ -380,10 +404,15 @@ export function ExtensionForm() {
           </Stack>
 
           <Group justify="flex-end" mt="md">
-            <Button component={Link} to="/requests" color="gray">
+            <Button
+              variant="light"
+              component={Link}
+              to="/requests"
+              color="gray"
+            >
               Cancel
             </Button>
-            <Button type="submit">Submit</Button>
+            {selectedAssignmentId && <Button type="submit">Submit</Button>}
           </Group>
         </form>
       )}

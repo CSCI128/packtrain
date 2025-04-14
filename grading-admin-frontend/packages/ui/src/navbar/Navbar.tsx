@@ -10,15 +10,27 @@ import {
   ScrollArea,
   Stack,
   Text,
+  UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { store$ } from "@repo/api/store";
+import { SelectClass } from "@repo/ui/pages/Select";
+import { IconChevronDown } from "@tabler/icons-react";
 import { useAuth } from "react-oidc-context";
 import { useNavigate } from "react-router-dom";
-import { SelectClass } from "../Select";
 import classes from "./Navbar.module.scss";
 
-export function Navbar() {
+type Link = {
+  href: string;
+  label: string;
+};
+
+interface NavbarProps {
+  staticLinks: Link[];
+  links: Link[];
+}
+
+export function Navbar({ staticLinks, links }: NavbarProps) {
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
     useDisclosure(false);
   const [opened, { open, close }] = useDisclosure(false);
@@ -35,21 +47,15 @@ export function Navbar() {
         <header className={classes.header}>
           <Group justify="space-between" h="100%">
             <Group h="100%" gap={0} visibleFrom="sm">
-              <p onClick={() => navigate("/instructor/migrate")}>
+              <p onClick={() => navigate(staticLinks[0]?.href as string)}>
                 Grading Admin
               </p>
-              {auth.user?.profile.is_admin ? (
-                <>
-                  <a href="/instructor/migrate" className={classes.link}>
-                    Migrate
-                  </a>
-                  <a href="/members" className={classes.link}>
-                    Members
-                  </a>
-                </>
-              ) : (
-                <></>
-              )}
+
+              {links.map((link) => (
+                <a key={link.href} href={link.href} className={classes.link}>
+                  {link.label}
+                </a>
+              ))}
             </Group>
 
             <Burger
@@ -72,11 +78,18 @@ export function Navbar() {
               ) : (
                 <Menu shadow="md" width={200}>
                   <Menu.Target>
-                    <p>{auth.user.profile.name}</p>
+                    <UnstyledButton>
+                      <Group gap={7}>
+                        <Text fw={500} size="sm" lh={1} mr={3}>
+                          {auth.user.profile.name}
+                        </Text>
+                        <IconChevronDown size={12} stroke={1.5} />
+                      </Group>
+                    </UnstyledButton>
                   </Menu.Target>
 
                   <Menu.Dropdown>
-                    <Menu.Item component="a" href="/profile">
+                    <Menu.Item component="a" href={staticLinks[1]?.href}>
                       Profile
                     </Menu.Item>
 
@@ -115,28 +128,14 @@ export function Navbar() {
               <Divider my="sm" />
 
               <Box ml={20}>
-                <p onClick={() => navigate("/")}>Grading Admin</p>
-                {auth.user?.profile.is_admin ? (
-                  <>
-                    <a href="/instructor/migrate" className={classes.link}>
-                      Migrate
-                    </a>
-                    <a href="/admin/home" className={classes.link}>
-                      Course
-                    </a>
-                    <a href="/admin/assignments" className={classes.link}>
-                      Assignments
-                    </a>
-                    <a href="/admin/members" className={classes.link}>
-                      Members
-                    </a>
-                    <a href="/admin/users" className={classes.link}>
-                      Users
-                    </a>
-                  </>
-                ) : (
-                  <></>
-                )}
+                <p onClick={() => navigate(staticLinks[0]?.href as string)}>
+                  Grading Admin
+                </p>
+                {links.map((link) => (
+                  <a key={link.href} href={link.href} className={classes.link}>
+                    {link.label}
+                  </a>
+                ))}
               </Box>
 
               <Divider my="sm" />
@@ -157,7 +156,7 @@ export function Navbar() {
                       <Text>{auth.user.profile.name}</Text>
 
                       <Menu.Dropdown>
-                        <Menu.Item component="a" href="/profile">
+                        <Menu.Item component="a" href={staticLinks[1]?.href}>
                           Profile
                         </Menu.Item>
 

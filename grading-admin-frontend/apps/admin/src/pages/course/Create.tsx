@@ -6,31 +6,62 @@ import {
   Fieldset,
   Group,
   Loader,
-  MultiSelect,
   NumberInput,
   Space,
+  TagsInput,
   Text,
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { getApiClient } from "@repo/api/index";
+import { Course, CourseSyncTask, Credential, Task } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { $api } from "../../api";
-import { components } from "../../lib/api/v1";
 
 export function CreatePage() {
-  const mutation = $api.useMutation("post", "/admin/courses");
-  const importMutation = $api.useMutation(
-    "post",
-    "/admin/courses/{course_id}/import"
-  );
+  const mutation = useMutation({
+    mutationKey: ["updateCourse"],
+    mutationFn: ({ body }: { body: Course }) =>
+      getApiClient()
+        .then((client) =>
+          client.update_course(
+            {
+              course_id: store$.id.get() as string,
+            },
+            body
+          )
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const importMutation = useMutation({
+    mutationKey: ["importCourse"],
+    mutationFn: ({ body }: { body: CourseSyncTask }) =>
+      getApiClient()
+        .then((client) =>
+          client.import_course(
+            {
+              course_id: store$.id.get() as string,
+            },
+            body
+          )
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
   const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
-  const [outstandingTasks, setOutstandingTasks] = useState<
-    components["schemas"]["Task"][]
-  >([]);
+  const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
   const [canvasId, setCanvasId] = useState("");
-  const [courseId, setCourseId] = useState("");
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
   const [courseCreated, setCourseCreated] = useState(false);
   const [importStatistics, setImportStatistics] = useState({
@@ -39,19 +70,23 @@ export function CreatePage() {
     sections: 0,
   });
 
-  const { data: credentialData, error: credentialError } = $api.useQuery(
-    "get",
-    "/user/credentials"
-  );
+  const { data: credentialData, error: credentialError } = useQuery<
+    Credential[]
+  >({
+    queryKey: ["getCredentials"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) => client.get_credentials())
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   const importCourse = () => {
     importMutation.mutate(
       {
-        params: {
-          path: {
-            course_id: store$.id.get() as string,
-          },
-        },
         body: {
           canvas_id: Number(canvasId),
           overwrite_name: false,
@@ -68,18 +103,27 @@ export function CreatePage() {
     );
   };
 
-  const { mutateAsync: fetchTask } = $api.useMutation(
-    "get",
-    "/tasks/{task_id}"
-  );
+  const { mutateAsync: fetchTask } = useMutation({
+    mutationKey: ["getTask"],
+    mutationFn: ({ task_id }: { task_id: number }) =>
+      getApiClient()
+        .then((client) =>
+          client.get_task({
+            task_id: task_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   const pollTaskUntilComplete = useCallback(
     async (taskId: number, delay = 5000) => {
       while (true) {
         try {
-          const response = await fetchTask({
-            params: { path: { task_id: taskId } },
-          });
+          const response = await fetchTask({ task_id: taskId });
 
           if (response.status === "COMPLETED") {
             console.log(`Task ${taskId} is completed!`);
@@ -122,21 +166,23 @@ export function CreatePage() {
     pollTasks();
   }, [outstandingTasks, pollTaskUntilComplete]);
 
-  const { data, error } = $api.useQuery(
-    "get",
-    "/admin/courses/{course_id}",
-    {
-      params: {
-        path: { course_id: courseId as string },
-        query: {
-          include: ["members", "assignments", "sections"],
-        },
-      },
-    },
-    {
-      enabled: courseCreated && allTasksCompleted,
-    }
-  );
+  const { data: data, error: error } = useQuery<Course>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course({
+            course_id: store$.id.get() as string,
+            include: ["members", "assignments", "sections"],
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+    enabled: courseCreated && allTasksCompleted,
+  });
 
   useEffect(() => {
     if (courseCreated && allTasksCompleted && data) {
@@ -169,7 +215,6 @@ export function CreatePage() {
       {
         onSuccess: (response) => {
           setCanvasId(values.canvasId);
-          setCourseId(response.id as string);
           setCourseCreated(true);
           store$.id.set(response.id as string);
           store$.name.set(response.name);
@@ -313,10 +358,11 @@ export function CreatePage() {
                   {...form.getInputProps("totalLatePassesAllowed")}
                 />
 
-                <MultiSelect
+                <TagsInput
                   disabled={courseCreated}
                   pb={8}
                   label="Allowed Extension Reasons"
+                  placeholder="Enter tag.."
                   key={form.key("enabledExtensionReasons")}
                   {...form.getInputProps("enabledExtensionReasons")}
                   data={[
@@ -389,7 +435,7 @@ export function CreatePage() {
                     disabled={!allTasksCompleted}
                     color={allTasksCompleted ? "blue" : "gray"}
                     component={Link}
-                    to="/admin/home"
+                    to="/admin"
                   >
                     Continue
                   </Button>
