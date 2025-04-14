@@ -25,9 +25,7 @@ public interface UserRepo extends CrudRepository<User, String> {
     @Query("select u from user u")
     List<User> getAll();
 
-    @Query("select u from user u where u.cwid = ?1")
+    @Query("select u.courseMemberships from user u where u.cwid = ?1")
     List<CourseMember> getUserEnrollmentsById(String id);
 
-    @Query("select u from user u where u.cwid = ?1")
-    List<Course> getUserCoursesById(String id);
 }

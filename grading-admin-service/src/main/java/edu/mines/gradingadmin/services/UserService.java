@@ -5,6 +5,7 @@ import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +19,11 @@ import java.util.*;
 @Slf4j
 public class UserService {
     private final UserRepo userRepo;
+    private final CourseMemberRepo courseMemberRepo;
 
-    public UserService(UserRepo userRepo) {
+    public UserService(UserRepo userRepo, CourseMemberRepo courseMemberRepo) {
         this.userRepo = userRepo;
+        this.courseMemberRepo = courseMemberRepo;
     }
 
     public Optional<User> getUserByCwid(String cwid){
@@ -191,6 +194,7 @@ public class UserService {
         return Optional.of(userRepo.save(user.get()));
     }
 
+    @Transactional
     public List<CourseMember> getCourseMemberships(String cwid) {
         Optional<User> user = userRepo.getByCwid(cwid);
         if (user.isEmpty()){
@@ -199,12 +203,9 @@ public class UserService {
         return userRepo.getUserEnrollmentsById(user.get().getCwid());
     }
 
+    @Transactional
     public List<Course> getEnrollments(String cwid) {
-        Optional<User> user = userRepo.getByCwid(cwid);
-        if (user.isEmpty()){
-            return List.of();
-        }
-        return userRepo.getUserCoursesById(user.get().getCwid());
+        return courseMemberRepo.getEnabledCoursesByUserId(cwid);
     }
 
 
