@@ -39,7 +39,7 @@ public class CourseService {
     private final PolicyRepo policyRepo;
     private final UserService userService;
 
-    public CourseService(CourseRepo courseRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
+    public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
                          CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, UserService userService) {
 

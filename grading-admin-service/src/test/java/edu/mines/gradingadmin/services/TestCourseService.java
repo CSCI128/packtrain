@@ -58,6 +58,8 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     private ScheduledTaskRepo<CourseSyncTaskDef> scheduledTaskRepo;
     @Autowired
     private UserService userService;
+    @Autowired
+    private PolicyRepo policyRepo;
 
     @BeforeAll
     static void setupClass() {
