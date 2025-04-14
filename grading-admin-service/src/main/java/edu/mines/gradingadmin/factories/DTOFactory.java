@@ -77,8 +77,8 @@ public class DTOFactory {
             .lateRequestConfig(toDto(course.getLateRequestConfig()))
             .code(course.getCode());
 
-        if(course.getGradescopeConfig() != null && course.getGradescopeConfig().getUri() != null) {
-            courseDto.setGradescopeId(Long.valueOf(course.getGradescopeConfig().getUri()));
+        if(course.getGradescopeConfig() != null && course.getGradescopeConfig().getGradescopeId() != null) {
+            courseDto.setGradescopeId(course.getGradescopeConfig().getGradescopeId());
         }
 
         return courseDto;

@@ -17,6 +17,6 @@ public class GradescopeConfig {
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
 
-    @Column(name = "uri", unique = true, nullable = false)
-    private String uri;
+    @Column(name = "gradescopeId", unique = true, nullable = false)
+    private String gradescopeId;
 }
