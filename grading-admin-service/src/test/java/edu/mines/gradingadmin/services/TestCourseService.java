@@ -41,6 +41,9 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @Autowired
     private CourseLateRequestConfigRepo lateRequestConfigRepo;
 
+    @Autowired
+    private GradescopeConfigRepo gradescopeConfigRepo;
+
     private CourseService courseService;
     @Mock
     private CanvasService canvasService;
@@ -70,7 +73,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @BeforeEach
     void setup(){
         courseService = new CourseService(
-                courseRepo, lateRequestConfigRepo, scheduledTaskRepo,
+                courseRepo, lateRequestConfigRepo, gradescopeConfigRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
                 s3Service, policyRepo, userService

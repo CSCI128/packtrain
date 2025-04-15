@@ -149,9 +149,9 @@ declare namespace Components {
             canvas_id: number; // int64
             /**
              * example:
-             * 123456
+             * 932552
              */
-            gradescope_id?: number; // int64
+            gradescope_id?: string;
             members?: /* A user in a course */ CourseMember[];
             assignments?: /* An assignment in a course */ Assignment[];
             /**

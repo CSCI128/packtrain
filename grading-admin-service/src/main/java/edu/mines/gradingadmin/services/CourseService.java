@@ -10,10 +10,7 @@ import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
-import edu.mines.gradingadmin.repositories.CourseLateRequestConfigRepo;
-import edu.mines.gradingadmin.repositories.CourseRepo;
-import edu.mines.gradingadmin.repositories.PolicyRepo;
-import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
+import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.services.external.CanvasService;
 import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.S3Service;
@@ -30,21 +27,22 @@ import java.util.*;
 public class CourseService {
     private final CourseRepo courseRepo;
     private final CourseLateRequestConfigRepo lateRequestConfigRepo;
+    private final GradescopeConfigRepo gradescopeConfigRepo;
     private final ScheduledTaskRepo<CourseSyncTaskDef> taskRepo;
-
     private final ApplicationEventPublisher eventPublisher;
     private final ImpersonationManager impersonationManager;
     private final CanvasService canvasService;
     private final S3Service s3Service;
     private final PolicyRepo policyRepo;
     private final UserService userService;
+    public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, GradescopeConfigRepo gradescopeConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
 
-    public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
                          CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, UserService userService) {
 
         this.courseRepo = courseRepo;
         this.lateRequestConfigRepo = lateRequestConfigRepo;
+        this.gradescopeConfigRepo = gradescopeConfigRepo;
         this.taskRepo = taskRepo;
         this.impersonationManager = impersonationManager;
         this.canvasService = canvasService;
@@ -100,6 +98,15 @@ public class CourseService {
             config.setTotalLatePassesAllowed(courseDTO.getLateRequestConfig().getTotalLatePassesAllowed());
 
             course.get().setLateRequestConfig(lateRequestConfigRepo.save(config));
+        }
+
+        GradescopeConfig gsConfig = course.get().getGradescopeConfig();
+        if(gsConfig != null) {
+            if(courseDTO.getGradescopeId() != null) {
+                gsConfig.setGradescopeId(courseDTO.getGradescopeId());
+            }
+            gsConfig.setEnabled(courseDTO.getEnabled());
+            course.get().setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));
         }
 
         return Optional.of(courseRepo.save(course.get()));
@@ -192,7 +199,12 @@ public class CourseService {
 
         ExternalServiceConfig externalServiceConfig = new ExternalServiceConfig();
         if(courseDTO.getGradescopeId() != null) {
-            externalServiceConfig.configureGradescope(true, URI.create("https://www.gradescope.com/courses/" + courseDTO.getGradescopeId().toString()));
+            ExternalServiceConfig.GradescopeConfig config = externalServiceConfig.configureGradescope(true, URI.create("https://www.gradescope.com/courses/" + courseDTO.getGradescopeId().toString()));
+
+            GradescopeConfig gsConfig = new GradescopeConfig();
+            gsConfig.setGradescopeId(config.getUri().toString());
+            gsConfig.setEnabled(config.isEnabled());
+            newCourse.setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));
         }
 
         if (lateRequestConfig.isPresent()) {

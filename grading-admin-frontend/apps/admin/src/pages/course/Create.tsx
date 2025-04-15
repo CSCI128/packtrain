@@ -22,11 +22,11 @@ import { Link } from "react-router-dom";
 
 export function CreatePage() {
   const mutation = useMutation({
-    mutationKey: ["updateCourse"],
+    mutationKey: ["newCourse"],
     mutationFn: ({ body }: { body: Course }) =>
       getApiClient()
         .then((client) =>
-          client.update_course(
+          client.new_course(
             {
               course_id: store$.id.get() as string,
             },
@@ -203,7 +203,7 @@ export function CreatePage() {
           term: values.courseTerm,
           enabled: true,
           canvas_id: Number(values.canvasId),
-          gradescope_id: Number(values.gradescopeId),
+          gradescope_id: values.gradescopeId,
           late_request_config: {
             late_passes_enabled: values.latePassesEnabled,
             late_pass_name: values.latePassName,

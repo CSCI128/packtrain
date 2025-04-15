@@ -42,7 +42,7 @@ export function CreatePolicy() {
             "content-type": "multipart/form-data",
           },
         })
-        .then((_) => navigate("/admin/home"))
+        .then((_) => navigate("/admin"))
         .catch((e) => (errors = e));
     });
   };
