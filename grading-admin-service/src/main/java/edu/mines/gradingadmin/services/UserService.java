@@ -207,7 +207,6 @@ public class UserService {
         return userRepo.getUserEnrollmentsById(user.get().getCwid());
     }
 
-    @Transactional
     public List<Course> getEnrollments(String cwid) {
         return courseMemberRepo.getEnabledCoursesByUserId(cwid);
     }
