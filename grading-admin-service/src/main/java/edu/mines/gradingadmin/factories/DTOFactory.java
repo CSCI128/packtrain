@@ -68,7 +68,7 @@ public class DTOFactory {
     }
 
     public static CourseDTO toDto(Course course) {
-        return new CourseDTO()
+        CourseDTO courseDto = new CourseDTO()
             .id(course.getId().toString())
             .term(course.getTerm())
             .enabled(course.isEnabled())
@@ -76,6 +76,12 @@ public class DTOFactory {
             .canvasId(course.getCanvasId())
             .lateRequestConfig(toDto(course.getLateRequestConfig()))
             .code(course.getCode());
+
+        if(course.getGradescopeConfig() != null && course.getGradescopeConfig().getGradescopeId() != null) {
+            courseDto.setGradescopeId(course.getGradescopeConfig().getGradescopeId());
+        }
+
+        return courseDto;
     }
 
     public static TaskDTO toDto(ScheduledTaskDef task) {
