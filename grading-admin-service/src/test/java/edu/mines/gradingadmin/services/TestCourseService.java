@@ -5,6 +5,7 @@ import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
 import edu.mines.gradingadmin.repositories.*;
@@ -58,6 +59,10 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @Autowired
     private ScheduledTaskRepo<CourseSyncTaskDef> scheduledTaskRepo;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private PolicyRepo policyRepo;
 
     @BeforeAll
     static void setupClass() {
@@ -71,8 +76,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
                 courseRepo, lateRequestConfigRepo, gradescopeConfigRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
-                s3Service
-
+                s3Service, policyRepo, userService
         );
 
         applyMocks(canvasService);
@@ -227,4 +231,19 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         Assertions.assertTrue(activeCourse.isEnabled());
         Assertions.assertFalse(inactiveCourse.isEnabled());
     }
+
+    @Test
+    void verifyGetCourseStudent(){
+        Course coursePopulated = courseSeeders.populatedCourse();
+        Course course2 = courseSeeders.course2();
+        User user = userSeeders.user1();
+        List<Course> studentCourses = List.of(coursePopulated);
+        List<Course> notStudentCourse = List.of(course2);
+
+        // the user is a member of populatedCourse and not a member of course2
+        Assertions.assertEquals(studentCourses, courseService.getCoursesStudent(user));
+        Assertions.assertNotEquals(notStudentCourse, courseService.getCoursesStudent(user));
+
+    }
+
 }

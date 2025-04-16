@@ -57,13 +57,9 @@ public class UserApiImpl implements UserApiDelegate {
     public ResponseEntity<List<EnrollmentDTO>> getEnrollments() {
         User user = securityManager.getUser();
 
-        Optional<List<Course>> enrollments = userService.getEnrollments(user.getCwid());
+        List<Course> enrollments = userService.getEnrollments(user.getCwid());
 
-        if (enrollments.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(enrollments.get().stream().map(course -> new EnrollmentDTO()
+        return ResponseEntity.ok(enrollments.stream().map(course -> new EnrollmentDTO()
                 .id(course.getId().toString())
                 .term(course.getTerm())
                 .name(course.getName())

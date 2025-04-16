@@ -33,9 +33,13 @@ public class CourseService {
     private final ImpersonationManager impersonationManager;
     private final CanvasService canvasService;
     private final S3Service s3Service;
+    private final PolicyRepo policyRepo;
+    private final UserService userService;
     public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, GradescopeConfigRepo gradescopeConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
+
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
-                         CanvasService canvasService, S3Service s3Service) {
+                         CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, UserService userService) {
+
         this.courseRepo = courseRepo;
         this.lateRequestConfigRepo = lateRequestConfigRepo;
         this.gradescopeConfigRepo = gradescopeConfigRepo;
@@ -44,13 +48,31 @@ public class CourseService {
         this.canvasService = canvasService;
         this.eventPublisher = eventPublisher;
         this.s3Service = s3Service;
+        this.policyRepo = policyRepo;
+        this.userService = userService;
     }
 
     public List<Course> getCourses(boolean enabled) {
-        if (enabled) {
-            return courseRepo.getAll(enabled);
+
+            if (enabled) {
+
+                return courseRepo.getAll(enabled);
+            }
+            return courseRepo.getAll();
+    }
+
+    public List<Course> getCoursesStudent(User user){
+        List<CourseMember> memberships = userService.getCourseMemberships(user.getCwid());
+        List<Course> existingCourses = courseRepo.getAll(true);
+        List<Course> studentEnrolledCourses = new ArrayList<>();;
+        for (CourseMember courseMember : memberships) {
+            for(Course course: existingCourses) {
+                if (courseMember.getCourse().equals(course)) {
+                    studentEnrolledCourses.add(course);
+                }
+            }
         }
-        return courseRepo.getAll();
+        return studentEnrolledCourses;
     }
 
     public Optional<Course> getCourse(UUID courseId){
