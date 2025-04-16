@@ -108,25 +108,18 @@ public class TestMigrationService implements PostgresTestContainer {
         policy.setCourse(course);
         User user = userSeeders.user1();
         policy.setCreatedByUser(user);
-        policyRepo.save(policy);
-        migrationService.addMigration(masterMigration.get().getId().toString(), assignment.get().getId().toString(), policy.getPolicyURI());
+        policy = policyRepo.save(policy);
+        migrationService.addMigration(masterMigration.get().getId().toString(), assignment.get().getId().toString());
 
         List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
         Assertions.assertEquals(1, migrationList.size());
-        Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
 
-        Policy updatedPolicy = new Policy();
-        updatedPolicy.setPolicyName("updated_test_policy");
-        updatedPolicy.setPolicyURI("http://file2.js");
-        updatedPolicy.setFileName("file2.js");
-        updatedPolicy.setCourse(course);
-        updatedPolicy.setCreatedByUser(user);
-        policyRepo.save(updatedPolicy);
-        migrationService.updatePolicyForMigration(migrationList.get(0).getId().toString(), updatedPolicy.getPolicyURI());
+        migrationService.setPolicyForMigration(migrationList.get(0).getId().toString(), policy.getId().toString());
 
         migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
         Assertions.assertEquals(1, migrationList.size());
-        Assertions.assertEquals(updatedPolicy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
+        Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
+        Assertions.assertEquals(1, policy.getNumberOfMigrations());
     }
 
     @Test
@@ -136,20 +129,11 @@ public class TestMigrationService implements PostgresTestContainer {
         Optional<Assignment> assignment = course.getAssignments().stream().findFirst();
         Assertions.assertTrue(assignment.isPresent());
 
-        Policy policy = new Policy();
-        policy.setPolicyName("test_policy");
-        policy.setPolicyURI("http://file.js");
-        policy.setFileName("file.js");
-        policy.setCourse(course);
-        User user = userSeeders.user1();
-        policy.setCreatedByUser(user);
-        policyRepo.save(policy);
-        migrationService.addMigration(masterMigration.get().getId().toString(), assignment.get().getId().toString(), policy.getPolicyURI());
+        migrationService.addMigration(masterMigration.get().getId().toString(), assignment.get().getId().toString());
 
         List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
         Assertions.assertEquals(1, migrationList.size());
         Assertions.assertEquals(assignment.get().getId().toString(), migrationList.getFirst().getAssignment().getId().toString());
-        Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
     }
 
     @Test

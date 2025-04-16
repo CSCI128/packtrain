@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -126,8 +125,8 @@ public class PolicyService {
         return policyRepo.getPoliciesByCourse(course.get());
     }
 
-    public Optional<Policy> getPolicy(URI policyURI){
-        Optional<Policy> policy = policyRepo.getPolicyByURI(policyURI.toString());
+    public Optional<Policy> getPolicy(UUID policyId){
+        Optional<Policy> policy = policyRepo.getPolicyById(policyId);
 
         if (policy.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy does not exist");

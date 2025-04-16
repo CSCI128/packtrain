@@ -91,7 +91,7 @@ public class MigrationService {
         return Optional.of(masterMigrationRepo.save(masterMigration));
     }
 
-    public Optional<MasterMigration> addMigration(String masterMigrationId, String assignmentId, String policyURI){
+    public Optional<MasterMigration> addMigration(String masterMigrationId, String assignmentId){
         Optional<MasterMigration> masterMigration = masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
 
         if (masterMigration.isEmpty()){
@@ -99,15 +99,6 @@ public class MigrationService {
         }
 
         Migration migration = new Migration();
-        URI uri = URI.create(policyURI);
-
-        Optional<Policy> policy = policyService.getPolicy(uri).map(policyService::incrementUsedBy);
-
-        if (policy.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy does not exist");
-        }
-
-        migration.setPolicy(policy.get());
         Optional<Assignment> assignment = assignmentService.getAssignmentById(assignmentId);
 
         if (assignment.isEmpty()){
@@ -117,6 +108,7 @@ public class MigrationService {
         migration.setAssignment(assignment.get());
         migration.setMasterMigration(masterMigration.get());
         migrationRepo.save(migration);
+
         return masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
     }
 
@@ -144,18 +136,11 @@ public class MigrationService {
         return migration.getAssignment();
     }
 
-    public Optional<Migration> updatePolicyForMigration(String migrationId, String policyURI){
+    public Optional<Migration> setPolicyForMigration(String migrationId, String policyId){
         Migration updatedMigration = migrationRepo.getMigrationById(UUID.fromString(migrationId));
-        URI uri;
 
-        try {
-            uri = new URI(policyURI);
+        Optional<Policy> policy = policyService.getPolicy(UUID.fromString(policyId)).map(policyService::incrementUsedBy);
 
-        } catch (URISyntaxException e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy URI syntax error");
-        }
-
-        Optional<Policy> policy = policyService.getPolicy(uri).map(policyService::incrementUsedBy);
         if (updatedMigration.getPolicy() != null){
             policyService.decrementUsedBy(updatedMigration.getPolicy());
             updatedMigration.setPolicy(null);
@@ -344,4 +329,49 @@ public class MigrationService {
         return true;
     }
 
+    public Optional<MasterMigration> getMasterMigration(String masterMigrationId) {
+        return masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
+    }
+
+    public boolean validateLoadMasterMigration(String masterMigrationId){
+        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
+
+        if (masterMigration.isEmpty()){
+            return false;
+        }
+
+        if (masterMigration.get().getStatus() != MigrationStatus.CREATED){
+            log.error("Attempt to load migration NOT in created state! Actual state: '{}'", masterMigration.get().getStatus());
+            return false;
+        }
+
+        List<Migration> migrations = getMigrationsByMasterMigration(masterMigrationId);
+
+        List<String> errors = new LinkedList<>();
+
+        for (Migration m : migrations){
+            if (m.getRawScoreStatus() != RawScoreStatus.PRESENT){
+                Assignment assignmentName = getAssignmentForMigration(m.getId().toString());
+                log.error("Migration for assignment '{}' is missing raw scores!", assignmentName.getName());
+                errors.add(String.format("Migration for assignment '%s' is missing raw scores!", assignmentName.getName()))
+            }
+        }
+
+        return errors.isEmpty();
+    }
+
+    public Optional<MasterMigration> finalizeLoadMasterMigration(String masterMigrationId){
+        if (!validateLoadMasterMigration(masterMigrationId)){
+            return Optional.empty();
+        }
+
+        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
+
+        if(masterMigration.isEmpty()){
+            return Optional.empty();
+        }
+
+        masterMigration.get().setStatus();
+
+    }
 }
