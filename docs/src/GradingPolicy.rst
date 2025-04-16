@@ -16,3 +16,4 @@ This visualization from the system architecture design can depict this process;
 
 .. image:: images/backendpolicy.png
     :alt: Image of the described grading policy and backend interaction.
+    :align: center
