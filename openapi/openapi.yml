@@ -1521,6 +1521,34 @@ paths:
 
 
   /instructor/courses/{course_id}/migrations/{master_migration_id}:
+    get:
+      tags:
+        - instructor
+      operationId: get_master_migrations
+      summary: Get master migrations
+      security:
+        - openIDC: [instructor:read]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasterMigration"
     post:
       tags:
         - instructor
@@ -1604,10 +1632,10 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
-            encoding:
-              file_data:
-                contentType: "text/csv"
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
       responses:
         202:
           description: "Accepted"
