@@ -5,9 +5,9 @@
 
 Packtrain documentation
 ==========================
+Welcome to Packtrain, the 128 grading management and migration website monorepo!
 
-
-
+Packtrain is software for grading and student extension management.
 
 .. toctree::
    :maxdepth: 2
