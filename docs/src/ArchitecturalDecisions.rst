@@ -5,7 +5,7 @@ Architectural Decisions
 This page explains the major architectural decisions that were made for the project. It outlines the main
 components that were chosen, what they do, and why they were chosen.
 
-.. image:: images/systemarchitecture.png
+.. image:: images/packtrainsystemarchitecture.png
     :alt: This is an image showing a system diagram of the Packtrain system
 
 Grading Policy Server
