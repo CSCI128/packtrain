@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "GradingAdmin"
+project = "Packtrain"
 copyright = (
     "2025, Ethan Richards, Gregory Bell, Kylee Wibbeler, Shawn Prather, Kaelem Deng"
 )
