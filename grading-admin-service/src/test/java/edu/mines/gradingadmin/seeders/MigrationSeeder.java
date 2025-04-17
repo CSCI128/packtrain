@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 
 @Service
 @Profile("test")
@@ -23,6 +24,7 @@ public class MigrationSeeder {
         masterMigration.setDateStarted(Instant.now());
         masterMigration.setCreatedByUser(creatingUser);
         masterMigration.setCourse(owningCourse);
+        masterMigration.setMigrations(new ArrayList<>());
 
         return masterMigrationRepo.save(masterMigration);
     }
