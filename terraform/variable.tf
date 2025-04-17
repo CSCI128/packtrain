@@ -9,6 +9,12 @@ variable "authentik_image" {
   default     = "beryju/authentik:2025.2.4"
 }
 
+variable "backend_image" {
+  description = "Docker image for backend service"
+  default     = "ghcr.io/csci128/packtrain/api:main"
+  type        = string
+}
+
 variable "policy_image" {
   description = "Docker image for grading policy server"
   type        = string
