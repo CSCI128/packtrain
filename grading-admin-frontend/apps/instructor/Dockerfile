@@ -17,3 +17,9 @@ FROM nginx:alpine AS serve
 COPY --from=builder /app/grading-admin-frontend/apps/instructor/nginx.conf /etc/nginx/conf.d/default.conf
 
 COPY --from=builder /app/grading-admin-frontend/apps/instructor/dist/ /usr/share/nginx/html/
+
+COPY --from=builder /app/grading-admin-frontend/apps/admin/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]

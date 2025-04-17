@@ -1,14 +1,26 @@
 import { createAuthConfig } from "@repo/api/auth.config";
 import { UserManager } from "oidc-client-ts";
 
+declare global {
+  interface Window {
+    __ENV__: {
+      VITE_OAUTH_URL: string;
+      VITE_CLIENT_ID: string;
+      VITE_REDIRECT_URI: string;
+      VITE_AUTH_SCOPES: string;
+      VITE_LOGOUT_REDIRECT_URI: string;
+    };
+  }
+}
+
 export const AUTH_CONFIG = createAuthConfig(
-  import.meta.env.VITE_OAUTH_URL ||
+  window.__ENV__.VITE_OAUTH_URL ||
     "https://localhost.dev/auth/application/o/grading-admin/",
-  import.meta.env.VITE_CLIENT_ID || "grading_admin_provider",
-  import.meta.env.VITE_REDIRECT_URI || "https://localhost.dev/",
-  import.meta.env.VITE_AUTH_SCOPES ||
+  window.__ENV__.VITE_CLIENT_ID || "grading_admin_provider",
+  window.__ENV__.VITE_REDIRECT_URI || "https://localhost.dev/",
+  window.__ENV__.VITE_AUTH_SCOPES ||
     "openid is_admin cwid email profile offline_access",
-  import.meta.env.VITE_LOGOUT_REDIRECT_URI || "https://localhost.dev/"
+  window.__ENV__.VITE_LOGOUT_REDIRECT_URI || "https://localhost.dev/"
 );
 
 export const userManager = new UserManager(AUTH_CONFIG);
