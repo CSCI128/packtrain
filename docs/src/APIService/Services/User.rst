@@ -1,4 +1,0 @@
-.. _UserService:
-
-User Service
-=====================

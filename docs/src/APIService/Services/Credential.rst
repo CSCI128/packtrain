@@ -1,5 +1,0 @@
-.. _CredentialService:
-
-
-Credential Service
-=====================

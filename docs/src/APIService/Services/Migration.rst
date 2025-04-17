@@ -1,5 +1,0 @@
-.. _MigrationService:
-
-
-Migration Service
-=====================

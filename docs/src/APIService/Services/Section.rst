@@ -1,5 +1,0 @@
-.. _SectionService:
-
-
-Section Service
-=====================

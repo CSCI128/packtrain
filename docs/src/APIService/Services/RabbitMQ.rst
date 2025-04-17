@@ -1,5 +1,0 @@
-.. _RabbitMQService:
-
-
-RabbitMQ Service
-=====================

@@ -1,5 +1,0 @@
-.. _ExtensionService:
-
-
-Extension Service
-=====================

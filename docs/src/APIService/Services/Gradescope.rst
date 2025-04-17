@@ -1,5 +1,0 @@
-.. _GradescopeService:
-
-
-Gradescope Service
-=====================

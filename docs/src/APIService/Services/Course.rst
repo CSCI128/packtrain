@@ -1,5 +1,0 @@
-.. _CourseService:
-
-
-Course Service
-=====================
