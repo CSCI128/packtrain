@@ -9,7 +9,7 @@ function manualChunks(id: string) {
 }
 
 export default defineConfig({
-  base: "/admin",
+  base: "/admin/",
   plugins: [react()],
   resolve: {
     alias: {

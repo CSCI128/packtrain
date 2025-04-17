@@ -213,7 +213,7 @@ services:
       - "./nginx/services/frontend-integration.nginx.conf:/etc/nginx/services/frontend.nginx.conf"
       - "./nginx/services/database-integration.nginx.conf:/etc/nginx/services/database.nginx.conf"
       - "./nginx/services/minio-integration.nginx.conf:/etc/nginx/services/minio.nginx.conf"
-      - "./nginx/services/rabbitmq-integration.nginx.conf:/etc/nginx/services/rabbitmq.nginx.conf"
+      - "./nginx/services/rabbitmq-local.nginx.conf:/etc/nginx/services/rabbitmq.nginx.conf"
       - "./nginx/nginx.conf:/etc/nginx/nginx.conf"
       - "./certificates/certs/localhost.dev/out:/etc/ssl/localhost.dev:ro"
     ports:
