@@ -1,19 +1,20 @@
-.. GradingAdmin documentation master file, created by
+.. Packtrain documentation master file, created by
    sphinx-quickstart on Sun Mar 30 16:16:41 2025.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-GradingAdmin documentation
+Packtrain documentation
 ==========================
+Welcome to Packtrain, the 128 grading management and migration website monorepo!
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
-
+Packtrain is software for grading and student extension management.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
    
-   src/file.rst
-
+   src/APIService
+   src/Authentication
+   src/GradingPolicy
+   src/DomainInfo
+   src/ArchitecturalDecisions
