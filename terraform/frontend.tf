@@ -11,14 +11,17 @@ resource "aws_ecs_task_definition" "frontend" {
   memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
 
-  container_definitions = jsonencode([{
-    name  = "frontend-admin"
-    image = var.frontend_admin_image
-    portMappings = [{
-      containerPort = 5173
-      hostPort      = 5173
-      protocol      = "tcp"
-    }] },
+  container_definitions = jsonencode([
+    {
+      name  = "frontend-admin"
+      image = var.frontend_admin_image
+      portMappings = [{
+        containerPort = 5173
+        hostPort      = 5173
+        protocol      = "tcp"
+      }],
+      environment = var.frontend_default_environment
+    },
     {
       name  = "frontend-instructor"
       image = var.frontend_instructor_image
@@ -26,7 +29,9 @@ resource "aws_ecs_task_definition" "frontend" {
         containerPort = 5174
         hostPort      = 5174
         protocol      = "tcp"
-    }] },
+      }],
+      environment = var.frontend_default_environment
+    },
     {
       name  = "frontend-student"
       image = var.frontend_student_image
@@ -34,7 +39,9 @@ resource "aws_ecs_task_definition" "frontend" {
         containerPort = 5175
         hostPort      = 5175
         protocol      = "tcp"
-    }] }
+      }],
+      environment = var.frontend_default_environment
+    },
   ])
 }
 
