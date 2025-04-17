@@ -148,7 +148,7 @@ resource "aws_security_group" "packtrain_pg_sg" {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.authentik_sg.id]
+    security_groups = [aws_security_group.backend_sg.id]
   }
   egress {
     from_port   = 0
@@ -158,7 +158,7 @@ resource "aws_security_group" "packtrain_pg_sg" {
   }
 }
 
-resource "aws_security_group" "policy-server-sg" {
+resource "aws_security_group" "policy_server_sg" {
   name   = "policy-server-sg"
   vpc_id = aws_vpc.packtrain_vpc.id
 
