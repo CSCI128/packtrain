@@ -128,3 +128,48 @@ resource "aws_lb_target_group" "frontend_student_tg" {
     protocol = "HTTP"
   }
 }
+
+resource "aws_lb_listener_rule" "frontend_admin_http" {
+  listener_arn = aws_lb_listener.http.arn
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend_admin_tg.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/admin/*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "frontend_instructor_http" {
+  listener_arn = aws_lb_listener.http.arn
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend_instructor_tg.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/instructor/*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "frontend_student_http" {
+  listener_arn = aws_lb_listener.http.arn
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend_student_tg.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/*"]
+    }
+  }
+}
