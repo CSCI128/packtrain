@@ -9,7 +9,7 @@ function manualChunks(id: string) {
 }
 
 export default defineConfig({
-  base: "/instructor",
+  base: "/instructor/",
   plugins: [react()],
   resolve: {
     alias: {
