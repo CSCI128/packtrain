@@ -13,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "amqplib": "^0.10.5",
-    "axios": "^1.7.9",
+    "axios": "^1.8.2",
     "express": "^4.21.2",
     "minio": "^8.0.4",
     "systemjs": "^6.15.1",
