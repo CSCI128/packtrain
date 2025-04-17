@@ -9,6 +9,12 @@ variable "authentik_image" {
   default     = "beryju/authentik:2025.2.4"
 }
 
+variable "policy_image" {
+  description = "Docker image for grading policy server"
+  type        = string
+  default     = "ghcr.io/csci128/packtrain/policy-server:main"
+}
+
 variable "authentik_db_user" {
   type    = string
   default = "authentik"
@@ -37,4 +43,9 @@ variable "app_domain" {
 variable "zone_domain" {
   type    = string
   default = "gregory-bell.com"
+}
+
+variable "mq_username" {
+  type    = string
+  default = "brokeradmin"
 }
