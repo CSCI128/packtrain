@@ -3,6 +3,21 @@ resource "aws_ecs_cluster" "frontend" {
   name = "frontend-cluster"
 }
 
+resource "aws_cloudwatch_log_group" "frontend-admin" {
+  name              = "/ecs/frontend-admin-server"
+  retention_in_days = 3
+}
+
+resource "aws_cloudwatch_log_group" "frontend-instructor" {
+  name              = "/ecs/frontend-instructor-server"
+  retention_in_days = 3
+}
+
+resource "aws_cloudwatch_log_group" "frontend-student" {
+  name              = "/ecs/frontend-student-server"
+  retention_in_days = 3
+}
+
 resource "aws_ecs_task_definition" "frontend" {
   family                   = "frontend"
   network_mode             = "awsvpc"
@@ -20,6 +35,14 @@ resource "aws_ecs_task_definition" "frontend" {
         hostPort      = 5173
         protocol      = "tcp"
       }],
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/frontend-admin-server"
+          awslogs-region        = var.aws_region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
       environment = var.frontend_default_environment
     },
     {
@@ -30,6 +53,14 @@ resource "aws_ecs_task_definition" "frontend" {
         hostPort      = 5174
         protocol      = "tcp"
       }],
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/frontend-instructor-server"
+          awslogs-region        = var.aws_region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
       environment = var.frontend_default_environment
     },
     {
@@ -40,6 +71,14 @@ resource "aws_ecs_task_definition" "frontend" {
         hostPort      = 5175
         protocol      = "tcp"
       }],
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/frontend-student-server"
+          awslogs-region        = var.aws_region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
       environment = var.frontend_default_environment
     },
   ])
