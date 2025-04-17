@@ -130,7 +130,6 @@ public class AdminApiImpl implements AdminApiDelegate {
         Optional<ScheduledTaskDef> sectionTask = sectionService.createSectionsFromCanvas(
                 securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
 
-
         if (sectionTask.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
@@ -167,6 +166,14 @@ public class AdminApiImpl implements AdminApiDelegate {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(course.get()));
+    }
+
+    public ResponseEntity<Void> deleteCourse(String courseId) {
+        if(!courseService.deleteCourse(UUID.fromString(courseId))){
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @Override

@@ -3,7 +3,6 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.data.CourseLateRequestConfigDTO;
-import edu.mines.gradingadmin.data.policyServer.PolicyServerErrorDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
@@ -12,12 +11,10 @@ import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
 import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.services.external.CanvasService;
-import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.S3Service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
 import java.util.*;
@@ -35,10 +32,11 @@ public class CourseService {
     private final S3Service s3Service;
     private final PolicyRepo policyRepo;
     private final UserService userService;
+    private final MasterMigrationRepo masterMigrationRepo;
     public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, GradescopeConfigRepo gradescopeConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
 
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
-                         CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, UserService userService) {
+                         CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, UserService userService, MasterMigrationRepo masterMigrationRepo) {
 
         this.courseRepo = courseRepo;
         this.lateRequestConfigRepo = lateRequestConfigRepo;
@@ -50,6 +48,7 @@ public class CourseService {
         this.s3Service = s3Service;
         this.policyRepo = policyRepo;
         this.userService = userService;
+        this.masterMigrationRepo = masterMigrationRepo;
     }
 
     public List<Course> getCourses(boolean enabled) {
@@ -235,4 +234,25 @@ public class CourseService {
     }
 
 
+    public boolean deleteCourse(UUID courseId) {
+        Optional<Course> course = courseRepo.getById(courseId);
+
+        if (course.isEmpty()){
+            log.warn("Attempt to get course that doesn't exist!");
+            return false;
+        }
+
+        List<MasterMigration> masterMigrations = masterMigrationRepo.getMasterMigrationsByCourseId(courseId);
+
+        for(MasterMigration masterMigration : masterMigrations){
+            if (!masterMigration.getMigrations().isEmpty()){
+                log.warn("Attempt to delete course that has existing migrations!");
+                return false;
+            }
+        }
+
+        courseRepo.delete(course.get());
+
+        return true;
+    }
 }
