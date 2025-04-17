@@ -26,3 +26,23 @@ Key Responsibilities and Integrations
 - **External Services Integration:**  
   - **CSV Uploads:** Supports the uploading of CSV files for systems like Runestone and PrairieLearn.  
   - **API Scraping:** Integrates with external platforms such as Canvas and Gradescope by scraping their APIs.
+
+.. toctree::
+  :maxdepth: 1
+  :caption: Services:
+  
+  Services/Assignment
+  Services/CourseMember
+  Services/Course
+  Services/Credential
+  Services/Extension
+  Services/Migration
+  Services/RawScore
+  Services/Section
+  Services/TaskExecutor
+  Services/User
+  Services/Canvas
+  Services/Gradescope
+  Services/PolicyServer
+  Services/RabbitMQ
+  Services/S3

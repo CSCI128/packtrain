@@ -45,5 +45,39 @@ Student Authentication Level
 - **Late Passes:**  
   Can view and apply available late passes.
 
+Server‑side Enforcement of Roles
+--------------------------------
+
+All API endpoints delegate authorization to our **SecurityManager** (in  
+``edu.mines.gradingadmin.managers.SecurityManager``).  Its job is to:
+
+1. **Extract** the incoming user’s JWT from the servlet request (via ``setPrincipalFromRequest(HttpServletRequest)``).
+
+2. **Lookup** the ``User`` entity (in ``readUserFromRequest()``), by:
+    - Looking up by ``oauthId`` (the JWT’s sub claim).
+    - Fall back to linking an existing user by CWID.
+    - Creating a new user if no match is found.
+
+3. **Simple checks** that controllers or service methods call:
+    - ``getIsAdmin()`` → reads the ``is_admin``` claim from the JWT and throws ``AccessDeniedException`` if false. Use it to gate any admin operations.  
+    - ``hasCourseMembership(CourseRole, UUID)`` → looks up the user’s role for a given course via ``CourseMemberService.getRoleForUserAndCourse(...)`` and compares it to the requested ``CourseRole`` enum (Instructor, Student, etc).
+    - ``getCredential(CredentialType, UUID)`` → fetches the user’s per‑user or per‑course credential (e.g. Canvas API tokens) and fails if none exist.
+
+4. **Throw** ``AccessDeniedException`` immediately when any check fails.
+
+An example of using this to check a user's privileges is within the Backend's filters,
+
+.. code-block:: Java
+  :linenos:
+  
+  ...
+  if (!securityManager.hasCourseMembership(CourseRole.INSTRUCTOR, UUID.fromString(courseId)) && 
+      !securityManager.hasCourseMembership(CourseRole.OWNER, UUID.fromString(courseId))){
+    log.warn("Blocked attempt by '{}' to access course '{}' as an instructor!",
+            securityManager.getUser().getEmail(),
+            courseId);
+    throw new AccessDeniedException("Not enrolled in course as an instructor!");
+  }
+  ...
 
 

@@ -11,12 +11,12 @@ A **Migration** is when a assignment's grades gets moved from its version in the
 
 Master Migration 
 ----------------
-A **Master Migration** is a collection of migrations that a Instructor chooses to migrate between External Sources.
+A **Master Migration** is a collection of migrations that a Instructor chooses to start, which will migrate all migrations from an external source to Canvas.
 
 Grade Conversion
 ----------------
 A **Grade Conversion** is where the set amount of points within External Sources like Gradescope, Runestone, or PrairieLearn gets converted into its complementary amount in Canvas
-based on its max points.
+based on its max points, this is performed using the course policies that the admin sets.
 
 Late Passes 
 -----------
