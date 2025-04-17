@@ -51,6 +51,7 @@ resource "aws_security_group" "authentik_sg" {
   }
 }
 
+
 // authentik -> postgres
 resource "aws_security_group" "authentik_pg_sg" {
   name   = "authentik-pg-sg"
@@ -90,9 +91,9 @@ resource "aws_security_group" "authentik_redis_sg" {
   }
 }
 
-// lb -> authentik
-resource "aws_security_group" "authentik_lb_sg" {
-  name   = "authentik-lb-sg"
+// generic LB sg
+resource "aws_security_group" "lb_sg" {
+  name   = "lb-sg"
   vpc_id = aws_vpc.packtrain_vpc.id
 
   ingress {
@@ -118,4 +119,41 @@ resource "aws_security_group" "authentik_lb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+}
+
+resource "aws_security_group" "packtrain_sg" {
+  name   = "packtrain-sg"
+  vpc_id = aws_vpc.packtrain_vpc.id
+
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+}
+
+resource "aws_security_group" "packtrain_pg_sg" {
+  name   = "packtrain-pg-sg"
+  vpc_id = aws_vpc.packtrain_vpc.id
+
+  ingress {
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.authentik_sg.id]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }

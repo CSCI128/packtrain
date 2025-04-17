@@ -2,19 +2,6 @@ resource "aws_ecs_cluster" "authentik" {
   name = "authenik-cluster"
 }
 
-resource "aws_lb" "authentik" {
-  subnets = [
-    for subnet in aws_subnet.public :
-    subnet.id
-
-  ]
-  security_groups            = [aws_security_group.authentik_lb_sg.id]
-  load_balancer_type         = "application"
-  internal                   = false
-  enable_deletion_protection = false
-  idle_timeout               = 60
-}
-
 resource "aws_lb_target_group" "authentik" {
   name        = "authentik-tg"
   port        = 9000
@@ -38,14 +25,18 @@ resource "aws_cloudwatch_log_group" "authentik_server" {
   retention_in_days = 3
 }
 
-resource "aws_lb_listener" "authentik_http" {
-  load_balancer_arn = aws_lb.authentik.arn
-  port              = "80"
-  protocol          = "HTTP"
+resource "aws_lb_listener_rule" "authentik_http" {
+  listener_arn = aws_lb_listener.http.arn
 
-  default_action {
+  action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.authentik.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/auth/*"]
+    }
   }
 }
 
