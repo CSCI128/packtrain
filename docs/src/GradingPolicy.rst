@@ -17,3 +17,49 @@ This visualization from the system architecture design can depict this process;
 .. image:: images/backendpolicy.png
     :alt: Image of the described grading policy and backend interaction.
     :align: center
+
+Policy Format
+----------------
+
+PolicyScoredDTO (Data Transfer Object)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Your policy must return an object with these properties set:
+
+    **finalScore** *(number)*  
+        The adjusted score after applying your policy.
+
+    **adjustedSubmissionDate** *(Date)*  
+        The (possibly modified) submission timestamp.
+
+    **adjustedDaysLate** *(number)*  
+        The number of days late after policy adjustments.
+
+    **submissionStatus** *(SubmissionStatus enum)*  
+        Updated status, one of::  
+
+            ON_TIME
+            LATE
+            MISSING
+
+    **extensionStatus** *(AppliedExtensionStatus enum)*  
+        How the extension was applied, one of::
+
+            APPLIED
+            DENIED
+            NONE
+
+An example for format is below:
+
+.. code-block:: js
+    :linenos:
+
+
+    return {
+        finalScore: rawScore.rawScore,
+        adjustedSubmissionDate: new Date(),
+        adjustedDaysLate: 0,
+        submissionStatus: "on_time",
+        extensionStatus: "no_extension"
+    };
+
