@@ -27,6 +27,7 @@ resource "aws_cloudwatch_log_group" "authentik_server" {
 
 resource "aws_lb_listener_rule" "authentik_http" {
   listener_arn = aws_lb_listener.https.arn
+  priority     = 1
 
   action {
     type             = "forward"

@@ -20,8 +20,8 @@ resource "aws_ecs_task_definition" "backend" {
     name  = "backend"
     image = var.backend_image
     portMappings = [{
-      containerPort = 9000
-      hostPort      = 9000
+      containerPort = 8080
+      hostPort      = 8080
       protocol      = "tcp"
     }] }
   ])
@@ -39,7 +39,7 @@ resource "aws_ecs_service" "backend" {
       for subnet in aws_subnet.private :
       subnet.id
     ]
-    security_groups  = [aws_security_group.backend_sg]
+    security_groups  = [aws_security_group.backend_sg.id]
     assign_public_ip = false
   }
 
@@ -52,7 +52,7 @@ resource "aws_ecs_service" "backend" {
 
 resource "aws_lb_target_group" "backend_tg" {
   name        = "backend-tg"
-  port        = 9000
+  port        = 8080
   protocol    = "HTTP"
   vpc_id      = aws_vpc.packtrain_vpc.id
   target_type = "ip"

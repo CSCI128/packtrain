@@ -7,8 +7,8 @@ resource "aws_mq_broker" "rabbitmq_broker" {
   host_instance_type         = "mq.t3.micro"
   publicly_accessible        = false
   subnet_ids = [
-    for subnet in aws_subnet.private :
-    subnet.id
+    [for subnet in aws_subnet.private :
+    subnet.id][0]
   ]
   security_groups = [aws_security_group.mq_sg.id]
 

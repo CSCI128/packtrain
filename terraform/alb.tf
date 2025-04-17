@@ -37,7 +37,7 @@ resource "aws_acm_certificate" "cert" {
 }
 
 resource "aws_acm_certificate_validation" "public" {
-  certificate_arn         = aws_acm_certificate.cert.arn
+  certificate_arn = aws_acm_certificate.cert.arn
   validation_record_fqdns = [
     for dvo in aws_acm_certificate.cert.domain_validation_options :
     dvo.resource_record_name

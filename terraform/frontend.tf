@@ -1,20 +1,3 @@
-variable "frontend_admin_image" {
-  description = "Docker image for frontend admin"
-  default     = "ghcr.io/csci128/packtrain/admin:main"
-  type        = string
-}
-
-variable "frontend_student_image" {
-  description = "Docker image for frontend student"
-  default     = "ghcr.io/csci128/packtrain/student:main"
-  type        = string
-}
-
-variable "frontend_instructor_image" {
-  description = "Docker image for frontend instructor"
-  default     = "ghcr.io/csci128/packtrain/instructor:main"
-  type        = string
-}
 
 resource "aws_ecs_cluster" "frontend" {
   name = "frontend-cluster"
@@ -130,7 +113,8 @@ resource "aws_lb_target_group" "frontend_student_tg" {
 }
 
 resource "aws_lb_listener_rule" "frontend_admin_http" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = aws_lb_listener.https.arn
+  priority     = 30
 
   action {
     type             = "forward"
@@ -145,7 +129,8 @@ resource "aws_lb_listener_rule" "frontend_admin_http" {
 }
 
 resource "aws_lb_listener_rule" "frontend_instructor_http" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = aws_lb_listener.https.arn
+  priority     = 20
 
   action {
     type             = "forward"
@@ -160,7 +145,8 @@ resource "aws_lb_listener_rule" "frontend_instructor_http" {
 }
 
 resource "aws_lb_listener_rule" "frontend_student_http" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = aws_lb_listener.https.arn
+  priority     = 100
 
   action {
     type             = "forward"

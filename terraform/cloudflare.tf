@@ -12,10 +12,10 @@ resource "cloudflare_dns_record" "cert_validation" {
     dvo.domain_name => dvo
   }
 
-  zone_id  = "286b94395485ea60ebc2da1639b50940"
-  name     = each.value.resource_record_name
-  type     = each.value.resource_record_type
-  content  = each.value.resource_record_value
-  ttl      = 300
-  proxied  = false
+  zone_id = "286b94395485ea60ebc2da1639b50940"
+  name    = each.value.resource_record_name
+  type    = each.value.resource_record_type
+  content = each.value.resource_record_value
+  ttl     = 300
+  proxied = false
 }

@@ -30,7 +30,7 @@ resource "aws_ecs_task_definition" "policy-server" {
   family                   = "policy-server"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"
+  cpu                      = "256"
   memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
 
@@ -78,7 +78,7 @@ resource "aws_ecs_service" "policy-server" {
       subnet.id
 
     ]
-    security_groups  = [aws_security_group.policy-server-sg]
+    security_groups  = [aws_security_group.policy-server-sg.id]
     assign_public_ip = false
   }
 }

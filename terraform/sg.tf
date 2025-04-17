@@ -177,7 +177,7 @@ resource "aws_security_group" "policy-server-sg" {
 }
 
 resource "aws_security_group" "mq_sg" {
-  name   = "policy-server-sg"
+  name   = "mq-sg"
   vpc_id = aws_vpc.packtrain_vpc.id
 
   ingress {

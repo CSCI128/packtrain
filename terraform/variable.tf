@@ -15,6 +15,24 @@ variable "policy_image" {
   default     = "ghcr.io/csci128/packtrain/policy-server:main"
 }
 
+variable "frontend_admin_image" {
+  description = "Docker image for frontend admin"
+  default     = "ghcr.io/csci128/packtrain/admin:main"
+  type        = string
+}
+
+variable "frontend_student_image" {
+  description = "Docker image for frontend student"
+  default     = "ghcr.io/csci128/packtrain/student:main"
+  type        = string
+}
+
+variable "frontend_instructor_image" {
+  description = "Docker image for frontend instructor"
+  default     = "ghcr.io/csci128/packtrain/instructor:main"
+  type        = string
+}
+
 variable "authentik_db_user" {
   type    = string
   default = "authentik"

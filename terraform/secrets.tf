@@ -80,7 +80,7 @@ resource "aws_secretsmanager_secret" "rabbitmq_password" {
 
 resource "random_password" "rabbitmq_password" {
   length  = 64
-  special = true
+  special = false
 }
 
 resource "aws_secretsmanager_secret_version" "s__rabbitmq_password" {
