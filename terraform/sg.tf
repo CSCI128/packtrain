@@ -1,3 +1,37 @@
+// frontend security group
+resource "aws_security_group" "frontend_sg" {
+  name   = "frontend-sg"
+  vpc_id = aws_vpc.packtrain_vpc.id
+
+  ingress {
+    from_port   = 5173
+    to_port     = 5173
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 5174
+    to_port     = 5174
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 5175
+    to_port     = 5175
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 // authentik security group
 resource "aws_security_group" "authentik_sg" {
   name   = "authentik-sg"
