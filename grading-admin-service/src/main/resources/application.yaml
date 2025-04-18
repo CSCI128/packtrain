@@ -29,7 +29,7 @@ server:
 
 grading-admin:
   # needs to be 16, 32, or 64 bytes long - this should also be randomly generated.
-  secret-key: password91023451
+  secret-key: ${SECRET_KEY:password91023451}
   time-zone: "America/Denver"
   external-services:
     canvas:
@@ -45,11 +45,13 @@ grading-admin:
       secret-key: ${S3_SECRET_KEY:?s3 secret key required}
     rabbitmq:
       enabled: true
-      uri: amqp://${RABBITMQ_USER:admin}:${RABBITMQ_PASSWORD:?rabbitmq password required}@${RABBITMQ_HOST:localhost.dev:5672}
+      uri: ${RABBITMQ_HOST:amqp://localhost.dev:5672}
+      user: ${RABBITMQ_USER:admin}
+      password: ${RABBITMQ_PASSWORD:?rabbitmq password required}
       exchange-name: "grading-admin-message-exchange"
     policy-server:
       enabled: true
-      uri: https://localhost.dev/api/policies
+      uri: ${POLICY_SERVER_URI:https://localhost.dev/api/policies}
     gradescope:
       enabled: true
       uri: https://gradescope.com

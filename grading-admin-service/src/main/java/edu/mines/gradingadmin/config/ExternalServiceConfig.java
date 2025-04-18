@@ -39,6 +39,8 @@ public class ExternalServiceConfig {
     public static class RabbitMqConfig{
         private final boolean enabled;
         private URI uri;
+        private String username;
+        private String password;
         private String exchangeName;
     };
 
@@ -90,12 +92,14 @@ public class ExternalServiceConfig {
     public RabbitMqConfig configureRabbitMq(
             @Value("${grading-admin.external-services.rabbitmq.enabled}") boolean enabled,
             @Value("${grading-admin.external-services.rabbitmq.uri}") URI uri,
+            @Value("${grading-admin.external-services.rabbitmq.user}") String username,
+            @Value("${grading-admin.external-services.rabbitmq.password}") String password,
             @Value("${grading-admin.external-services.rabbitmq.exchange-name}") String exchangeName
     ){
         if (!enabled){
             return new RabbitMqConfig(false);
         }
-        return new RabbitMqConfig(true, uri, exchangeName);
+        return new RabbitMqConfig(true, uri, username, password, exchangeName);
     }
 
     @Bean

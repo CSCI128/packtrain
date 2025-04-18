@@ -23,7 +23,7 @@ public class RabbitMqService {
     private final ObjectMapper mapper;
     private Connection rabbitMqConnection;
 
-    public RabbitMqService(ExternalServiceConfig.RabbitMqConfig rabbitMqConfig, ObjectMapper mapper) throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException, IOException, TimeoutException {
+    public RabbitMqService(ExternalServiceConfig.RabbitMqConfig rabbitMqConfig, ObjectMapper mapper) throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException, TimeoutException {
         this.rabbitMqConfig = rabbitMqConfig;
         this.mapper = mapper;
 
@@ -34,7 +34,16 @@ public class RabbitMqService {
 
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(rabbitMqConfig.getUri());
-        rabbitMqConnection = factory.newConnection();
+        factory.setUsername(rabbitMqConfig.getUsername());
+        factory.setPassword(rabbitMqConfig.getPassword());
+
+        try {
+            rabbitMqConnection = factory.newConnection();
+        }catch (IOException e){
+            log.error("Failed to connect to RabbitMQ!", e);
+            log.warn("RabbitMQ is disabled!");
+            return;
+        }
 
         log.info("Connected to RabbitMQ broker at '{}' with client id '{}'", rabbitMqConnection.getAddress(), rabbitMqConnection.getId());
     }
