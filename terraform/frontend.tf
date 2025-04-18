@@ -225,7 +225,7 @@ resource "aws_lb_listener_rule" "frontend_admin_http" {
 
   condition {
     path_pattern {
-      values = ["/admin/*"]
+      values = ["/admin", "/admin/*"]
     }
   }
 }
@@ -241,7 +241,7 @@ resource "aws_lb_listener_rule" "frontend_instructor_http" {
 
   condition {
     path_pattern {
-      values = ["/instructor/*"]
+      values = ["/instructor", "/instructor/*"]
     }
   }
 }
