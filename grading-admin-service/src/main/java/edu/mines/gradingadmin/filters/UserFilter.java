@@ -22,6 +22,13 @@ public class UserFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        String path = ((HttpServletRequest) servletRequest).getRequestURI();
+
+        if (path.contains("/api/-/health")){
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+
         securityManager.setPrincipalFromRequest((HttpServletRequest) servletRequest);
         securityManager.readUserFromRequest();
 
