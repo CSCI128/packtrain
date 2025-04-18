@@ -191,9 +191,6 @@ export function ProfilePage() {
     deleteCredentialMutation.mutate(
       {
         credential_id: credential_id,
-        // params: {
-        // path: { credential_id: credential_id },
-        // },
       },
       {
         onSuccess: () => {

@@ -9,6 +9,7 @@ const staticLinks = [
 ];
 
 const links = [
+  { href: "/instructor/approval", label: "Approvals" },
   { href: "/instructor/migrate", label: "Migrate" },
   { href: "/instructor/members", label: "Members" },
 ];

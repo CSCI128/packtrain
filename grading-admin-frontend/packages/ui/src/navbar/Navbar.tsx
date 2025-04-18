@@ -48,7 +48,7 @@ export function Navbar({ staticLinks, links }: NavbarProps) {
           <Group justify="space-between" h="100%">
             <Group h="100%" gap={0} visibleFrom="sm">
               <p onClick={() => navigate(staticLinks[0]?.href as string)}>
-                Grading Admin
+                packtrain
               </p>
 
               {links.map((link) => (
