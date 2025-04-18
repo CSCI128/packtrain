@@ -3,11 +3,24 @@ import qs from "qs";
 import { Client } from "./openapi";
 import openApi from "./openapi.json";
 
+declare global {
+  interface Window {
+    __ENV__: {
+      VITE_OAUTH_URL: string;
+      VITE_CLIENT_ID: string;
+      VITE_REDIRECT_URI: string;
+      VITE_AUTH_SCOPES: string;
+      VITE_LOGOUT_REDIRECT_URI: string;
+      API_URL: string;
+    };
+  }
+}
+
 const api = new OpenAPIClientAxios({
   // @ts-ignore
   definition: openApi,
   axiosConfigDefaults: {
-    baseURL: "https://packtrain.gregory-bell.com/api",
+    baseURL: window.__ENV__?.API_URL || "https://localhost.dev/api",
   },
 });
 api.init();
