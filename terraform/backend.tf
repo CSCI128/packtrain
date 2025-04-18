@@ -78,8 +78,14 @@ resource "aws_lb_target_group" "backend_tg" {
   target_type = "ip"
 
   health_check {
-    path     = "/api/-/health"
-    protocol = "HTTP"
+    path                = "/api/-/health"
+    protocol            = "HTTP"
+    matcher             = "200"
+    interval            = 120
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+
   }
 }
 
