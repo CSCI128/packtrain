@@ -39,7 +39,9 @@ resource "aws_ecs_task_definition" "backend" {
         { name = "RABBITMQ_USER", value = var.mq_username },
         { name = "RABBITMQ_PASSWORD", value = aws_secretsmanager_secret_version.s__rabbitmq_password.secret_string },
         { name = "RABBITMQ_HOST", value = aws_mq_broker.rabbitmq_broker.instances.0.endpoints.0 },
-        { name = "AUTH_ISSUER", value = "https://${var.app_domain}/auth/application/o/grading-admin/" }
+        { name = "AUTH_ISSUER", value = "https://${var.app_domain}/auth/application/o/grading-admin/" },
+        { name = "POLCIY_SERVER_URI", value = aws_lb.policy_server_lb.dns_name }
+
       ]
     }
   ])

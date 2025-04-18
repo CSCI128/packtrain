@@ -2,12 +2,12 @@ locals {
   config_data = {
     serverConfig = {
       port      = 80
-      basePath  = "/api/policies"
-      trustedCA = "/opt/certs/localhost.CA.crt"
+      basePath  = "/"
+      trustedCA = null
     }
 
     policyConfig = {
-      trustedServer = "https://localhost.dev"
+      trustedServer = "https://${var.app_domain}"
     }
 
     rabbitMqConfig = {
@@ -41,6 +41,7 @@ resource "aws_ecs_task_definition" "policy_server" {
       essential = true
       portMappings = [{
         containerPort = 80
+        hostPort = 80
         protocol      = "tcp"
       }]
       logConfiguration = {
@@ -81,4 +82,49 @@ resource "aws_ecs_service" "policy_server" {
     security_groups  = [aws_security_group.policy_server_sg.id]
     assign_public_ip = false
   }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.policy_server.arn
+    container_name = "grading-policy-server"
+    container_port = 80
+  }
 }
+
+resource "aws_lb" "policy_server_lb" {
+  name = "grading-policy-service-lb"
+  load_balancer_type = "application"
+  internal = true
+  security_groups = [aws_security_group.lb_sg.id]
+  subnets = [
+    for subnet in aws_subnet.private :
+    subnet.id
+
+  ]
+}
+
+resource "aws_lb_target_group" "policy_server" {
+  name = "policy-service-tg"
+  port = 80
+  protocol = "HTTP"
+  vpc_id = aws_vpc.packtrain_vpc.id
+  target_type = "ip"
+
+  health_check {
+    path = "/-/ready"
+    protocol = "HTTP"
+    matcher = 200
+
+  }
+}
+
+resource "aws_lb_listener" "policy_server_http" {
+  load_balancer_arn = aws_lb.policy_server_lb.arn
+  port = "80"
+  protocol = "HTTP"
+
+  default_action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.policy_server.arn
+  }
+}
+

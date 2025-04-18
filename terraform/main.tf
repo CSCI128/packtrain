@@ -10,6 +10,13 @@ terraform {
     }
   }
 
+  backend "s3" {
+    bucket = "packtrain-terraform"
+    key = "tfstate"
+    region = "us-west-2"
+    use_lockfile = true
+  }
+
   required_version = ">= 1.2.0"
 }
 
