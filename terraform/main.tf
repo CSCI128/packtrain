@@ -11,9 +11,9 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "packtrain-terraform"
-    key = "tfstate"
-    region = "us-west-2"
+    bucket       = "packtrain-terraform"
+    key          = "tfstate"
+    region       = "us-west-2"
     use_lockfile = true
   }
 
