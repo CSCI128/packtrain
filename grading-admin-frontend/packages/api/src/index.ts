@@ -7,7 +7,7 @@ const api = new OpenAPIClientAxios({
   // @ts-ignore
   definition: openApi,
   axiosConfigDefaults: {
-    baseURL: "https://localhost.dev/api",
+    baseURL: "https://packtrain.gregory-bell.com/api",
   },
 });
 api.init();
