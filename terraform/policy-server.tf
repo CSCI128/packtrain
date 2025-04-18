@@ -22,11 +22,11 @@ locals {
   config_yaml = yamlencode(local.config_data)
 }
 
-resource "aws_ecs_cluster" "policy-server" {
+resource "aws_ecs_cluster" "policy_server" {
   name = "policy-server-cluster"
 }
 
-resource "aws_ecs_task_definition" "policy-server" {
+resource "aws_ecs_task_definition" "policy_server" {
   family                   = "policy-server"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
@@ -65,10 +65,10 @@ resource "aws_ecs_task_definition" "policy-server" {
   ])
 }
 
-resource "aws_ecs_service" "policy-server" {
+resource "aws_ecs_service" "policy_server" {
   name            = "grading-policy-server"
-  cluster         = aws_ecs_cluster.policy-server.id
-  task_definition = aws_ecs_task_definition.policy-server.arn
+  cluster         = aws_ecs_cluster.policy_server.id
+  task_definition = aws_ecs_task_definition.policy_server.arn
   launch_type     = "FARGATE"
   desired_count   = 1
 
@@ -78,7 +78,7 @@ resource "aws_ecs_service" "policy-server" {
       subnet.id
 
     ]
-    security_groups  = [aws_security_group.policy-server-sg.id]
+    security_groups  = [aws_security_group.policy_server_sg.id]
     assign_public_ip = false
   }
 }
