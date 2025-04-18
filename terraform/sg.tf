@@ -167,10 +167,10 @@ resource "aws_security_group" "mq_sg" {
   vpc_id = aws_vpc.packtrain_vpc.id
 
   ingress {
-    from_port   = 9000
-    to_port     = 9000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 5671
+    to_port         = 5671
+    protocol        = "tcp"
+    security_groups = [aws_security_group.backend_sg.id, aws_security_group.policy_server_sg.id]
   }
   egress {
     from_port   = 0
@@ -197,3 +197,4 @@ resource "aws_security_group" "backend_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
