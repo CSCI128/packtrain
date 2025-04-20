@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Checkbox,
   Container,
@@ -406,7 +407,7 @@ export function CreatePage() {
             </form>
 
             {courseCreated && (
-              <>
+              <Box p={20}>
                 {!allTasksCompleted ? (
                   <>
                     <Text>Importing, this may take a moment..</Text>{" "}
@@ -440,7 +441,7 @@ export function CreatePage() {
                     Continue
                   </Button>
                 </Group>
-              </>
+              </Box>
             )}
           </>
         )}
