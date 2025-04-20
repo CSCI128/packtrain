@@ -179,23 +179,27 @@ export function ApprovalPage() {
       <Table.Td>{row.assignment_name}</Table.Td>
       <Table.Td>{row.status}</Table.Td>
       <Table.Td>
-        <Center>
-          {row.status !== "approved" && (
-            <Text
-              size="sm"
-              pr={5}
-              c="green"
-              onClick={() => approveExtension(row)}
-            >
-              Approve
-            </Text>
-          )}
-          {row.status !== "rejected" && (
-            <Text size="sm" pr={5} c="red" onClick={() => denyExtension(row)}>
-              Deny
-            </Text>
-          )}
-        </Center>
+        {row.request_type === "late_pass" ? (
+          <></>
+        ) : (
+          <Center>
+            {row.status !== "approved" && (
+              <Text
+                size="sm"
+                pr={5}
+                c="green"
+                onClick={() => approveExtension(row)}
+              >
+                Approve
+              </Text>
+            )}
+            {row.status !== "rejected" && (
+              <Text size="sm" pr={5} c="red" onClick={() => denyExtension(row)}>
+                Deny
+              </Text>
+            )}
+          </Center>
+        )}
       </Table.Td>
     </Table.Tr>
   ));
