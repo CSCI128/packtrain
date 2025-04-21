@@ -13,7 +13,7 @@ import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export const SelectClass = ({ close }: { close?: () => void }) => {
   const auth = useAuth();
@@ -52,8 +52,6 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     enabled: !!auth.isAuthenticated,
   });
 
-  const navigate = useNavigate();
-
   const switchCourse = (id: string, name: string) => {
     store$.id.set(id);
     store$.name.set(name);
@@ -67,14 +65,11 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
         .at(0);
       if (enrollment !== undefined) {
         if (enrollment.course_role === "owner") {
-          navigate("/admin", { replace: true });
-          window.location.href = "/admin"; // TODO this is cursed
+          window.location.href = "/admin";
         } else if (enrollment.course_role === "instructor") {
-          navigate("/instructor", { replace: true });
-          window.location.href = "/instructor"; // TODO this is cursed
+          window.location.href = "/instructor";
         } else if (enrollment.course_role === "student") {
-          navigate("/requests", { replace: true });
-          window.location.href = "/requests"; // TODO this is cursed
+          window.location.href = "/requests";
         }
       }
     }
@@ -97,14 +92,18 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
               {store$.id.get() == course.id && <>(selected)</>}
             </Button>
           ))}
-          <Button
-            color="green"
-            component={Link}
-            to="/admin/create"
-            onClick={close}
-          >
-            Create Class
-          </Button>
+          {auth.user?.profile.is_admin ? (
+            <Button
+              color="green"
+              component={Link}
+              to="/admin/create"
+              onClick={close}
+            >
+              Create Class
+            </Button>
+          ) : (
+            <></>
+          )}
 
           <Center>
             <Group>

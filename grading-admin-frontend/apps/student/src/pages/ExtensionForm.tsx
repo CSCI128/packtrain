@@ -277,19 +277,15 @@ export function ExtensionForm() {
                   placeholder="Pick value"
                   data={
                     courseData.course.assignments &&
-                    courseData.course.assignments.flatMap((x) =>
-                      [
-                        {
-                          label: x.name,
-                          value: x.id as string,
-                        },
-                      ].filter(
+                    courseData.course.assignments
+                      .filter(
                         (assignment) =>
-                          !data.some(
-                            (d) => d.assignment_id === assignment.value
-                          )
+                          !data.some((d) => d.assignment_id === assignment.id)
                       )
-                    )
+                      .map((assignment) => ({
+                        label: assignment.name,
+                        value: assignment.id as string,
+                      }))
                   }
                   key={latePassForm.key("assignmentId")}
                   {...latePassForm.getInputProps("assignmentId")}
@@ -369,12 +365,15 @@ export function ExtensionForm() {
               placeholder="Pick value"
               data={
                 courseData.course.assignments &&
-                courseData.course.assignments.flatMap((x) => [
-                  {
-                    label: x.name,
-                    value: x.id as string,
-                  },
-                ])
+                courseData.course.assignments
+                  .filter(
+                    (assignment) =>
+                      !data.some((d) => d.assignment_id === assignment.id)
+                  )
+                  .map((assignment) => ({
+                    label: assignment.name,
+                    value: assignment.id as string,
+                  }))
               }
               key={extensionForm.key("assignmentId")}
               {...extensionForm.getInputProps("assignmentId")}
