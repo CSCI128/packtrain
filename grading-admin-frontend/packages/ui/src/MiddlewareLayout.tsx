@@ -34,9 +34,12 @@ export const MiddlewareLayout = () => {
       if (auth.isAuthenticated && store$.id.get() === undefined) {
         navigate("/select");
       }
+
+      if (!userInfo?.admin && currentPage.includes("/admin")) {
+        window.location.href = "/";
+      }
     };
 
-    // TODO better solution/whitelist for this
     if (
       currentPage !== "/profile" &&
       currentPage !== "/instructor/profile" &&
