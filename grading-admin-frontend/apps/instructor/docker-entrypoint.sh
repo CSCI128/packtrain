@@ -7,7 +7,7 @@ window.__ENV__ = {
   VITE_REDIRECT_URI: "${VITE_REDIRECT_URI}",
   VITE_AUTH_SCOPES: "${VITE_AUTH_SCOPES}",
   VITE_LOGOUT_REDIRECT_URI: "${VITE_LOGOUT_REDIRECT_URI}",
-  API_URL: "https://packtrain.gregory-bell.com/api"
+  API_URL: "${API_URL}"
 };
 EOF
 

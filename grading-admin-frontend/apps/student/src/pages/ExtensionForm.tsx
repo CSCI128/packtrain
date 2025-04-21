@@ -105,9 +105,6 @@ export function ExtensionForm() {
         }),
   });
 
-  console.log(data);
-  console.log(courseData?.course.assignments);
-
   const postForm = useMutation({
     mutationKey: ["createExtensionRequest"],
     mutationFn: ({ body }: { body: LateRequest }) =>
