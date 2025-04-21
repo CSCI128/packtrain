@@ -309,6 +309,10 @@ class Authentik:
                 },
                 {
                     "matching_mode": "strict",
+                    "url": "https://packtrain.gregory-bell.com/select"
+                },
+                {
+                    "matching_mode": "strict",
                     "url": "https://oauth.pstmn.io/v1/callback"
                 }
             ],

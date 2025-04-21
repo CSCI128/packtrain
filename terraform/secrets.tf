@@ -60,7 +60,7 @@ resource "aws_secretsmanager_secret_version" "s__authentik_secret_key" {
 # generate the secret
 resource "random_password" "packtrain_db_password" {
   length  = 64
-  special = true
+  special = false
 }
 
 # tell AWS that it is about to exist
