@@ -52,7 +52,8 @@ export const MiddlewareLayout = () => {
       currentPage !== "/admin/users" &&
       currentPage !== "/admin/create" &&
       currentPage !== "/instructor/users" &&
-      currentPage !== "/"
+      currentPage !== "/" &&
+      currentPage !== "/select"
     ) {
       fetchData();
     }
