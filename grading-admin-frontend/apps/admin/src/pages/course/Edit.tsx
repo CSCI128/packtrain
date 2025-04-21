@@ -243,131 +243,129 @@ export function EditCourse() {
   if (error) return `An error occurred: ${error}`;
 
   return (
-    <>
-      <Container size="md">
-        <Text size="xl" fw={700}>
-          Edit Course
-        </Text>
+    <Container size="md">
+      <Text size="xl" fw={700}>
+        Edit Course
+      </Text>
 
-        <Divider my="md" />
+      <Divider my="md" />
 
-        <form onSubmit={form.onSubmit(updateCourse)}>
-          <Fieldset legend="Course Information">
-            <TextInput
-              pb={8}
-              label="Course Name"
-              defaultValue="Computer Science For STEM"
-              placeholder="Computer Science For STEM"
-              key={form.key("courseName")}
-              {...form.getInputProps("courseName")}
-            />
+      <form onSubmit={form.onSubmit(updateCourse)}>
+        <Fieldset legend="Course Information">
+          <TextInput
+            pb={8}
+            label="Course Name"
+            defaultValue="Computer Science For STEM"
+            placeholder="Computer Science For STEM"
+            key={form.key("courseName")}
+            {...form.getInputProps("courseName")}
+          />
 
-            <TextInput
-              pb={8}
-              label="Course Code"
-              defaultValue="CSCI128"
-              placeholder="CSCI128"
-              key={form.key("courseCode")}
-              {...form.getInputProps("courseCode")}
-            />
+          <TextInput
+            pb={8}
+            label="Course Code"
+            defaultValue="CSCI128"
+            placeholder="CSCI128"
+            key={form.key("courseCode")}
+            {...form.getInputProps("courseCode")}
+          />
 
-            <TextInput
-              pb={8}
-              label="Term"
-              defaultValue="Fall 2024"
-              placeholder="Fall 2024"
-              key={form.key("courseTerm")}
-              {...form.getInputProps("courseTerm")}
-            />
+          <TextInput
+            pb={8}
+            label="Term"
+            defaultValue="Fall 2024"
+            placeholder="Fall 2024"
+            key={form.key("courseTerm")}
+            {...form.getInputProps("courseTerm")}
+          />
 
-            <TextInput
-              pb={8}
-              disabled
-              label="Canvas ID"
-              placeholder="xxxxxxxx"
-              key={form.key("canvasId")}
-              {...form.getInputProps("canvasId")}
-            />
-          </Fieldset>
+          <TextInput
+            pb={8}
+            disabled
+            label="Canvas ID"
+            placeholder="xxxxxxxx"
+            key={form.key("canvasId")}
+            {...form.getInputProps("canvasId")}
+          />
+        </Fieldset>
 
-          <Space h="md" />
+        <Space h="md" />
 
-          <Fieldset legend="Course Late Request Config">
-            <Checkbox
-              pb={8}
-              label="Enable Late Passes"
-              key={form.key("latePassesEnabled")}
-              {...form.getInputProps("latePassesEnabled", { type: "checkbox" })}
-            />
+        <Fieldset legend="Course Late Request Config">
+          <Checkbox
+            pb={8}
+            label="Enable Late Passes"
+            key={form.key("latePassesEnabled")}
+            {...form.getInputProps("latePassesEnabled", { type: "checkbox" })}
+          />
 
-            <NumberInput
-              pb={8}
-              label="Total Late Passes Allowed"
-              key={form.key("totalLatePassesAllowed")}
-              min={0}
-              {...form.getInputProps("totalLatePassesAllowed")}
-            />
+          <NumberInput
+            pb={8}
+            label="Total Late Passes Allowed"
+            key={form.key("totalLatePassesAllowed")}
+            min={0}
+            {...form.getInputProps("totalLatePassesAllowed")}
+          />
 
-            <TagsInput
-              pb={8}
-              label="Allowed Extension Reasons"
-              placeholder="Enter tag.."
-              key={form.key("enabledExtensionReasons")}
-              {...form.getInputProps("enabledExtensionReasons")}
-              data={[
-                "Bereavement",
-                "Excused Absence",
-                "Family",
-                "Illness",
-                "Personal",
-                "Other",
-              ]}
-            />
+          <TagsInput
+            pb={8}
+            label="Allowed Extension Reasons"
+            placeholder="Enter tag.."
+            key={form.key("enabledExtensionReasons")}
+            {...form.getInputProps("enabledExtensionReasons")}
+            data={[
+              "Bereavement",
+              "Excused Absence",
+              "Family",
+              "Illness",
+              "Personal",
+              "Other",
+            ]}
+          />
 
-            <TextInput
-              pb={8}
-              label="Late Pass Name"
-              placeholder="Late Pass"
-              key={form.key("latePassName")}
-              {...form.getInputProps("latePassName")}
-            />
-          </Fieldset>
+          <TextInput
+            pb={8}
+            label="Late Pass Name"
+            placeholder="Late Pass"
+            key={form.key("latePassName")}
+            {...form.getInputProps("latePassName")}
+          />
+        </Fieldset>
 
-          <Space h="md" />
+        <Space h="md" />
 
-          <Fieldset legend="External Course Config">
-            <TextInput
-              pb={8}
-              label="Gradescope Course ID"
-              placeholder="xxxxxxxx"
-              key={form.key("gradescopeId")}
-              {...form.getInputProps("gradescopeId")}
-            />
-          </Fieldset>
+        <Fieldset legend="External Course Config">
+          <TextInput
+            pb={8}
+            label="Gradescope Course ID"
+            placeholder="xxxxxxxx"
+            key={form.key("gradescopeId")}
+            {...form.getInputProps("gradescopeId")}
+          />
+        </Fieldset>
 
-          <Group justify="flex-end" mt="md">
-            {!allTasksCompleted ? (
-              <>
-                {syncing ? (
-                  <>
-                    <Text>Syncing course with Canvas..</Text>
-                    <Button disabled color="gray" variant="filled">
-                      Sync Course
-                    </Button>
-                  </>
-                ) : (
-                  <Button onClick={syncAssignments} variant="filled">
+        <Group justify="flex-end" mt="md">
+          {!allTasksCompleted ? (
+            <>
+              {syncing ? (
+                <>
+                  <Text>Syncing course with Canvas..</Text>
+                  <Button disabled color="gray" variant="filled">
                     Sync Course
                   </Button>
-                )}
-              </>
-            ) : (
-              <Text>Canvas re-sync complete!</Text>
-            )}
-            <Button type="submit">Save</Button>
-          </Group>
-        </form>
-      </Container>
-    </>
+                </>
+              ) : (
+                <Button onClick={syncAssignments} variant="filled">
+                  Sync Course
+                </Button>
+              )}
+            </>
+          ) : (
+            <Text>Canvas re-sync complete!</Text>
+          )}
+          <Button type="submit">Save</Button>
+        </Group>
+      </form>
+    </Container>
   );
 }

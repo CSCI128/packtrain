@@ -65,8 +65,8 @@ export function ExtensionForm() {
 
   const {
     data: courseData,
-    error,
-    isLoading,
+    error: courseError,
+    isLoading: courseIsLoading,
   } = useQuery<StudentInformation | null>({
     queryKey: ["getCourse"],
     queryFn: () =>
@@ -88,6 +88,25 @@ export function ExtensionForm() {
       ?.filter((x: Assignment) => x.id === assignmentId)
       .at(0)?.due_date;
   };
+
+  const { data, error, isLoading } = useQuery<LateRequest[] | null>({
+    queryKey: ["getExtensions"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_all_extensions({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  console.log(data);
+  console.log(courseData?.course.assignments);
 
   const postForm = useMutation({
     mutationKey: ["createExtensionRequest"],
@@ -151,9 +170,9 @@ export function ExtensionForm() {
     );
   };
 
-  if (isLoading || !courseData) return "Loading...";
+  if (isLoading || !courseData || courseIsLoading || !data) return "Loading...";
 
-  if (error) return `An error occured: ${error}`;
+  if (error || courseError) return `An error occured: ${error}`;
 
   const LATE_PASSES_ALLOWED =
     courseData.course.late_request_config.total_late_passes_allowed;
@@ -258,12 +277,15 @@ export function ExtensionForm() {
                   placeholder="Pick value"
                   data={
                     courseData.course.assignments &&
-                    courseData.course.assignments.flatMap((x) => [
-                      {
-                        label: x.name,
-                        value: x.id as string,
-                      },
-                    ])
+                    courseData.course.assignments
+                      .filter(
+                        (assignment) =>
+                          !data.some((d) => d.assignment_id === assignment.id)
+                      )
+                      .map((assignment) => ({
+                        label: assignment.name,
+                        value: assignment.id as string,
+                      }))
                   }
                   key={latePassForm.key("assignmentId")}
                   {...latePassForm.getInputProps("assignmentId")}
@@ -343,12 +365,15 @@ export function ExtensionForm() {
               placeholder="Pick value"
               data={
                 courseData.course.assignments &&
-                courseData.course.assignments.flatMap((x) => [
-                  {
-                    label: x.name,
-                    value: x.id as string,
-                  },
-                ])
+                courseData.course.assignments
+                  .filter(
+                    (assignment) =>
+                      !data.some((d) => d.assignment_id === assignment.id)
+                  )
+                  .map((assignment) => ({
+                    label: assignment.name,
+                    value: assignment.id as string,
+                  }))
               }
               key={extensionForm.key("assignmentId")}
               {...extensionForm.getInputProps("assignmentId")}

@@ -1,25 +1,44 @@
-import { Button, Center, Container, Stack, Text } from "@mantine/core";
+import {
+  Button,
+  Center,
+  Checkbox,
+  Container,
+  Group,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
 import { Course, CourseSlim } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useAuth } from "react-oidc-context";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export const SelectClass = ({ close }: { close?: () => void }) => {
   const auth = useAuth();
+  const [checked, setChecked] = useState(false);
 
-  const { data, error, isLoading } = useQuery({
-    queryKey: ["getCourses"],
-    queryFn: () =>
-      getApiClient()
+  const { data, error, isLoading, refetch } = useQuery({
+    queryKey: ["getCourses", { onlyActive: checked }],
+    queryFn: async ({
+      queryKey,
+    }: {
+      queryKey: [string, { onlyActive: boolean }];
+    }) => {
+      const [, { onlyActive }] = queryKey;
+      return getApiClient()
         .then((client) =>
           auth.isAuthenticated && auth.user?.profile.is_admin
-            ? client.get_courses()
+            ? client.get_courses({ onlyActive })
             : client.get_courses_student()
         )
         .then((res) => res.data)
-        .catch((err) => console.log(err)),
+        .catch((err) => {
+          console.log(err);
+          throw err;
+        });
+    },
     enabled: !!auth.isAuthenticated,
   });
 
@@ -32,8 +51,6 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
         .catch((err) => console.log(err)),
     enabled: !!auth.isAuthenticated,
   });
-
-  const navigate = useNavigate();
 
   const switchCourse = (id: string, name: string) => {
     store$.id.set(id);
@@ -48,14 +65,11 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
         .at(0);
       if (enrollment !== undefined) {
         if (enrollment.course_role === "owner") {
-          navigate("/admin", { replace: true });
-          window.location.href = "/admin"; // TODO this is cursed
+          window.location.href = "/admin";
         } else if (enrollment.course_role === "instructor") {
-          navigate("/instructor", { replace: true });
-          window.location.href = "/instructor"; // TODO this is cursed
+          window.location.href = "/instructor";
         } else if (enrollment.course_role === "student") {
-          navigate("/requests", { replace: true });
-          window.location.href = "/requests"; // TODO this is cursed
+          window.location.href = "/requests";
         }
       }
     }
@@ -69,19 +83,15 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     <Container size="sm">
       <Center>
         <Stack>
-          {data.length === 0 ? (
-            <Text>No courses were found!</Text>
-          ) : (
-            data.map((course: Course | CourseSlim) => (
-              <Button
-                key={course.id}
-                onClick={() => switchCourse(course.id as string, course.name)}
-              >
-                {course.name} ({course.term}){" "}
-                {store$.id.get() == course.id && <>(selected)</>}
-              </Button>
-            ))
-          )}
+          {data.map((course: Course | CourseSlim) => (
+            <Button
+              key={course.id}
+              onClick={() => switchCourse(course.id as string, course.name)}
+            >
+              {course.name} ({course.term}){" "}
+              {store$.id.get() == course.id && <>(selected)</>}
+            </Button>
+          ))}
           {auth.user?.profile.is_admin ? (
             <Button
               color="green"
@@ -94,6 +104,19 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
           ) : (
             <></>
           )}
+
+          <Center>
+            <Group>
+              <Checkbox
+                checked={checked}
+                onChange={(event) => {
+                  setChecked(event.currentTarget.checked);
+                  refetch();
+                }}
+              />
+              <Text c="gray">Show only active courses</Text>
+            </Group>
+          </Center>
         </Stack>
       </Center>
     </Container>

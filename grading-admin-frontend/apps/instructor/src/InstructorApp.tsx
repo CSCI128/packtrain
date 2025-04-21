@@ -10,7 +10,7 @@ import { JSX } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { userManager } from "./api";
 import "./index.css";
-import { ApprovalPage } from "./pages/ApprovalPage";
+import { ApprovalPage } from "./pages/Approvals";
 import { MembersPage } from "./pages/Members";
 import { MigrationsPage } from "./pages/migration/Migrations";
 import { MigrationsApplyPage } from "./pages/migration/MigrationsApply";

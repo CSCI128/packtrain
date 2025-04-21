@@ -1,4 +1,5 @@
 import {
+  Box,
   Center,
   Container,
   Divider,
@@ -179,23 +180,38 @@ export function ApprovalPage() {
       <Table.Td>{row.assignment_name}</Table.Td>
       <Table.Td>{row.status}</Table.Td>
       <Table.Td>
-        <Center>
-          {row.status !== "approved" && (
-            <Text
-              size="sm"
-              pr={5}
-              c="green"
-              onClick={() => approveExtension(row)}
-            >
-              Approve
-            </Text>
-          )}
-          {row.status !== "rejected" && (
-            <Text size="sm" pr={5} c="red" onClick={() => denyExtension(row)}>
-              Deny
-            </Text>
-          )}
-        </Center>
+        {row.request_type === "late_pass" ? (
+          <></>
+        ) : (
+          <Center>
+            {row.status !== "approved" && (
+              <Box
+                size="sm"
+                py={5}
+                px={10}
+                mr={5}
+                bd="1px solid green"
+                c="green"
+                onClick={() => approveExtension(row)}
+              >
+                Approve
+              </Box>
+            )}
+            {row.status !== "rejected" && (
+              <Box
+                size="sm"
+                py={5}
+                px={10}
+                mr={5}
+                bd="1px solid red"
+                c="red"
+                onClick={() => denyExtension(row)}
+              >
+                Deny
+              </Box>
+            )}
+          </Center>
+        )}
       </Table.Td>
     </Table.Tr>
   ));

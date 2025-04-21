@@ -114,7 +114,12 @@ public class ExtensionService {
         LateRequest lateRequest = new LateRequest();
         lateRequest.setDaysRequested(daysRequested);
         lateRequest.setLateRequestType(LateRequestType.valueOf(requestType.name()));
-        lateRequest.setStatus(LateRequestStatus.valueOf(status.name()));
+        if(lateRequest.getLateRequestType() == LateRequestType.LATE_PASS) {
+            lateRequest.setStatus(LateRequestStatus.APPROVED);
+        }
+        else {
+            lateRequest.setStatus(LateRequestStatus.valueOf(status.name()));
+        }
         lateRequest.setSubmissionDate(submissionDate);
         if(extension != null) {
             Extension newExtension = createExtensionFromDTO(courseId, user, extension);

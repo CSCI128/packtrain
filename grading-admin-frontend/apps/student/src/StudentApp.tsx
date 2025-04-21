@@ -11,6 +11,7 @@ import { userManager } from "./api";
 import "./App.css";
 import "./index.css";
 import { ExtensionForm } from "./pages/ExtensionForm";
+import { LandingPage } from "./pages/Landing";
 import { ProfilePage } from "./pages/Profile";
 import { Requests } from "./pages/Requests";
 import Root from "./templates/Root";
@@ -25,15 +26,6 @@ const queryClient = new QueryClient({
   },
 });
 
-const HomePage = () => {
-  // TODO do landing page eventually
-  return (
-    <>
-      <p>Hello, world!</p>
-    </>
-  );
-};
-
 const router = createBrowserRouter([
   {
     element: <Root />,
@@ -43,7 +35,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: "/",
-            element: <HomePage />,
+            element: <LandingPage />,
           },
           {
             path: "/select",

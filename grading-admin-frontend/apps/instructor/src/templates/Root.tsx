@@ -1,4 +1,5 @@
 import "@mantine/dates/styles.css";
+import { Footer } from "@repo/ui/footer/Footer";
 import { Navbar } from "@repo/ui/navbar/Navbar";
 import { Outlet } from "react-router-dom";
 import "./Root.scss";
@@ -9,6 +10,7 @@ const staticLinks = [
 ];
 
 const links = [
+  { href: "/instructor/approval", label: "Approvals" },
   { href: "/instructor/migrate", label: "Migrate" },
   { href: "/instructor/members", label: "Members" },
 ];
@@ -20,6 +22,7 @@ export default function Root() {
       <div className="page-container">
         <Outlet />
       </div>
+      <Footer />
     </>
   );
 }
