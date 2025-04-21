@@ -1,4 +1,5 @@
 import {
+  Box,
   Center,
   Container,
   Divider,
@@ -184,19 +185,30 @@ export function ApprovalPage() {
         ) : (
           <Center>
             {row.status !== "approved" && (
-              <Text
+              <Box
                 size="sm"
-                pr={5}
+                py={5}
+                px={10}
+                mr={5}
+                bd="1px solid green"
                 c="green"
                 onClick={() => approveExtension(row)}
               >
                 Approve
-              </Text>
+              </Box>
             )}
             {row.status !== "rejected" && (
-              <Text size="sm" pr={5} c="red" onClick={() => denyExtension(row)}>
+              <Box
+                size="sm"
+                py={5}
+                px={10}
+                mr={5}
+                bd="1px solid red"
+                c="red"
+                onClick={() => denyExtension(row)}
+              >
                 Deny
-              </Text>
+              </Box>
             )}
           </Center>
         )}
