@@ -243,7 +243,7 @@ export function EditCourse() {
   if (error) return `An error occurred: ${error}`;
 
   return (
-    <Container size="md" mb={20}>
+    <Container size="md">
       <Text size="xl" fw={700}>
         Edit Course
       </Text>

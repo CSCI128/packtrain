@@ -43,7 +43,7 @@ export function Navbar({ staticLinks, links }: NavbarProps) {
         <SelectClass close={close} />
       </Modal>
 
-      <Box mb={20}>
+      <Box mb="1.5%">
         <header className={classes.header}>
           <Group justify="space-between" h="100%">
             <Group h="100%" gap={0} visibleFrom="sm">
