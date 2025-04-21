@@ -1,0 +1,733 @@
+
+terraform {
+  required_version = ">= 1.2.0"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 4.0"
+    }
+  }
+}
+
+# Define provider (adjust region as needed)
+provider "aws" {
+  region = var.aws_region
+}
+
+#############################
+# VPC and Networking
+#############################
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "3.14.2"
+
+  name                 = "grading-vpc"
+  cidr                 = "10.0.0.0/16"
+  azs                  = ["${var.aws_region}a", "${var.aws_region}b", "${var.aws_region}c"]
+  public_subnets       = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  private_subnets      = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+  enable_nat_gateway   = true
+  single_nat_gateway   = true
+  public_subnet_tags   = { "Tier" = "public" }
+  private_subnet_tags  = { "Tier" = "private" }
+}
+
+#############################
+# Security Groups
+#############################
+
+# ALB Security Group (allow HTTP/HTTPS from Internet)
+resource "aws_security_group" "alb_sg" {
+  name        = "alb-sg"
+  description = "Security group for ALB"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    description = "Allow HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Allow HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "All out"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# ECS tasks security group (allow ALB to communicate with containers)
+resource "aws_security_group" "ecs_sg" {
+  name        = "ecs-sg"
+  description = "Security group for ECS tasks"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    description     = "Allow traffic from ALB"
+    from_port       = 0
+    to_port         = 0
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
+  }
+
+  egress {
+    description = "All out"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# RDS DB security group (allow traffic from ECS tasks)
+resource "aws_security_group" "db_sg" {
+  name        = "db-sg"
+  description = "Security group for RDS instances"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    description     = "Postgres from ECS tasks"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs_sg.id]
+  }
+
+  egress {
+    description = "All out"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Amazon MQ security group
+resource "aws_security_group" "mq_sg" {
+  name        = "mq-sg"
+  description = "Security group for Amazon MQ broker (RabbitMQ)"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    description     = "RabbitMQ access from ECS tasks"
+    from_port       = 5671
+    to_port         = 5672
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs_sg.id]
+  }
+
+  egress {
+    description = "All out"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+#############################
+# IAM Roles for ECS Tasks
+#############################
+
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "ecsTaskExecutionRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action    = "sts:AssumeRole",
+      Principal = { Service = "ecs-tasks.amazonaws.com" },
+      Effect    = "Allow",
+    }]
+  })
+
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
+  ]
+}
+
+#############################
+# Application Load Balancer
+#############################
+
+resource "aws_lb" "app_lb" {
+  name               = "grading-app-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb_sg.id]
+  subnets            = module.vpc.public_subnets
+}
+
+# ALB Listener (HTTP)
+resource "aws_lb_listener" "app_listener" {
+  load_balancer_arn = aws_lb.app_lb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  # Default action forwards to backend target group (as an example)
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.backend_tg.arn
+  }
+}
+
+#############################
+# ECS Cluster
+#############################
+
+resource "aws_ecs_cluster" "cluster" {
+  name = "grading-ecs-cluster"
+}
+
+#############################
+# ECS Task Definitions & Services
+#############################
+
+# Example for the backend service
+resource "aws_ecs_task_definition" "backend" {
+  family                   = "backend"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "512"
+  memory                   = "1024"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([{
+    name  = "backend"
+    image = var.backend_image
+    portMappings = [{
+      containerPort = 8080
+      hostPort       = 8080
+      protocol       = "tcp"
+    }]
+    environment = [
+      { name = "S3_SECRET_KEY", value = var.s3_secret_key }
+      # ... add any additional required environment variables here
+    ]
+  }])
+}
+
+resource "aws_lb_target_group" "backend_tg" {
+  name     = "backend-tg"
+  port     = 8080
+  protocol = "HTTP"
+  vpc_id   = module.vpc.vpc_id
+
+  health_check {
+    path                = "/health"
+    protocol            = "HTTP"
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    interval            = 30
+    timeout             = 5
+  }
+}
+
+resource "aws_ecs_service" "backend" {
+  name            = "backend-service"
+  cluster         = aws_ecs_cluster.cluster.id
+  task_definition = aws_ecs_task_definition.backend.arn
+  launch_type     = "FARGATE"
+  desired_count   = 1
+
+  network_configuration {
+    subnets         = module.vpc.private_subnets
+    security_groups = [aws_security_group.ecs_sg.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.backend_tg.arn
+    container_name   = "backend"
+    container_port   = 8080
+  }
+
+  depends_on = [aws_lb_listener.app_listener]
+}
+
+# Similarly define the grading policy service
+resource "aws_ecs_task_definition" "policy" {
+  family                   = "grading-policy-service"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([{
+    name  = "grading-policy"
+    image = var.policy_image
+    portMappings = [{
+      containerPort = 8081
+      hostPort       = 8081
+      protocol       = "tcp"
+    }]
+    environment = [
+      # Define any necessary environment variables
+    ]
+  }])
+}
+
+resource "aws_lb_target_group" "policy_tg" {
+  name     = "policy-tg"
+  port     = 8081
+  protocol = "HTTP"
+  vpc_id   = module.vpc.vpc_id
+
+  health_check {
+    path     = "/health"
+    protocol = "HTTP"
+  }
+}
+
+resource "aws_ecs_service" "policy" {
+  name            = "grading-policy-service"
+  cluster         = aws_ecs_cluster.cluster.id
+  task_definition = aws_ecs_task_definition.policy.arn
+  launch_type     = "FARGATE"
+  desired_count   = 1
+
+  network_configuration {
+    subnets         = module.vpc.private_subnets
+    security_groups = [aws_security_group.ecs_sg.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.policy_tg.arn
+    container_name   = "grading-policy"
+    container_port   = 8081
+  }
+}
+
+# Frontend - Admin
+resource "aws_ecs_task_definition" "frontend_admin" {
+  family                   = "frontend-admin"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([{
+    name  = "frontend-admin"
+    image = var.frontend_admin_image
+    portMappings = [{
+      containerPort = 80
+      hostPort       = 80
+      protocol       = "tcp"
+    }]
+    environment = [
+      # Add environment variables if needed
+    ]
+  }])
+}
+
+resource "aws_lb_target_group" "frontend_admin_tg" {
+  name     = "frontend-admin-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = module.vpc.vpc_id
+
+  health_check {
+    path     = "/health"
+    protocol = "HTTP"
+  }
+}
+
+resource "aws_ecs_service" "frontend_admin" {
+  name            = "frontend-admin-service"
+  cluster         = aws_ecs_cluster.cluster.id
+  task_definition = aws_ecs_task_definition.frontend_admin.arn
+  launch_type     = "FARGATE"
+  desired_count   = 1
+
+  network_configuration {
+    subnets         = module.vpc.private_subnets
+    security_groups = [aws_security_group.ecs_sg.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.frontend_admin_tg.arn
+    container_name   = "frontend-admin"
+    container_port   = 80
+  }
+}
+
+# Frontend - Student
+resource "aws_ecs_task_definition" "frontend_student" {
+  family                   = "frontend-student"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([{
+    name  = "frontend-student"
+    image = var.frontend_student_image
+    portMappings = [{
+      containerPort = 80
+      hostPort       = 80
+      protocol       = "tcp"
+    }]
+    environment = [
+      # Define environment variables if needed
+    ]
+  }])
+}
+
+resource "aws_lb_target_group" "frontend_student_tg" {
+  name     = "frontend-student-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = module.vpc.vpc_id
+
+  health_check {
+    path     = "/health"
+    protocol = "HTTP"
+  }
+}
+
+resource "aws_ecs_service" "frontend_student" {
+  name            = "frontend-student-service"
+  cluster         = aws_ecs_cluster.cluster.id
+  task_definition = aws_ecs_task_definition.frontend_student.arn
+  launch_type     = "FARGATE"
+  desired_count   = 1
+
+  network_configuration {
+    subnets         = module.vpc.private_subnets
+    security_groups = [aws_security_group.ecs_sg.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.frontend_student_tg.arn
+    container_name   = "frontend-student"
+    container_port   = 80
+  }
+}
+
+# Frontend - Instructor
+resource "aws_ecs_task_definition" "frontend_instructor" {
+  family                   = "frontend-instructor"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([{
+    name  = "frontend-instructor"
+    image = var.frontend_instructor_image
+    portMappings = [{
+      containerPort = 80
+      hostPort       = 80
+      protocol       = "tcp"
+    }]
+    environment = [
+      # Add any environment variables here
+    ]
+  }])
+}
+
+resource "aws_lb_target_group" "frontend_instructor_tg" {
+  name     = "frontend-instructor-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = module.vpc.vpc_id
+
+  health_check {
+    path     = "/health"
+    protocol = "HTTP"
+  }
+}
+
+resource "aws_ecs_service" "frontend_instructor" {
+  name            = "frontend-instructor-service"
+  cluster         = aws_ecs_cluster.cluster.id
+  task_definition = aws_ecs_task_definition.frontend_instructor.arn
+  launch_type     = "FARGATE"
+  desired_count   = 1
+
+  network_configuration {
+    subnets         = module.vpc.private_subnets
+    security_groups = [aws_security_group.ecs_sg.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.frontend_instructor_tg.arn
+    container_name   = "frontend-instructor"
+    container_port   = 80
+  }
+}
+
+# Authentik service
+resource "aws_ecs_task_definition" "authentik" {
+  family                   = "authentik"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "512"
+  memory                   = "1024"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([{
+    name  = "authentik"
+    image = var.authentik_image
+    portMappings = [{
+      containerPort = 8000
+      hostPort       = 8000
+      protocol       = "tcp"
+    }]
+    environment = [
+      # Add environment variables such as database connection info, etc.
+    ]
+  }])
+}
+
+resource "aws_lb_target_group" "authentik_tg" {
+  name     = "authentik-tg"
+  port     = 8000
+  protocol = "HTTP"
+  vpc_id   = module.vpc.vpc_id
+
+  health_check {
+    path     = "/health"
+    protocol = "HTTP"
+  }
+}
+
+resource "aws_ecs_service" "authentik" {
+  name            = "authentik-service"
+  cluster         = aws_ecs_cluster.cluster.id
+  task_definition = aws_ecs_task_definition.authentik.arn
+  launch_type     = "FARGATE"
+  desired_count   = 1
+
+  network_configuration {
+    subnets         = module.vpc.private_subnets
+    security_groups = [aws_security_group.ecs_sg.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.authentik_tg.arn
+    container_name   = "authentik"
+    container_port   = 8000
+  }
+}
+
+#############################
+# RDS PostgreSQL Instances
+#############################
+
+# Create a DB subnet group using the VPC private subnets
+resource "aws_db_subnet_group" "db_subnet_group" {
+  name       = "grading-db-subnet-group"
+  subnet_ids = module.vpc.private_subnets
+}
+
+# RDS for grading backend (grading-admin)
+resource "aws_db_instance" "gradingadmin_db" {
+  identifier              = "gradingadmin-db"
+  engine                  = "postgres"
+  engine_version          = "16"
+  instance_class          = "db.t3.micro"
+  allocated_storage       = 20
+  storage_type            = "gp2"
+  username                = var.pg_user
+  password                = var.pg_pass
+  db_name                 = var.pg_db_gradingadmin
+  vpc_security_group_ids  = [aws_security_group.db_sg.id]
+  db_subnet_group_name    = aws_db_subnet_group.db_subnet_group.name
+  skip_final_snapshot     = true
+  publicly_accessible     = false
+}
+
+# RDS for authentik
+resource "aws_db_instance" "authentik_db" {
+  identifier              = "authentik-db"
+  engine                  = "postgres"
+  engine_version          = "16"
+  instance_class          = "db.t3.micro"
+  allocated_storage       = 20
+  storage_type            = "gp2"
+  username                = var.pg_user
+  password                = var.pg_pass
+  db_name                 = var.pg_db_authentik
+  vpc_security_group_ids  = [aws_security_group.db_sg.id]
+  db_subnet_group_name    = aws_db_subnet_group.db_subnet_group.name
+  skip_final_snapshot     = true
+  publicly_accessible     = false
+}
+
+#############################
+# S3 Bucket (in place of MinIO)
+#############################
+
+resource "aws_s3_bucket" "grading_bucket" {
+  bucket = var.s3_bucket_name
+  acl    = "private"
+
+  versioning {
+    enabled = true
+  }
+
+  lifecycle_rule {
+    id      = "ExpireOldVersions"
+    enabled = true
+
+    noncurrent_version_expiration {
+      days = 30
+    }
+  }
+}
+
+#############################
+# Amazon MQ Broker (RabbitMQ)
+#############################
+
+resource "aws_mq_broker" "rabbitmq_broker" {
+  broker_name       = "grading-rabbitmq"
+  engine_type       = "RabbitMQ"
+  engine_version    = "3.8.22"    # adjust version as desired
+  deployment_mode   = "SINGLE_INSTANCE"
+  host_instance_type = "mq.t3.micro"
+
+  publicly_accessible = false
+  subnet_ids          = module.vpc.private_subnets
+  security_groups     = [aws_security_group.mq_sg.id]
+
+  users {
+    username = var.mq_username
+    password = var.mq_password
+  }
+}
+
+#############################
+# API Gateway (HTTP API)
+#############################
+
+resource "aws_apigatewayv2_api" "api" {
+  name          = "grading-api"
+  protocol_type = "HTTP"
+}
+
+# Integration to the backend ALB – assuming the backend handles your API endpoints.
+resource "aws_apigatewayv2_integration" "backend_integration" {
+  api_id                 = aws_apigatewayv2_api.api.id
+  integration_type       = "HTTP_PROXY"
+  integration_method     = "ANY"
+  integration_uri        = "http://${aws_lb.app_lb.dns_name}"
+  payload_format_version = "1.0"
+}
+
+resource "aws_apigatewayv2_route" "default_route" {
+  api_id    = aws_apigatewayv2_api.api.id
+  route_key = "$default"
+  target    = "integrations/${aws_apigatewayv2_integration.backend_integration.id}"
+}
+
+resource "aws_apigatewayv2_stage" "default_stage" {
+  api_id      = aws_apigatewayv2_api.api.id
+  name        = "$default"
+  auto_deploy = true
+}
+
+#############################
+# Variables (example defaults)
+#############################
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "backend_image" {
+  description = "Docker image for backend service"
+  type        = string
+  # e.g., "dockerhubuser/backend:latest"
+}
+
+variable "policy_image" {
+  description = "Docker image for grading policy service"
+  type        = string
+}
+
+variable "frontend_admin_image" {
+  description = "Docker image for frontend admin"
+  type        = string
+}
+
+variable "frontend_student_image" {
+  description = "Docker image for frontend student"
+  type        = string
+}
+
+variable "frontend_instructor_image" {
+  description = "Docker image for frontend instructor"
+  type        = string
+}
+
+variable "authentik_image" {
+  description = "Docker image for authentik"
+  type        = string
+}
+
+variable "s3_bucket_name" {
+  description = "Name of the S3 bucket for storage"
+  type        = string
+}
+
+variable "s3_secret_key" {
+  description = "Secret key for S3 (to be passed to your container)"
+  type        = string
+}
+
+variable "pg_user" {
+  description = "PostgreSQL username"
+  type        = string
+}
+
+variable "pg_pass" {
+  description = "PostgreSQL password"
+  type        = string
+  sensitive   = true
+}
+
+variable "pg_db_gradingadmin" {
+  description = "Database name for grading admin service"
+  type        = string
+}
+
+variable "pg_db_authentik" {
+  description = "Database name for authentik"
+  type        = string
+}
+
+variable "mq_username" {
+  description = "Username for Amazon MQ broker"
+  type        = string
+}
+
+variable "mq_password" {
+  description = "Password for Amazon MQ broker"
+  type        = string
+  sensitive   = true
+}

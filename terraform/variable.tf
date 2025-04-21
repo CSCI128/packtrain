@@ -9,6 +9,12 @@ variable "authentik_image" {
   default     = "beryju/authentik:2025.2.4"
 }
 
+variable "backend_image" {
+  description = "Docker image for backend service"
+  default     = "ghcr.io/csci128/packtrain/api:main"
+  type        = string
+}
+
 variable "policy_image" {
   description = "Docker image for grading policy server"
   type        = string
@@ -73,7 +79,7 @@ variable "frontend_default_environment" {
   default = [
     { name = "VITE_OAUTH_URL", value = "https://packtrain.gregory-bell.com/auth/application/o/grading-admin/" },
     { name = "VITE_REDIRECT_URI", value = "https://packtrain.gregory-bell.com/select" },
-    { name = "VITE_LOGOUT_REDIRECT_URI", value = "https://packtrain.gregory-bell.com.com/" },
+    { name = "VITE_LOGOUT_REDIRECT_URI", value = "https://packtrain.gregory-bell.com/" },
     { name = "VITE_API_URL", value = "https://packtrain.gregory-bell.com/api/" },
     { name = "VITE_AUTH_SCOPES", value = "openid is_admin cwid email profile offline_access" },
     { name = "VITE_CLIENT_ID", value = "grading_admin_provider" }
