@@ -35,7 +35,12 @@ export const MiddlewareLayout = () => {
         navigate("/select");
       }
 
-      if (!userInfo?.admin && currentPage.includes("/admin")) {
+      if (
+        auth.isAuthenticated &&
+        userInfo &&
+        !userInfo?.admin &&
+        currentPage.includes("/admin")
+      ) {
         window.location.href = "/";
       }
     };
