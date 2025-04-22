@@ -13,7 +13,6 @@ import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
-import { Link } from "react-router-dom";
 
 export const SelectClass = ({ close }: { close?: () => void }) => {
   const auth = useAuth();
@@ -75,6 +74,13 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     }
   };
 
+  const handleCreateClass = () => {
+    if (auth.user?.profile.is_admin) {
+      window.location.href = "/admin/create";
+    }
+    close?.();
+  };
+
   if (isLoading || !data) return "Loading...";
 
   if (error) return `An error occured: ${error}`;
@@ -94,12 +100,7 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
           ))}
           {auth.user?.profile.is_admin ? (
             <>
-              <Button
-                color="green"
-                component={Link}
-                to="/admin/create"
-                onClick={close}
-              >
+              <Button color="green" onClick={handleCreateClass}>
                 Create Class
               </Button>
               <Center>
