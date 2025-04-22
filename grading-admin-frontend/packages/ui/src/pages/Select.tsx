@@ -93,30 +93,31 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
             </Button>
           ))}
           {auth.user?.profile.is_admin ? (
-            <Button
-              color="green"
-              component={Link}
-              to="/admin/create"
-              onClick={close}
-            >
-              Create Class
-            </Button>
+            <>
+              <Button
+                color="green"
+                component={Link}
+                to="/admin/create"
+                onClick={close}
+              >
+                Create Class
+              </Button>
+              <Center>
+                <Group>
+                  <Checkbox
+                    checked={checked}
+                    onChange={(event) => {
+                      setChecked(event.currentTarget.checked);
+                      refetch();
+                    }}
+                  />
+                  <Text c="gray">Show only active courses</Text>
+                </Group>
+              </Center>
+            </>
           ) : (
             <></>
           )}
-
-          <Center>
-            <Group>
-              <Checkbox
-                checked={checked}
-                onChange={(event) => {
-                  setChecked(event.currentTarget.checked);
-                  refetch();
-                }}
-              />
-              <Text c="gray">Show only active courses</Text>
-            </Group>
-          </Center>
         </Stack>
       </Center>
     </Container>
