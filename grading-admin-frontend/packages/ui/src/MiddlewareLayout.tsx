@@ -36,8 +36,7 @@ export const MiddlewareLayout = () => {
       }
 
       if (
-        auth.isAuthenticated &&
-        userInfo &&
+        userInfo !== undefined &&
         !userInfo?.admin &&
         currentPage.includes("/admin")
       ) {
