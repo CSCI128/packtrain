@@ -1,54 +1,24 @@
 import {
-  Box,
   Button,
-  Center,
   Container,
   Divider,
   Group,
   Modal,
-  Select,
-  Stack,
   Text,
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { Credential, User } from "@repo/api/openapi";
+import { User } from "@repo/api/openapi";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 
 export function ProfilePage() {
   const auth = useAuth();
-  const [selectedCredential, setSelectedCredential] =
-    useState<Credential | null>(null);
-  const [deleteOpened, { open: openDelete, close: closeDelete }] =
-    useDisclosure(false);
   const [editUserOpened, { open: openEditUser, close: closeEditUser }] =
     useDisclosure(false);
-  const [opened, { open, close }] = useDisclosure(false);
-  const form = useForm({
-    mode: "uncontrolled",
-    initialValues: {
-      credentialName: "",
-      apiKey: "",
-      service: "Canvas",
-    },
-    validate: {
-      credentialName: (value) =>
-        value.length < 1 ? "Name must have at least 1 character" : null,
-      apiKey: (value) =>
-        value.length < 1 ? "API key must have at least 1 character" : null,
-      service: (value) =>
-        value != "canvas" &&
-        value != "gradescope" &&
-        value != "prairielearn" &&
-        value != "runestone"
-          ? "Please select a valid service!"
-          : null,
-    },
-  });
 
   const {
     data,
@@ -84,41 +54,6 @@ export function ProfilePage() {
     },
   });
 
-  const {
-    data: credentialData,
-    error: credentialError,
-    isLoading: credentialIsLoading,
-    refetch,
-  } = useQuery<Credential[] | null>({
-    queryKey: ["getCredentials"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_credentials())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
-
-  const mutation = useMutation({
-    mutationKey: ["newCredential"],
-    mutationFn: ({ body }: { body: Credential }) =>
-      getApiClient()
-        .then((client) => client.new_credential({}, body))
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
-  });
-
-  const deleteCredentialMutation = useMutation({
-    mutationKey: ["deleteCredential"],
-    mutationFn: ({ credential_id }: { credential_id: string }) =>
-      getApiClient()
-        .then((client) => client.delete_credential(credential_id))
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
-  });
-
   const updateUserMutation = useMutation({
     mutationKey: ["updateUser"],
     mutationFn: ({ body }: { body: User }) =>
@@ -138,9 +73,7 @@ export function ProfilePage() {
 
   if (isLoading || !data) return "Loading...";
 
-  if (credentialIsLoading || !credentialData) return "Credentials loading..";
-
-  if (error || credentialError) return `An error occurred: ${error}`;
+  if (error) return `An error occurred: ${error}`;
 
   const editUser = (values: typeof editUserForm.values) => {
     updateUserMutation.mutate(
@@ -162,123 +95,8 @@ export function ProfilePage() {
     closeEditUser();
   };
 
-  const addCredential = (values: typeof form.values) => {
-    mutation.mutate(
-      {
-        body: {
-          owning_user: {
-            email: data.email,
-            cwid: data.cwid,
-            name: data.name,
-            admin: data.admin,
-          },
-          service: values.service as "canvas" | "gradescope", // still cursed
-          api_key: values.apiKey,
-          name: values.credentialName,
-          private: true,
-        },
-      },
-      {
-        onSuccess: () => {
-          refetch();
-        },
-      }
-    );
-    close();
-  };
-
-  const deleteCredential = (credential_id: string) => {
-    deleteCredentialMutation.mutate(
-      {
-        credential_id: credential_id,
-      },
-      {
-        onSuccess: () => {
-          refetch();
-        },
-      }
-    );
-    closeDelete();
-  };
-
-  const handleDelete = (credential: Credential) => {
-    setSelectedCredential(credential);
-    openDelete();
-  };
-
   return (
     <>
-      <Modal
-        opened={deleteOpened}
-        onClose={closeDelete}
-        title="Delete Credential"
-        centered
-      >
-        <Center>
-          <Stack>
-            <Text size="md">
-              Are you sure you want to delete the specified credential?
-            </Text>
-
-            <Button color="gray" variant="light" onClick={closeDelete}>
-              Cancel
-            </Button>
-
-            <Button
-              color="red"
-              onClick={() => deleteCredential(selectedCredential?.id as string)}
-            >
-              Delete
-            </Button>
-          </Stack>
-        </Center>
-      </Modal>
-
-      <Modal opened={opened} onClose={close} title="Add Credential">
-        <form onSubmit={form.onSubmit(addCredential)}>
-          <TextInput
-            withAsterisk
-            label="Name"
-            placeholder="Credential 1"
-            key={form.key("credentialName")}
-            {...form.getInputProps("credentialName")}
-          />
-
-          <Select
-            withAsterisk
-            label="Service:"
-            placeholder="Pick value"
-            data={[
-              { value: "canvas", label: "Canvas" },
-              { value: "gradescope", label: "Gradescope" },
-              { value: "prairielearn", label: "PrairieLearn" },
-              { value: "runestone", label: "Runestone" },
-            ]}
-            key={form.key("service")}
-            {...form.getInputProps("service")}
-          />
-
-          <TextInput
-            withAsterisk
-            label="API Key"
-            placeholder="xxxx-xxxx"
-            key={form.key("apiKey")}
-            {...form.getInputProps("apiKey")}
-          />
-
-          <br />
-
-          <Group gap="xs" justify="flex-end">
-            <Button color="gray" variant="light" onClick={close}>
-              Cancel
-            </Button>
-            <Button color="green" type="submit">
-              Add
-            </Button>
-          </Group>
-        </form>
-      </Modal>
-
       <Modal opened={editUserOpened} onClose={closeEditUser} title="Edit User">
         <form onSubmit={editUserForm.onSubmit(editUser)}>
           <TextInput
@@ -332,33 +150,6 @@ export function ProfilePage() {
         <Text size="md">{data.email}</Text>
 
         <Text size="md">CWID: {data.cwid}</Text>
-
-        <Group mt={25} justify="space-between">
-          <Text size="xl" fw={700}>
-            Credentials
-          </Text>
-          <Button justify="flex-end" variant="filled" onClick={open}>
-            Add Credential
-          </Button>
-        </Group>
-
-        <Divider my="sm" />
-
-        {credentialData.map((credential: Credential) => (
-          <React.Fragment key={credential.id}>
-            <Box size="sm" mt={15}>
-              <Text size="md" fw={700}>
-                {credential.name}
-              </Text>
-
-              <Text size="md">Service: {credential.service}</Text>
-
-              <Button color="red" onClick={() => handleDelete(credential)}>
-                Delete
-              </Button>
-            </Box>
-          </React.Fragment>
-        ))}
       </Container>
     </>
   );
