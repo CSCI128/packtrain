@@ -128,7 +128,6 @@ export function ExtensionForm() {
           user_requester_id: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
           date_submitted: new Date().toISOString(),
-          // TODO investigate this not setting correctly via the form (should be values.numDays)
           num_days_requested: numDaysRequested,
           request_type: "extension",
           status: "pending",
@@ -153,7 +152,6 @@ export function ExtensionForm() {
           user_requester_id: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
           date_submitted: new Date().toISOString(),
-          // TODO investigate this not setting correctly via the form (should be values.numDays)
           num_days_requested: numDaysRequested,
           request_type: "late_pass",
           status: "pending",
