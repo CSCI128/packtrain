@@ -5,12 +5,12 @@ import { Outlet } from "react-router-dom";
 import "./Root.scss";
 
 const staticLinks = [
-  { href: "/instructor", label: "Grading Admin" },
+  { href: "/instructor/", label: "Grading Admin" },
   { href: "/instructor/profile", label: "Profile" },
 ];
 
 const links = [
-  { href: "/instructor/approval", label: "Approvals" },
+  { href: "/instructor/", label: "Approvals" },
   { href: "/instructor/migrate", label: "Migrate" },
   { href: "/instructor/members", label: "Members" },
 ];
