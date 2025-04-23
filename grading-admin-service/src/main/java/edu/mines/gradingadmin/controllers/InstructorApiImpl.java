@@ -5,6 +5,7 @@ import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.services.*;
 import jakarta.transaction.Transactional;
 import org.springframework.core.io.Resource;
@@ -40,17 +41,26 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<List<MigrationWithScoresDTO>> getMasterMigrationToReview(String courseId, String masterMigrationId) {
+        // should be the scores
         return InstructorApiDelegate.super.getMasterMigrationToReview(courseId, masterMigrationId);
     }
 
     @Override
     public ResponseEntity<List<TaskDTO>> applyMasterMigration(String courseId, String masterMigrationId) {
-        return InstructorApiDelegate.super.applyMasterMigration(courseId, masterMigrationId);
+        List<ScheduledTaskDef> tasks = migrationService.startProcessScoresAndExtensions(securityManager.getUser(), masterMigrationId);
+
+        return ResponseEntity.accepted().body(tasks.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
     public ResponseEntity<Void> applyValidateMasterMigration(String courseId, String masterMigrationId) {
-        return InstructorApiDelegate.super.applyValidateMasterMigration(courseId, masterMigrationId);
+        boolean b = migrationService.validateApplyMasterMigration(masterMigrationId);
+
+        if (!b){
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok().build();
     }
 
     @Override
@@ -109,12 +119,24 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<Void> loadMasterMigration(String courseId, String masterMigrationId) {
-        return InstructorApiDelegate.super.loadMasterMigration(courseId, masterMigrationId);
+        Optional<MasterMigration> masterMigration = migrationService.finalizeLoadMasterMigration(masterMigrationId);
+
+        if (masterMigration.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<Void> loadValidateMasterMigration(String courseId, String masterMigrationId) {
-        return InstructorApiDelegate.super.loadValidateMasterMigration(courseId, masterMigrationId);
+        boolean b = migrationService.validateLoadMasterMigration(masterMigrationId);
+
+        if (!b) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok().build();
     }
 
     @Override

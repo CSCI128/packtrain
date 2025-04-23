@@ -353,7 +353,7 @@ public class MigrationService {
             if (m.getRawScoreStatus() != RawScoreStatus.PRESENT){
                 Assignment assignmentName = getAssignmentForMigration(m.getId().toString());
                 log.error("Migration for assignment '{}' is missing raw scores!", assignmentName.getName());
-                errors.add(String.format("Migration for assignment '%s' is missing raw scores!", assignmentName.getName()))
+                errors.add(String.format("Migration for assignment '%s' is missing raw scores!", assignmentName.getName()));
             }
         }
 
@@ -371,7 +371,33 @@ public class MigrationService {
             return Optional.empty();
         }
 
-        masterMigration.get().setStatus();
+        masterMigration.get().setStatus(MigrationStatus.LOADED);
 
+
+        return Optional.of(masterMigrationRepo.save(masterMigration.get()));
     }
+
+    public boolean validateApplyMasterMigration(String masterMigrationId){
+        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
+
+        if (masterMigration.isEmpty()){
+            return false;
+        }
+
+        List<String> errors = new LinkedList<>();
+
+        for (Migration migration : masterMigration.get().getMigrations()){
+            if (migration.getPolicy() != null && migration.getRawScoreStatus() == RawScoreStatus.PRESENT){
+                continue;
+            }
+
+            log.error("Either the policy or the raw scores are not set");
+            errors.add("Either the policy or the raw scores are not set");
+        }
+
+        return errors.isEmpty();
+    }
+
+
+
 }
