@@ -5,6 +5,7 @@ import { MiddlewareLayout } from "@repo/ui/MiddlewareLayout";
 import { DisabledPage } from "@repo/ui/pages/DisabledPage";
 import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
 import { SelectClass } from "@repo/ui/pages/Select";
+import { ProfilePage } from "@repo/ui/Profile";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { JSX } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -17,7 +18,6 @@ import { MigrationsApplyPage } from "./pages/migration/MigrationsApply";
 import { MigrationsLoadPage } from "./pages/migration/MigrationsLoad";
 import { MigrationsPostPage } from "./pages/migration/MigrationsPost";
 import { MigrationsReviewPage } from "./pages/migration/MigrationsReview";
-import { ProfilePage } from "./pages/Profile";
 import Root from "./templates/Root";
 
 configureApiClient({ userManager: userManager });

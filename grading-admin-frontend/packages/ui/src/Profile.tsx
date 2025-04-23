@@ -15,6 +15,7 @@ import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
 import { Credential, User } from "@repo/api/openapi";
+import { store$ } from "@repo/api/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
@@ -99,6 +100,16 @@ export function ProfilePage() {
           console.log(err);
           return null;
         }),
+  });
+
+  const { data: enrollmentInfo } = useQuery({
+    queryKey: ["getEnrollments"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) => client.get_enrollments())
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+    enabled: !!auth.isAuthenticated,
   });
 
   const mutation = useMutation({
@@ -333,32 +344,40 @@ export function ProfilePage() {
 
         <Text size="md">CWID: {data.cwid}</Text>
 
-        <Group mt={25} justify="space-between">
-          <Text size="xl" fw={700}>
-            Credentials
-          </Text>
-          <Button justify="flex-end" variant="filled" onClick={open}>
-            Add Credential
-          </Button>
-        </Group>
-
-        <Divider my="sm" />
-
-        {credentialData.map((credential: Credential) => (
-          <React.Fragment key={credential.id}>
-            <Box size="sm" mt={15}>
-              <Text size="md" fw={700}>
-                {credential.name}
+        {enrollmentInfo &&
+        enrollmentInfo.filter((c) => c.id === store$.id.get()).at(0)
+          ?.course_role !== "student" ? (
+          <>
+            <Group mt={25} justify="space-between">
+              <Text size="xl" fw={700}>
+                Credentials
               </Text>
-
-              <Text size="md">Service: {credential.service}</Text>
-
-              <Button color="red" onClick={() => handleDelete(credential)}>
-                Delete
+              <Button justify="flex-end" variant="filled" onClick={open}>
+                Add Credential
               </Button>
-            </Box>
-          </React.Fragment>
-        ))}
+            </Group>
+
+            <Divider my="sm" />
+
+            {credentialData.map((credential: Credential) => (
+              <React.Fragment key={credential.id}>
+                <Box size="sm" mt={15}>
+                  <Text size="md" fw={700}>
+                    {credential.name}
+                  </Text>
+
+                  <Text size="md">Service: {credential.service}</Text>
+
+                  <Button color="red" onClick={() => handleDelete(credential)}>
+                    Delete
+                  </Button>
+                </Box>
+              </React.Fragment>
+            ))}
+          </>
+        ) : (
+          <></>
+        )}
       </Container>
     </>
   );

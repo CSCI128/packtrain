@@ -73,7 +73,7 @@ export function Navbar({ staticLinks, links }: NavbarProps) {
                 <Group visibleFrom="sm">
                   <Button
                     onClick={() => void auth.signinRedirect()}
-                    className={classes.classButton}
+                    variant="default"
                   >
                     Login
                   </Button>
