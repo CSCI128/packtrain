@@ -159,7 +159,13 @@ export function Requests() {
         {row.request_type === "late_pass" ? "Late Pass" : "Extension"}
       </Table.Td>
       <Table.Td>{row.assignment_name}</Table.Td>
-      <Table.Td>{row.status}</Table.Td>
+      <Table.Td>
+        {row.status === "approved"
+          ? "Approved"
+          : row.status === "pending"
+            ? "Pending"
+            : "Rejected"}
+      </Table.Td>
       <Table.Td onClick={() => handleWithdraw(row)}>
         <Center>
           <Text size="sm" pr={5}>
