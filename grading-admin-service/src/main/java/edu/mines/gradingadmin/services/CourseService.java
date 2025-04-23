@@ -30,13 +30,13 @@ public class CourseService {
     private final ImpersonationManager impersonationManager;
     private final CanvasService canvasService;
     private final S3Service s3Service;
-    private final PolicyRepo policyRepo;
     private final UserService userService;
     private final MasterMigrationRepo masterMigrationRepo;
+    private final MigrationRepo migrationRepo;
     public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, GradescopeConfigRepo gradescopeConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
 
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
-                         CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, UserService userService, MasterMigrationRepo masterMigrationRepo) {
+                         CanvasService canvasService, S3Service s3Service, UserService userService, MasterMigrationRepo masterMigrationRepo, MigrationRepo migrationRepo) {
 
         this.courseRepo = courseRepo;
         this.lateRequestConfigRepo = lateRequestConfigRepo;
@@ -46,9 +46,9 @@ public class CourseService {
         this.canvasService = canvasService;
         this.eventPublisher = eventPublisher;
         this.s3Service = s3Service;
-        this.policyRepo = policyRepo;
         this.userService = userService;
         this.masterMigrationRepo = masterMigrationRepo;
+        this.migrationRepo = migrationRepo;
     }
 
     public List<Course> getCourses(boolean enabled) {
@@ -245,7 +245,7 @@ public class CourseService {
         List<MasterMigration> masterMigrations = masterMigrationRepo.getMasterMigrationsByCourseId(courseId);
 
         for(MasterMigration masterMigration : masterMigrations){
-            if (!masterMigration.getMigrations().isEmpty()){
+            if (!migrationRepo.getMigrationListByMasterMigrationId(masterMigration.getId()).isEmpty()){
                 log.warn("Attempt to delete course that has existing migrations!");
                 return false;
             }

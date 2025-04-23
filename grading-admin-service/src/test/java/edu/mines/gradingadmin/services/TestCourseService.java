@@ -10,7 +10,6 @@ import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.seeders.*;
 import edu.mines.gradingadmin.repositories.CourseRepo;
 import edu.mines.gradingadmin.services.external.CanvasService;
-import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.S3Service;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
@@ -72,6 +71,9 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @Autowired
     private MigrationService migrationService;
 
+    @Autowired
+    private MigrationRepo migrationRepo;
+
     @BeforeAll
     static void setupClass() {
         postgres.start();
@@ -84,7 +86,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
                 courseRepo, lateRequestConfigRepo, gradescopeConfigRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
-                s3Service, policyRepo, userService, masterMigrationRepo
+                s3Service, userService, masterMigrationRepo, migrationRepo
         );
 
         applyMocks(canvasService);
@@ -93,7 +95,9 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @AfterEach
     void tearDown() {
-        migrationSeeder.clearAll();
+        migrationRepo.deleteAll();
+        masterMigrationRepo.deleteAll();
+        policyRepo.deleteAll();
         courseSeeders.clearAll();
         userSeeders.clearAll();
     }
@@ -262,18 +266,21 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         User user = userSeeders.user1();
 
         // Create master migration from seeder
-        MasterMigration masterMigration = migrationSeeder.masterMigration(coursePopulated, user);
+        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(coursePopulated.getId().toString(), user);
 
-        Assignment assignmnet = assignmentSeeder.worksheet1(coursePopulated);
+        Assignment assignment = assignmentSeeder.worksheet1(coursePopulated);
 
         Policy policy = new Policy();
         policy.setPolicyName("test_policy");
         policy.setPolicyURI("http://file.js");
         policy.setFileName("file.js");
         policy.setCourse(coursePopulated);
+        policy.setCreatedByUser(user);
+
+        policyRepo.save(policy);
 
         // Add migration to master migration for coursePopulated
-        migrationService.addMigration(masterMigration.getId().toString(), assignmnet.getId().toString(), policy.getPolicyURI());
+        migrationService.addMigration(masterMigration.get().getId().toString(), assignment.getId().toString(), policy.getPolicyURI());
 
         // Check that it doesn't delete because it has a migration
         Assertions.assertFalse(courseService.deleteCourse(coursePopulated.getId()));
