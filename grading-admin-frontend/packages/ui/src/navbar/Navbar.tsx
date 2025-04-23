@@ -47,9 +47,12 @@ export function Navbar({ staticLinks, links }: NavbarProps) {
         <header className={classes.header}>
           <Group justify="space-between" h="100%">
             <Group h="100%" gap={0} visibleFrom="sm">
-              <p onClick={() => navigate(staticLinks[0]?.href as string)}>
+              <Text
+                className={classes.link}
+                onClick={() => navigate(staticLinks[0]?.href as string)}
+              >
                 packtrain
-              </p>
+              </Text>
 
               {links.map((link) => (
                 <a key={link.href} href={link.href} className={classes.link}>
@@ -70,7 +73,7 @@ export function Navbar({ staticLinks, links }: NavbarProps) {
                 <Group visibleFrom="sm">
                   <Button
                     onClick={() => void auth.signinRedirect()}
-                    variant="default"
+                    className={classes.classButton}
                   >
                     Login
                   </Button>
@@ -80,10 +83,10 @@ export function Navbar({ staticLinks, links }: NavbarProps) {
                   <Menu.Target>
                     <UnstyledButton>
                       <Group gap={7}>
-                        <Text fw={500} size="sm" lh={1} mr={3}>
+                        <Text className={classes.name}>
                           {auth.user.profile.name}
                         </Text>
-                        <IconChevronDown size={12} stroke={1.5} />
+                        <IconChevronDown size={24} stroke={1.5} />
                       </Group>
                     </UnstyledButton>
                   </Menu.Target>
