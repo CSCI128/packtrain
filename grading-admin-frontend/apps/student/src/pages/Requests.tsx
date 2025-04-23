@@ -13,27 +13,15 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { Extension, LateRequest, StudentInformation } from "@repo/api/openapi";
+import { LateRequest, StudentInformation } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { MdDelete } from "react-icons/md";
+import { BsPencilSquare } from "react-icons/bs";
 import { Link } from "react-router-dom";
-
-interface RequestRowData {
-  id?: string;
-  date_submitted: string;
-  request_type: "extension" | "late_pass";
-  num_days_requested: number;
-  assignment_id?: string;
-  assignment_name?: string;
-  extension?: Extension;
-  user_requester_id?: string;
-  status: "pending" | "approved" | "rejected";
-}
 
 export function Requests() {
   const {
@@ -89,11 +77,10 @@ export function Requests() {
 
   const [selectedExtension, setSelectedExtension] =
     useState<LateRequest | null>(null);
-  const [deleteOpened, { open: openDelete, close: closeDelete }] =
-    useDisclosure(false);
+  const [opened, { open, close }] = useDisclosure(false);
   const [search, setSearch] = useState("");
   const [sortedData, setSortedData] = useState(data || []);
-  const [sortBy, setSortBy] = useState<keyof RequestRowData | null>(null);
+  const [sortBy, setSortBy] = useState<keyof LateRequest | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
   // sync sortedData with data
@@ -114,12 +101,12 @@ export function Requests() {
   const LATE_PASSES_ALLOWED =
     studentData.course.late_request_config.total_late_passes_allowed;
 
-  const setSorting = (field: keyof RequestRowData) => {
+  const setSorting = (field: keyof LateRequest) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
     setSortedData(
-      sortData<RequestRowData>(data, { sortBy: field, reversed, search })
+      sortData<LateRequest>(data, { sortBy: field, reversed, search })
     );
   };
 
@@ -127,7 +114,7 @@ export function Requests() {
     const { value } = event.currentTarget;
     setSearch(value);
     setSortedData(
-      sortData<RequestRowData>(data, {
+      sortData<LateRequest>(data, {
         sortBy,
         reversed: reverseSortDirection,
         search: value,
@@ -135,9 +122,9 @@ export function Requests() {
     );
   };
 
-  const handleWithdraw = (row: RequestRowData) => {
+  const handleWithdraw = (row: LateRequest) => {
     setSelectedExtension(row);
-    openDelete();
+    open();
   };
 
   const deleteExtension = (extension_id: string) => {
@@ -152,7 +139,7 @@ export function Requests() {
         },
       }
     );
-    closeDelete();
+    close();
   };
 
   const rows = sortedData.map((row: LateRequest) => (
@@ -176,9 +163,9 @@ export function Requests() {
       <Table.Td onClick={() => handleWithdraw(row)}>
         <Center>
           <Text size="sm" pr={5}>
-            Withdraw
+            View
           </Text>
-          <MdDelete />
+          <BsPencilSquare />
         </Center>
       </Table.Td>
     </Table.Tr>
@@ -186,21 +173,32 @@ export function Requests() {
 
   return (
     <>
-      <Modal
-        opened={deleteOpened}
-        onClose={closeDelete}
-        title="Withdraw Extension"
-        centered
-      >
+      <Modal opened={opened} onClose={close} title="View Extension" centered>
         <Center>
           <Stack>
             <Text size="md">
-              Are you sure you want to withdraw the specified late request? This
-              action <strong>cannot</strong> be undone!
+              Request Date: {selectedExtension?.date_submitted}
             </Text>
+            <Text size="md">
+              Assignment: {selectedExtension?.assignment_name}
+            </Text>
+            <Text size="md">
+              Type:{" "}
+              {selectedExtension?.request_type === "late_pass"
+                ? "Late Pass"
+                : "Extension"}
+            </Text>
+            <Text size="md">Status: {selectedExtension?.status}</Text>
+            {selectedExtension?.request_type === "extension" &&
+              selectedExtension.status === "rejected" && (
+                <Text>
+                  Denial Reason:{" "}
+                  {selectedExtension.extension?.response_to_requester}
+                </Text>
+              )}
 
-            <Button variant="light" color="gray" onClick={closeDelete}>
-              Cancel
+            <Button variant="outline" color="gray" onClick={close}>
+              Close
             </Button>
 
             <Button
@@ -209,7 +207,7 @@ export function Requests() {
                 deleteExtension(selectedExtension?.id as string);
               }}
             >
-              Delete
+              Withdraw Extension
             </Button>
           </Stack>
         </Center>

@@ -1,15 +1,20 @@
 import {
   Box,
+  Button,
   Center,
   Container,
   Divider,
+  Modal,
   ScrollArea,
+  Stack,
   Table,
   Text,
+  Textarea,
   TextInput,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { Extension, LateRequest } from "@repo/api/openapi";
+import { LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
@@ -17,19 +22,13 @@ import { IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-interface RequestRowData {
-  id?: string;
-  date_submitted: string;
-  request_type: "extension" | "late_pass";
-  num_days_requested: number;
-  assignment_id?: string;
-  assignment_name?: string;
-  extension?: Extension;
-  user_requester_id?: string;
-  status: "pending" | "approved" | "rejected";
-}
-
 export function ApprovalPage() {
+  const [denyOpened, { open: openDeny, close: closeDeny }] =
+    useDisclosure(false);
+  const [selectedExtension, setSelectedExtension] =
+    useState<LateRequest | null>(null);
+  const [denialReason, setDenialReason] = useState<string>("");
+
   const { data, error, isLoading, refetch } = useQuery<LateRequest[] | null>({
     queryKey: ["getExtensions"],
     queryFn: () =>
@@ -76,10 +75,12 @@ export function ApprovalPage() {
       assignment_id,
       user_id,
       extension_id,
+      reason,
     }: {
       assignment_id: string;
       user_id: string;
       extension_id: string;
+      reason: string;
     }) =>
       getApiClient()
         .then((client) =>
@@ -88,6 +89,7 @@ export function ApprovalPage() {
             assignment_id: assignment_id,
             user_id: user_id,
             extension_id: extension_id,
+            reason: reason,
           })
         )
         .then((res) => res.data)
@@ -96,7 +98,7 @@ export function ApprovalPage() {
 
   const [search, setSearch] = useState("");
   const [sortedData, setSortedData] = useState(data || []);
-  const [sortBy, setSortBy] = useState<keyof RequestRowData | null>(null);
+  const [sortBy, setSortBy] = useState<keyof LateRequest | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
   // sync sortedData with data
@@ -110,12 +112,12 @@ export function ApprovalPage() {
 
   if (error) return `An error occured: ${error}`;
 
-  const setSorting = (field: keyof RequestRowData) => {
+  const setSorting = (field: keyof LateRequest) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
     setSortedData(
-      sortData<RequestRowData>(data, { sortBy: field, reversed, search })
+      sortData<LateRequest>(data, { sortBy: field, reversed, search })
     );
   };
 
@@ -123,7 +125,7 @@ export function ApprovalPage() {
     const { value } = event.currentTarget;
     setSearch(value);
     setSortedData(
-      sortData<RequestRowData>(data, {
+      sortData<LateRequest>(data, {
         sortBy,
         reversed: reverseSortDirection,
         search: value,
@@ -131,7 +133,7 @@ export function ApprovalPage() {
     );
   };
 
-  const approveExtension = (request: RequestRowData) => {
+  const approveExtension = (request: LateRequest) => {
     approveExtensionMutation.mutate(
       {
         assignment_id: request.assignment_id as string,
@@ -146,19 +148,26 @@ export function ApprovalPage() {
     );
   };
 
-  const denyExtension = (request: RequestRowData) => {
+  const denyExtension = (request: LateRequest, reason: string) => {
     denyExtensionMutation.mutate(
       {
         assignment_id: request.assignment_id as string,
         user_id: request.user_requester_id as string,
         extension_id: request.id as string,
+        reason: reason,
       },
       {
         onSuccess: () => {
+          closeDeny();
           refetch();
         },
       }
     );
+  };
+
+  const handleDenyExtension = (request: LateRequest) => {
+    openDeny();
+    setSelectedExtension(request);
   };
 
   const rows = sortedData.map((row) => (
@@ -205,7 +214,7 @@ export function ApprovalPage() {
                 mr={5}
                 bd="1px solid red"
                 c="red"
-                onClick={() => denyExtension(row)}
+                onClick={() => handleDenyExtension(row)}
               >
                 Deny
               </Box>
@@ -218,6 +227,34 @@ export function ApprovalPage() {
 
   return (
     <>
+      <Modal
+        opened={denyOpened}
+        onClose={closeDeny}
+        title="Deny Extension"
+        centered
+      >
+        <Center>
+          <Stack>
+            <Textarea
+              label="Please provide a reason for denying this extension:"
+              placeholder="Some denial reason.."
+              onChange={(text) => setDenialReason(text.target.value)}
+            />
+
+            <Button variant="light" color="gray" onClick={closeDeny}>
+              Cancel
+            </Button>
+
+            <Button
+              color="red"
+              onClick={() => denyExtension(selectedExtension!, denialReason)}
+            >
+              Deny
+            </Button>
+          </Stack>
+        </Center>
+      </Modal>
+
       <Container size="lg">
         <Text size="xl" fw={700}>
           Manage Requests

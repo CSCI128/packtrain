@@ -68,6 +68,8 @@ export function MembersPage() {
     }
   }, [data]);
 
+  console.log(data);
+
   // sync sortedData with instructordata
   useEffect(() => {
     if (instructorData) {

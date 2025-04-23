@@ -903,6 +903,11 @@ declare namespace Paths {
             export type ExtensionId = string;
             /**
              * example:
+             * Bad extension
+             */
+            export type Reason = string;
+            /**
+             * example:
              * 11111111
              */
             export type UserId = string;
@@ -928,6 +933,13 @@ declare namespace Paths {
              * 99-9999-9999-99
              */
             Parameters.ExtensionId;
+        }
+        export interface QueryParameters {
+            reason: /**
+             * example:
+             * Bad extension
+             */
+            Parameters.Reason;
         }
         namespace Responses {
             export type $202 = /* A generic request for extending work deadlines */ Components.Schemas.LateRequest;
@@ -2200,7 +2212,7 @@ export interface OperationMethods {
    * 
    */
   'deny_extension'(
-    parameters?: Parameters<Paths.DenyExtension.PathParameters> | null,
+    parameters?: Parameters<Paths.DenyExtension.QueryParameters & Paths.DenyExtension.PathParameters> | null,
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.DenyExtension.Responses.$202>
@@ -2853,7 +2865,7 @@ export interface PathsDictionary {
      * 
      */
     'put'(
-      parameters?: Parameters<Paths.DenyExtension.PathParameters> | null,
+      parameters?: Parameters<Paths.DenyExtension.QueryParameters & Paths.DenyExtension.PathParameters> | null,
       data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.DenyExtension.Responses.$202>
