@@ -52,22 +52,32 @@ export function MembersPage() {
   const [sortedInstructorData, setSortedInstructorData] = useState(
     instructorData || []
   );
-  const [sortBy, setSortBy] = useState<keyof CourseMember | null>(null);
+  const [sortBy, setSortBy] = useState<keyof CourseMember | null>("name");
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
   // sync sortedData with data
   useEffect(() => {
     if (data) {
-      setSortedData(data);
+      setSortedData(
+        sortData<CourseMember>(data as CourseMember[], {
+          sortBy: sortBy ?? "name",
+          reversed: reverseSortDirection,
+          search,
+        })
+      );
     }
-  }, [data]);
-
-  console.log(data);
+  }, [data, sortBy, reverseSortDirection, search]);
 
   // sync sortedData with instructordata
   useEffect(() => {
     if (instructorData) {
-      setSortedInstructorData(instructorData);
+      setSortedInstructorData(
+        sortData<CourseMember>(instructorData as CourseMember[], {
+          sortBy: sortBy ?? "name",
+          reversed: reverseSortDirection,
+          search,
+        })
+      );
     }
   }, [instructorData]);
 
@@ -81,7 +91,11 @@ export function MembersPage() {
     setReverseSortDirection(reversed);
     setSortBy(field);
     setSortedData(
-      sortData<CourseMember>(data, { sortBy: field, reversed, search })
+      sortData<CourseMember>(data as CourseMember[], {
+        sortBy: field,
+        reversed,
+        search,
+      })
     );
   };
 
@@ -89,7 +103,7 @@ export function MembersPage() {
     const { value } = event.currentTarget;
     setSearch(value);
     setSortedData(
-      sortData<CourseMember>(data, {
+      sortData<CourseMember>(data as CourseMember[], {
         sortBy,
         reversed: reverseSortDirection,
         search: value,
@@ -127,6 +141,7 @@ export function MembersPage() {
   const rows = sortedData.map((row) => (
     <Table.Tr key={row.cwid}>
       <Table.Td>{row.cwid}</Table.Td>
+      <Table.Td>{row.name}</Table.Td>
       <Table.Td>{row.course_role}</Table.Td>
       <Table.Td>{row.sections?.toSorted().join(", ")}</Table.Td>
     </Table.Tr>
@@ -135,6 +150,7 @@ export function MembersPage() {
   const instructorRows = sortedInstructorData.map((row) => (
     <Table.Tr key={row.cwid}>
       <Table.Td>{row.cwid}</Table.Td>
+      <Table.Td>{row.name}</Table.Td>
       <Table.Td>{row.course_role}</Table.Td>
       <Table.Td>{row.sections?.toSorted().join(", ")}</Table.Td>
     </Table.Tr>
@@ -170,6 +186,13 @@ export function MembersPage() {
                     onSort={() => setSorting("cwid")}
                   >
                     CWID
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "name"}
+                    reversed={reverseSortDirection}
+                    onSort={() => setSorting("name")}
+                  >
+                    Name
                   </TableHeader>
                   <TableHeader
                     sorted={sortBy === "course_role"}
@@ -222,6 +245,13 @@ export function MembersPage() {
                     onSort={() => setInstructorSorting("cwid")}
                   >
                     CWID
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "name"}
+                    reversed={reverseSortDirection}
+                    onSort={() => setSorting("name")}
+                  >
+                    Name
                   </TableHeader>
                   <TableHeader
                     sorted={sortBy === "course_role"}

@@ -3380,6 +3380,10 @@
             "type": "string",
             "example": "self"
           },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
           "course_role": {
             "type": "string",
             "enum": [

@@ -207,6 +207,11 @@ declare namespace Components {
             canvas_id: string;
             /**
              * example:
+             * Jane Doe
+             */
+            name?: string;
+            /**
+             * example:
              * owner
              */
             course_role: "student" | "instructor" | "ta" | "owner";
