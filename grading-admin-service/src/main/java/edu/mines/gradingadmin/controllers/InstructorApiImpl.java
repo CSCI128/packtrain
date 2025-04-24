@@ -41,8 +41,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<List<MigrationWithScoresDTO>> getMasterMigrationToReview(String courseId, String masterMigrationId) {
-        // should be the scores
-        return InstructorApiDelegate.super.getMasterMigrationToReview(courseId, masterMigrationId);
+        return ResponseEntity.ok(migrationService.getMasterMigrationToReview(masterMigrationId));
     }
 
     @Override
@@ -151,7 +150,13 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<Void> reviewMasterMigration(String courseId, String masterMigrationId) {
-        return InstructorApiDelegate.super.reviewMasterMigration(courseId, masterMigrationId);
+        boolean b = migrationService.finalizeReviewMasterMigration(masterMigrationId);
+
+        if (!b) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok().build();
     }
 
     @Override

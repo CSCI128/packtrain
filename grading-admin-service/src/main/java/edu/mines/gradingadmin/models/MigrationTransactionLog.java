@@ -28,6 +28,9 @@ public class MigrationTransactionLog {
     @Column(name = "migration_id", nullable = false)
     private UUID migrationId;
 
+    @Column(name = "revision", nullable = false)
+    private int revision = 1;
+
     @Column(name = "extension_id")
     private UUID extensionId;
 

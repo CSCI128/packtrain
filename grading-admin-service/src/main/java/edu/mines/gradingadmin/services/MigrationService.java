@@ -1,8 +1,12 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.data.AssignmentSlimDTO;
+import edu.mines.gradingadmin.data.MigrationWithScoresDTO;
+import edu.mines.gradingadmin.data.ScoreDTO;
 import edu.mines.gradingadmin.data.policyServer.RawGradeDTO;
 import edu.mines.gradingadmin.data.policyServer.ScoredDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
+import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.factories.MigrationFactory;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.*;
@@ -41,9 +45,10 @@ public class MigrationService {
     private final RawScoreRepo rawScoreRepo;
     private final MasterMigrationStatsRepo masterMigrationStatsRepo;
     private final PolicyService policyService;
+    private final CourseMemberService courseMemberService;
 
 
-    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreRepo rawScoreRepo, MasterMigrationStatsRepo masterMigrationStatsRepo, PolicyService policyService){
+    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreRepo rawScoreRepo, MasterMigrationStatsRepo masterMigrationStatsRepo, PolicyService policyService, CourseMemberService courseMemberService){
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
@@ -57,6 +62,7 @@ public class MigrationService {
         this.rawScoreRepo = rawScoreRepo;
         this.masterMigrationStatsRepo = masterMigrationStatsRepo;
         this.policyService = policyService;
+        this.courseMemberService = courseMemberService;
     }
 
     public MasterMigration createMigrationForAssignments(Course course, User createdByUser, List<Policy> policyList, List<Assignment> assignmentList){
@@ -130,6 +136,14 @@ public class MigrationService {
     }
 
     @Transactional
+    public Course getCourseForMasterMigration(String migrationId){
+
+        MasterMigration master = getMasterMigration(migrationId).orElseThrow();
+
+        return master.getCourse();
+    }
+
+    @Transactional
     public Assignment getAssignmentForMigration(String migrationId){
         Migration migration = getMigration(migrationId);
 
@@ -157,6 +171,13 @@ public class MigrationService {
 
     public void handleScoreReceived(User asUser, UUID migrationId, ScoredDTO dto){
         MigrationTransactionLog entry = new MigrationTransactionLog();
+        Optional<MigrationTransactionLog> existing = transactionLogRepo.getByCwidAndMigrationId(dto.getCwid(), migrationId);
+
+        if (existing.isPresent()){
+            log.info("Overwriting exising score for {} under rev {}", dto.getCwid(), existing.get().getRevision()+1);
+            entry.setRevision(existing.get().getRevision()+1);
+        }
+
         entry.setPerformedByUser(asUser);
         entry.setCwid(dto.getCwid());
         entry.setMigrationId(migrationId);
@@ -398,6 +419,76 @@ public class MigrationService {
         return errors.isEmpty();
     }
 
+    @Transactional
+    public List<MigrationWithScoresDTO> getMasterMigrationToReview(String masterMigrationId){
+        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
 
+        if (masterMigration.isEmpty()){
+            return List.of();
+        }
+
+        masterMigration.get().setStatus(MigrationStatus.AWAITING_REVIEW);
+
+        masterMigrationRepo.save(masterMigration.get());
+
+
+        List<MigrationWithScoresDTO> migrationWithScoresDTOs = new LinkedList<>();
+        Course course = getCourseForMasterMigration(masterMigrationId);
+
+        for(Migration migration : masterMigration.get().getMigrations()){
+            AssignmentSlimDTO assignmentSlimDTO = DTOFactory.toSlimDto(migration.getAssignment());
+
+            MigrationWithScoresDTO migrationWithScoresDTO = new MigrationWithScoresDTO();
+            List<MigrationTransactionLog> entries = transactionLogRepo.getAllByMigrationIdSorted(migration.getId());
+            Map<String, ScoreDTO> scores = new HashMap<>();
+
+            for (MigrationTransactionLog entry : entries){
+                Optional<CourseMember> member = courseMemberService.getCourseMemberByCourseByCwid(course, entry.getCwid());
+
+                if (member.isEmpty()){
+                    log.warn("Skipping student '{}' without enrollment in course", entry.getCwid());
+                    continue;
+                }
+
+                ScoreDTO score = new ScoreDTO();
+                score.setScore(entry.getScore());
+                score.setStatus(entry.getSubmissionStatus().getStatus());
+                score.submissionDate(entry.getSubmissionTime());
+                score.setComment(entry.getMessage());
+
+
+                score.setStudent(DTOFactory.toDto(member.get()));
+
+                scores.put(entry.getCwid(), score);
+            }
+
+            if (scores.isEmpty()){
+                log.error("No students were scored!");
+                log.warn("Assigment '{}' will be excluded!", assignmentSlimDTO.getName());
+                continue;
+            }
+
+            log.info("'{}' students were scored", scores.size());
+
+            migrationWithScoresDTO.setAssignment(assignmentSlimDTO);
+            migrationWithScoresDTO.setScores(scores.values().stream().toList());
+
+            migrationWithScoresDTOs.add(migrationWithScoresDTO);
+        }
+
+        return migrationWithScoresDTOs;
+    }
+
+    public boolean finalizeReviewMasterMigration(String masterMigrationId){
+        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
+
+        if (masterMigration.isEmpty()){
+            return false;
+        }
+
+        masterMigration.get().setStatus(MigrationStatus.READY_TO_POST);
+
+        return true;
+    }
 
 }
