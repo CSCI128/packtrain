@@ -71,10 +71,10 @@ public class ExtensionService {
             LateRequest request = lateRequest.get();
 
             request.getExtension().setReviewerResponse(reason);
+            request.getExtension().setReviewerResponseTimestamp(Instant.now());
             request.setStatus(LateRequestStatus.REJECTED);
 
             extensionRepo.save(request.getExtension());
-
             return Optional.of(lateRequestRepo.save(request));
         }
         return Optional.empty();
