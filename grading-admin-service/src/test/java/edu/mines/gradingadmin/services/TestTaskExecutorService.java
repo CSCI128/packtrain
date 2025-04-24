@@ -16,7 +16,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -223,8 +225,10 @@ public class TestTaskExecutorService implements PostgresTestContainer {
 
         taskForUser2 = testTaskRepo.save(taskForUser2);
 
-        Optional<ScheduledTaskDef> actualTasks = executorService.getScheduledTask(user1, taskForUser2.getId());
-        Assertions.assertTrue(actualTasks.isEmpty());
+        TestTaskDef finalTaskForUser = taskForUser2;
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> executorService.getScheduledTask(user1, finalTaskForUser.getId()));
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        Assertions.assertEquals("Task does not exist", exception.getReason());
     }
 
     @Test

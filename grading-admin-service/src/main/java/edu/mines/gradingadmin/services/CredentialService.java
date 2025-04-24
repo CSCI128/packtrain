@@ -7,6 +7,7 @@ import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.CredentialRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -44,7 +45,7 @@ public class CredentialService {
         List<Credential> availableCredentials = credentialRepo.getByCwidAndEndpoint(cwid, type);
 
         if (availableCredentials.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Credentials do not exist");
+            throw new AccessDeniedException("Access denied: credential does not exist");
         }
 
         // if there is multiple, return the first

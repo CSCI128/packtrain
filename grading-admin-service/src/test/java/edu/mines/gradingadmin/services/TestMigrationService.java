@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
@@ -163,7 +164,6 @@ public class TestMigrationService implements PostgresTestContainer {
         dto.setAdjustedSubmissionTime(Instant.now());
         dto.setExtensionStatus(LateRequestStatus.NO_EXTENSION);
         dto.setSubmissionStatus(SubmissionStatus.ON_TIME);
-
 
         migrationService.handleScoreReceived(user, migrationId, dto);
 

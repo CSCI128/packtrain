@@ -19,6 +19,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -176,13 +178,9 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
 
         courseMemberService.addMemberToCourse(course1.getId().toString(), new CourseMemberDTO().cwid(user1.getCwid()).canvasId("99999").courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.STUDENT.getRole())));
 
-        userService.makeAdmin(user1.getCwid());
-
-        Optional<User> user = userService.getUserByCwid(user1.getCwid());
-        Assertions.assertTrue(user.isPresent());
-
-        Assertions.assertFalse(user.get().isAdmin());
-        Assertions.assertEquals(user1.getCwid(), user.get().getCwid());
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> userService.makeAdmin(user1.getCwid()));
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        Assertions.assertEquals("User is a student, can not make student an admin user", exception.getReason());
     }
 
     @Test
