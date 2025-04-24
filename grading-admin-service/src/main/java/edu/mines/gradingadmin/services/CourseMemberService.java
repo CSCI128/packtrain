@@ -14,7 +14,9 @@ import edu.mines.gradingadmin.services.external.CanvasService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -236,12 +238,12 @@ public class CourseMemberService {
     public Optional<CourseMember> addMemberToCourse(String courseId, CourseMemberDTO courseMemberDTO) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if (course.isEmpty()) {
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
         }
 
         Optional<User> user = userService.getUserByCwid(courseMemberDTO.getCwid());
         if (user.isEmpty()) {
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
         }
 
         CourseMember member = new CourseMember();
@@ -325,12 +327,12 @@ public class CourseMemberService {
         Optional<User> user = userService.getUserByEmail(email);
 
         if (user.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
         }
 
         if(!courseMemberRepo.existsByCourseAndUser(course, user.get())){
             log.warn("User '{}' is not enrolled in course '{}'", user.get().getCwid(), course.getCode());
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not enrolled in this course");
         }
 
         return Optional.of(user.get().getCwid());

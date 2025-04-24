@@ -9,8 +9,10 @@ import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.ExtensionRepo;
 import edu.mines.gradingadmin.repositories.LateRequestRepo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.*;
@@ -62,7 +64,7 @@ public class ExtensionService {
 
             return Optional.of(lateRequestRepo.save(request));
         }
-        return Optional.empty();
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Late request does not exist");
     }
 
     public Optional<LateRequest> denyExtension(String assignmentId, String userId, String extensionId) {
@@ -74,7 +76,7 @@ public class ExtensionService {
 
             return Optional.of(lateRequestRepo.save(request));
         }
-        return Optional.empty();
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Late request does not exist");
     }
 
     public List<LateRequest> getAllLateRequestsForStudent(String courseId, User user) {
@@ -133,7 +135,7 @@ public class ExtensionService {
 
     public Optional<LateRequest> getLateRequest(@Nullable UUID id){
         if (id == null){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ID does not exist");
         }
         return Optional.ofNullable(lateRequestRepo.getLateRequestById(id));
     }

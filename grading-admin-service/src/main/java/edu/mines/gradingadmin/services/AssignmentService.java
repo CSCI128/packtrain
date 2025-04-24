@@ -14,7 +14,9 @@ import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.services.external.CanvasService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.*;
@@ -160,12 +162,12 @@ public class AssignmentService {
     public Optional<Assignment> updateAssignment(String courseId, AssignmentDTO assignmentDTO) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if (course.isEmpty()) {
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
         }
 
         Optional<Assignment> assignment = getAssignmentById(assignmentDTO.getId());
         if (assignment.isEmpty()) {
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment does not exist");
         }
         assignment.get().setName(assignmentDTO.getName());
         assignment.get().setPoints(assignmentDTO.getPoints());
@@ -181,7 +183,7 @@ public class AssignmentService {
     public Optional<Assignment> addAssignmentToCourse(String courseId, AssignmentDTO assignmentDTO) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if(course.isEmpty()) {
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
         }
 
         Assignment assignment = new Assignment();
@@ -211,7 +213,7 @@ public class AssignmentService {
         Optional<Assignment> assignment = assignmentRepo.getAssignmentById(UUID.fromString(assignmentId));
 
         if (assignment.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment does not exist");
         }
 
         assignment.get().setEnabled(true);
@@ -224,7 +226,7 @@ public class AssignmentService {
         Optional<Assignment> assignment = assignmentRepo.getAssignmentById(UUID.fromString(assignmentId));
 
         if (assignment.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment does not exist");
         }
 
         assignment.get().setEnabled(false);

@@ -11,7 +11,9 @@ import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import edu.mines.gradingadmin.repositories.RawScoreRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -193,7 +195,7 @@ public class RawScoreService {
 
         if (cwid.isEmpty()){
             log.warn("Student '{}' is not a member of '{}'", line[USER_ID_IDX], course.getCode());
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student is not a member of course");
         }
 
         Instant submissionTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(line[SUBMISSION_DATE_IDX], Instant::from);
@@ -225,7 +227,7 @@ public class RawScoreService {
     private Optional<RawScore> parseLineRunestone(int assignmentIdx, Course course, Assignment assignment, UUID migrationId, String[] line){
         if(assignmentIdx == -1) {
             log.warn("Could not find the specified assignment in the Runestone CSV!");
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment with this ID does not exist in Runestone");
         }
 
         final int USER_ID_IDX = 2;
@@ -236,7 +238,7 @@ public class RawScoreService {
 
         if (cwid.isEmpty()){
             log.warn("Student '{}' is not a member of '{}'", line[USER_ID_IDX], course.getCode());
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student is not a member of course");
         }
 
         s.setMigrationId(migrationId);
@@ -285,7 +287,7 @@ public class RawScoreService {
 
         if(status.equals("Ungraded")){
             log.warn("Ungraded submission for '{}' for migration '{}'", cwid, migrationId);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Migration contains an ungraded submission");
         }
 
         if(status.equals("Missing")){
@@ -324,7 +326,7 @@ public class RawScoreService {
         Optional<RawScore> score = rawScoreRepo.getByCwidAndMigrationId(cwid, migrationId);
         if(score.isEmpty()){
             log.warn("Could not find raw score for cwid {} on migration id {}", cwid, migrationId);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Raw score is not found for this migration and CWID");
         }
         return score;
     }

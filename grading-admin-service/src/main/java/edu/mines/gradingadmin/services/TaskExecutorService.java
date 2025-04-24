@@ -7,7 +7,9 @@ import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
@@ -134,7 +136,7 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
         Optional<ScheduledTaskDef> task = scheduledTaskRepo.getById(taskId).map(t -> (ScheduledTaskDef) t);
 
         if (task.isEmpty() || !task.get().getCreatedByUser().equals(currentUser)){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Task does not exist");
         }
 
         return task;

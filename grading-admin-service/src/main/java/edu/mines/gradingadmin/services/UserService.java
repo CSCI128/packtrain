@@ -11,6 +11,8 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.*;
 
@@ -52,7 +54,7 @@ public class UserService {
         Optional<User> user = getUserByCwid(userDTO.getCwid());
 
         if (user.isEmpty()) {
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
 
         user.get().setEmail(userDTO.getEmail());
@@ -87,7 +89,7 @@ public class UserService {
 
     public Optional<User> createNewUser(String cwid, boolean isAdmin, String name, String email){
         if (userRepo.existsByCwid(cwid)){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User already exists, can not create a user with this CWID");
         }
 
         User user = new User();
@@ -105,7 +107,7 @@ public class UserService {
 
     public Optional<User> createNewUser(String cwid, boolean isAdmin, String name, String email, String oauthId){
         if (userRepo.existsByCwid(cwid)){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User already exists, can not create a user with this CWID");
         }
 
         User user = new User();
@@ -125,18 +127,18 @@ public class UserService {
     public Optional<User> disableUser(User actingUser, String cwidToDisable){
         if (actingUser.getCwid().equals(cwidToDisable)){
             log.warn("Attempt to disable current user '{}' from admin!", cwidToDisable);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is an admin, can not disable an admin user");
         }
 
         Optional<User> user = getUserByCwid(cwidToDisable);
 
         if (user.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
         }
 
         if (user.get().isAdmin()){
             log.warn("Attempt to disable admin user '{}'", cwidToDisable);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is an admin, can not disable an admin user");
         }
 
         user.get().setEnabled(false);
@@ -148,7 +150,7 @@ public class UserService {
         Optional<User> user = getUserByCwid(cwidToEnable);
 
         if (user.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
         }
 
         user.get().setEnabled(true);
@@ -161,7 +163,7 @@ public class UserService {
         Optional<User> user = getUserByCwid(cwidToMakeAdmin);
 
         if (user.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
         }
 
         boolean isStudent = user.get().getCourseMemberships().stream()
@@ -169,7 +171,7 @@ public class UserService {
 
         if (isStudent){
             log.warn("Attempt to make student '{}' admin!", user.get().getEmail());
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is a student, can not make student an admin user");
         }
 
         user.get().setAdmin(true);
@@ -183,12 +185,12 @@ public class UserService {
     public Optional<User> demoteAdmin(User actingUser, String cwid) {
         if (actingUser.getCwid().equals(cwid)){
             log.warn("Attempt to demote current user '{}' from admin!", cwid);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is an admin, can not demote an admin user");
         }
         Optional<User> user = getUserByCwid(cwid);
 
         if (user.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
         }
 
         user.get().setAdmin(false);
