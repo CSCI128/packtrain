@@ -5,6 +5,7 @@ import {
   Divider,
   Fieldset,
   Group,
+  InputWrapper,
   NumberInput,
   Space,
   TagsInput,
@@ -64,7 +65,7 @@ export function EditCourse() {
           name: values.courseName as string,
           code: values.courseCode as string,
           term: values.courseTerm as string,
-          enabled: true,
+          enabled: values.enabled,
           canvas_id: Number(values.canvasId),
           gradescope_id: values.gradescopeId,
           late_request_config: {
@@ -89,6 +90,7 @@ export function EditCourse() {
       courseName: "",
       courseCode: "",
       courseTerm: "",
+      enabled: true,
       gradescopeId: "",
       canvasId: 0,
       latePassesEnabled: false,
@@ -141,6 +143,7 @@ export function EditCourse() {
         courseCode: data.code,
         courseTerm: data.term,
         canvasId: data.canvas_id,
+        enabled: data.enabled,
         gradescopeId: String(data.gradescope_id),
         latePassesEnabled: data.late_request_config.late_passes_enabled,
         totalLatePassesAllowed:
@@ -287,6 +290,14 @@ export function EditCourse() {
             key={form.key("canvasId")}
             {...form.getInputProps("canvasId")}
           />
+
+          <InputWrapper label="Enabled">
+            <Checkbox 
+              defaultChecked={form.getValues().enabled}
+              key={form.key("enabled")}
+              {...form.getInputProps("enabled", { type: "checkbox" })}
+            />
+          </InputWrapper>
         </Fieldset>
 
         <Space h="md" />
