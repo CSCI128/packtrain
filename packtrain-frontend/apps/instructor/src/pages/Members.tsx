@@ -7,18 +7,12 @@ import {
   TextInput,
 } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
+import { CourseMember } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
-
-interface MemberRowData {
-  cwid: string;
-  canvas_id: string;
-  course_role: "student" | "instructor" | "ta" | "owner";
-  sections?: string[] | undefined;
-}
 
 export function MembersPage() {
   const { data, error, isLoading } = useQuery({
@@ -58,7 +52,7 @@ export function MembersPage() {
   const [sortedInstructorData, setSortedInstructorData] = useState(
     instructorData || []
   );
-  const [sortBy, setSortBy] = useState<keyof MemberRowData | null>(null);
+  const [sortBy, setSortBy] = useState<keyof CourseMember | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
   // sync sortedData with data
@@ -82,12 +76,12 @@ export function MembersPage() {
 
   if (error || instructorError) return `An error occured: ${error}`;
 
-  const setSorting = (field: keyof MemberRowData) => {
+  const setSorting = (field: keyof CourseMember) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
     setSortedData(
-      sortData<MemberRowData>(data, { sortBy: field, reversed, search })
+      sortData<CourseMember>(data, { sortBy: field, reversed, search })
     );
   };
 
@@ -95,7 +89,7 @@ export function MembersPage() {
     const { value } = event.currentTarget;
     setSearch(value);
     setSortedData(
-      sortData<MemberRowData>(data, {
+      sortData<CourseMember>(data, {
         sortBy,
         reversed: reverseSortDirection,
         search: value,
@@ -103,12 +97,12 @@ export function MembersPage() {
     );
   };
 
-  const setInstructorSorting = (field: keyof MemberRowData) => {
+  const setInstructorSorting = (field: keyof CourseMember) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
     setSortedInstructorData(
-      sortData<MemberRowData>(instructorData, {
+      sortData<CourseMember>(instructorData, {
         sortBy: field,
         reversed,
         search,
@@ -122,7 +116,7 @@ export function MembersPage() {
     const { value } = event.currentTarget;
     setSearch(value);
     setSortedInstructorData(
-      sortData<MemberRowData>(instructorData, {
+      sortData<CourseMember>(instructorData, {
         sortBy,
         reversed: reverseSortDirection,
         search: value,
