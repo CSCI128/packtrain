@@ -83,7 +83,7 @@ class TestCredentialService implements PostgresTestContainer {
 
         credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
-        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("gradescope")));
+        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
         Assertions.assertTrue(cred.isEmpty());
 
@@ -135,7 +135,7 @@ class TestCredentialService implements PostgresTestContainer {
         User user = userSeeder.user1();
 
         Credential cred1 = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))).orElseThrow();
-        Credential cred2 = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred2").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("gradescope"))).orElseThrow();
+        Credential cred2 = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred2").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))).orElseThrow();
 
         List<Credential> creds = credentialService.getAllCredentials(user.getCwid());
 
