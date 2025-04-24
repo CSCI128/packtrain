@@ -1,19 +1,6 @@
 import { createAuthConfig } from "@repo/api/auth.config";
 import { UserManager } from "oidc-client-ts";
 
-declare global {
-  interface Window {
-    __ENV__: {
-      VITE_OAUTH_URL: string;
-      VITE_CLIENT_ID: string;
-      VITE_REDIRECT_URI: string;
-      VITE_AUTH_SCOPES: string;
-      VITE_LOGOUT_REDIRECT_URI: string;
-      API_URL: string;
-    };
-  }
-}
-
 export const AUTH_CONFIG = createAuthConfig(
   window.__ENV__?.VITE_OAUTH_URL ||
     "https://localhost.dev/auth/application/o/grading-admin/",

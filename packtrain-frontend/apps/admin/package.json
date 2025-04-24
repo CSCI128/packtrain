@@ -1,13 +1,12 @@
 {
-  "name": "admin",
+  "name": "packtrain-admin",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.3",

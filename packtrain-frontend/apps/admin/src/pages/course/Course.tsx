@@ -116,42 +116,47 @@ export function CoursePage() {
     </Table.Tr>
   ));
 
-  if (courseIsLoading || !courseData) return "Loading...";
-
-  if (courseError) return `An error occurred: ${courseError}`;
-
   return (
     <>
       <Container size="md">
-        <Text size="xl" fw={700}>
-          {courseData.name} ({courseData.code}) - {courseData.term}
-        </Text>
-        <Text>Course Overview</Text>
+        {courseIsLoading || !courseData ? (
+          <Text>Course is loading...</Text>
+        ) : courseError ? (
+          <Text>There was an error while trying to fetch the course!</Text>
+        ) : (
+          <>
+            <Text size="xl" fw={700}>
+              {courseData.name} ({courseData.code}) - {courseData.term}
+            </Text>
 
-        <Divider my="md" />
+            <Text>Course Overview</Text>
 
-        <Text size="md">
-          <b>{courseData.members?.length}</b> members
-        </Text>
+            <Divider my="md" />
 
-        <Text size="md">
-          <b>{courseData.sections?.length}</b> sections
-        </Text>
+            <Text size="md">
+              <b>{courseData.members?.length}</b> members
+            </Text>
 
-        <Text size="md" onClick={() => navigate("/admin/assignments")}>
-          <b>{courseData.assignments?.length}</b> assignments{" "}
-          <BsBoxArrowUpRight />
-        </Text>
+            <Text size="md">
+              <b>{courseData.sections?.length}</b> sections
+            </Text>
 
-        <Group mt={15} gap="xs">
-          <Button component={Link} to="/admin/edit" variant="filled">
-            Edit
-          </Button>
-        </Group>
+            <Text size="md" onClick={() => navigate("/admin/assignments")}>
+              <b>{courseData.assignments?.length}</b> assignments{" "}
+              <BsBoxArrowUpRight />
+            </Text>
+
+            <Group mt={15} gap="xs">
+              <Button component={Link} to="/admin/edit" variant="filled">
+                Edit
+              </Button>
+            </Group>
+          </>
+        )}
       </Container>
 
       <Container size="md" mt={20}>
-        <Group justify={"space-between"}>
+        <Group justify="space-between">
           <Text size="xl" fw={700}>
             Course Policies
           </Text>

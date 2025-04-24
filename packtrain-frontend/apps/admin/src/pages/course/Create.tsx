@@ -22,6 +22,16 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 export function CreatePage() {
+  const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
+  const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
+  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
+  const [courseCreated, setCourseCreated] = useState(false);
+  const [importStatistics, setImportStatistics] = useState({
+    members: 0,
+    assignments: 0,
+    sections: 0,
+  });
+
   const mutation = useMutation({
     mutationKey: ["newCourse"],
     mutationFn: ({ body }: { body: Course }) =>
@@ -60,17 +70,6 @@ export function CreatePage() {
         }),
   });
 
-  const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
-  const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
-  const [canvasId, setCanvasId] = useState("");
-  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
-  const [courseCreated, setCourseCreated] = useState(false);
-  const [importStatistics, setImportStatistics] = useState({
-    members: 0,
-    assignments: 0,
-    sections: 0,
-  });
-
   const { data: credentialData, error: credentialError } = useQuery<
     Credential[]
   >({
@@ -85,7 +84,7 @@ export function CreatePage() {
         }),
   });
 
-  const importCourse = () => {
+  const importCourse = (canvasId: string) => {
     importMutation.mutate(
       {
         body: {
@@ -118,6 +117,24 @@ export function CreatePage() {
           console.log(err);
           return null;
         }),
+  });
+
+  const { data, error } = useQuery<Course>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course({
+            course_id: store$.id.get() as string,
+            include: ["members", "assignments", "sections"],
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+    enabled: courseCreated && allTasksCompleted,
   });
 
   const pollTaskUntilComplete = useCallback(
@@ -154,8 +171,8 @@ export function CreatePage() {
       Promise.all(
         outstandingTasks.map((task) => pollTaskUntilComplete(task.id))
       )
-        .then((results) => {
-          console.log("All tasks are completed:", results);
+        .then(() => {
+          console.log("All tasks are completed!");
           setAllTasksCompleted(true);
           setOutstandingTasks([]);
         })
@@ -167,33 +184,15 @@ export function CreatePage() {
     pollTasks();
   }, [outstandingTasks, pollTaskUntilComplete]);
 
-  const { data: data, error: error } = useQuery<Course>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course({
-            course_id: store$.id.get() as string,
-            include: ["members", "assignments", "sections"],
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-    enabled: courseCreated && allTasksCompleted,
-  });
-
   useEffect(() => {
-    if (courseCreated && allTasksCompleted && data) {
+    if (allTasksCompleted && data) {
       setImportStatistics({
         members: data.members?.length || 0,
         sections: data.sections?.length || 0,
         assignments: data.assignments?.length || 0,
       });
     }
-  }, [courseCreated, allTasksCompleted, data]);
+  }, [allTasksCompleted, data]);
 
   const createCourse = (values: typeof form.values) => {
     mutation.mutate(
@@ -215,20 +214,14 @@ export function CreatePage() {
       },
       {
         onSuccess: (response) => {
-          setCanvasId(values.canvasId);
           setCourseCreated(true);
           store$.id.set(response.id as string);
           store$.name.set(response.name);
+          importCourse(values.canvasId);
         },
       }
     );
   };
-
-  useEffect(() => {
-    if (courseCreated) {
-      importCourse();
-    }
-  }, [courseCreated]);
 
   const form = useForm({
     mode: "uncontrolled",

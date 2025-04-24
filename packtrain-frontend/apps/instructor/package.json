@@ -1,13 +1,12 @@
 {
-  "name": "instructor",
+  "name": "packtrain-instructor",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@legendapp/state": "^3.0.0-beta.26",

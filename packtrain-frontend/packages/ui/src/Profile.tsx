@@ -34,7 +34,7 @@ export function ProfilePage() {
     initialValues: {
       credentialName: "",
       apiKey: "",
-      service: "Canvas",
+      service: "canvas",
     },
     validate: {
       credentialName: (value) =>
@@ -42,12 +42,7 @@ export function ProfilePage() {
       apiKey: (value) =>
         value.length < 1 ? "API key must have at least 1 character" : null,
       service: (value) =>
-        value != "canvas" &&
-        value != "gradescope" &&
-        value != "prairielearn" &&
-        value != "runestone"
-          ? "Please select a valid service!"
-          : null,
+        value != "canvas" ? "Please select a valid service!" : null,
     },
   });
 
@@ -259,12 +254,7 @@ export function ProfilePage() {
             withAsterisk
             label="Service:"
             placeholder="Pick value"
-            data={[
-              { value: "canvas", label: "Canvas" },
-              { value: "gradescope", label: "Gradescope" },
-              { value: "prairielearn", label: "PrairieLearn" },
-              { value: "runestone", label: "Runestone" },
-            ]}
+            data={[{ value: "canvas", label: "Canvas" }]}
             key={form.key("service")}
             {...form.getInputProps("service")}
           />
