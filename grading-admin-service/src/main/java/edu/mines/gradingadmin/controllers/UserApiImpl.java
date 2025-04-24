@@ -1,17 +1,12 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.UserApiDelegate;
-import edu.mines.gradingadmin.data.CourseSlimDTO;
 import edu.mines.gradingadmin.data.CredentialDTO;
-import edu.mines.gradingadmin.data.EnrollmentDTO;
 import edu.mines.gradingadmin.data.UserDTO;
 import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
-import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.Credential;
 import edu.mines.gradingadmin.models.User;
-import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
@@ -26,13 +21,11 @@ import java.util.UUID;
 public class UserApiImpl implements UserApiDelegate {
     private final UserService userService;
     private final CredentialService credentialService;
-    private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
 
-    public UserApiImpl(UserService userService, CredentialService credentialService, CourseMemberService courseMemberService, SecurityManager securityManager) {
+    public UserApiImpl(UserService userService, CredentialService credentialService, SecurityManager securityManager) {
         this.userService = userService;
         this.credentialService = credentialService;
-        this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
     }
 
