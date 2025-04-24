@@ -53,11 +53,17 @@ export function CreatePage() {
             body
           )
         )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+        .then((res) => res.data),
+    onError: (err) => {
+      console.log(err);
+      getApiClient()
+        .then((client) =>
+          client.delete_course({ course_id: store$.id.get() as string })
+        )
+        .catch((deleteErr) => {
+          console.error(deleteErr);
+        });
+    },        
   });
 
   const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
