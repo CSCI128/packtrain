@@ -1,4 +1,7 @@
 import { Button, Container, Text, Title } from "@mantine/core";
+import { getApiClient } from "@repo/api/index";
+import { store$ } from "@repo/api/store";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "react-oidc-context";
 import { useNavigate } from "react-router-dom";
 import classes from "./Landing.module.scss";
@@ -6,6 +9,16 @@ import classes from "./Landing.module.scss";
 export const LandingPage = () => {
   const auth = useAuth();
   const navigate = useNavigate();
+
+  const { data: enrollmentInfo } = useQuery({
+    queryKey: ["getEnrollments"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) => client.get_enrollments())
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+    enabled: !!auth.isAuthenticated,
+  });
 
   return (
     <Container className={classes.wrapper} size="75%">
@@ -33,15 +46,39 @@ export const LandingPage = () => {
             </Button>
           </div>
         ) : (
-          <div className={classes.controls}>
-            <Button
-              className={classes.control}
-              size="lg"
-              onClick={() => navigate("/requests")}
-            >
-              Request Extensions
-            </Button>
-          </div>
+          <>
+            <div className={classes.controls}>
+              {enrollmentInfo &&
+              enrollmentInfo.filter((c) => c.id === store$.id.get()).at(0)
+                ?.course_role === "instructor" ? (
+                <Button
+                  className={classes.control}
+                  size="lg"
+                  onClick={() => (window.location.href = "/instructor/")}
+                >
+                  Manage Extensions
+                </Button>
+              ) : enrollmentInfo &&
+                enrollmentInfo.filter((c) => c.id === store$.id.get()).at(0)
+                  ?.course_role === "owner" ? (
+                <Button
+                  className={classes.control}
+                  size="lg"
+                  onClick={() => (window.location.href = "/admin/")}
+                >
+                  Manage Course
+                </Button>
+              ) : (
+                <Button
+                  className={classes.control}
+                  size="lg"
+                  onClick={() => navigate("/requests")}
+                >
+                  Request Extensions
+                </Button>
+              )}
+            </div>
+          </>
         )}
       </div>
     </Container>
