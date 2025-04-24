@@ -56,7 +56,8 @@ public class DTOFactory {
             .canvasId(courseMember.getCanvasId())
             .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(courseMember.getRole().getRole()))
             .cwid(courseMember.getUser().getCwid())
-            .sections(courseMember.getSections().stream().map(Section::getName).toList());
+            .sections(courseMember.getSections().stream().map(Section::getName).toList())
+            .name(courseMember.getUser().getName());
     }
 
     public static CourseSlimDTO toSlimDto(Course course) {
