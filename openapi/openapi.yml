@@ -2821,6 +2821,7 @@ components:
         - cwid
         - new_score
         - justification
+        - submission_status
       properties:
         cwid:
           type: string
@@ -2829,6 +2830,18 @@ components:
           type: number
           format: double
           example: 10
+        adjusted_submission_date:
+          type: string
+          format: date-time
+          example: "2020-01-01T12:00:00.000Z"
+        submission_status:
+          type: string
+          enum:
+            - "missing"
+            - "excused"
+            - "late"
+            - "extended"
+            - "on_time"
         justification:
           type: string
           example: "10 points bc you are cool :)"
@@ -2845,14 +2858,21 @@ components:
           type: number
           format: double
           example: 10
-        days_late:
-          type: integer
-          example: 0
+        submission_date:
+          type: string
+          format: date-time
+          example: "2020-01-01T12:00:00.000Z"
+        comment:
+          type: string
+          example: "An extension was applied :)"
 
     MigrationWithScores:
       description: "A migration for an assignment that contains scores for each student"
       type: object
       properties:
+        migration_id:
+          type: string
+          example: 99-9999-9999-999
         assignment:
           $ref: "#/components/schemas/AssignmentSlim"
         scores:

@@ -105,7 +105,7 @@ public class CourseService {
         GradescopeConfig gsConfig = course.get().getGradescopeConfig();
         if(gsConfig != null) {
             if(courseDTO.getGradescopeId() != null) {
-                gsConfig.setGradescopeId(courseDTO.getGradescopeId());
+                gsConfig.setGradescopeId(courseDTO.getGradescopeId().toString());
             }
             gsConfig.setEnabled(courseDTO.getEnabled());
             course.get().setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));

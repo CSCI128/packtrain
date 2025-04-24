@@ -79,7 +79,7 @@ public class DTOFactory {
             .code(course.getCode());
 
         if(course.getGradescopeConfig() != null && course.getGradescopeConfig().getGradescopeId() != null) {
-            courseDto.setGradescopeId(course.getGradescopeConfig().getGradescopeId());
+            courseDto.setGradescopeId(Long.parseLong(course.getGradescopeConfig().getGradescopeId()));
         }
 
         return courseDto;
