@@ -11,16 +11,12 @@ import { getApiClient } from "@repo/api/index";
 import { Course, Policy } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { TableHeader } from "@repo/ui/table/Table";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { BsBoxArrowUpRight, BsTrash } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
-import { userManager } from "../../api";
 
 export function CoursePage() {
-  const navigate = useNavigate();
-
   const {
     data: courseData,
     error: courseError,
@@ -46,6 +42,7 @@ export function CoursePage() {
     data: policyData,
     error: policyError,
     isLoading: policyIsLoading,
+    refetch: refetchPolicies,
   } = useQuery<Policy[]>({
     queryKey: ["getPolicies"],
     queryFn: () =>
@@ -62,6 +59,21 @@ export function CoursePage() {
         }),
   });
 
+  const deletePolicy = useMutation({
+    mutationKey: ["deletePolicy"],
+    mutationFn: (policy_id: string) =>
+      getApiClient()
+        .then((client) =>
+          client.delete_policy({
+            course_id: store$.id.get() as string,
+            policy_id: policy_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
+
+  const navigate = useNavigate();
   const [policyDataState, setPolicyData] = useState<Policy[]>(policyData || []);
 
   useEffect(() => {
@@ -69,18 +81,6 @@ export function CoursePage() {
       setPolicyData(policyData);
     }
   }, [policyData]);
-
-  const handlePolicyDelete = (element: Policy) => {
-    userManager.getUser().then((u) => {
-      axios
-        .delete(`/api/admin/course/${store$.id.get()}/policies/${element.id}`, {
-          headers: {
-            authorization: `Bearer ${u.access_token}`,
-          },
-        })
-        .then(() => location.reload());
-    });
-  };
 
   const rows = policyDataState.map((element) => (
     <Table.Tr key={element.name}>
@@ -91,7 +91,12 @@ export function CoursePage() {
       </Table.Td>
       <Table.Td>{element.number_of_migrations}</Table.Td>
       {(element.number_of_migrations == 0 && (
-        <Table.Td onClick={() => handlePolicyDelete(element)}>
+        <Table.Td
+          onClick={() => {
+            deletePolicy.mutate(element.id);
+            refetchPolicies();
+          }}
+        >
           <Center>
             <Text size="sm" pr={5}>
               Delete
