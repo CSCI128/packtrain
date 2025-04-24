@@ -67,13 +67,16 @@ public class ExtensionService {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Late request does not exist");
     }
 
-    public Optional<LateRequest> denyExtension(String assignmentId, String userId, String extensionId) {
+    public Optional<LateRequest> denyExtension(String assignmentId, String userId, String extensionId, String reason) {
         Optional<LateRequest> lateRequest = getLateRequest(UUID.fromString(extensionId));
         if(lateRequest.isPresent()) {
             LateRequest request = lateRequest.get();
 
+            request.getExtension().setReviewerResponse(reason);
+            request.getExtension().setReviewerResponseTimestamp(Instant.now());
             request.setStatus(LateRequestStatus.REJECTED);
 
+            extensionRepo.save(request.getExtension());
             return Optional.of(lateRequestRepo.save(request));
         }
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Late request does not exist");
