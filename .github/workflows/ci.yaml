@@ -17,12 +17,12 @@ jobs:
         with:
           distribution: temurin
           java-version: 23
-          cache: 'maven'
-          cache-dependency-path: 'grading-admin-service/pom.xml'
+          cache: "maven"
+          cache-dependency-path: "grading-admin-service/pom.xml"
 
       - name: Run Java Tests
         run: |
-           mvn compile test -Dspring.profiles.active=test
+          mvn compile test -Dspring.profiles.active=test
         working-directory: grading-admin-service
   ts-test:
     name: Run Grading Policy Tests
@@ -32,7 +32,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '23.6.x'
+          node-version: "23.6.x"
       - name: Install dependencies
         working-directory: grading-policy-service
         run: npm i --include=dev
@@ -77,7 +77,7 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
-    
+
   publish-admin:
     if: ${{ startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/main') }}
     runs-on: ubuntu-latest
@@ -105,7 +105,7 @@ jobs:
         with:
           context: .
           push: true
-          file: ./grading-admin-frontend/apps/admin/Dockerfile
+          file: ./packtrain-frontend/apps/admin/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Generate artifact attestation
@@ -142,7 +142,7 @@ jobs:
         with:
           context: .
           push: true
-          file: ./grading-admin-frontend/apps/instructor/Dockerfile
+          file: ./packtrain-frontend/apps/instructor/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Generate artifact attestation
@@ -179,7 +179,7 @@ jobs:
         with:
           context: .
           push: true
-          file: ./grading-admin-frontend/apps/student/Dockerfile
+          file: ./packtrain-frontend/apps/student/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Generate artifact attestation
@@ -226,4 +226,3 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/policy-server
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
-          

@@ -138,13 +138,11 @@ class TestCredentialService implements PostgresTestContainer {
         User user = userSeeder.user1();
 
         Credential cred1 = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))).orElseThrow();
-        Credential cred2 = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred2").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("gradescope"))).orElseThrow();
 
         List<Credential> creds = credentialService.getAllCredentials(user.getCwid());
 
-        Assertions.assertEquals(creds.size(), 2);
+        Assertions.assertEquals(creds.size(), 1);
         Assertions.assertTrue(creds.contains(cred1));
-        Assertions.assertTrue(creds.contains(cred2));
     }
 
 

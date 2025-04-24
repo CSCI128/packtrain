@@ -134,7 +134,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
-    public ResponseEntity<LateRequestDTO> denyExtension(String courseId, String assignmentId, String userId, String extensionId) {
+    public ResponseEntity<LateRequestDTO> denyExtension(String courseId, String assignmentId, String userId, String extensionId, String reason) {
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
 
         if(course.isEmpty()) {
@@ -142,7 +142,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        Optional<LateRequest> lateRequest = extensionService.denyExtension(assignmentId, userId, extensionId);
+        Optional<LateRequest> lateRequest = extensionService.denyExtension(assignmentId, userId, extensionId, reason);
 
         if(lateRequest.isEmpty()) {
             // need to do this with error controller
