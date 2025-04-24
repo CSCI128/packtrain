@@ -1,6 +1,6 @@
 import { Box, Button, Container, Divider, Text } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
-import { MasterMigration } from "@repo/api/openapi";
+import { MasterMigration, Migration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
 import { useQuery } from "@tanstack/react-query";
@@ -51,7 +51,7 @@ export function MigrationsPage() {
               <Text>
                 <strong>Migrated Assignments</strong>:{" "}
                 {migration.migrations
-                  ?.map((migration: any) => migration.assignment.name)
+                  ?.map((migration: Migration) => migration.assignment.name)
                   .join(", ")}
               </Text>
             </Box>
