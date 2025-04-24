@@ -8,16 +8,15 @@ import { SelectClass } from "@repo/ui/pages/Select";
 import { ProfilePage } from "@repo/ui/Profile";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { userManager } from "./api.ts";
+import { userManager } from "./auth.ts";
 import "./index.css";
-import { MembersPage } from "./Members.tsx";
 import { AssignmentsPage } from "./pages/Assignments.tsx";
 import { CoursePage } from "./pages/course/Course.tsx";
 import { CreatePage } from "./pages/course/Create.tsx";
 import { EditCourse } from "./pages/course/Edit.tsx";
+import { MembersPage } from "./pages/Members.tsx";
 import { CreatePolicy } from "./pages/policies/Create.tsx";
 import { UsersPage } from "./pages/Users.tsx";
-import ProtectedRoute from "./ProtectedRoute.tsx";
 import Root from "./templates/Root.tsx";
 
 configureApiClient({ userManager: userManager });
@@ -47,51 +46,27 @@ const router = createBrowserRouter([
           },
           {
             path: "/admin/edit",
-            element: (
-              <ProtectedRoute>
-                <EditCourse />
-              </ProtectedRoute>
-            ),
+            element: <EditCourse />,
           },
           {
             path: "/admin/policies/new",
-            element: (
-              <ProtectedRoute>
-                <CreatePolicy />
-              </ProtectedRoute>
-            ),
+            element: <CreatePolicy />,
           },
           {
             path: "/admin/create",
-            element: (
-              <ProtectedRoute>
-                <CreatePage />
-              </ProtectedRoute>
-            ),
+            element: <CreatePage />,
           },
           {
             path: "/admin/assignments",
-            element: (
-              <ProtectedRoute>
-                <AssignmentsPage />
-              </ProtectedRoute>
-            ),
+            element: <AssignmentsPage />,
           },
           {
             path: "/admin/members",
-            element: (
-              <ProtectedRoute>
-                <MembersPage />
-              </ProtectedRoute>
-            ),
+            element: <MembersPage />,
           },
           {
             path: "/admin/users",
-            element: (
-              <ProtectedRoute>
-                <UsersPage />
-              </ProtectedRoute>
-            ),
+            element: <UsersPage />,
           },
           {
             path: "/admin/profile",

@@ -2,7 +2,6 @@ import "@mantine/dates/styles.css";
 import { Footer } from "@repo/ui/footer/Footer";
 import { Navbar } from "@repo/ui/navbar/Navbar";
 import { Outlet } from "react-router-dom";
-import "./Root.scss";
 
 const staticLinks = [
   { href: "/instructor/", label: "Grading Admin" },

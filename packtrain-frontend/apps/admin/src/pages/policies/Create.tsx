@@ -13,7 +13,7 @@ import { store$ } from "@repo/api/store";
 import CodeMirror, { EditorState, Extension } from "@uiw/react-codemirror";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { userManager } from "../../api.ts";
+import { userManager } from "../../auth.ts";
 
 export function CreatePolicy() {
   const navigate = useNavigate();
