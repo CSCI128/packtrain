@@ -3,10 +3,7 @@ package edu.mines.gradingadmin.services.external;
 
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.interfaces.*;
-import edu.ksu.canvas.model.Course;
-import edu.ksu.canvas.model.Enrollment;
-import edu.ksu.canvas.model.Section;
-import edu.ksu.canvas.model.User;
+import edu.ksu.canvas.model.*;
 import edu.ksu.canvas.model.assignment.Assignment;
 import edu.ksu.canvas.model.assignment.AssignmentGroup;
 import edu.ksu.canvas.oauth.NonRefreshableOauthToken;
@@ -17,8 +14,10 @@ import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.models.enums.CredentialType;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +31,28 @@ public class CanvasService {
     private final SecurityManager manager;
     private final ExternalServiceConfig.CanvasConfig config;
     private CanvasApiFactory canvasApiFactory;
+
+    public static class BuiltAssignmentSubmissions {
+        private final Map<String, MultipleSubmissionsOptions.StudentSubmissionOption> map;
+
+        private final MultipleSubmissionsOptions multipleSubmissionsOptions;
+
+        protected BuiltAssignmentSubmissions(String courseId, long assignmentId) {
+            map = new HashMap<>();
+            multipleSubmissionsOptions = new MultipleSubmissionsOptions(courseId, assignmentId, null);
+        }
+
+        public BuiltAssignmentSubmissions addSubmission(String canvasId, String comment, double score, boolean excuseStudent){
+            map.put(canvasId, multipleSubmissionsOptions.createStudentSubmissionOption(comment, String.valueOf(score), excuseStudent, null, null, null));
+
+            return this;
+        }
+
+        protected MultipleSubmissionsOptions build(){
+            multipleSubmissionsOptions.setStudentSubmissionOptionMap(map);
+            return multipleSubmissionsOptions;
+        }
+    }
 
     public static class CanvasServiceWithAuth {
         private final CanvasApiFactory canvasApiFactory;
@@ -172,6 +193,59 @@ public class CanvasService {
             return assignments;
         }
 
+
+        public Optional<Progress> publishCanvasScores(BuiltAssignmentSubmissions submissions){
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+
+            MultipleSubmissionsOptions builtSubmissions = submissions.build();
+
+            log.info("Preparing to publish {} submissions to Canvas", builtSubmissions.getStudentSubmissionOptionMap().size());
+
+            SubmissionWriter writer = canvasApiFactory.getWriter(SubmissionWriter.class, canvasToken);
+
+            Optional<Progress> progress = Optional.empty();
+
+            try {
+                progress = writer.gradeMultipleSubmissionsByCourse(builtSubmissions);
+
+            } catch (IOException e){
+                log.error("Failed to publish scores!", e);
+            }
+
+            if (progress.isEmpty()){
+                log.error("Failed to publish scores! Canvas async task service failed to register incoming gradebook changes!");
+                return Optional.empty();
+            }
+
+            log.info("Gradebook changes acknowledged by Canvas async task service. See '{}' for real time updates.", progress.get().getUrl());
+
+
+            return progress;
+        }
+
+        public boolean isAsyncTaskDone(long asyncTaskId){
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+
+            ProgressReader reader = canvasApiFactory.getReader(ProgressReader.class, canvasToken);
+
+            Optional<Progress> progress = Optional.empty();
+
+            try {
+                progress = reader.getProgress(asyncTaskId);
+            } catch (IOException e) {
+                log.error("Failed to get progress status!", e);
+            }
+
+            if(progress.isEmpty()){
+                log.error("No progress object was returned! Marking as complete.");
+                return true;
+            }
+
+            log.trace("Current progress: {}", progress.get().getCompletion());
+
+            return progress.get().getWorkflowState().equals("completed");
+        }
+
     }
 
     public CanvasService(@Autowired(required = false) SecurityManager manager, ExternalServiceConfig.CanvasConfig config) {
@@ -201,6 +275,10 @@ public class CanvasService {
             throw new ExternalServiceDisabledException("Canvas service is disabled!");
         }
         return new CanvasServiceWithAuth(canvasApiFactory, identityProvider);
+    }
+
+    public BuiltAssignmentSubmissions prepCanvasSubmissionsForPublish(String canvasCourseId, long canvasAssignmentId){
+        return new BuiltAssignmentSubmissions(canvasCourseId, canvasAssignmentId);
     }
 
     public Optional<CourseRole> mapEnrollmentToRole(Enrollment enrollment){
