@@ -7,6 +7,7 @@ import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.LateRequestStatus;
 import edu.mines.gradingadmin.models.enums.SubmissionStatus;
 import edu.mines.gradingadmin.models.tasks.ProcessScoresAndExtensionsTaskDef;
+import edu.mines.gradingadmin.models.tasks.ZeroOutSubmissionsTaskDef;
 import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
@@ -49,6 +50,8 @@ public class TestMigrationService implements PostgresTestContainer {
     @Autowired
     private ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo;
     @Autowired
+    private ScheduledTaskRepo<ZeroOutSubmissionsTaskDef> zeroOutSubmissionTaskRepo;
+    @Autowired
     private MasterMigrationStatsRepo masterMigrationStatsRepo;
     @Autowired
     private ExtensionService extensionService;
@@ -58,6 +61,8 @@ public class TestMigrationService implements PostgresTestContainer {
     private User user;
     @Autowired
     private PolicyService policyService;
+    @Autowired
+    private CourseMemberService courseMemberService;
 
     @BeforeAll
     static void setupClass(){
@@ -67,9 +72,9 @@ public class TestMigrationService implements PostgresTestContainer {
 
     @BeforeEach
     void setup(){
-        migrationService = new MigrationService(migrationRepo, masterMigrationRepo, migrationTransactionLogRepo, taskRepo,
+        migrationService = new MigrationService(migrationRepo, masterMigrationRepo, migrationTransactionLogRepo, taskRepo, zeroOutSubmissionTaskRepo,
                 extensionService, courseService, assignmentService, Mockito.mock(ApplicationEventPublisher.class),
-                Mockito.mock(RabbitMqService.class), Mockito.mock(PolicyServerService.class), rawScoreRepo, masterMigrationStatsRepo, policyService);
+                Mockito.mock(RabbitMqService.class), Mockito.mock(PolicyServerService.class), rawScoreRepo, masterMigrationStatsRepo, policyService, courseMemberService);
 
         course = courseSeeders.populatedCourse();
         user = userSeeders.user1();

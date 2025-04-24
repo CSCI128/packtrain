@@ -63,6 +63,10 @@ public class CourseMemberService {
         return courseMemberRepo.getAllByCourse(course).stream().filter(x -> roles.contains(x.getRole())).toList();
     }
 
+    public List<CourseMember> getAllStudentsInCourse(Course course){
+        return courseMemberRepo.getAllByCourse(course).stream().filter(x -> x.getRole().equals(CourseRole.STUDENT)).toList();
+    }
+
     @Transactional
     public void syncCourseMembersTask(UserSyncTaskDef task) {
         if (!task.shouldAddNewUsers() && !task.shouldUpdateExistingUsers() && !task.shouldRemoveOldUsers()) {

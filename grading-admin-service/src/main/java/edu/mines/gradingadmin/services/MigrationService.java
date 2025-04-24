@@ -1,6 +1,7 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.data.AssignmentSlimDTO;
+import edu.mines.gradingadmin.data.MigrationScoreChangeDTO;
 import edu.mines.gradingadmin.data.MigrationWithScoresDTO;
 import edu.mines.gradingadmin.data.ScoreDTO;
 import edu.mines.gradingadmin.data.policyServer.RawGradeDTO;
@@ -12,6 +13,7 @@ import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.*;
 import edu.mines.gradingadmin.models.tasks.ProcessScoresAndExtensionsTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
+import edu.mines.gradingadmin.models.tasks.ZeroOutSubmissionsTaskDef;
 import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.RabbitMqService;
@@ -25,7 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
@@ -35,7 +37,8 @@ public class MigrationService {
     private final MigrationRepo migrationRepo;
     private final MasterMigrationRepo masterMigrationRepo;
     private final MigrationTransactionLogRepo transactionLogRepo;
-    private final ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo;
+    private final ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> processScoresTaskRepo;
+    private final ScheduledTaskRepo<ZeroOutSubmissionsTaskDef> zeroOutSubmissionsTaskRepo;
     private final ExtensionService extensionService;
     private final CourseService courseService;
     private final AssignmentService assignmentService;
@@ -48,11 +51,12 @@ public class MigrationService {
     private final CourseMemberService courseMemberService;
 
 
-    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreRepo rawScoreRepo, MasterMigrationStatsRepo masterMigrationStatsRepo, PolicyService policyService, CourseMemberService courseMemberService){
+    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ScheduledTaskRepo<ZeroOutSubmissionsTaskDef> zeroOutSubmissionsTaskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreRepo rawScoreRepo, MasterMigrationStatsRepo masterMigrationStatsRepo, PolicyService policyService, CourseMemberService courseMemberService){
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
-        this.taskRepo = taskRepo;
+        this.processScoresTaskRepo = taskRepo;
+        this.zeroOutSubmissionsTaskRepo = zeroOutSubmissionsTaskRepo;
         this.extensionService = extensionService;
         this.courseService = courseService;
         this.assignmentService = assignmentService;
@@ -188,7 +192,7 @@ public class MigrationService {
         else {
             entry.setExtensionApplied(false);
         }
-        entry.setSubmissionStatus(SubmissionStatus.valueOf(dto.getSubmissionStatus().toString()));
+        entry.setSubmissionStatus(dto.getSubmissionStatus());
         entry.setScore(dto.getFinalScore());
         entry.setSubmissionTime(dto.getAdjustedSubmissionTime());
 
@@ -254,6 +258,27 @@ public class MigrationService {
         }
     }
 
+    @Transactional
+    public void zeroOutSubmissions(ZeroOutSubmissionsTaskDef task){
+        Course course = getCourseForMigration(task.getMigrationId().toString());
+
+        List<CourseMember> members = courseMemberService.getAllStudentsInCourse(course);
+
+        for (CourseMember member : members){
+            ScoredDTO scoredDTO = new ScoredDTO();
+            scoredDTO.setCwid(member.getUser().getCwid());
+            scoredDTO.setRawScore(0);
+            scoredDTO.setFinalScore(0);
+            scoredDTO.setAdjustedSubmissionTime(Instant.now());
+            scoredDTO.setHoursLate(0);
+            scoredDTO.setSubmissionStatus(SubmissionStatus.MISSING);
+            scoredDTO.setExtensionStatus(LateRequestStatus.NO_EXTENSION);
+
+            handleScoreReceived(task.getCreatedByUser(), task.getMigrationId(), scoredDTO);
+        }
+
+    }
+
     private static @NotNull RawGradeDTO createRawGradeDTO(RawScore score, Optional<LateRequest> extension) {
         RawGradeDTO dto = new RawGradeDTO();
         dto.setCwid(score.getCwid());
@@ -293,18 +318,30 @@ public class MigrationService {
         for (Migration migration : migrations){
             Assignment assignment = migration.getAssignment();
 
+            ZeroOutSubmissionsTaskDef zeroOutSubmissionsTask = new ZeroOutSubmissionsTaskDef();
+            zeroOutSubmissionsTask.setCreatedByUser(actingUser);
+            zeroOutSubmissionsTask.setTaskName(String.format("Initializing all scores to zero / missing for assignment '%s'", assignment.getName()));
+            zeroOutSubmissionsTask.setMigrationId(migration.getId());
+            zeroOutSubmissionsTask = zeroOutSubmissionsTaskRepo.save(zeroOutSubmissionsTask);
+
+            tasks.add(zeroOutSubmissionsTask);
+
+            NewTaskEvent.TaskData<ZeroOutSubmissionsTaskDef> zeroTaskDef = new NewTaskEvent.TaskData<>(zeroOutSubmissionsTaskRepo, zeroOutSubmissionsTask.getId(), this::zeroOutSubmissions);
+
             ProcessScoresAndExtensionsTaskDef task = new ProcessScoresAndExtensionsTaskDef();
             task.setCreatedByUser(actingUser);
             task.setTaskName(String.format("Process scores and extensions for assignment '%s'", assignment.getName()));
             task.setMigrationId(migration.getId());
             task.setAssignmentId(migration.getId());
             task.setPolicy(URI.create(migration.getPolicy().getPolicyURI()));
-            task = taskRepo.save(task);
+            task = processScoresTaskRepo.save(task);
 
             tasks.add(task);
 
-            NewTaskEvent.TaskData<ProcessScoresAndExtensionsTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::processScoresAndExtensionsTask);
+            NewTaskEvent.TaskData<ProcessScoresAndExtensionsTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(processScoresTaskRepo, task.getId(), this::processScoresAndExtensionsTask);
+            taskDefinition.setDependsOn(Set.of(zeroOutSubmissionsTask.getId()));
 
+            eventPublisher.publishEvent(new NewTaskEvent(this, zeroTaskDef));
             eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
         }
 
@@ -470,6 +507,7 @@ public class MigrationService {
 
             log.info("'{}' students were scored", scores.size());
 
+            migrationWithScoresDTO.setMigrationId(migration.getId().toString());
             migrationWithScoresDTO.setAssignment(assignmentSlimDTO);
             migrationWithScoresDTO.setScores(scores.values().stream().toList());
 
@@ -478,6 +516,23 @@ public class MigrationService {
 
         return migrationWithScoresDTOs;
     }
+
+    public boolean updateStudentScore(User asUser, String migrationId, MigrationScoreChangeDTO dto){
+        ScoredDTO scored = new ScoredDTO();
+        scored.setCwid(dto.getCwid());
+        scored.setExtensionStatus(LateRequestStatus.NO_EXTENSION);
+        scored.setFinalScore(dto.getNewScore());
+        scored.setRawScore(dto.getNewScore());
+        scored.setAdjustedSubmissionTime(dto.getAdjustedSubmissionDate());
+        scored.setSubmissionStatus(SubmissionStatus.fromString(dto.getSubmissionStatus().getValue()));
+        scored.setSubmissionMessage(dto.getJustification());
+
+        handleScoreReceived(asUser, UUID.fromString(migrationId), scored);
+
+        return true;
+    }
+
+
 
     public boolean finalizeReviewMasterMigration(String masterMigrationId){
         Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);

@@ -171,7 +171,13 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<Void> updateStudentScore(String courseId, String masterMigrationId, String migrationId, MigrationScoreChangeDTO migrationScoreChangeDTO) {
-        return InstructorApiDelegate.super.updateStudentScore(courseId, masterMigrationId, migrationId, migrationScoreChangeDTO);
+        boolean b = migrationService.updateStudentScore(securityManager.getUser(), migrationId, migrationScoreChangeDTO);
+
+        if (!b){
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.accepted().build();
     }
 
     @Override
