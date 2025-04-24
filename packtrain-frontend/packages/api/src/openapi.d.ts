@@ -295,7 +295,7 @@ declare namespace Components {
              * example:
              * canvas
              */
-            service: "canvas" | "gradescope";
+            service: "canvas";
             /**
              * example:
              * a super secure key

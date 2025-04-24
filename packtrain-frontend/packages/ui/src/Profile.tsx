@@ -22,8 +22,7 @@ import { useAuth } from "react-oidc-context";
 
 export function ProfilePage() {
   const auth = useAuth();
-  const [selectedCredential, setSelectedCredential] =
-    useState<Credential | null>(null);
+  const [selectedCredential, setSelectedCredential] = useState<Credential>();
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
     useDisclosure(false);
   const [editUserOpened, { open: openEditUser, close: closeEditUser }] =
@@ -178,7 +177,7 @@ export function ProfilePage() {
             name: data.name,
             admin: data.admin,
           },
-          service: values.service as "canvas" | "gradescope", // still cursed
+          service: values.service as "canvas",
           api_key: values.apiKey,
           name: values.credentialName,
           private: true,

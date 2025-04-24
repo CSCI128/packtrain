@@ -3312,8 +3312,7 @@
           "service": {
             "type": "string",
             "enum": [
-              "canvas",
-              "gradescope"
+              "canvas"
             ],
             "example": "canvas"
           },

@@ -7,9 +7,11 @@ import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
 import { SelectClass } from "@repo/ui/pages/Select";
 import { ProfilePage } from "@repo/ui/Profile";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import ReactDOM from "react-dom/client";
+import { AuthProvider } from "react-oidc-context";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./app.scss";
-import { userManager } from "./auth.ts";
+import { AUTH_CONFIG, userManager } from "./auth.ts";
 import { AssignmentsPage } from "./pages/Assignments.tsx";
 import { CoursePage } from "./pages/course/Course.tsx";
 import { CreatePage } from "./pages/course/Create.tsx";
@@ -86,12 +88,12 @@ const router = createBrowserRouter([
   },
 ]);
 
-export default function App() {
-  return (
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <AuthProvider {...AUTH_CONFIG}>
     <QueryClientProvider client={queryClient}>
       <MantineProvider>
         <RouterProvider router={router} />
       </MantineProvider>
     </QueryClientProvider>
-  );
-}
+  </AuthProvider>
+);

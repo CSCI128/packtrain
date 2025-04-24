@@ -2162,7 +2162,6 @@ components:
           type: string
           enum:
             - canvas
-            - gradescope
           example: canvas
         api_key:
           type: string

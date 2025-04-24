@@ -64,9 +64,9 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
         .at(0);
       if (enrollment !== undefined) {
         if (enrollment.course_role === "owner") {
-          window.location.href = "/admin";
+          window.location.href = "/admin/";
         } else if (enrollment.course_role === "instructor") {
-          window.location.href = "/instructor";
+          window.location.href = "/instructor/";
         } else if (enrollment.course_role === "student") {
           window.location.href = "/requests";
         }

@@ -1,3 +1,4 @@
+import { Box } from "@mantine/core";
 import "@mantine/dates/styles.css";
 import { Footer } from "@repo/ui/footer/Footer";
 import { Navbar } from "@repo/ui/navbar/Navbar";
@@ -18,9 +19,9 @@ export default function Root() {
   return (
     <>
       <Navbar staticLinks={staticLinks} links={links}></Navbar>
-      <div className="page-container">
+      <Box p={16}>
         <Outlet />
-      </div>
+      </Box>
       <Footer />
     </>
   );
