@@ -250,7 +250,7 @@ public class CourseService {
                 return false;
             }
         }
-
+        
         courseRepo.delete(course.get());
 
         return true;

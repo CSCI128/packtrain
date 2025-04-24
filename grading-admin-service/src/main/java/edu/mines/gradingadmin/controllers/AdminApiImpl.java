@@ -168,8 +168,9 @@ public class AdminApiImpl implements AdminApiDelegate {
         return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(course.get()));
     }
 
+    @Override
     public ResponseEntity<Void> deleteCourse(String courseId) {
-        if(!courseService.deleteCourse(UUID.fromString(courseId))){
+        if (!courseService.deleteCourse(UUID.fromString(courseId))) {
             return ResponseEntity.badRequest().build();
         }
 
