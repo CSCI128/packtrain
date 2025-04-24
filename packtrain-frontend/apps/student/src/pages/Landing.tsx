@@ -1,9 +1,11 @@
 import { Button, Container, Text, Title } from "@mantine/core";
 import { useAuth } from "react-oidc-context";
+import { useNavigate } from "react-router-dom";
 import classes from "./Landing.module.scss";
 
 export const LandingPage = () => {
   const auth = useAuth();
+  const navigate = useNavigate();
 
   return (
     <Container className={classes.wrapper} size="75%">
@@ -20,7 +22,7 @@ export const LandingPage = () => {
           </Text>
         </Container>
 
-        {!auth.user && (
+        {!auth.user ? (
           <div className={classes.controls}>
             <Button
               className={classes.control}
@@ -28,6 +30,16 @@ export const LandingPage = () => {
               onClick={() => void auth.signinRedirect()}
             >
               Login
+            </Button>
+          </div>
+        ) : (
+          <div className={classes.controls}>
+            <Button
+              className={classes.control}
+              size="lg"
+              onClick={() => navigate("/requests")}
+            >
+              Request Extensions
             </Button>
           </div>
         )}
