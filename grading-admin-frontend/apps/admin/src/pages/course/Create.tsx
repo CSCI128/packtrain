@@ -53,23 +53,27 @@ export function CreatePage() {
             body
           )
         )
-        .then((res) => res.data),
-    onError: (err) => {
-      console.log(err);
-      getApiClient()
-        .then((client) =>
-          client.delete_course({ course_id: store$.id.get() as string })
-        )
-        .catch((deleteErr) => {
-          console.error(deleteErr);
-        });
-    },        
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
   });
+
+  const deleteCourseMutation = useMutation({
+    mutationKey: ["deleteCourse"],
+    mutationFn: ({ course_id }: { course_id: string}) =>
+      getApiClient()
+        .then((client) => client.delete_course(course_id))
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  })
 
   const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
   const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
   const [canvasId, setCanvasId] = useState("");
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
+  const [importFailed, setImportFailed] = useState(false);
   const [courseCreated, setCourseCreated] = useState(false);
   const [importStatistics, setImportStatistics] = useState({
     members: 0,
@@ -190,9 +194,19 @@ export function CreatePage() {
         }),
     enabled: courseCreated && allTasksCompleted,
   });
+    
+  const deleteCourse = (course_id: string) => {
+    setImportFailed(true);
+    deleteCourseMutation.mutate({
+      course_id: course_id
+    });
+  }
 
   useEffect(() => {
     if (courseCreated && allTasksCompleted && data) {
+      if(data.members?.length <= 0 && data.sections?.length <= 0 && data.assignments?.length <= 0){
+        deleteCourse(store$.id.get() as string);
+      }
       setImportStatistics({
         members: data.members?.length || 0,
         sections: data.sections?.length || 0,
@@ -421,31 +435,51 @@ export function CreatePage() {
                   </>
                 ) : (
                   <>
-                    <Text>Import complete!</Text>
-                    <Text>
-                      <strong>{importStatistics.assignments}</strong>{" "}
-                      assignments imported
-                    </Text>
-                    <Text>
-                      <strong>{importStatistics.members}</strong> members
-                      imported
-                    </Text>
-                    <Text>
-                      <strong>{importStatistics.sections}</strong> sections
-                      imported
-                    </Text>
+                  {!importFailed ? (
+                    <>
+                      <Text>Import complete!</Text>
+                      <Text>
+                        <strong>{importStatistics.assignments}</strong>{" "}
+                        assignments imported
+                      </Text>
+                      <Text>
+                        <strong>{importStatistics.members}</strong> members
+                        imported
+                      </Text>
+                      <Text>
+                        <strong>{importStatistics.sections}</strong> sections
+                        imported
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text>Import Failed!</Text>
+                      <Text>Deleting attempted import!</Text>
+                    </>
+                  )}
                   </>
                 )}
 
                 <Group justify="flex-end" mt="md">
-                  <Button
+                  {!importFailed ? (
+                    <Button
                     disabled={!allTasksCompleted}
                     color={allTasksCompleted ? "blue" : "gray"}
                     component={Link}
                     to="/admin"
-                  >
-                    Continue
-                  </Button>
+                    >
+                      Continue
+                    </Button>
+                  ) : 
+                    <Button
+                    disabled={!allTasksCompleted}
+                    color={allTasksCompleted ? "blue" : "gray"}
+                    component={Link}
+                    to="/select"
+                    >
+                      Return
+                    </Button>
+                  }
                 </Group>
               </Box>
             )}

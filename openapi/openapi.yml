@@ -188,17 +188,6 @@ paths:
           schema:
             type: string
             example: "999-9999-9999-99"
-        - name: "include"
-          in: query
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-              enum:
-                - members
-                - assignments
-                - sections
       responses:
         404:
           description: "Course does not exist"
