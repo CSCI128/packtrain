@@ -8,8 +8,6 @@ WORKDIR /app/grading-admin-frontend
 
 RUN npm install
 
-RUN npx openapi-typescript ../openapi/openapi.yml -o ./apps/grading-admin-web/src/lib/api/v1.d.ts
-
 RUN npm run build
 
 FROM nginx:alpine AS serve
