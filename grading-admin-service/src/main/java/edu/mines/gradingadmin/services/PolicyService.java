@@ -60,7 +60,7 @@ public class PolicyService {
         if (validationError.isPresent()){
             log.error("Policy '{}' failed to validate due to: '{}'", policyName, validationError.get());
             s3Service.deletePolicy(courseId, fileName);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy validation error");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy validation failure:" + validationError.get());
         }
 
         Policy policy = new Policy();
