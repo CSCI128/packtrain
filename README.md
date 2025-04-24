@@ -52,7 +52,7 @@ Run `npm run dev` to launch the development server.
 
 To rebuild TypeScript types from OpenAPI, run `npm run types`.
 
-Additionally, copy `.env.sample` to `.env` in **all** of the `grading-admin-frontend/apps` directories.
+Additionally, copy `.env.sample` to `.env` in **all** of the `packtrain-frontend/apps` directories.
 
 ## Authentik
 
