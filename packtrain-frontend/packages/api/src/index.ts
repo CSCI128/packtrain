@@ -11,7 +11,7 @@ declare global {
       VITE_REDIRECT_URI: string;
       VITE_AUTH_SCOPES: string;
       VITE_LOGOUT_REDIRECT_URI: string;
-      API_URL: string;
+      VITE_API_URL: string;
     };
   }
 }
@@ -20,7 +20,7 @@ const api = new OpenAPIClientAxios({
   // @ts-ignore
   definition: openApi,
   axiosConfigDefaults: {
-    baseURL: window.__ENV__?.API_URL || "https://localhost.dev/api",
+    baseURL: window.__ENV__?.VITE_API_URL || "https://localhost.dev/api",
   },
 });
 api.init();
