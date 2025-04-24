@@ -39,7 +39,6 @@ public class PolicyService {
         Optional<Course> course = courseRepo.findById(courseId);
 
         if (course.isEmpty()){
-            log.warn("Course '{}' does not exist!", courseId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
         }
 
@@ -48,13 +47,11 @@ public class PolicyService {
         Optional<String> policyUrl = s3Service.uploadNewPolicy(actingUser, courseId, fileName, file);
 
         if (policyUrl.isEmpty()){
-            log.warn("Failed to upload policy '{}'", policyName);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to upload policy");
         }
 
         // this should never happen, but if it does, then we also need to reject it as the URIs must be unique
         if (policyRepo.existsByPolicyURI(policyUrl.get())){
-            log.warn("Policy already exists at url '{}'", policyUrl.get());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A policy already exists with this URI");
         }
 

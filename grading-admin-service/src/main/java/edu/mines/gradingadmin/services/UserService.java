@@ -126,7 +126,6 @@ public class UserService {
 
     public Optional<User> disableUser(User actingUser, String cwidToDisable){
         if (actingUser.getCwid().equals(cwidToDisable)){
-            log.warn("Attempt to disable current user '{}' from admin!", cwidToDisable);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is an admin, can not disable an admin user");
         }
 
@@ -137,7 +136,6 @@ public class UserService {
         }
 
         if (user.get().isAdmin()){
-            log.warn("Attempt to disable admin user '{}'", cwidToDisable);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is an admin, can not disable an admin user");
         }
 
@@ -170,7 +168,6 @@ public class UserService {
                 .anyMatch(u -> u.getRole() == CourseRole.STUDENT);
 
         if (isStudent){
-            log.warn("Attempt to make student '{}' admin!", user.get().getEmail());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is a student, can not make student an admin user");
         }
 

@@ -195,7 +195,7 @@ public class RawScoreService {
 
         if (cwid.isEmpty()){
             log.warn("Student '{}' is not a member of '{}'", line[USER_ID_IDX], course.getCode());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student is not a member of course");
+            return Optional.empty();
         }
 
         Instant submissionTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(line[SUBMISSION_DATE_IDX], Instant::from);
@@ -227,7 +227,7 @@ public class RawScoreService {
     private Optional<RawScore> parseLineRunestone(int assignmentIdx, Course course, Assignment assignment, UUID migrationId, String[] line){
         if(assignmentIdx == -1) {
             log.warn("Could not find the specified assignment in the Runestone CSV!");
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment with this ID does not exist in Runestone");
+            return Optional.empty();
         }
 
         final int USER_ID_IDX = 2;
@@ -238,7 +238,7 @@ public class RawScoreService {
 
         if (cwid.isEmpty()){
             log.warn("Student '{}' is not a member of '{}'", line[USER_ID_IDX], course.getCode());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student is not a member of course");
+            return Optional.empty();
         }
 
         s.setMigrationId(migrationId);
@@ -287,7 +287,7 @@ public class RawScoreService {
 
         if(status.equals("Ungraded")){
             log.warn("Ungraded submission for '{}' for migration '{}'", cwid, migrationId);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Migration contains an ungraded submission");
+            return Optional.empty();
         }
 
         if(status.equals("Missing")){
@@ -326,7 +326,7 @@ public class RawScoreService {
         Optional<RawScore> score = rawScoreRepo.getByCwidAndMigrationId(cwid, migrationId);
         if(score.isEmpty()){
             log.warn("Could not find raw score for cwid {} on migration id {}", cwid, migrationId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Raw score is not found for this migration and CWID");
+            return Optional.empty();
         }
         return score;
     }
