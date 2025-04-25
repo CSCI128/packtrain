@@ -15,7 +15,9 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -82,7 +84,7 @@ public class MigrationService {
         MasterMigration masterMigration = new MasterMigration();
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
         if (course.isEmpty()) {
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
         }
         masterMigration.setCourse(course.get());
         masterMigration.setCreatedByUser(createdByUser);
@@ -93,7 +95,7 @@ public class MigrationService {
         Optional<MasterMigration> masterMigration = masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
 
         if (masterMigration.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Master migration does not exist");
         }
 
         Migration migration = new Migration();
@@ -102,14 +104,14 @@ public class MigrationService {
         Optional<Policy> policy = policyService.getPolicy(uri).map(policyService::incrementUsedBy);
 
         if (policy.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy does not exist");
         }
 
         migration.setPolicy(policy.get());
         Optional<Assignment> assignment = assignmentService.getAssignmentById(assignmentId);
 
         if (assignment.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment does not exist");
         }
 
         migration.setAssignment(assignment.get());
@@ -150,7 +152,7 @@ public class MigrationService {
             uri = new URI(policyURI);
 
         } catch (URISyntaxException e){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy URI syntax error");
         }
 
         Optional<Policy> policy = policyService.getPolicy(uri).map(policyService::incrementUsedBy);
@@ -160,7 +162,7 @@ public class MigrationService {
         }
 
         if (policy.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy does not exist");
         }
 
         updatedMigration.setPolicy(policy.get());

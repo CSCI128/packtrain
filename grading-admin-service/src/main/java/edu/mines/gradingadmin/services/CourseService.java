@@ -16,8 +16,10 @@ import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.S3Service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.util.*;
@@ -83,7 +85,7 @@ public class CourseService {
         Optional<Course> course = getCourse(UUID.fromString(courseId));
 
         if(course.isEmpty()) {
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
         }
 
         course.get().setName(courseDTO.getName());
@@ -152,7 +154,7 @@ public class CourseService {
                                                              boolean overwriteName, boolean overwriteCode) {
         if (!courseRepo.existsById(courseId)){
             log.warn("Course '{}' has not been created!", courseId);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
         }
 
         CourseSyncTaskDef task = new CourseSyncTaskDef();
@@ -224,7 +226,7 @@ public class CourseService {
 
     private Optional<CourseLateRequestConfig> createCourseLateRequestConfig(CourseLateRequestConfigDTO dto) {
         if (dto == null){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course late request does not exist");
         }
         CourseLateRequestConfig lateRequestConfig = new CourseLateRequestConfig();
         lateRequestConfig.setLatePassesEnabled(dto.getLatePassesEnabled());

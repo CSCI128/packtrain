@@ -18,6 +18,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
@@ -164,17 +166,13 @@ public class TestMigrationService implements PostgresTestContainer {
         dto.setExtensionStatus(LateRequestStatus.NO_EXTENSION);
         dto.setSubmissionStatus(SubmissionStatus.ON_TIME);
 
+        ResponseStatusException exception = Assertions.assertThrows(
+                ResponseStatusException.class,
+                () -> migrationService.handleScoreReceived(user, migrationId, dto)
+        );
 
-        migrationService.handleScoreReceived(user, migrationId, dto);
-
-        List<MigrationTransactionLog> entries = migrationTransactionLogRepo.getAllByMigrationId(migrationId);
-
-        Assertions.assertEquals(1, entries.size());
-
-        Assertions.assertEquals(dto.getFinalScore(), entries.getFirst().getScore());
-        Assertions.assertEquals(dto.getCwid(), entries.getFirst().getCwid());
-        Assertions.assertEquals(migrationId, entries.getFirst().getMigrationId());
-        Assertions.assertEquals(user, entries.getFirst().getPerformedByUser());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        Assertions.assertEquals("ID does not exist", exception.getReason());
 
     }
 

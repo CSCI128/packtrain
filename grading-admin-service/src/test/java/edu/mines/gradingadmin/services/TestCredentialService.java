@@ -1,6 +1,7 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
+import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.data.CredentialDTO;
 import edu.mines.gradingadmin.models.Credential;
 import edu.mines.gradingadmin.models.enums.CredentialType;
@@ -12,6 +13,8 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -68,9 +71,9 @@ class TestCredentialService implements PostgresTestContainer {
 
         credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
-        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred2").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
-
-        Assertions.assertTrue(cred.isEmpty());
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))));
+        Assertions.assertEquals("Credential already exists", exception.getReason());
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 
         List<Credential> credentials = credentialRepo.getByCwidAndEndpoint(user.getCwid(), CredentialType.CANVAS);
 
@@ -83,9 +86,9 @@ class TestCredentialService implements PostgresTestContainer {
 
         credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
-        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
-
-        Assertions.assertTrue(cred.isEmpty());
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))));
+        Assertions.assertEquals("Credential already exists", exception.getReason());
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 
         List<Credential> credentials = credentialRepo.getByCwid(user.getCwid());
 

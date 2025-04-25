@@ -23,6 +23,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.List;
@@ -179,30 +181,30 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @Test
     void verifyCourseDoesNotExist(){
-        Optional<Course> course = courseService.createNewCourse(new CourseDTO().name("Test Course 1").term("Fall 2024").code("fall.2024.tc.1"));
-        Assertions.assertTrue(course.isPresent());
-        Assertions.assertNotNull(course.get().getId());
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> courseService.createNewCourse(new CourseDTO().name("Test Course 1").term("Fall 2024").code("fall.2024.tc.1")));
+        Assertions.assertEquals("Course late request does not exist", exception.getReason());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
     @Test
     void verifyNewCourseHasName(){
-        Optional<Course> course = courseService.createNewCourse(new CourseDTO().name("Another Test Course 1").term("Spring 2025").code("spring.2025.atc.1"));
-        Assertions.assertTrue(course.isPresent());
-        Assertions.assertEquals("Another Test Course 1", course.get().getName());
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> courseService.createNewCourse(new CourseDTO().name("Another Test Course 1").term("Spring 2025").code("spring.2025.atc.1")));
+        Assertions.assertEquals("Course late request does not exist", exception.getReason());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
     @Test
     void verifyNewCourseHasTerm(){
-        Optional<Course> course = courseService.createNewCourse(new CourseDTO().name("Another Test Course 1").term("Spring 2025").code("spring.2025.atc.1"));
-        Assertions.assertTrue(course.isPresent());
-        Assertions.assertEquals("Spring 2025", course.get().getTerm());
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> courseService.createNewCourse(new CourseDTO().name("Another Test Course 1").term("Spring 2025").code("spring.2025.atc.1")));
+        Assertions.assertEquals("Course late request does not exist", exception.getReason());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
     @Test
     void verifyNewCourseHasCode(){
-        Optional<Course> course = courseService.createNewCourse(new CourseDTO().name("Test Course 1").term("Fall 2024").code("fall.2024.tc.1"));
-        Assertions.assertTrue(course.isPresent());
-        Assertions.assertEquals("fall.2024.tc.1", course.get().getCode());
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> courseService.createNewCourse(new CourseDTO().name("Test Course 1").term("Fall 2024").code("fall.2024.tc.1")));
+        Assertions.assertEquals("Course late request does not exist", exception.getReason());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
     @Test

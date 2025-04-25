@@ -8,8 +8,10 @@ import edu.mines.gradingadmin.repositories.PolicyRepo;
 import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.S3Service;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.util.List;
@@ -37,8 +39,7 @@ public class PolicyService {
         Optional<Course> course = courseRepo.findById(courseId);
 
         if (course.isEmpty()){
-            log.warn("Course '{}' does not exist!", courseId);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
         }
 
         log.debug("Creating new course wide policy '{}' for course '{}'", policyName, course.get().getCode());
@@ -46,14 +47,12 @@ public class PolicyService {
         Optional<String> policyUrl = s3Service.uploadNewPolicy(actingUser, courseId, fileName, file);
 
         if (policyUrl.isEmpty()){
-            log.warn("Failed to upload policy '{}'", policyName);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to upload policy");
         }
 
         // this should never happen, but if it does, then we also need to reject it as the URIs must be unique
         if (policyRepo.existsByPolicyURI(policyUrl.get())){
-            log.warn("Policy already exists at url '{}'", policyUrl.get());
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A policy already exists with this URI");
         }
 
         Optional<String> validationError = policyServerService.validatePolicy(policyUrl.get());
@@ -61,7 +60,7 @@ public class PolicyService {
         if (validationError.isPresent()){
             log.error("Policy '{}' failed to validate due to: '{}'", policyName, validationError.get());
             s3Service.deletePolicy(courseId, fileName);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy validation failure:" + validationError.get());
         }
 
         Policy policy = new Policy();
@@ -131,7 +130,7 @@ public class PolicyService {
         Optional<Policy> policy = policyRepo.getPolicyByURI(policyURI.toString());
 
         if (policy.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy does not exist");
         }
 
         return policy;

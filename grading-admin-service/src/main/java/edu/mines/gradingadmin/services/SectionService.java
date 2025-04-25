@@ -13,7 +13,9 @@ import edu.mines.gradingadmin.repositories.SectionRepo;
 import edu.mines.gradingadmin.services.external.CanvasService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -63,7 +65,7 @@ public class SectionService {
 
     public Optional<Section> createSection(long canvasId, String name, Course course){
         if (sectionRepo.existsByCanvasId(canvasId)){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Section already exists, can not create section with same ID");
         }
 
         Section newSection = new Section();

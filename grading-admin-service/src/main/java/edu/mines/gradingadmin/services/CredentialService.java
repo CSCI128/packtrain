@@ -6,7 +6,11 @@ import edu.mines.gradingadmin.models.enums.CredentialType;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.CredentialRepo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -41,7 +45,7 @@ public class CredentialService {
         List<Credential> availableCredentials = credentialRepo.getByCwidAndEndpoint(cwid, type);
 
         if (availableCredentials.isEmpty()){
-            return Optional.empty();
+            throw new AccessDeniedException("Access denied: credential does not exist");
         }
 
         // if there is multiple, return the first
@@ -53,7 +57,7 @@ public class CredentialService {
         List<Credential> availableCredentials = credentialRepo.getByCourseAndEndpoint(courseId, type);
 
         if (availableCredentials.isEmpty()){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Credentials do not exist");
         }
 
         // if there is multiple, return the first
@@ -71,19 +75,15 @@ public class CredentialService {
         CredentialType credentialType = CredentialType.fromString(credentialDTO.getService().toString());
 
         if (user.isEmpty()){
-            // todo: need error handling via error advice handler
-            log.warn("Could not find user with CWID: '{}'", cwid);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not find a user with this CWID");
         }
 
         if (credentialRepo.existsByCwidAndEndpoint(cwid, credentialType)){
-            log.warn("Credential with service: '{}', already exists", credentialType);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credential already exists");
         }
 
         if (credentialRepo.existsByCwidAndName(cwid, credentialDTO.getName())){
-            log.warn("Credential with name: '{}', already exists", credentialDTO.getName());
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credential already exists");
         }
 
         credential.setOwningUser(user.get());
@@ -99,9 +99,7 @@ public class CredentialService {
         Optional<Credential> credential = credentialRepo.getById(credentialId);
 
         if (credential.isEmpty()){
-            // todo need error handling
-            log.warn("Credential with ID: '{}', does not exist", credentialId);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Credential does not exist");
         }
 
         credential.get().setPrivate(false);
@@ -113,9 +111,7 @@ public class CredentialService {
         Optional<Credential> credential = credentialRepo.getById(credentialId);
 
         if (credential.isEmpty()){
-            // todo need error handling
-            log.warn("Credential with ID: '{}', does not exist", credentialId);
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Credential does not exist");
         }
 
         credential.get().setPrivate(true);
