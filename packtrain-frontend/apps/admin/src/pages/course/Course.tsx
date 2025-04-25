@@ -143,7 +143,6 @@ export function CoursePage() {
 
             <Text size="md" onClick={() => navigate("/admin/assignments")}>
               <b>{courseData.assignments?.length}</b> assignments{" "}
-              <BsBoxArrowUpRight />
             </Text>
 
             <Group mt={15} gap="xs">
