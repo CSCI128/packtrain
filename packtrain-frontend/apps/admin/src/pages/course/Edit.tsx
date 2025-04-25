@@ -106,7 +106,7 @@ export function EditCourse() {
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
       gradescopeId: (value) =>
-        value.length == 6 ? null : "Gradescope ID must be 6 characters",
+        value && value.length == 6 ? null : "Gradescope ID must be 6 characters",
       totalLatePassesAllowed: (value) =>
         value < 0
           ? "Total number of late passes must be greater than or equal to 0"

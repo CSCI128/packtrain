@@ -286,7 +286,7 @@ export function CreatePage() {
         {!userHasCredential ? (
           <>
             <Text fw={400}>You do not have any active Canvas credentials!</Text>
-            <Text>Please add a credential under <Anchor href ="/admin/profile"> your profile</Anchor> to proceed.</Text>
+            <Text>Please add a credential under <Anchor href="/admin/profile"> your profile</Anchor> to proceed.</Text>
           </>
         ) : (
           <>
