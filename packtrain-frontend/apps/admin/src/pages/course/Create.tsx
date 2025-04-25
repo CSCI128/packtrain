@@ -20,6 +20,8 @@ import { store$ } from "@repo/api/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Anchor } from "@mantine/core";
+
 
 export function CreatePage() {
   const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
@@ -284,7 +286,7 @@ export function CreatePage() {
         {!userHasCredential ? (
           <>
             <Text fw={400}>You do not have any active Canvas credentials!</Text>
-            <Text>Please add a credential under your profile to proceed.</Text>
+            <Text>Please add a credential under <Anchor href ="/admin/profile"> your profile</Anchor> to proceed.</Text>
           </>
         ) : (
           <>
