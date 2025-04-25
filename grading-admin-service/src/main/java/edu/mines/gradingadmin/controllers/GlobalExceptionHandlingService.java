@@ -1,4 +1,4 @@
-package edu.mines.gradingadmin.services;
+package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.data.ErrorResponseDTO;
 import org.springframework.web.bind.annotation.ControllerAdvice;
