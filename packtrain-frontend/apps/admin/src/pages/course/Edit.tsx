@@ -291,7 +291,7 @@ export function EditCourse() {
             {...form.getInputProps("canvasId")}
           />
 
-          <InputWrapper label="Enabled">
+          <InputWrapper label="Course Enabled">
             <Checkbox 
               defaultChecked={form.getValues().enabled}
               key={form.key("enabled")}
