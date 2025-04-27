@@ -145,7 +145,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<List<TaskDTO>> postMasterMigration(String courseId, String masterMigrationId) {
-        return InstructorApiDelegate.super.postMasterMigration(courseId, masterMigrationId);
+        return ResponseEntity.accepted().body(migrationService.processMigrationLog(securityManager.getUser(), masterMigrationId).stream().map(DTOFactory::toDto).toList());
     }
 
     @Override

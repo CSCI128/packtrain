@@ -341,4 +341,21 @@ public class CourseMemberService {
 
         return Optional.of(user.get().getCwid());
     }
+
+    public String getCanvasIdGivenCourseAndCwid(String cwid, Course course){
+        Optional<User> user = userService.getUserByCwid(cwid);
+
+        if (user.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
+        }
+
+        Optional<CourseMember> member = courseMemberRepo.getByUserAndCourse(user.get(), course);
+
+        if(member.isEmpty()){
+            log.warn("User '{}' is not enrolled in course '{}'", user.get().getCwid(), course.getCode());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not enrolled in this course");
+        }
+
+        return member.get().getCanvasId();
+    }
 }

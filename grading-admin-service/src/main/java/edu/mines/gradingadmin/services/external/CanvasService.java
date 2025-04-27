@@ -43,6 +43,10 @@ public class CanvasService {
         }
 
         public BuiltAssignmentSubmissions addSubmission(String canvasId, String comment, double score, boolean excuseStudent){
+            if (map.containsKey(canvasId)){
+                log.warn("overwriting score for student '{}'", canvasId);
+            }
+
             map.put(canvasId, multipleSubmissionsOptions.createStudentSubmissionOption(comment, String.valueOf(score), excuseStudent, null, null, null));
 
             return this;

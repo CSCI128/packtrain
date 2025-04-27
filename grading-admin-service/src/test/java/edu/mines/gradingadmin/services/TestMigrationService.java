@@ -6,6 +6,7 @@ import edu.mines.gradingadmin.data.policyServer.ScoredDTO;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.LateRequestStatus;
 import edu.mines.gradingadmin.models.enums.SubmissionStatus;
+import edu.mines.gradingadmin.models.tasks.PostToCanvasTaskDef;
 import edu.mines.gradingadmin.models.tasks.ProcessScoresAndExtensionsTaskDef;
 import edu.mines.gradingadmin.models.tasks.ZeroOutSubmissionsTaskDef;
 import edu.mines.gradingadmin.repositories.*;
@@ -52,6 +53,8 @@ public class TestMigrationService implements PostgresTestContainer {
     @Autowired
     private ScheduledTaskRepo<ZeroOutSubmissionsTaskDef> zeroOutSubmissionTaskRepo;
     @Autowired
+    private ScheduledTaskRepo<PostToCanvasTaskDef> postToCanvasTaskTaskRepo;
+    @Autowired
     private MasterMigrationStatsRepo masterMigrationStatsRepo;
     @Autowired
     private ExtensionService extensionService;
@@ -72,7 +75,7 @@ public class TestMigrationService implements PostgresTestContainer {
 
     @BeforeEach
     void setup(){
-        migrationService = new MigrationService(migrationRepo, masterMigrationRepo, migrationTransactionLogRepo, taskRepo, zeroOutSubmissionTaskRepo,
+        migrationService = new MigrationService(migrationRepo, masterMigrationRepo, migrationTransactionLogRepo, taskRepo, zeroOutSubmissionTaskRepo, postToCanvasTaskTaskRepo,
                 extensionService, courseService, assignmentService, Mockito.mock(ApplicationEventPublisher.class),
                 Mockito.mock(RabbitMqService.class), Mockito.mock(PolicyServerService.class), rawScoreRepo, masterMigrationStatsRepo, policyService, courseMemberService);
 

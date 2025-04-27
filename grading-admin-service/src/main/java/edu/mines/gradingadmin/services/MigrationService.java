@@ -1,5 +1,6 @@
 package edu.mines.gradingadmin.services;
 
+import edu.ksu.canvas.model.Progress;
 import edu.mines.gradingadmin.data.AssignmentSlimDTO;
 import edu.mines.gradingadmin.data.MigrationScoreChangeDTO;
 import edu.mines.gradingadmin.data.MigrationWithScoresDTO;
@@ -9,12 +10,16 @@ import edu.mines.gradingadmin.data.policyServer.ScoredDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.factories.MigrationFactory;
+import edu.mines.gradingadmin.managers.IdentityProvider;
+import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.*;
+import edu.mines.gradingadmin.models.tasks.PostToCanvasTaskDef;
 import edu.mines.gradingadmin.models.tasks.ProcessScoresAndExtensionsTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.tasks.ZeroOutSubmissionsTaskDef;
 import edu.mines.gradingadmin.repositories.*;
+import edu.mines.gradingadmin.services.external.CanvasService;
 import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.RabbitMqService;
 import jakarta.transaction.Transactional;
@@ -39,6 +44,7 @@ public class MigrationService {
     private final MigrationTransactionLogRepo transactionLogRepo;
     private final ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> processScoresTaskRepo;
     private final ScheduledTaskRepo<ZeroOutSubmissionsTaskDef> zeroOutSubmissionsTaskRepo;
+    private final ScheduledTaskRepo<PostToCanvasTaskDef> postToCanvasTaskRepo;
     private final ExtensionService extensionService;
     private final CourseService courseService;
     private final AssignmentService assignmentService;
@@ -49,14 +55,17 @@ public class MigrationService {
     private final MasterMigrationStatsRepo masterMigrationStatsRepo;
     private final PolicyService policyService;
     private final CourseMemberService courseMemberService;
+    private final ImpersonationManager impersonationManager;
+    private final CanvasService canvasService;
 
 
-    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ScheduledTaskRepo<ZeroOutSubmissionsTaskDef> zeroOutSubmissionsTaskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreRepo rawScoreRepo, MasterMigrationStatsRepo masterMigrationStatsRepo, PolicyService policyService, CourseMemberService courseMemberService){
+    public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo, MigrationTransactionLogRepo transactionLogRepo, ScheduledTaskRepo<ProcessScoresAndExtensionsTaskDef> taskRepo, ScheduledTaskRepo<ZeroOutSubmissionsTaskDef> zeroOutSubmissionsTaskRepo, ScheduledTaskRepo<PostToCanvasTaskDef> postToCanvasTaskRepo, ExtensionService extensionService, CourseService courseService, AssignmentService assignmentService, ApplicationEventPublisher eventPublisher, RabbitMqService rabbitMqService, PolicyServerService policyServerService, RawScoreRepo rawScoreRepo, MasterMigrationStatsRepo masterMigrationStatsRepo, PolicyService policyService, CourseMemberService courseMemberService, ImpersonationManager impersonationManager, CanvasService canvasService){
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
         this.processScoresTaskRepo = taskRepo;
         this.zeroOutSubmissionsTaskRepo = zeroOutSubmissionsTaskRepo;
+        this.postToCanvasTaskRepo = postToCanvasTaskRepo;
         this.extensionService = extensionService;
         this.courseService = courseService;
         this.assignmentService = assignmentService;
@@ -67,6 +76,8 @@ public class MigrationService {
         this.masterMigrationStatsRepo = masterMigrationStatsRepo;
         this.policyService = policyService;
         this.courseMemberService = courseMemberService;
+        this.impersonationManager = impersonationManager;
+        this.canvasService = canvasService;
     }
 
     public MasterMigration createMigrationForAssignments(Course course, User createdByUser, List<Policy> policyList, List<Assignment> assignmentList){
@@ -173,6 +184,7 @@ public class MigrationService {
 
     }
 
+    @Transactional
     public void handleScoreReceived(User asUser, UUID migrationId, ScoredDTO dto){
         MigrationTransactionLog entry = new MigrationTransactionLog();
         Optional<MigrationTransactionLog> existing = transactionLogRepo.getByCwidAndMigrationId(dto.getCwid(), migrationId);
@@ -184,6 +196,7 @@ public class MigrationService {
 
         entry.setPerformedByUser(asUser);
         entry.setCwid(dto.getCwid());
+        entry.setCanvasId(courseMemberService.getCanvasIdGivenCourseAndCwid(dto.getCwid(), getCourseForMigration(migrationId.toString())));
         entry.setMigrationId(migrationId);
         entry.setExtensionId(dto.getExtensionId());
         if (entry.getExtensionId() != null){
@@ -391,6 +404,7 @@ public class MigrationService {
         return masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
     }
 
+    @Transactional
     public boolean validateLoadMasterMigration(String masterMigrationId){
         Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
 
@@ -418,6 +432,7 @@ public class MigrationService {
         return errors.isEmpty();
     }
 
+    @Transactional
     public Optional<MasterMigration> finalizeLoadMasterMigration(String masterMigrationId){
         if (!validateLoadMasterMigration(masterMigrationId)){
             return Optional.empty();
@@ -517,6 +532,7 @@ public class MigrationService {
         return migrationWithScoresDTOs;
     }
 
+    @Transactional
     public boolean updateStudentScore(User asUser, String migrationId, MigrationScoreChangeDTO dto){
         ScoredDTO scored = new ScoredDTO();
         scored.setCwid(dto.getCwid());
@@ -532,8 +548,6 @@ public class MigrationService {
         return true;
     }
 
-
-
     public boolean finalizeReviewMasterMigration(String masterMigrationId){
         Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
 
@@ -545,5 +559,69 @@ public class MigrationService {
 
         return true;
     }
+
+    public void postGradesToCanvasTask(PostToCanvasTaskDef taskDef){
+        IdentityProvider provider = impersonationManager.impersonateUser(taskDef.getCreatedByUser());
+
+        CanvasService.BuiltAssignmentSubmissions submissions = canvasService.prepCanvasSubmissionsForPublish(String.valueOf(taskDef.getCanvasCourseId()), taskDef.getCanvasAssignmentId());
+
+        List<MigrationTransactionLog> entries = transactionLogRepo.getAllByMigrationIdSorted(taskDef.getMigrationId());
+
+        log.info("Processing {} migration log entries for posting to canvas for migration '{}'", entries.size(), taskDef.getMigrationId());
+
+        for (MigrationTransactionLog entry : entries){
+            submissions.addSubmission(entry.getCanvasId(), entry.getMessage(), entry.getScore(), entry.getSubmissionStatus().equals(SubmissionStatus.EXCUSED));
+        }
+
+        Optional<Progress> progress = canvasService.asUser(provider).publishCanvasScores(submissions);
+
+        if (progress.isEmpty()){
+            throw new RuntimeException("Failed to post scores to Canvas!");
+        }
+
+        // We will probably want to periodically check in on this and then only flag this as completed once this is done
+    }
+
+    @Transactional
+    public List<ScheduledTaskDef> processMigrationLog(User actingUser, String masterMigrationId){
+        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
+
+        if (masterMigration.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Master migration was not found!");
+        }
+
+        if (masterMigration.get().getStatus() != MigrationStatus.READY_TO_POST){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Master migration is in invalid state to post! Expected: %s Was: %s", MigrationStatus.READY_TO_POST, masterMigration.get().getStatus()));
+        }
+
+        masterMigration.get().setStatus(MigrationStatus.POSTING);
+        masterMigrationRepo.save(masterMigration.get());
+
+        Course course = getCourseForMasterMigration(masterMigrationId);
+
+        List<ScheduledTaskDef> tasks = new LinkedList<>();
+
+        for (Migration migration : masterMigration.get().getMigrations()) {
+            Assignment assignment = getAssignmentForMigration(migration.getId().toString());
+
+            PostToCanvasTaskDef task = new PostToCanvasTaskDef();
+            task.setCreatedByUser(actingUser);
+            task.setTaskName(String.format("Post scores for '%s' to Canvas", assignment.getName()));
+            task.setMigrationId(migration.getId());
+            task.setCanvasAssignmentId(assignment.getCanvasId());
+            task.setCanvasCourseId(course.getCanvasId());
+            task = postToCanvasTaskRepo.save(task);
+
+            tasks.add(task);
+
+            NewTaskEvent.TaskData<PostToCanvasTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(postToCanvasTaskRepo, task.getId(), this::postGradesToCanvasTask);
+
+            eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
+        }
+
+        return tasks;
+    }
+
+
 
 }
