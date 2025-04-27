@@ -51,20 +51,16 @@ public class AssignmentService {
             return;
         }
 
-        Optional<Course> course = courseService.getCourse(task.getCourseToSync());
-        if (course.isEmpty()){
-            log.warn("Course '{}' does not exist!", task.getCourseToSync());
-            return;
-        }
+        Course course = courseService.getCourse(task.getCourseToSync());
 
         IdentityProvider impersonatedUser = impersonationManager.impersonateUser(task.getCreatedByUser());
 
-        Map<Long, String> assignmentGroups = canvasService.asUser(impersonatedUser).getAssignmentGroups(course.get().getCanvasId());
-        List<edu.ksu.canvas.model.assignment.Assignment> assignments = canvasService.asUser(impersonatedUser).getCourseAssignments(course.get().getCanvasId());
+        Map<Long, String> assignmentGroups = canvasService.asUser(impersonatedUser).getAssignmentGroups(course.getCanvasId());
+        List<edu.ksu.canvas.model.assignment.Assignment> assignments = canvasService.asUser(impersonatedUser).getCourseAssignments(course.getCanvasId());
 
         Set<Long> incomingAssignments = assignments.stream().map(edu.ksu.canvas.model.assignment.Assignment::getId).collect(Collectors.toSet());
 
-        Set<Long> existingAssignments = assignmentRepo.getAssignmentIdsByCourse(course.get());
+        Set<Long> existingAssignments = assignmentRepo.getAssignmentIdsByCourse(course);
 
         Set<Long> assignmentsToCreate = incomingAssignments.stream().filter(id -> !existingAssignments.contains(id)).collect(Collectors.toSet());
         Set<Long> assignmentsToRemove = existingAssignments.stream().filter(id -> !incomingAssignments.contains(id)).collect(Collectors.toSet());
@@ -74,23 +70,23 @@ public class AssignmentService {
             Set<Assignment> newAssignments = createNewAssignments(
                     assignmentGroups,
                     assignments.stream().filter(a -> assignmentsToCreate.contains(a.getId())).toList(),
-                    course.get()
+                    course
             );
-            log.info("Saving {} new assignments for '{}'", newAssignments.size(), course.get().getCode());
+            log.info("Saving {} new assignments for '{}'", newAssignments.size(), course.getCode());
 
             assignmentRepo.saveAll(newAssignments);
         }
 
         if (task.shouldDeleteAssignments()){
-            log.info("Deleting {} assignments for '{}'", assignmentsToRemove.size(), course.get().getCode());
+            log.info("Deleting {} assignments for '{}'", assignmentsToRemove.size(), course.getCode());
             if (!assignmentsToRemove.isEmpty()) {
-                assignmentRepo.deleteByCourseAndCanvasId(course.get(), assignmentsToRemove);
+                assignmentRepo.deleteByCourseAndCanvasId(course, assignmentsToRemove);
             }
         }
 
         if (task.shouldAddNewAssignments()){
             Set<Assignment> updatedMembers = Set.of();
-            log.info("Updating {} assignments for '{}'", updatedMembers.size(), course.get().getCode());
+            log.info("Updating {} assignments for '{}'", updatedMembers.size(), course.getCode());
 
             if (!updatedMembers.isEmpty()) {
                 assignmentRepo.saveAll(updatedMembers);
@@ -160,10 +156,7 @@ public class AssignmentService {
     }
 
     public Optional<Assignment> updateAssignment(String courseId, AssignmentDTO assignmentDTO) {
-        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-        if (course.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
-        }
+        Course course = courseService.getCourse(UUID.fromString(courseId));
 
         Optional<Assignment> assignment = getAssignmentById(assignmentDTO.getId());
         if (assignment.isEmpty()) {
@@ -175,16 +168,13 @@ public class AssignmentService {
         assignment.get().setEnabled(assignmentDTO.getEnabled());
         assignment.get().setDueDate(assignmentDTO.getDueDate());
         assignment.get().setUnlockDate(assignmentDTO.getUnlockDate());
-        assignment.get().setCourse(course.get());
+        assignment.get().setCourse(course);
 
         return Optional.of(assignmentRepo.save(assignment.get()));
     }
 
     public Optional<Assignment> addAssignmentToCourse(String courseId, AssignmentDTO assignmentDTO) {
-        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-        if(course.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
-        }
+        Course course = courseService.getCourse(UUID.fromString(courseId));
 
         Assignment assignment = new Assignment();
         assignment.setName(assignmentDTO.getName());
@@ -194,7 +184,7 @@ public class AssignmentService {
         assignment.setDueDate(assignmentDTO.getDueDate());
         assignment.setUnlockDate(assignmentDTO.getUnlockDate());
         assignment.setEnabled(true);
-        assignment.setCourse(course.get());
+        assignment.setCourse(course);
 
         return Optional.of(assignmentRepo.save(assignment));
     }

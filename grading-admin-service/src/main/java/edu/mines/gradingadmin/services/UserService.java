@@ -28,8 +28,13 @@ public class UserService {
         this.courseMemberRepo = courseMemberRepo;
     }
 
-    public Optional<User> getUserByCwid(String cwid){
-        return userRepo.getByCwid(cwid);
+    public User getUserByCwid(String cwid){
+        Optional<User> user = userRepo.getByCwid(cwid);
+        if (user.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User '%s' does not exist!", cwid));
+        }
+
+        return user.get();
     }
 
     public Optional<User> getUserByEmail(String email){

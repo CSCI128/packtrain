@@ -1,7 +1,6 @@
 package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
-import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.data.CredentialDTO;
 import edu.mines.gradingadmin.models.Credential;
 import edu.mines.gradingadmin.models.enums.CredentialType;
@@ -58,7 +57,7 @@ class TestCredentialService implements PostgresTestContainer {
 
         Assertions.assertTrue(cred.isPresent());
 
-        credentials = credentialRepo.getByCwidAndEndpoint(user.getCwid(), CredentialType.CANVAS);
+        credentials = credentialRepo.getByCwidAndType(user.getCwid(), CredentialType.CANVAS);
 
         Assertions.assertEquals(1, credentials.size());
 
@@ -75,7 +74,7 @@ class TestCredentialService implements PostgresTestContainer {
         Assertions.assertEquals("Credential already exists", exception.getReason());
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 
-        List<Credential> credentials = credentialRepo.getByCwidAndEndpoint(user.getCwid(), CredentialType.CANVAS);
+        List<Credential> credentials = credentialRepo.getByCwidAndType(user.getCwid(), CredentialType.CANVAS);
 
         Assertions.assertEquals(1, credentials.size());
     }

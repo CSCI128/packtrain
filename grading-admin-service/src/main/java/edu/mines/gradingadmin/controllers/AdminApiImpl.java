@@ -26,21 +26,27 @@ public class AdminApiImpl implements AdminApiDelegate {
     private final CourseService courseService;
     private final SecurityManager securityManager;
     private final UserService userService;
+    private final CourseMemberService courseMemberService;
 
-    public AdminApiImpl(CourseService courseService, SecurityManager securityManager, UserService userService) {
+    public AdminApiImpl(CourseService courseService, SecurityManager securityManager, UserService userService, CourseMemberService courseMemberService) {
         this.courseService = courseService;
         this.securityManager = securityManager;
         this.userService = userService;
+        this.courseMemberService = courseMemberService;
     }
 
 
     @Override
     public ResponseEntity<CourseDTO> newCourse(CourseDTO courseDTO) {
-        Optional<Course> course = courseService.createNewCourse(courseDTO);
-        if (course.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(course.get()));
+        Course course = courseService.createNewCourse(courseDTO);
+
+        courseMemberService.addMemberToCourse(course.getId().toString(), new CourseMemberDTO()
+                .canvasId("self")
+                .cwid(securityManager.getCwid())
+                .courseRole(CourseMemberDTO.CourseRoleEnum.OWNER)
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(course));
     }
 
 
