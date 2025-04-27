@@ -9,6 +9,7 @@ import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.services.*;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -21,6 +22,7 @@ import java.util.UUID;
 
 @Transactional
 @Controller
+@Slf4j
 public class AdminApiImpl implements AdminApiDelegate {
 
     private final CourseService courseService;
@@ -345,29 +347,25 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<UserDTO> adminUpdateUser(UserDTO userDTO) {
-        Optional<User> user = Optional.empty();
+        Optional<User> user;
 
         if(userDTO.getAdmin()) {
             user = userService.makeAdmin(userDTO.getCwid());
-        } else{
+        } else {
             user = userService.demoteAdmin(securityManager.getUser(), userDTO.getCwid());
-
         }
-        user = userService.updateUser(userDTO);
 
         if (user.isEmpty()){
             return ResponseEntity.badRequest().build();
         }
+
+        user = userService.updateUser(userDTO);
 
         if(userDTO.getEnabled()) {
             user = userService.enableUser(userDTO.getCwid());
         }
         else {
             user = userService.disableUser(securityManager.getUser(), userDTO.getCwid());
-        }
-
-        if (user.isEmpty()){
-            return ResponseEntity.badRequest().build();
         }
 
         return ResponseEntity.accepted().body(DTOFactory.toDto(user.get()));
