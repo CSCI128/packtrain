@@ -12,7 +12,7 @@ export function MigrationsPage() {
     queryFn: () =>
       getApiClient()
         .then((client) =>
-          client.get_all_master_migrations_for_course({
+          client.get_all_migrations({
             course_id: store$.id.get() as string,
           })
         )
@@ -44,9 +44,8 @@ export function MigrationsPage() {
                   {formattedDate(new Date(migration.date_started as string))}
                 </strong>
               </Text>
-              {/* TODO send back name with CourseMember */}
               <Text>
-                <strong>By</strong>: {migration.migrator?.cwid}
+                <strong>By</strong>: {migration.migrator?.name}
               </Text>
               <Text>
                 <strong>Migrated Assignments</strong>:{" "}

@@ -3517,7 +3517,7 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.UploadRawScores.Responses.$202>
   }
-  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/load-validate']: {
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/load_validate']: {
     /**
      * load_validate_master_migration - Verify that all information provided in master migration is valid
      */

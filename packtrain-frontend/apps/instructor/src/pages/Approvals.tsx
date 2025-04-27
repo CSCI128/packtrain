@@ -37,7 +37,7 @@ export function ApprovalPage() {
     queryFn: () =>
       getApiClient()
         .then((client) =>
-          client.get_all_extensions_for_course({
+          client.get_all_extensions({
             course_id: store$.id.get() as string,
           })
         )

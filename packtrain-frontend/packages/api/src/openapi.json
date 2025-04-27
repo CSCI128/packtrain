@@ -2628,7 +2628,7 @@
         }
       }
     },
-    "/instructor/courses/{course_id}/migrations/{master_migration_id}/load-validate": {
+    "/instructor/courses/{course_id}/migrations/{master_migration_id}/load_validate": {
       "post": {
         "tags": [
           "instructor"

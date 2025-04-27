@@ -1166,7 +1166,6 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to deny extension for user"
 
-
   /instructor/courses/{course_id}:
     get:
       tags:
@@ -1272,7 +1271,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Policy"
-
 
   /instructor/courses/{course_id}/assignments/{assignment_id}/user/{user_id}/extensions:
     post:
@@ -1560,7 +1558,6 @@ paths:
                 items:
                   $ref: "#/components/schemas/MasterMigration"
 
-
   /instructor/courses/{course_id}/migrations/{master_migration_id}:
     get:
       tags:
@@ -1694,8 +1691,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: Master Migration not found"
 
-
-  /instructor/courses/{course_id}/migrations/{master_migration_id}/load-validate:
+  /instructor/courses/{course_id}/migrations/{master_migration_id}/load_validate:
     post:
       tags:
         - instructor
@@ -2107,7 +2103,6 @@ paths:
                 error_source: "get_task"
                 error_message: "Requested task was not found"
 
-
   /student/courses/{course_id}:
     get:
       tags:
@@ -2299,7 +2294,6 @@ paths:
               example:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
-
 
 components:
   securitySchemes:
