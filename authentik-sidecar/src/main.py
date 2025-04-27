@@ -64,7 +64,7 @@ if __name__ == "__main__":
     provider_id = client.create_new_provider(
         "default-authentication-flow",
         "default-provider-authorization-explicit-consent",
-        "default-invalidation-flow",
+        "default-provider-invalidation-flow",
         "grading_admin_provider",
         "grading_admin_provider",
         scopes_to_request
