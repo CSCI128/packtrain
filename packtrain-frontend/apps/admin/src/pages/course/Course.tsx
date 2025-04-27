@@ -144,10 +144,9 @@ export function CoursePage() {
 
             <Text size="md" onClick={() => navigate("/admin/assignments")}>
               <b>{courseData.assignments?.length}</b> assignments{" "}
-              <BsBoxArrowUpRight />
             </Text>
 
-            <Group mt={15} gap="xs">
+            <Group mt={15} gap="xs" justify="flex-end">
               <Button component={Link} to="/admin/edit" variant="filled">
                 Edit
               </Button>
