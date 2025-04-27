@@ -20,6 +20,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
 import { Assignment, Course } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -61,10 +62,8 @@ export function AssignmentsPage() {
         }),
   });
 
-  const [value, setValue] = useState<Date | null>(new Date());
-  const [unlockDateValue, setUnlockDateValue] = useState<Date | null>(
-    new Date()
-  );
+  const [value, setValue] = useState<Date | null>();
+  const [unlockDateValue, setUnlockDateValue] = useState<Date | null>();
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedAssignment, setSelectedAssignment] =
     useState<Assignment | null>(null);
@@ -214,7 +213,7 @@ export function AssignmentsPage() {
       <Table.Td>{element.points}</Table.Td>
       <Table.Td>{element.external_service}</Table.Td>
       <Table.Td>{element.external_points}</Table.Td>
-      <Table.Td>{element.due_date}</Table.Td>
+      <Table.Td>{formattedDate(new Date(element.due_date as string))}</Table.Td>
       <Table.Td>{element.enabled ? "Yes" : "No"}</Table.Td>
       <Table.Td>{element.attention_required && "Attention required!"}</Table.Td>
       <Table.Td onClick={() => handleAssignmentEdit(element)}>
@@ -234,14 +233,13 @@ export function AssignmentsPage() {
         <Box w="95%" mx="auto">
           <form onSubmit={form.onSubmit(editAssignment)}>
             <TextInput
-              withAsterisk
+              disabled
               label="Name"
               key={form.key("name")}
               {...form.getInputProps("name")}
             />
 
             <TextInput
-              withAsterisk
               disabled
               label="Category"
               key={form.key("category")}
@@ -256,7 +254,7 @@ export function AssignmentsPage() {
             />
 
             <TextInput
-              withAsterisk
+              disabled
               label="Points"
               key={form.key("points")}
               {...form.getInputProps("points")}
@@ -288,15 +286,14 @@ export function AssignmentsPage() {
               placeholder="Pick date"
               value={unlockDateValue}
               {...form.getInputProps("unlock_date")}
-              onChange={setUnlockDateValue}
             />
 
             <DateInput
+              disabled
               label="Due Date"
               placeholder="Pick date"
               value={value}
               {...form.getInputProps("due_date")}
-              onChange={setValue}
             />
 
             <InputWrapper withAsterisk label="Enabled">
@@ -307,15 +304,23 @@ export function AssignmentsPage() {
               />
             </InputWrapper>
 
-            <Text>
-              Group assignment:{" "}
-              {selectedAssignment?.group_assignment ? "Yes" : "No"}
-            </Text>
+            <InputWrapper
+              label={
+                <>
+                  Group assignment:{" "}
+                  {selectedAssignment?.group_assignment ? "Yes" : "No"}
+                </>
+              }
+            ></InputWrapper>
 
-            <Text>
-              Frozen from re-syncing:{" "}
-              {selectedAssignment?.frozen ? "Yes" : "No"}
-            </Text>
+            <InputWrapper
+              label={
+                <>
+                  Frozen from re-syncing:{" "}
+                  {selectedAssignment?.frozen ? "Yes" : "No"}
+                </>
+              }
+            ></InputWrapper>
 
             <br />
 
@@ -347,7 +352,7 @@ export function AssignmentsPage() {
 
         <Divider my="sm" />
 
-        <ScrollArea h={500}>
+        <ScrollArea h={650}>
           <Table horizontalSpacing="md" verticalSpacing="xs" miw={700}>
             <Table.Tbody>
               <Table.Tr>
@@ -401,9 +406,9 @@ export function AssignmentsPage() {
                   Enabled
                 </TableHeader>
                 <TableHeader
-                  sorted={sortBy === "status"}
+                  sorted={undefined}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("status")}
+                  onSort={undefined}
                 >
                   Status
                 </TableHeader>

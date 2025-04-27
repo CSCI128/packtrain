@@ -273,13 +273,6 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<LateRequestDTO>> getAllExtensionsForCourse(String courseId, String status) {
-        List<LateRequest> lateRequests = extensionService.getAllLateRequests(courseId, status);
-
-        return ResponseEntity.ok(lateRequests.stream().map(DTOFactory::toDto).toList());
-    }
-
-    @Override
     public ResponseEntity<PolicyDTO> newPolicy(String courseId, String name, String filePath, MultipartFile fileData, String description) {
         Optional<Policy> policy = policyService.createNewPolicy(securityManager.getUser(), UUID.fromString(courseId), name, description, filePath, fileData);
 
@@ -345,29 +338,25 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<UserDTO> adminUpdateUser(UserDTO userDTO) {
-        Optional<User> user = Optional.empty();
+        Optional<User> user;
 
         if(userDTO.getAdmin()) {
             user = userService.makeAdmin(userDTO.getCwid());
-        } else{
+        } else {
             user = userService.demoteAdmin(securityManager.getUser(), userDTO.getCwid());
-
         }
-        user = userService.updateUser(userDTO);
 
         if (user.isEmpty()){
             return ResponseEntity.badRequest().build();
         }
+
+        user = userService.updateUser(userDTO);
 
         if(userDTO.getEnabled()) {
             user = userService.enableUser(userDTO.getCwid());
         }
         else {
             user = userService.disableUser(securityManager.getUser(), userDTO.getCwid());
-        }
-
-        if (user.isEmpty()){
-            return ResponseEntity.badRequest().build();
         }
 
         return ResponseEntity.accepted().body(DTOFactory.toDto(user.get()));

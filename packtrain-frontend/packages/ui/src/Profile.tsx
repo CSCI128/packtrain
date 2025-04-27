@@ -244,7 +244,7 @@ export function ProfilePage() {
           <TextInput
             withAsterisk
             label="Name"
-            placeholder="Credential 1"
+            placeholder="Canvas Credential"
             key={form.key("credentialName")}
             {...form.getInputProps("credentialName")}
           />

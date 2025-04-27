@@ -2,6 +2,7 @@ import { Button, Container, Text, Title } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import { useNavigate } from "react-router-dom";
 import classes from "./Landing.module.scss";
@@ -19,6 +20,21 @@ export const LandingPage = () => {
         .catch((err) => console.log(err)),
     enabled: !!auth.isAuthenticated,
   });
+
+  useEffect(() => {
+    if (enrollmentInfo) {
+      let enrollment = enrollmentInfo
+        .filter((c) => c.id === store$.id.get())
+        .at(0);
+      if (enrollment !== undefined) {
+        if (enrollment.course_role === "owner") {
+          window.location.href = "/admin/";
+        } else if (enrollment.course_role === "instructor") {
+          window.location.href = "/instructor/";
+        }
+      }
+    }
+  }, [enrollmentInfo]);
 
   return (
     <Container className={classes.wrapper} size="75%">

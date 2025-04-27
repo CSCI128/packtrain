@@ -25,9 +25,12 @@ import { useEffect, useState } from "react";
 export function ApprovalPage() {
   const [denyOpened, { open: openDeny, close: closeDeny }] =
     useDisclosure(false);
+  const [approveOpened, { open: openApprove, close: closeApprove }] =
+    useDisclosure(false);
   const [selectedExtension, setSelectedExtension] =
     useState<LateRequest | null>(null);
   const [denialReason, setDenialReason] = useState<string>("");
+  const [approvalReason, setApprovalReason] = useState<string>("");
 
   const { data, error, isLoading, refetch } = useQuery<LateRequest[] | null>({
     queryKey: ["getExtensions"],
@@ -51,10 +54,12 @@ export function ApprovalPage() {
       assignment_id,
       user_id,
       extension_id,
+      reason,
     }: {
       assignment_id: string;
       user_id: string;
       extension_id: string;
+      reason: string;
     }) =>
       getApiClient()
         .then((client) =>
@@ -63,6 +68,7 @@ export function ApprovalPage() {
             assignment_id: assignment_id,
             user_id: user_id,
             extension_id: extension_id,
+            reason: reason,
           })
         )
         .then((res) => res.data)
@@ -133,15 +139,17 @@ export function ApprovalPage() {
     );
   };
 
-  const approveExtension = (request: LateRequest) => {
+  const approveExtension = (request: LateRequest, reason: string) => {
     approveExtensionMutation.mutate(
       {
         assignment_id: request.assignment_id as string,
         user_id: request.user_requester_id as string,
         extension_id: request.id as string,
+        reason: reason,
       },
       {
         onSuccess: () => {
+          closeApprove();
           refetch();
         },
       }
@@ -163,6 +171,11 @@ export function ApprovalPage() {
         },
       }
     );
+  };
+
+  const handleApproveExtension = (request: LateRequest) => {
+    openApprove();
+    setSelectedExtension(request);
   };
 
   const handleDenyExtension = (request: LateRequest) => {
@@ -187,6 +200,8 @@ export function ApprovalPage() {
         {row.request_type === "late_pass" ? "Late Pass" : "Extension"}
       </Table.Td>
       <Table.Td>{row.assignment_name}</Table.Td>
+      <Table.Td>{row.user_requester_id}</Table.Td>
+      <Table.Td>{row.extension?.reason}</Table.Td>
       <Table.Td>{row.status}</Table.Td>
       <Table.Td>
         {row.request_type === "late_pass" ? (
@@ -201,7 +216,7 @@ export function ApprovalPage() {
                 mr={5}
                 bd="1px solid green"
                 c="green"
-                onClick={() => approveExtension(row)}
+                onClick={() => handleApproveExtension(row)}
               >
                 Approve
               </Box>
@@ -228,6 +243,36 @@ export function ApprovalPage() {
   return (
     <>
       <Modal
+        opened={approveOpened}
+        onClose={closeApprove}
+        title="Approve Extension"
+        centered
+      >
+        <Center>
+          <Stack>
+            <Textarea
+              label="Please provide a reason for approving this extension:"
+              placeholder="Some approval reason.."
+              onChange={(text) => setApprovalReason(text.target.value)}
+            />
+
+            <Button variant="light" color="gray" onClick={closeApprove}>
+              Cancel
+            </Button>
+
+            <Button
+              color="green"
+              onClick={() =>
+                approveExtension(selectedExtension!, approvalReason)
+              }
+            >
+              Approve
+            </Button>
+          </Stack>
+        </Center>
+      </Modal>
+
+      <Modal
         opened={denyOpened}
         onClose={closeDeny}
         title="Deny Extension"
@@ -245,12 +290,14 @@ export function ApprovalPage() {
               Cancel
             </Button>
 
-            <Button
-              color="red"
-              onClick={() => denyExtension(selectedExtension!, denialReason)}
-            >
-              Deny
-            </Button>
+            {!!denialReason && (
+              <Button
+                color="red"
+                onClick={() => denyExtension(selectedExtension!, denialReason)}
+              >
+                Deny
+              </Button>
+            )}
           </Stack>
         </Center>
       </Modal>
@@ -302,6 +349,20 @@ export function ApprovalPage() {
                   onSort={() => setSorting("assignment_name")}
                 >
                   Assignment(s)
+                </TableHeader>
+                <TableHeader
+                  sorted={sortBy === "user_requester_id"}
+                  reversed={reverseSortDirection}
+                  onSort={() => setSorting("user_requester_id")}
+                >
+                  Requester
+                </TableHeader>
+                <TableHeader
+                  sorted={sortBy === "extension"}
+                  reversed={reverseSortDirection}
+                  onSort={() => setSorting("extension")}
+                >
+                  Reason
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "status"}

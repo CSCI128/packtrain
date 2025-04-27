@@ -141,8 +141,13 @@ export function CreatePage() {
 
   const pollTaskUntilComplete = useCallback(
     async (taskId: number, delay = 5000) => {
+      let tries = 0;
       while (true) {
         try {
+          if (tries > 20) {
+            throw new Error("Maximum attempts (20) at polling exceeded..");
+          }
+
           const response = await fetchTask({ task_id: taskId });
 
           if (response.status === "COMPLETED") {
@@ -155,6 +160,7 @@ export function CreatePage() {
             console.log(
               `Task ${taskId} is still in progress, retrying in ${delay}ms...`
             );
+            tries++;
             await new Promise((res) => setTimeout(res, delay));
           }
         } catch (error) {
@@ -201,7 +207,6 @@ export function CreatePage() {
       {
         body: {
           name: values.courseName,
-          code: values.courseCode,
           term: values.courseTerm,
           enabled: true,
           canvas_id: Number(values.canvasId),
@@ -229,7 +234,6 @@ export function CreatePage() {
     mode: "uncontrolled",
     initialValues: {
       courseName: "",
-      courseCode: "",
       courseTerm: "",
       canvasId: "",
       gradescopeId: "",
@@ -243,15 +247,13 @@ export function CreatePage() {
         value.length == 5 ? null : "Canvas ID must be 5 characters",
       courseName: (value) =>
         value.length < 1 ? "Course name must have at least 1 character" : null,
-      courseCode: (value) =>
-        value.length < 1 ? "Course code must have at least 1 character" : null,
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
       gradescopeId: (value) =>
         value.length == 6 ? null : "Gradescope ID must be 6 characters",
       totalLatePassesAllowed: (value) =>
-        value < 0
-          ? "Total number of late passes must be greater than or equal to 0"
+        value < 0 || value > 1000
+          ? "Total number of late passes must be greater than or equal to 0 and less than 1000"
           : null,
     },
   });
@@ -300,16 +302,6 @@ export function CreatePage() {
                   placeholder="Computer Science For STEM"
                   key={form.key("courseName")}
                   {...form.getInputProps("courseName")}
-                />
-
-                <TextInput
-                  disabled={courseCreated}
-                  pb={8}
-                  label="Course Code"
-                  defaultValue="CSCI128"
-                  placeholder="CSCI128"
-                  key={form.key("courseCode")}
-                  {...form.getInputProps("courseCode")}
                 />
 
                 <TextInput

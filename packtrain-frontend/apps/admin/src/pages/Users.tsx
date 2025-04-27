@@ -61,7 +61,7 @@ export function UsersPage() {
   });
 
   const editUserForm = useForm({
-    mode: "controlled",
+    mode: "uncontrolled",
     initialValues: {
       name: "",
       email: "",
@@ -117,7 +117,7 @@ export function UsersPage() {
       enabled: boolean;
     }) =>
       getApiClient()
-        .then((client) => client.update_user({}, userData))
+        .then((client) => client.admin_update_user({}, userData))
         .then((res) => res.data)
         .catch((err) => {
           console.log(err);
@@ -147,13 +147,11 @@ export function UsersPage() {
   const editUser = (values: typeof editUserForm.values) => {
     editUserMutation.mutate(
       {
-        // body: {
         cwid: selectedUser?.cwid as string,
         email: selectedUser?.email as string,
         admin: values.admin,
         name: values.name,
         enabled: values.enabled,
-        // },
       },
       {
         onSuccess: () => {
@@ -244,9 +242,9 @@ export function UsersPage() {
             <Checkbox
               disabled={
                 !editUserForm.getValues().enabled ||
-                editUserForm.getValues().email === auth.user?.profile.email
+                editUserForm.getValues().cwid === auth.user?.profile.cwid
               }
-              checked={editUserForm.getValues().admin}
+              defaultChecked={editUserForm.values.admin}
               key={editUserForm.key("admin")}
               {...editUserForm.getInputProps("admin", { type: "checkbox" })}
             />
@@ -256,9 +254,9 @@ export function UsersPage() {
             <Checkbox
               disabled={
                 editUserForm.getValues().admin ||
-                editUserForm.getValues().email === auth.user?.profile.email
+                editUserForm.getValues().cwid === auth.user?.profile.cwid
               }
-              checked={editUserForm.getValues().enabled}
+              defaultChecked={editUserForm.values.enabled}
               key={editUserForm.key("enabled")}
               {...editUserForm.getInputProps("enabled", { type: "checkbox" })}
             />

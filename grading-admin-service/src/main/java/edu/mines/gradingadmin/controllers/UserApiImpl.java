@@ -1,17 +1,14 @@
 package edu.mines.gradingadmin.controllers;
 
 import edu.mines.gradingadmin.api.UserApiDelegate;
-import edu.mines.gradingadmin.data.CourseSlimDTO;
 import edu.mines.gradingadmin.data.CredentialDTO;
 import edu.mines.gradingadmin.data.EnrollmentDTO;
 import edu.mines.gradingadmin.data.UserDTO;
 import edu.mines.gradingadmin.factories.DTOFactory;
 import edu.mines.gradingadmin.managers.SecurityManager;
 import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.Credential;
 import edu.mines.gradingadmin.models.User;
-import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
@@ -26,14 +23,14 @@ import java.util.UUID;
 public class UserApiImpl implements UserApiDelegate {
     private final UserService userService;
     private final CredentialService credentialService;
-    private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
+    private final CourseMemberService courseMemberService;
 
-    public UserApiImpl(UserService userService, CredentialService credentialService, CourseMemberService courseMemberService, SecurityManager securityManager) {
+    public UserApiImpl(UserService userService, CredentialService credentialService, SecurityManager securityManager, CourseMemberService courseMemberService) {
         this.userService = userService;
         this.credentialService = credentialService;
-        this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
+        this.courseMemberService = courseMemberService;
     }
 
     @Override
@@ -51,27 +48,6 @@ public class UserApiImpl implements UserApiDelegate {
         }
 
         return ResponseEntity.accepted().body(DTOFactory.toDto(user.get()));
-    }
-
-    @Override
-    public ResponseEntity<List<EnrollmentDTO>> getEnrollments() {
-        User user = securityManager.getUser();
-
-        List<Course> enrollments = userService.getEnrollments(user.getCwid());
-
-        return ResponseEntity.ok(enrollments.stream().map(course -> new EnrollmentDTO()
-                .id(course.getId().toString())
-                .term(course.getTerm())
-                .name(course.getName())
-                .code(course.getCode())
-                .cwid(user.getCwid())
-                .courseRole(
-                    EnrollmentDTO.CourseRoleEnum.fromValue(
-                        courseMemberService.getCourseMemberByCourseByCwid(course, user.getCwid())
-                            .map(member -> member.getRole().name().toLowerCase())
-                            .orElse("unknown")
-                    ))
-                ).toList());
     }
 
     @Override
@@ -121,5 +97,26 @@ public class UserApiImpl implements UserApiDelegate {
         }
         credentialService.deleteCredential(credential.get());
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<List<EnrollmentDTO>> getEnrollments() {
+        User user = securityManager.getUser();
+
+        List<Course> enrollments = userService.getEnrollments(user.getCwid());
+
+        return ResponseEntity.ok(enrollments.stream().map(course -> new EnrollmentDTO()
+                .id(course.getId().toString())
+                .term(course.getTerm())
+                .name(course.getName())
+                .code(course.getCode())
+                .cwid(user.getCwid())
+                .courseRole(
+                        EnrollmentDTO.CourseRoleEnum.fromValue(
+                                courseMemberService.getCourseMemberByCourseByCwid(course, user.getCwid())
+                                        .map(member -> member.getRole().name().toLowerCase())
+                                        .orElse("unknown")
+                        ))
+        ).toList());
     }
 }
