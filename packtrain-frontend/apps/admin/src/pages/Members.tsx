@@ -142,7 +142,6 @@ export function MembersPage() {
     <Table.Tr key={row.cwid}>
       <Table.Td>{row.cwid}</Table.Td>
       <Table.Td>{row.name}</Table.Td>
-      <Table.Td>{row.course_role}</Table.Td>
       <Table.Td>{row.sections?.toSorted().join(", ")}</Table.Td>
     </Table.Tr>
   ));
@@ -193,13 +192,6 @@ export function MembersPage() {
                     onSort={() => setSorting("name")}
                   >
                     Name
-                  </TableHeader>
-                  <TableHeader
-                    sorted={sortBy === "course_role"}
-                    reversed={reverseSortDirection}
-                    onSort={() => setSorting("course_role")}
-                  >
-                    Role
                   </TableHeader>
                   <TableHeader
                     sorted={sortBy === "sections"}
