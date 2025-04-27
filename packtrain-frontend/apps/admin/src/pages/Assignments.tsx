@@ -352,7 +352,7 @@ export function AssignmentsPage() {
 
         <Divider my="sm" />
 
-        <ScrollArea h={500}>
+        <ScrollArea h={650}>
           <Table horizontalSpacing="md" verticalSpacing="xs" miw={700}>
             <Table.Tbody>
               <Table.Tr>
