@@ -375,8 +375,8 @@ export function EditCourse() {
             <Text>Canvas re-sync complete!</Text>
           )}
           <Button type="submit"
-                  disabled={!allTasksCompleted}
-                  color={allTasksCompleted ? "blue" : "gray"}
+                  disabled={syncing}
+                  color={syncing ? "gray" : "blue"}
           >Save</Button>
         </Group>
       </form>
