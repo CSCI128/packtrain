@@ -233,14 +233,13 @@ export function AssignmentsPage() {
         <Box w="95%" mx="auto">
           <form onSubmit={form.onSubmit(editAssignment)}>
             <TextInput
-              withAsterisk
+              disabled
               label="Name"
               key={form.key("name")}
               {...form.getInputProps("name")}
             />
 
             <TextInput
-              withAsterisk
               disabled
               label="Category"
               key={form.key("category")}
@@ -255,7 +254,7 @@ export function AssignmentsPage() {
             />
 
             <TextInput
-              withAsterisk
+              disabled
               label="Points"
               key={form.key("points")}
               {...form.getInputProps("points")}
@@ -287,15 +286,14 @@ export function AssignmentsPage() {
               placeholder="Pick date"
               value={unlockDateValue}
               {...form.getInputProps("unlock_date")}
-              onChange={setUnlockDateValue}
             />
 
             <DateInput
+              disabled
               label="Due Date"
               placeholder="Pick date"
               value={value}
               {...form.getInputProps("due_date")}
-              onChange={setValue}
             />
 
             <InputWrapper withAsterisk label="Enabled">
@@ -408,9 +406,9 @@ export function AssignmentsPage() {
                   Enabled
                 </TableHeader>
                 <TableHeader
-                  sorted={sortBy === "status"}
+                  sorted={undefined}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("status")}
+                  onSort={undefined}
                 >
                   Status
                 </TableHeader>
