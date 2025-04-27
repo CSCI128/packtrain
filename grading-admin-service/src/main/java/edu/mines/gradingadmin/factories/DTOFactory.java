@@ -148,6 +148,7 @@ public class DTOFactory {
         MasterMigrationDTO dto = new MasterMigrationDTO()
                 .id(masterMigration.getId().toString())
                 .dateStarted(masterMigration.getDateStarted())
+                .status(MasterMigrationDTO.StatusEnum.fromValue(masterMigration.getStatus().getStatus()))
                 .migrator(toDto(masterMigration.getCreatedByUser()));
 
         if (masterMigration.getMigrations() != null && !masterMigration.getMigrations().isEmpty()){

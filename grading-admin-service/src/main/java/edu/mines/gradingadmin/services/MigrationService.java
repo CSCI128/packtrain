@@ -622,6 +622,22 @@ public class MigrationService {
         return tasks;
     }
 
+    public boolean finalizePostToCanvas(String masterMigrationId){
+        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
+
+        if (masterMigration.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Master migration does not exist!");
+        }
+
+        if (!masterMigration.get().getStatus().equals(MigrationStatus.POSTING)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid status for finalizing migration! Expected: %s Was: %s", MigrationStatus.POSTING, masterMigration.get().getStatus()));
+        }
+
+        masterMigration.get().setStatus(MigrationStatus.COMPLETED);
+        masterMigrationRepo.save(masterMigration.get());
+        return true;
+    }
+
 
 
 }
