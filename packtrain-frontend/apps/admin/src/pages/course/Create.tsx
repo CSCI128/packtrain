@@ -139,8 +139,13 @@ export function CreatePage() {
 
   const pollTaskUntilComplete = useCallback(
     async (taskId: number, delay = 5000) => {
+      let tries = 0;
       while (true) {
         try {
+          if (tries > 20) {
+            throw new Error("Maximum attempts (20) at polling exceeded..");
+          }
+
           const response = await fetchTask({ task_id: taskId });
 
           if (response.status === "COMPLETED") {
@@ -153,6 +158,7 @@ export function CreatePage() {
             console.log(
               `Task ${taskId} is still in progress, retrying in ${delay}ms...`
             );
+            tries++;
             await new Promise((res) => setTimeout(res, delay));
           }
         } catch (error) {
