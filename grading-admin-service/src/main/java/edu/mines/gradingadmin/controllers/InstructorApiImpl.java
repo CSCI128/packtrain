@@ -84,6 +84,13 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
+    public ResponseEntity<List<LateRequestDTO>> getAllExtensionsForCourse(String courseId, String status) {
+        List<LateRequest> lateRequests = extensionService.getAllLateRequests(courseId, status);
+
+        return ResponseEntity.ok(lateRequests.stream().map(DTOFactory::toDto).toList());
+    }
+
+    @Override
     public ResponseEntity<List<ErrorResponseDTO>> getAllApprovedExtensionsForAssignment(String courseId, String assignmentId, String extensionId, String status) {
         return InstructorApiDelegate.super.getAllApprovedExtensionsForAssignment(courseId, assignmentId, extensionId, status);
     }
