@@ -330,7 +330,11 @@ export function Requests() {
               </>
             )}
             <Button component={Link} to="/extension" variant="filled">
-              Request Late Pass/Extension
+              Request{" "}
+              {studentData.late_passes_used !== LATE_PASSES_ALLOWED && (
+                <>Late Pass/</>
+              )}
+              Extension
             </Button>
           </Stack>
         </Group>
