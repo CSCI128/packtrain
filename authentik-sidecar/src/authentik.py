@@ -259,6 +259,95 @@ class Authentik:
 
         return res["pk"]
 
+    def _binding_exists(self, flow_id):
+        res = self._get("flows/bindings/")
+
+        if "results" not in res:
+            return Exception("Failed to fetch bindings")
+
+        for binding in res["results"]:
+            if binding["pk"] == flow_id:
+                return binding["pk"]
+        return False
+
+    def delete_flow_binding_if_exists(self, flow_id):
+        flow_binding_id = self._binding_exists(flow_id)
+        if not flow_binding_id:
+            return
+
+        print(f"Deleting flow binding with flow ID: {flow_binding_id}")
+
+        if not self._delete(f"flows/bindings/{flow_binding_id}/"):
+            raise Exception(f"Failed to delete flow binding {flow_binding_id}")
+
+    def create_flow_binding(self, flow_name, stage_id):
+        if self.recreate:
+            self.delete_flow_binding_if_exists(self._get_flow_id(flow_name))
+
+        if binding_id := self._binding_exists(self._get_flow_id(flow_name)):
+            print(f"Binding with flow_name '{flow_name}' already exists! Skipping!")
+            return binding_id
+    
+        body = {  
+            "target": self._get_flow_id(flow_name),
+            "stage": stage_id,
+            "order": 30,
+        }
+
+        res = self._post("flows/bindings/", body)
+
+        if "pk" not in res:
+            raise Exception(f"Failed to create new scope with name: {flow_name}\n{res}")
+
+        print(f"Successfully created redirect stage with flow name '{flow_name}'")
+
+        return res
+    
+    def _redirect_stage_exists(self, flow_id):
+        res = self._get("stages/redirect/")
+
+        if "results" not in res:
+            return Exception("Failed to fetch redirect stages")
+
+        for stage in res["results"]:
+            if stage["target_flow"] == flow_id:
+                return stage["pk"]
+        return False
+
+    def delete_redirect_stage_if_exists(self, flow_id):
+        redirect_stage_id = self._redirect_stage_exists(flow_id)
+        if not redirect_stage_id:
+            return
+
+        print(f"Deleting redirect stage with flow ID: {redirect_stage_id}")
+
+        if not self._delete(f"stages/redirect/{redirect_stage_id}/"):
+            raise Exception(f"Failed to delete redirect stage {redirect_stage_id}")
+
+    def create_redirect_stage(self, flow_name, flow_id):
+        if self.recreate:
+            self.delete_redirect_stage_if_exists(flow_id)
+
+        if redirect_stage_id := self._redirect_stage_exists(flow_name):
+            print(f"Stage '{flow_name}' exists with id '{redirect_stage_id}'! Skipping.")
+            return redirect_stage_id
+
+        body = {
+            "name": "logout-redirect",
+            "keep_context": True,
+            "mode": "static",
+            "target_static": "https://localhost.dev/",
+            "target_flow": flow_id
+        }
+
+        res = self._post("stages/redirect/", body)
+
+        if "pk" not in res:
+            raise Exception(f"Failed to create new redirect stage with id: {redirect_stage_id}\n{res}")
+
+        print(f"Successfully created redirect stage with flow name '{flow_name}'")
+
+        return res
 
     def delete_provider_if_exists(self, provider_name):
         if not (provider_id := self._provider_exists(provider_name)):
@@ -288,6 +377,9 @@ class Authentik:
 
         if not scopes:
             raise Exception("Failed to get required scopes!")
+
+        redirect = self.create_redirect_stage(invalidation_flow_name, invalidation_flow_id)
+        self.create_flow_binding(invalidation_flow_name, redirect["pk"])
 
         body = {
             "name": provider_name,
