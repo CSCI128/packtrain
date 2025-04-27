@@ -105,7 +105,7 @@ public class CourseService {
         GradescopeConfig gsConfig = course.get().getGradescopeConfig();
         if(gsConfig != null) {
             if(courseDTO.getGradescopeId() != null) {
-                gsConfig.setGradescopeId(courseDTO.getGradescopeId());
+                gsConfig.setGradescopeId(courseDTO.getGradescopeId().toString());
             }
             gsConfig.setEnabled(courseDTO.getEnabled());
             course.get().setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));
@@ -204,7 +204,7 @@ public class CourseService {
             ExternalServiceConfig.GradescopeConfig config = externalServiceConfig.configureGradescope(true, URI.create("https://www.gradescope.com/courses/" + courseDTO.getGradescopeId()));
 
             GradescopeConfig gsConfig = new GradescopeConfig();
-            gsConfig.setGradescopeId(courseDTO.getGradescopeId());
+            gsConfig.setGradescopeId(courseDTO.getGradescopeId().toString());
             gsConfig.setEnabled(config.isEnabled());
             newCourse.setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));
         }
