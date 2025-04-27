@@ -233,6 +233,13 @@ export function Requests() {
               </>
             )}
 
+          {selectedExtension?.status === "approved" && (
+            <Text>
+              <b>Approval Reason</b>:{" "}
+              {selectedExtension.extension?.response_to_requester}
+            </Text>
+          )}
+
           <Group justify="flex-end" mt={10}>
             <Button variant="filled" color="gray" onClick={close}>
               Close

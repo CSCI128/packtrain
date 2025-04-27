@@ -55,9 +55,7 @@ public class CourseService {
     }
 
     public List<Course> getCourses(boolean enabled) {
-
             if (enabled) {
-
                 return courseRepo.getAll(enabled);
             }
             return courseRepo.getAll();

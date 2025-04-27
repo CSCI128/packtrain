@@ -1038,6 +1038,12 @@ paths:
           schema:
             type: string
             example: "99-9999-9999-99"
+        - name: reason
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "Good extension"
 
       responses:
         202:
