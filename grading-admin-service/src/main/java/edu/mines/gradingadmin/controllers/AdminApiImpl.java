@@ -275,13 +275,6 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<LateRequestDTO>> getAllExtensionsForCourse(String courseId, String status) {
-        List<LateRequest> lateRequests = extensionService.getAllLateRequests(courseId, status);
-
-        return ResponseEntity.ok(lateRequests.stream().map(DTOFactory::toDto).toList());
-    }
-
-    @Override
     public ResponseEntity<PolicyDTO> newPolicy(String courseId, String name, String filePath, MultipartFile fileData, String description) {
         Optional<Policy> policy = policyService.createNewPolicy(securityManager.getUser(), UUID.fromString(courseId), name, description, filePath, fileData);
 

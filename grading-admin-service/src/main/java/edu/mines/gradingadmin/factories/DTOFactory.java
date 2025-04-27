@@ -79,7 +79,7 @@ public class DTOFactory {
             .code(course.getCode());
 
         if(course.getGradescopeConfig() != null && course.getGradescopeConfig().getGradescopeId() != null) {
-            courseDto.setGradescopeId(course.getGradescopeConfig().getGradescopeId());
+            courseDto.setGradescopeId(Long.parseLong(course.getGradescopeConfig().getGradescopeId()));
         }
 
         return courseDto;
@@ -148,6 +148,7 @@ public class DTOFactory {
         MasterMigrationDTO dto = new MasterMigrationDTO()
                 .id(masterMigration.getId().toString())
                 .dateStarted(masterMigration.getDateStarted())
+                .status(MasterMigrationDTO.StatusEnum.fromValue(masterMigration.getStatus().getStatus()))
                 .migrator(toDto(masterMigration.getCreatedByUser()));
 
         if (masterMigration.getMigrations() != null && !masterMigration.getMigrations().isEmpty()){

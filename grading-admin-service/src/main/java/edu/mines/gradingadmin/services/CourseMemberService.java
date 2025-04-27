@@ -63,6 +63,10 @@ public class CourseMemberService {
         return courseMemberRepo.getAllByCourse(course).stream().filter(x -> roles.contains(x.getRole())).toList();
     }
 
+    public List<CourseMember> getAllStudentsInCourse(Course course){
+        return courseMemberRepo.getAllByCourse(course).stream().filter(x -> x.getRole().equals(CourseRole.STUDENT)).toList();
+    }
+
     @Transactional
     public void syncCourseMembersTask(UserSyncTaskDef task) {
         if (!task.shouldAddNewUsers() && !task.shouldUpdateExistingUsers() && !task.shouldRemoveOldUsers()) {
@@ -336,5 +340,22 @@ public class CourseMemberService {
         }
 
         return Optional.of(user.get().getCwid());
+    }
+
+    public String getCanvasIdGivenCourseAndCwid(String cwid, Course course){
+        Optional<User> user = userService.getUserByCwid(cwid);
+
+        if (user.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
+        }
+
+        Optional<CourseMember> member = courseMemberRepo.getByUserAndCourse(user.get(), course);
+
+        if(member.isEmpty()){
+            log.warn("User '{}' is not enrolled in course '{}'", user.get().getCwid(), course.getCode());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not enrolled in this course");
+        }
+
+        return member.get().getCanvasId();
     }
 }

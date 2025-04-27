@@ -25,8 +25,14 @@ public class MigrationTransactionLog {
     @Column(name = "student_cwid", nullable = false)
     private String cwid;
 
+    @Column(name = "student_canvas_id", nullable = false)
+    private String canvasId;
+
     @Column(name = "migration_id", nullable = false)
     private UUID migrationId;
+
+    @Column(name = "revision", nullable = false)
+    private int revision = 1;
 
     @Column(name = "extension_id")
     private UUID extensionId;
