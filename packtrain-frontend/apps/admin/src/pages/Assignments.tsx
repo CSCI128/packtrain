@@ -20,6 +20,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
 import { Assignment, Course } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -214,7 +215,7 @@ export function AssignmentsPage() {
       <Table.Td>{element.points}</Table.Td>
       <Table.Td>{element.external_service}</Table.Td>
       <Table.Td>{element.external_points}</Table.Td>
-      <Table.Td>{element.due_date}</Table.Td>
+      <Table.Td>{formattedDate(new Date(element.due_date as string))}</Table.Td>
       <Table.Td>{element.enabled ? "Yes" : "No"}</Table.Td>
       <Table.Td>{element.attention_required && "Attention required!"}</Table.Td>
       <Table.Td onClick={() => handleAssignmentEdit(element)}>
@@ -307,15 +308,23 @@ export function AssignmentsPage() {
               />
             </InputWrapper>
 
-            <Text>
-              Group assignment:{" "}
-              {selectedAssignment?.group_assignment ? "Yes" : "No"}
-            </Text>
+            <InputWrapper
+              label={
+                <>
+                  Group assignment:{" "}
+                  {selectedAssignment?.group_assignment ? "Yes" : "No"}
+                </>
+              }
+            ></InputWrapper>
 
-            <Text>
-              Frozen from re-syncing:{" "}
-              {selectedAssignment?.frozen ? "Yes" : "No"}
-            </Text>
+            <InputWrapper
+              label={
+                <>
+                  Frozen from re-syncing:{" "}
+                  {selectedAssignment?.frozen ? "Yes" : "No"}
+                </>
+              }
+            ></InputWrapper>
 
             <br />
 
