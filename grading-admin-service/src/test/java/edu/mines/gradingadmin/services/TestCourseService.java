@@ -5,7 +5,6 @@ import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
 import edu.mines.gradingadmin.repositories.*;
@@ -14,7 +13,6 @@ import edu.mines.gradingadmin.repositories.CourseRepo;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
 import edu.mines.gradingadmin.services.external.CanvasService;
-import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.S3Service;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
@@ -118,22 +116,22 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     }
 
     @Test
-    void verifyGetCoursesActive() {
+    void verifyGetAllCoursesActive() {
         Course activeCourse = courseSeeders.course1();
         Course inactiveCourse = courseSeeders.course2();
 
-        List<Course> courses = courseService.getCourses(true);
+        List<Course> courses = courseService.getAllCourses(true);
         Assertions.assertEquals(1, courses.size());
         Assertions.assertTrue(courses.contains(activeCourse));
         Assertions.assertFalse(courses.contains(inactiveCourse));
     }
 
     @Test
-    void verifyGetCoursesIncludingInactive() {
+    void verifyGetAllCoursesIncludingInactive() {
         Course activeCourse = courseSeeders.course1();
         Course inactiveCourse = courseSeeders.course2();
 
-        List<Course> courses = courseService.getCourses(false);
+        List<Course> courses = courseService.getAllCourses(false);
         Assertions.assertEquals(2, courses.size());
         Assertions.assertTrue(courses.contains(activeCourse));
         Assertions.assertTrue(courses.contains(inactiveCourse));
@@ -235,7 +233,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     }
 
     @Test
-    void verifyGetCourseStudent(){
+    void verifyGetAllCourseStudent(){
         Course coursePopulated = courseSeeders.populatedCourse();
         Course course2 = courseSeeders.course2();
         User user = userSeeders.user1();
