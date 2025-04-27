@@ -287,4 +287,11 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         List<Policy> policies = policyService.getAllPolicies(UUID.fromString(courseId));
         return ResponseEntity.ok(policies.stream().map(DTOFactory::toDto).toList());
     }
+
+    @Override
+    public ResponseEntity<List<TaskDTO>> finalizeMasterMigration(String courseId, String masterMigrationId) {
+        migrationService.finalizeReviewMasterMigration(masterMigrationId);
+
+        return ResponseEntity.ok().build();
+    }
 }
