@@ -243,6 +243,8 @@ export function ExtensionForm() {
             setLatePassView(!latePassView);
             setSearchValue("");
             setSelectedAssignmentId("");
+            extensionForm.setFieldValue("assignmentId", "");
+            latePassForm.setFieldValue("assignmentId", "");
           }}
           data={["Late Pass", "Extension"]}
         />
@@ -443,7 +445,7 @@ export function ExtensionForm() {
 
             <Textarea
               label="Comments/Explanation"
-              placeholder="Comments"
+              placeholder="Some comments.."
               key={extensionForm.key("comments")}
               {...extensionForm.getInputProps("comments")}
             />
