@@ -141,7 +141,7 @@ declare namespace Components {
              * example:
              * Fall.2020.EXCL.101
              */
-            code: string;
+            code?: string;
             /**
              * example:
              * 123456

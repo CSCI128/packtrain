@@ -2335,7 +2335,6 @@ components:
         - term
         - enabled
         - name
-        - code
         - canvas_id
         - late_request_config
       properties:

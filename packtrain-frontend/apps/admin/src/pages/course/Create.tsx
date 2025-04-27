@@ -205,7 +205,6 @@ export function CreatePage() {
       {
         body: {
           name: values.courseName,
-          code: values.courseCode,
           term: values.courseTerm,
           enabled: true,
           canvas_id: Number(values.canvasId),
@@ -233,7 +232,6 @@ export function CreatePage() {
     mode: "uncontrolled",
     initialValues: {
       courseName: "",
-      courseCode: "",
       courseTerm: "",
       canvasId: "",
       gradescopeId: "",
@@ -247,8 +245,6 @@ export function CreatePage() {
         value.length == 5 ? null : "Canvas ID must be 5 characters",
       courseName: (value) =>
         value.length < 1 ? "Course name must have at least 1 character" : null,
-      courseCode: (value) =>
-        value.length < 1 ? "Course code must have at least 1 character" : null,
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
       gradescopeId: (value) =>
@@ -304,16 +300,6 @@ export function CreatePage() {
                   placeholder="Computer Science For STEM"
                   key={form.key("courseName")}
                   {...form.getInputProps("courseName")}
-                />
-
-                <TextInput
-                  disabled={courseCreated}
-                  pb={8}
-                  label="Course Code"
-                  defaultValue="CSCI128"
-                  placeholder="CSCI128"
-                  key={form.key("courseCode")}
-                  {...form.getInputProps("courseCode")}
                 />
 
                 <TextInput
