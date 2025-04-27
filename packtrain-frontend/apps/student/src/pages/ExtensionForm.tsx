@@ -290,6 +290,19 @@ export function ExtensionForm() {
                   }}
                 />
 
+                {courseData.course.assignments?.length === 0 && (
+                  <>
+                    <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
+                      There are no loaded/upcoming assignments!
+                    </Text>
+
+                    <Text ta="center" c="gray.7">
+                      Please contact your instructor if you think this is a
+                      mistake.
+                    </Text>
+                  </>
+                )}
+
                 <Text>
                   You have{" "}
                   <strong>
@@ -377,14 +390,29 @@ export function ExtensionForm() {
                 extensionForm.setFieldValue("assignmentId", _value ?? "");
               }}
             />
+
+            {courseData.course.assignments?.length === 0 && (
+              <>
+                <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
+                  There are no loaded/upcoming assignments!
+                </Text>
+
+                <Text ta="center" c="gray.7">
+                  Please contact your instructor if you think this is a mistake.
+                </Text>
+              </>
+            )}
+
             <Text>
               Extensions are <strong>only</strong> for medical, excused or
               extenuating personal circumstances.
             </Text>
+
             <Text>
               This request will be sent to and reviewed by{" "}
               <strong>Professor {courseData.professor}</strong>.
             </Text>
+
             <Group>
               <NumberInput
                 withAsterisk
