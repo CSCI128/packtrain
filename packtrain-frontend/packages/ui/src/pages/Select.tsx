@@ -18,7 +18,12 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
   const auth = useAuth();
   const [checked, setChecked] = useState(false);
 
-  const { data, error, isLoading, refetch } = useQuery({
+  const { data, error, isLoading, refetch } = useQuery<
+    Course[] | CourseSlim[],
+    Error,
+    Course[] | CourseSlim[],
+    [string, { onlyActive: boolean }]
+  >({
     queryKey: ["getCourses", { onlyActive: checked }],
     queryFn: async ({
       queryKey,
@@ -26,17 +31,14 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
       queryKey: [string, { onlyActive: boolean }];
     }) => {
       const [, { onlyActive }] = queryKey;
-      return getApiClient()
-        .then((client) =>
-          auth.isAuthenticated && auth.user?.profile.is_admin
-            ? client.get_courses({ onlyActive })
-            : client.get_courses_student()
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          throw err;
-        });
+      const client = await getApiClient();
+
+      const res =
+        auth.isAuthenticated && auth.user?.profile.is_admin
+          ? await client.get_courses({ onlyActive })
+          : await client.get_courses_student();
+
+      return res.data;
     },
     enabled: !!auth.isAuthenticated,
   });
@@ -84,6 +86,8 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
   if (isLoading || !data) return "Loading...";
 
   if (error) return `An error occured: ${error}`;
+
+  console.log(data);
 
   return (
     <Container size="sm">

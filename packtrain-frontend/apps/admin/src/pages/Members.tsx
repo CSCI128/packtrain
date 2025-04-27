@@ -140,16 +140,16 @@ export function MembersPage() {
 
   const rows = sortedData.map((row) => (
     <Table.Tr key={row.cwid}>
-      <Table.Td>{row.cwid}</Table.Td>
       <Table.Td>{row.name}</Table.Td>
+      <Table.Td>{row.cwid}</Table.Td>
       <Table.Td>{row.sections?.toSorted().join(", ")}</Table.Td>
     </Table.Tr>
   ));
 
   const instructorRows = sortedInstructorData.map((row) => (
     <Table.Tr key={row.cwid}>
-      <Table.Td>{row.cwid}</Table.Td>
       <Table.Td>{row.name}</Table.Td>
+      <Table.Td>{row.cwid}</Table.Td>
       <Table.Td>{row.course_role}</Table.Td>
       <Table.Td>{row.sections?.toSorted().join(", ")}</Table.Td>
     </Table.Tr>
@@ -180,18 +180,18 @@ export function MembersPage() {
               <Table.Tbody>
                 <Table.Tr>
                   <TableHeader
-                    sorted={sortBy === "cwid"}
-                    reversed={reverseSortDirection}
-                    onSort={() => setSorting("cwid")}
-                  >
-                    CWID
-                  </TableHeader>
-                  <TableHeader
                     sorted={sortBy === "name"}
                     reversed={reverseSortDirection}
                     onSort={() => setSorting("name")}
                   >
                     Name
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "cwid"}
+                    reversed={reverseSortDirection}
+                    onSort={() => setSorting("cwid")}
+                  >
+                    CWID
                   </TableHeader>
                   <TableHeader
                     sorted={sortBy === "sections"}
