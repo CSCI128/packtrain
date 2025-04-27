@@ -252,7 +252,7 @@ export function ExtensionForm() {
 
       {latePassView ? (
         <form onSubmit={latePassForm.onSubmit(submitLatePass)}>
-          <Stack>
+          <Stack gap="xs">
             {(courseData.late_passes_used ?? 0) >= LATE_PASSES_ALLOWED ? (
               <>
                 <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
@@ -430,6 +430,7 @@ export function ExtensionForm() {
               />
 
               <Select
+                withAsterisk
                 label="Extension Reason"
                 placeholder="Pick value"
                 data={[
@@ -444,6 +445,7 @@ export function ExtensionForm() {
             </Group>
 
             <Textarea
+              withAsterisk
               label="Comments/Explanation"
               placeholder="Some comments.."
               key={extensionForm.key("comments")}
