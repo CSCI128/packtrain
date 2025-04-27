@@ -108,8 +108,8 @@ export function EditCourse() {
       gradescopeId: (value) =>
         value.length == 6 ? null : "Gradescope ID must be 6 characters",
       totalLatePassesAllowed: (value) =>
-        value < 0
-          ? "Total number of late passes must be greater than or equal to 0"
+        value < 0 || value > 1000
+          ? "Total number of late passes must be greater than or equal to 0 and less than 1000"
           : null,
     },
   });
