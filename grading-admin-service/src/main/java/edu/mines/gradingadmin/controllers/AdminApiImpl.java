@@ -9,7 +9,6 @@ import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.services.*;
 import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -22,7 +21,6 @@ import java.util.UUID;
 
 @Transactional
 @Controller
-@Slf4j
 public class AdminApiImpl implements AdminApiDelegate {
 
     private final CourseService courseService;
