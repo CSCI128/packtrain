@@ -141,7 +141,7 @@ declare namespace Components {
              * example:
              * Fall.2020.EXCL.101
              */
-            code: string;
+            code?: string;
             /**
              * example:
              * 123456
@@ -149,9 +149,9 @@ declare namespace Components {
             canvas_id: number; // int64
             /**
              * example:
-             * 932552
+             * 123456
              */
-            gradescope_id?: string;
+            gradescope_id?: number; // int64
             members?: /* A user in a course */ CourseMember[];
             assignments?: /* An assignment in a course */ Assignment[];
             /**
@@ -309,6 +309,10 @@ declare namespace Components {
             owning_user: /* A server user */ User;
         }
         /**
+         * A list of credentials
+         */
+        export type Credentials = /* A credential for external service */ Credential[];
+        /**
          * A slim course and a CourseMember
          */
         export interface Enrollment {
@@ -442,6 +446,7 @@ declare namespace Components {
              * 2020-01-01T12:00:00.000Z
              */
             date_started?: string; // date-time
+            status?: "created" | "started" | "awaiting_review" | "ready_to_post" | "posting" | "loaded" | "completed";
             migrations?: /* Migration object that has a single assignment and a policy */ Migration[];
             stats?: /* The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit */ MasterMigrationStatistics;
         }
@@ -481,6 +486,44 @@ declare namespace Components {
         export interface Migration {
             assignment: /* An assignment in a course */ Assignment;
             policy: /* A grading policy */ Policy;
+        }
+        /**
+         * Change a students score during the review phase of a migration
+         */
+        export interface MigrationScoreChange {
+            /**
+             * example:
+             * 9999999
+             */
+            cwid: string;
+            /**
+             * example:
+             * 10
+             */
+            new_score: number; // double
+            /**
+             * example:
+             * 2020-01-01T12:00:00.000Z
+             */
+            adjusted_submission_date?: string; // date-time
+            submission_status: "missing" | "excused" | "late" | "extended" | "on_time";
+            /**
+             * example:
+             * 10 points bc you are cool :)
+             */
+            justification: string;
+        }
+        /**
+         * A migration for an assignment that contains scores for each student
+         */
+        export interface MigrationWithScores {
+            /**
+             * example:
+             * 99-9999-9999-999
+             */
+            migration_id?: string;
+            assignment?: /* An slim assignment in a course */ AssignmentSlim;
+            scores?: /* A score for a student */ Score[];
         }
         /**
          * Create a new policy file
@@ -539,6 +582,28 @@ declare namespace Components {
              * 1
              */
             number_of_migrations?: number;
+        }
+        /**
+         * A score for a student
+         */
+        export interface Score {
+            student?: /* A user in a course */ CourseMember;
+            status?: string;
+            /**
+             * example:
+             * 10
+             */
+            score?: number; // double
+            /**
+             * example:
+             * 2020-01-01T12:00:00.000Z
+             */
+            submission_date?: string; // date-time
+            /**
+             * example:
+             * An extension was applied :)
+             */
+            comment?: string;
         }
         /**
          * Information relevant to a student
@@ -697,6 +762,69 @@ declare namespace Paths {
             export type $202 = /* A server user */ Components.Schemas.User;
         }
     }
+    namespace ApplyMasterMigration {
+        namespace Parameters {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+        }
+        namespace Responses {
+            export type $202 = /* An async task on the server */ Components.Schemas.Task[];
+            export interface $400 {
+            }
+        }
+    }
+    namespace ApplyValidateMasterMigration {
+        namespace Parameters {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+        }
+        namespace Responses {
+            export interface $200 {
+            }
+            export interface $400 {
+            }
+        }
+    }
     namespace ApproveExtension {
         namespace Parameters {
             /**
@@ -714,6 +842,11 @@ declare namespace Paths {
              * 99-9999-9999-99
              */
             export type ExtensionId = string;
+            /**
+             * example:
+             * Good extension
+             */
+            export type Reason = string;
             /**
              * example:
              * 11111111
@@ -741,6 +874,13 @@ declare namespace Paths {
              * 99-9999-9999-99
              */
             Parameters.ExtensionId;
+        }
+        export interface QueryParameters {
+            reason: /**
+             * example:
+             * Good extension
+             */
+            Parameters.Reason;
         }
         namespace Responses {
             export type $202 = /* A generic request for extending work deadlines */ Components.Schemas.LateRequest;
@@ -781,25 +921,29 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 99-9999-9999-99
              */
             export type CourseId = string;
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 99-9999-9999-99
              */
             Parameters.CourseId;
         }
-        export type RequestBody = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
         namespace Responses {
             export type $201 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
-            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
     namespace CreateMigrationForMasterMigration {
         namespace Parameters {
+            /**
+             * The assignment to add to this migration
+             * example:
+             * 999-9999-9999-99
+             */
+            export type Assignment = string;
             /**
              * example:
              * 999-9999-9999-99
@@ -823,9 +967,16 @@ declare namespace Paths {
              */
             Parameters.MasterMigrationId;
         }
-        export type RequestBody = /* Migration object that has a single assignment and a policy */ Components.Schemas.Migration;
+        export interface QueryParameters {
+            assignment: /**
+             * The assignment to add to this migration
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.Assignment;
+        }
         namespace Responses {
-            export type $201 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
+            export type $202 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
@@ -1056,6 +1207,37 @@ declare namespace Paths {
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
+    namespace FinalizeMasterMigration {
+        namespace Parameters {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+        }
+        namespace Responses {
+            export type $202 = /* An async task on the server */ Components.Schemas.Task[];
+            export interface $400 {
+            }
+        }
+    }
     namespace GetAllApprovedExtensionsForAssignment {
         namespace Parameters {
             /**
@@ -1164,30 +1346,6 @@ declare namespace Paths {
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
-    namespace GetAllExtensionsForCourse {
-        namespace Parameters {
-            /**
-             * example:
-             * 999-9999-9999-99
-             */
-            export type CourseId = string;
-            export type Status = "approved" | "denied" | "pending";
-        }
-        export interface PathParameters {
-            course_id: /**
-             * example:
-             * 999-9999-9999-99
-             */
-            Parameters.CourseId;
-        }
-        export interface QueryParameters {
-            status?: Parameters.Status;
-        }
-        namespace Responses {
-            export type $200 = /* A generic request for extending work deadlines */ Components.Schemas.LateRequest[];
-            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
-        }
-    }
     namespace GetAllExtensionsForSection {
         namespace Parameters {
             /**
@@ -1232,24 +1390,23 @@ declare namespace Paths {
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
-    namespace GetAllMasterMigrationsForCourse {
+    namespace GetAllMigrations {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 99-9999-9999-99
              */
             export type CourseId = string;
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 99-9999-9999-99
              */
             Parameters.CourseId;
         }
         namespace Responses {
             export type $200 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration[];
-            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
     namespace GetAllPolicies {
@@ -1388,7 +1545,7 @@ declare namespace Paths {
     }
     namespace GetCredentials {
         namespace Responses {
-            export type $200 = /* A credential for external service */ Components.Schemas.Credential[];
+            export type $200 = /* A list of credentials */ Components.Schemas.Credentials;
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
@@ -1442,6 +1599,64 @@ declare namespace Paths {
         namespace Responses {
             export type $200 = /* A user in a course */ Components.Schemas.CourseMember[];
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
+        }
+    }
+    namespace GetMasterMigrationToReview {
+        namespace Parameters {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+        }
+        namespace Responses {
+            export type $200 = /* A migration for an assignment that contains scores for each student */ Components.Schemas.MigrationWithScores[];
+        }
+    }
+    namespace GetMasterMigrations {
+        namespace Parameters {
+            /**
+             * example:
+             * 99-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 99-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+        }
+        namespace Responses {
+            export type $200 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
         }
     }
     namespace GetMembers {
@@ -1537,6 +1752,70 @@ declare namespace Paths {
             export type $202 = /* An async task on the server */ Components.Schemas.Task[];
             export type $403 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
+        }
+    }
+    namespace LoadMasterMigration {
+        namespace Parameters {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+        }
+        namespace Responses {
+            export interface $200 {
+            }
+            export interface $400 {
+            }
+        }
+    }
+    namespace LoadValidateMasterMigration {
+        namespace Parameters {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+        }
+        namespace Responses {
+            export interface $200 {
+            }
+            export interface $400 {
+            }
         }
     }
     namespace MarkCredentialAsPrivate {
@@ -1667,6 +1946,122 @@ declare namespace Paths {
             export type $201 = /* A grading policy */ Components.Schemas.Policy;
         }
     }
+    namespace PostMasterMigration {
+        namespace Parameters {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+        }
+        namespace Responses {
+            export type $202 = /* An async task on the server */ Components.Schemas.Task[];
+            export interface $400 {
+            }
+        }
+    }
+    namespace ReviewMasterMigration {
+        namespace Parameters {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+        }
+        namespace Responses {
+            export interface $200 {
+            }
+            export interface $400 {
+            }
+        }
+    }
+    namespace SetPolicy {
+        namespace Parameters {
+            /**
+             * example:
+             * 99-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 99-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+            /**
+             * example:
+             * 99-9999-9999-99
+             */
+            export type MigrationId = string;
+            /**
+             * example:
+             * 99-9999-9999-99
+             */
+            export type PolicyId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 99-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 99-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+            migration_id: /**
+             * example:
+             * 99-9999-9999-99
+             */
+            Parameters.MigrationId;
+        }
+        export interface QueryParameters {
+            policy_id: /**
+             * example:
+             * 99-9999-9999-99
+             */
+            Parameters.PolicyId;
+        }
+        namespace Responses {
+            export type $202 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
+            export type $400 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
+            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
+        }
+    }
     namespace SyncCourse {
         namespace Parameters {
             /**
@@ -1755,84 +2150,94 @@ declare namespace Paths {
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
-    namespace UpdateGrade {
+    namespace UpdateStudentScore {
         namespace Parameters {
             /**
              * example:
-             * 99-9999-9999-99
+             * 999-9999-9999-99
              */
             export type CourseId = string;
             /**
              * example:
-             * 99-9999-9999-99
+             * 999-9999-9999-99
              */
             export type MasterMigrationId = string;
-        }
-        export interface PathParameters {
-            course_id: /**
-             * example:
-             * 99-9999-9999-99
-             */
-            Parameters.CourseId;
-            master_migration_id: /**
-             * example:
-             * 99-9999-9999-99
-             */
-            Parameters.MasterMigrationId;
-        }
-        namespace Responses {
-            export interface $202 {
-            }
-            export type $400 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
-            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
-        }
-    }
-    namespace UpdatePolicy {
-        namespace Parameters {
             /**
              * example:
-             * 99-9999-9999-99
-             */
-            export type AssignmentId = string;
-            /**
-             * example:
-             * 99-9999-9999-99
-             */
-            export type CourseId = string;
-            /**
-             * example:
-             * 99-9999-9999-99
+             * 999-9999-9999-99
              */
             export type MigrationId = string;
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 99-9999-9999-99
+             * 999-9999-9999-99
              */
             Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
             migration_id: /**
              * example:
-             * 99-9999-9999-99
+             * 999-9999-9999-99
              */
             Parameters.MigrationId;
-            assignment_id: /**
-             * example:
-             * 99-9999-9999-99
-             */
-            Parameters.AssignmentId;
         }
-        export type RequestBody = /* A grading policy */ Components.Schemas.Policy;
+        export type RequestBody = /* Change a students score during the review phase of a migration */ Components.Schemas.MigrationScoreChange;
         namespace Responses {
-            export type $202 = /* Migration object that has a single assignment and a policy */ Components.Schemas.Migration;
-            export type $400 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
-            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
+            export interface $200 {
+            }
+            export interface $400 {
+            }
         }
     }
     namespace UpdateUser {
         export type RequestBody = /* A server user */ Components.Schemas.User;
         namespace Responses {
             export type $202 = /* A server user */ Components.Schemas.User;
+        }
+    }
+    namespace UploadRawScores {
+        namespace Parameters {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+            migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MigrationId;
+        }
+        export type RequestBody = string; // binary
+        namespace Responses {
+            export type $202 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
+            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
     namespace WithdrawExtension {
@@ -2141,6 +2546,18 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.UpdateUser.Responses.$202>
   /**
+   * get_enrollments - Get all enrollments for a user
+   * 
+   * Gets all enrollments (classes) that a
+   * user is apart of.
+   * 
+   */
+  'get_enrollments'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetEnrollments.Responses.$200>
+  /**
    * get_credentials - Get all credentials for a user
    * 
    * Gets all credentials for the signed in user.
@@ -2206,7 +2623,7 @@ export interface OperationMethods {
    * 
    */
   'approve_extension'(
-    parameters?: Parameters<Paths.ApproveExtension.PathParameters> | null,
+    parameters?: Parameters<Paths.ApproveExtension.QueryParameters & Paths.ApproveExtension.PathParameters> | null,
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.ApproveExtension.Responses.$202>
@@ -2259,76 +2676,6 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetAllPolicies.Responses.$200>
   /**
-   * get_course_information_student - Get information for a course
-   * 
-   * Get information from a course from
-   * the student's perspective; members and
-   * assignments are not returned but the
-   * section the student is in is returned.
-   * 
-   */
-  'get_course_information_student'(
-    parameters?: Parameters<Paths.GetCourseInformationStudent.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetCourseInformationStudent.Responses.$200>
-  /**
-   * get_courses_student - Get all courses
-   * 
-   * Get all active courses for a student
-   * 
-   */
-  'get_courses_student'(
-    parameters?: Parameters<UnknownParamsObject> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetCoursesStudent.Responses.$200>
-  /**
-   * get_enrollments - Get all enrollments for a user
-   * 
-   * Gets all enrollments (classes) that a
-   * user is apart of.
-   * 
-   */
-  'get_enrollments'(
-    parameters?: Parameters<UnknownParamsObject> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetEnrollments.Responses.$200>
-  /**
-   * get_course_assignments_student - Get assignments for course
-   * 
-   * Get currently released assignments for course
-   * 
-   */
-  'get_course_assignments_student'(
-    parameters?: Parameters<Paths.GetCourseAssignmentsStudent.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetCourseAssignmentsStudent.Responses.$200>
-  /**
-   * get_all_tasks_for_user - Get all tasks for current user
-   * 
-   * This endpoint gets all the tasks for the currently signed in user
-   * 
-   */
-  'get_all_tasks_for_user'(
-    parameters?: Parameters<UnknownParamsObject> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetAllTasksForUser.Responses.$200>
-  /**
-   * get_task - Get task by id
-   * 
-   * This endpoint returns the requested task if the user has access to it.
-   * 
-   */
-  'get_task'(
-    parameters?: Parameters<Paths.GetTask.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetTask.Responses.$200>
-  /**
    * new_extension - Create Extension request
    * 
    * Create a new extension request for an assignment.
@@ -2374,39 +2721,202 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetAllExtensionsForSection.Responses.$200>
   /**
-   * get_all_extensions_for_course - Get all the extensions for the course
-   * 
-   * This endpoint gets all extensions for a given course
-   * 
+   * get_all_migrations - Gets all master migrations
    */
-  'get_all_extensions_for_course'(
-    parameters?: Parameters<Paths.GetAllExtensionsForCourse.QueryParameters & Paths.GetAllExtensionsForCourse.PathParameters> | null,
+  'get_all_migrations'(
+    parameters?: Parameters<Paths.GetAllMigrations.PathParameters> | null,
     data?: any,
     config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetAllExtensionsForCourse.Responses.$200>
+  ): OperationResponse<Paths.GetAllMigrations.Responses.$200>
   /**
-   * get_all_master_migrations_for_course - Get all the master migrations for the course
+   * create_master_migration - Create a new master migration
    * 
-   * This endpoint gets all master migrations for a given course
-   * 
-   */
-  'get_all_master_migrations_for_course'(
-    parameters?: Parameters<Paths.GetAllMasterMigrationsForCourse.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetAllMasterMigrationsForCourse.Responses.$200>
-  /**
-   * create_master_migration - Create master migration for a course
-   * 
-   * Create a new master migration for a course.
-   * Replies with a master migration for a course.
+   * Create a master migration - these can be thought as a set of assignments that will be migrated as a set.
    * 
    */
   'create_master_migration'(
     parameters?: Parameters<Paths.CreateMasterMigration.PathParameters> | null,
-    data?: Paths.CreateMasterMigration.RequestBody,
+    data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.CreateMasterMigration.Responses.$201>
+  /**
+   * get_master_migrations - Get master migrations
+   */
+  'get_master_migrations'(
+    parameters?: Parameters<Paths.GetMasterMigrations.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetMasterMigrations.Responses.$200>
+  /**
+   * create_migration_for_master_migration - Create migration for a master migration
+   * 
+   * Create a new migration for a master migration.
+   * Replies with an master migration including the list of migrations, one for each assignment
+   * 
+   */
+  'create_migration_for_master_migration'(
+    parameters?: Parameters<Paths.CreateMigrationForMasterMigration.QueryParameters & Paths.CreateMigrationForMasterMigration.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.CreateMigrationForMasterMigration.Responses.$202>
+  /**
+   * upload_raw_scores - Upload the scores for a migration
+   * 
+   * Upload the raw scores for a student from an external service.
+   * 
+   */
+  'upload_raw_scores'(
+    parameters?: Parameters<Paths.UploadRawScores.PathParameters> | null,
+    data?: Paths.UploadRawScores.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.UploadRawScores.Responses.$202>
+  /**
+   * load_validate_master_migration - Verify that all information provided in master migration is valid
+   */
+  'load_validate_master_migration'(
+    parameters?: Parameters<Paths.LoadValidateMasterMigration.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.LoadValidateMasterMigration.Responses.$200>
+  /**
+   * load_master_migration - Load data for master migration and then lock the migration from further edits
+   * 
+   * This function loads all relevant data about the master migration and then locks it for edits
+   * It additionally moves the migration to next step in the pipeline and prevents it from being moved back.
+   * 
+   */
+  'load_master_migration'(
+    parameters?: Parameters<Paths.LoadMasterMigration.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.LoadMasterMigration.Responses.$200>
+  /**
+   * set_policy - sets the policy for a migration
+   */
+  'set_policy'(
+    parameters?: Parameters<Paths.SetPolicy.QueryParameters & Paths.SetPolicy.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.SetPolicy.Responses.$202>
+  /**
+   * apply_validate_master_migration - Verify that all information provided in master migration is valid
+   */
+  'apply_validate_master_migration'(
+    parameters?: Parameters<Paths.ApplyValidateMasterMigration.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.ApplyValidateMasterMigration.Responses.$200>
+  /**
+   * apply_master_migration - Apply policies to raw score
+   * 
+   * This function applies the policies to the raw scores that exist
+   * As this is a long running task, it returns a list of tasks that the server is working through
+   * The migration will be locked until all of the tasks have been completed.
+   * 
+   */
+  'apply_master_migration'(
+    parameters?: Parameters<Paths.ApplyMasterMigration.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.ApplyMasterMigration.Responses.$202>
+  /**
+   * get_master_migration_to_review - Get all current information about a master migration
+   */
+  'get_master_migration_to_review'(
+    parameters?: Parameters<Paths.GetMasterMigrationToReview.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetMasterMigrationToReview.Responses.$200>
+  /**
+   * review_master_migration - Finalize review step for master migration
+   */
+  'review_master_migration'(
+    parameters?: Parameters<Paths.ReviewMasterMigration.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.ReviewMasterMigration.Responses.$200>
+  /**
+   * update_student_score - Update a student's score
+   */
+  'update_student_score'(
+    parameters?: Parameters<Paths.UpdateStudentScore.PathParameters> | null,
+    data?: Paths.UpdateStudentScore.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.UpdateStudentScore.Responses.$200>
+  /**
+   * post_master_migration - post a master migration to canvas
+   */
+  'post_master_migration'(
+    parameters?: Parameters<Paths.PostMasterMigration.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.PostMasterMigration.Responses.$202>
+  /**
+   * finalize_master_migration - finalize a master migration after its been posted
+   */
+  'finalize_master_migration'(
+    parameters?: Parameters<Paths.FinalizeMasterMigration.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.FinalizeMasterMigration.Responses.$202>
+  /**
+   * get_all_tasks_for_user - Get all tasks for current user
+   * 
+   * This endpoint gets all the tasks for the currently signed in user
+   * 
+   */
+  'get_all_tasks_for_user'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetAllTasksForUser.Responses.$200>
+  /**
+   * get_task - Get task by id
+   * 
+   * This endpoint returns the requested task if the user has access to it.
+   * 
+   */
+  'get_task'(
+    parameters?: Parameters<Paths.GetTask.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetTask.Responses.$200>
+  /**
+   * get_course_information_student - Get information for a course
+   * 
+   * Get information from a course from
+   * the student's perspective; members and
+   * assignments are not returned but the
+   * section the student is in is returned.
+   * 
+   */
+  'get_course_information_student'(
+    parameters?: Parameters<Paths.GetCourseInformationStudent.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetCourseInformationStudent.Responses.$200>
+  /**
+   * get_courses_student - Get all courses
+   * 
+   * Get all active courses for a student
+   * 
+   */
+  'get_courses_student'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetCoursesStudent.Responses.$200>
+  /**
+   * get_course_assignments_student - Get assignments for course
+   * 
+   * Get currently released assignments for course
+   * 
+   */
+  'get_course_assignments_student'(
+    parameters?: Parameters<Paths.GetCourseAssignmentsStudent.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetCourseAssignmentsStudent.Responses.$200>
   /**
    * get_all_extensions - Get all extensions for a student
    * 
@@ -2444,40 +2954,6 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.WithdrawExtension.Responses.$204>
-  /**
-   * update_grade - Updates the grade for a migration for the user. Must include a reason for updating the grade.
-   * 
-   * Updates the grade for a migration for the user.
-   * 
-   */
-  'update_grade'(
-    parameters?: Parameters<Paths.UpdateGrade.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.UpdateGrade.Responses.$202>
-  /**
-   * create_migration_for_master_migration - Create migration for a master migration
-   * 
-   * Create a new migration for a master migration.
-   * Replies with an master migration including the list of migrations, one for each assignment and policy.
-   * 
-   */
-  'create_migration_for_master_migration'(
-    parameters?: Parameters<Paths.CreateMigrationForMasterMigration.PathParameters> | null,
-    data?: Paths.CreateMigrationForMasterMigration.RequestBody,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.CreateMigrationForMasterMigration.Responses.$201>
-  /**
-   * update_policy - Updates the policy for an assignment and migration
-   * 
-   * Updates the policy that corresponds to an assignment and a migration.
-   * 
-   */
-  'update_policy'(
-    parameters?: Parameters<Paths.UpdatePolicy.PathParameters> | null,
-    data?: Paths.UpdatePolicy.RequestBody,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.UpdatePolicy.Responses.$202>
 }
 
 export interface PathsDictionary {
@@ -2782,6 +3258,20 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.UpdateUser.Responses.$202>
   }
+  ['/user/enrollments']: {
+    /**
+     * get_enrollments - Get all enrollments for a user
+     * 
+     * Gets all enrollments (classes) that a
+     * user is apart of.
+     * 
+     */
+    'get'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetEnrollments.Responses.$200>
+  }
   ['/user/credentials']: {
     /**
      * new_credential - Create a new credential for the user
@@ -2857,7 +3347,7 @@ export interface PathsDictionary {
      * 
      */
     'put'(
-      parameters?: Parameters<Paths.ApproveExtension.PathParameters> | null,
+      parameters?: Parameters<Paths.ApproveExtension.QueryParameters & Paths.ApproveExtension.PathParameters> | null,
       data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.ApproveExtension.Responses.$202>
@@ -2918,88 +3408,6 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetAllPolicies.Responses.$200>
   }
-  ['/student/courses/{course_id}']: {
-    /**
-     * get_course_information_student - Get information for a course
-     * 
-     * Get information from a course from
-     * the student's perspective; members and
-     * assignments are not returned but the
-     * section the student is in is returned.
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetCourseInformationStudent.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetCourseInformationStudent.Responses.$200>
-  }
-  ['/student/courses']: {
-    /**
-     * get_courses_student - Get all courses
-     * 
-     * Get all active courses for a student
-     * 
-     */
-    'get'(
-      parameters?: Parameters<UnknownParamsObject> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetCoursesStudent.Responses.$200>
-  }
-  ['/user/enrollments']: {
-    /**
-     * get_enrollments - Get all enrollments for a user
-     * 
-     * Gets all enrollments (classes) that a
-     * user is apart of.
-     * 
-     */
-    'get'(
-      parameters?: Parameters<UnknownParamsObject> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetEnrollments.Responses.$200>
-  }
-  ['/student/courses/{course_id}/assignments']: {
-    /**
-     * get_course_assignments_student - Get assignments for course
-     * 
-     * Get currently released assignments for course
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetCourseAssignmentsStudent.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetCourseAssignmentsStudent.Responses.$200>
-  }
-  ['/tasks']: {
-    /**
-     * get_all_tasks_for_user - Get all tasks for current user
-     * 
-     * This endpoint gets all the tasks for the currently signed in user
-     * 
-     */
-    'get'(
-      parameters?: Parameters<UnknownParamsObject> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetAllTasksForUser.Responses.$200>
-  }
-  ['/tasks/{task_id}']: {
-    /**
-     * get_task - Get task by id
-     * 
-     * This endpoint returns the requested task if the user has access to it.
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetTask.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetTask.Responses.$200>
-  }
   ['/instructor/courses/{course_id}/assignments/{assignment_id}/user/{user_id}/extensions']: {
     /**
      * new_extension - Create Extension request
@@ -3053,43 +3461,236 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetAllExtensionsForSection.Responses.$200>
   }
-  ['/admin/courses/{course_id}/extensions']: {
-    /**
-     * get_all_extensions_for_course - Get all the extensions for the course
-     * 
-     * This endpoint gets all extensions for a given course
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetAllExtensionsForCourse.QueryParameters & Paths.GetAllExtensionsForCourse.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetAllExtensionsForCourse.Responses.$200>
-  }
   ['/instructor/courses/{course_id}/migrations']: {
     /**
-     * get_all_master_migrations_for_course - Get all the master migrations for the course
+     * create_master_migration - Create a new master migration
      * 
-     * This endpoint gets all master migrations for a given course
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetAllMasterMigrationsForCourse.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetAllMasterMigrationsForCourse.Responses.$200>
-    /**
-     * create_master_migration - Create master migration for a course
-     * 
-     * Create a new master migration for a course.
-     * Replies with a master migration for a course.
+     * Create a master migration - these can be thought as a set of assignments that will be migrated as a set.
      * 
      */
     'post'(
       parameters?: Parameters<Paths.CreateMasterMigration.PathParameters> | null,
-      data?: Paths.CreateMasterMigration.RequestBody,
+      data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.CreateMasterMigration.Responses.$201>
+    /**
+     * get_all_migrations - Gets all master migrations
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetAllMigrations.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetAllMigrations.Responses.$200>
+  }
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}']: {
+    /**
+     * get_master_migrations - Get master migrations
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetMasterMigrations.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetMasterMigrations.Responses.$200>
+    /**
+     * create_migration_for_master_migration - Create migration for a master migration
+     * 
+     * Create a new migration for a master migration.
+     * Replies with an master migration including the list of migrations, one for each assignment
+     * 
+     */
+    'post'(
+      parameters?: Parameters<Paths.CreateMigrationForMasterMigration.QueryParameters & Paths.CreateMigrationForMasterMigration.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.CreateMigrationForMasterMigration.Responses.$202>
+  }
+  ['/instructor/course/{course_id}/migrations/{master_migration_id}/{migration_id}/scores']: {
+    /**
+     * upload_raw_scores - Upload the scores for a migration
+     * 
+     * Upload the raw scores for a student from an external service.
+     * 
+     */
+    'post'(
+      parameters?: Parameters<Paths.UploadRawScores.PathParameters> | null,
+      data?: Paths.UploadRawScores.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.UploadRawScores.Responses.$202>
+  }
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/load-validate']: {
+    /**
+     * load_validate_master_migration - Verify that all information provided in master migration is valid
+     */
+    'post'(
+      parameters?: Parameters<Paths.LoadValidateMasterMigration.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.LoadValidateMasterMigration.Responses.$200>
+  }
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/load']: {
+    /**
+     * load_master_migration - Load data for master migration and then lock the migration from further edits
+     * 
+     * This function loads all relevant data about the master migration and then locks it for edits
+     * It additionally moves the migration to next step in the pipeline and prevents it from being moved back.
+     * 
+     */
+    'post'(
+      parameters?: Parameters<Paths.LoadMasterMigration.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.LoadMasterMigration.Responses.$200>
+  }
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/{migration_id}/policy']: {
+    /**
+     * set_policy - sets the policy for a migration
+     */
+    'post'(
+      parameters?: Parameters<Paths.SetPolicy.QueryParameters & Paths.SetPolicy.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.SetPolicy.Responses.$202>
+  }
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/apply-validate']: {
+    /**
+     * apply_validate_master_migration - Verify that all information provided in master migration is valid
+     */
+    'post'(
+      parameters?: Parameters<Paths.ApplyValidateMasterMigration.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.ApplyValidateMasterMigration.Responses.$200>
+  }
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/apply']: {
+    /**
+     * apply_master_migration - Apply policies to raw score
+     * 
+     * This function applies the policies to the raw scores that exist
+     * As this is a long running task, it returns a list of tasks that the server is working through
+     * The migration will be locked until all of the tasks have been completed.
+     * 
+     */
+    'post'(
+      parameters?: Parameters<Paths.ApplyMasterMigration.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.ApplyMasterMigration.Responses.$202>
+  }
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/review']: {
+    /**
+     * get_master_migration_to_review - Get all current information about a master migration
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetMasterMigrationToReview.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetMasterMigrationToReview.Responses.$200>
+    /**
+     * review_master_migration - Finalize review step for master migration
+     */
+    'post'(
+      parameters?: Parameters<Paths.ReviewMasterMigration.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.ReviewMasterMigration.Responses.$200>
+  }
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/{migration_id}/score']: {
+    /**
+     * update_student_score - Update a student's score
+     */
+    'post'(
+      parameters?: Parameters<Paths.UpdateStudentScore.PathParameters> | null,
+      data?: Paths.UpdateStudentScore.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.UpdateStudentScore.Responses.$200>
+  }
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/post']: {
+    /**
+     * post_master_migration - post a master migration to canvas
+     */
+    'post'(
+      parameters?: Parameters<Paths.PostMasterMigration.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.PostMasterMigration.Responses.$202>
+  }
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/finalize']: {
+    /**
+     * finalize_master_migration - finalize a master migration after its been posted
+     */
+    'post'(
+      parameters?: Parameters<Paths.FinalizeMasterMigration.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.FinalizeMasterMigration.Responses.$202>
+  }
+  ['/tasks']: {
+    /**
+     * get_all_tasks_for_user - Get all tasks for current user
+     * 
+     * This endpoint gets all the tasks for the currently signed in user
+     * 
+     */
+    'get'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetAllTasksForUser.Responses.$200>
+  }
+  ['/tasks/{task_id}']: {
+    /**
+     * get_task - Get task by id
+     * 
+     * This endpoint returns the requested task if the user has access to it.
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetTask.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetTask.Responses.$200>
+  }
+  ['/student/courses/{course_id}']: {
+    /**
+     * get_course_information_student - Get information for a course
+     * 
+     * Get information from a course from
+     * the student's perspective; members and
+     * assignments are not returned but the
+     * section the student is in is returned.
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetCourseInformationStudent.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetCourseInformationStudent.Responses.$200>
+  }
+  ['/student/courses']: {
+    /**
+     * get_courses_student - Get all courses
+     * 
+     * Get all active courses for a student
+     * 
+     */
+    'get'(
+      parameters?: Parameters<UnknownParamsObject> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetCoursesStudent.Responses.$200>
+  }
+  ['/student/courses/{course_id}/assignments']: {
+    /**
+     * get_course_assignments_student - Get assignments for course
+     * 
+     * Get currently released assignments for course
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetCourseAssignmentsStudent.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetCourseAssignmentsStudent.Responses.$200>
   }
   ['/student/courses/{course_id}/extensions']: {
     /**
@@ -3132,44 +3733,6 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.WithdrawExtension.Responses.$204>
   }
-  ['/instructor/courses/{course_id}/migrations/{master_migration_id}']: {
-    /**
-     * update_grade - Updates the grade for a migration for the user. Must include a reason for updating the grade.
-     * 
-     * Updates the grade for a migration for the user.
-     * 
-     */
-    'put'(
-      parameters?: Parameters<Paths.UpdateGrade.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.UpdateGrade.Responses.$202>
-    /**
-     * create_migration_for_master_migration - Create migration for a master migration
-     * 
-     * Create a new migration for a master migration.
-     * Replies with an master migration including the list of migrations, one for each assignment and policy.
-     * 
-     */
-    'post'(
-      parameters?: Parameters<Paths.CreateMigrationForMasterMigration.PathParameters> | null,
-      data?: Paths.CreateMigrationForMasterMigration.RequestBody,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.CreateMigrationForMasterMigration.Responses.$201>
-  }
-  ['/instructor/courses/{course_id}/migrations/{migration_id}/assignments/{assignment_id}']: {
-    /**
-     * update_policy - Updates the policy for an assignment and migration
-     * 
-     * Updates the policy that corresponds to an assignment and a migration.
-     * 
-     */
-    'put'(
-      parameters?: Parameters<Paths.UpdatePolicy.PathParameters> | null,
-      data?: Paths.UpdatePolicy.RequestBody,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.UpdatePolicy.Responses.$202>
-  }
 }
 
 export type Client = OpenAPIClient<OperationMethods, PathsDictionary>
@@ -3182,6 +3745,7 @@ export type CourseMember = Components.Schemas.CourseMember;
 export type CourseSlim = Components.Schemas.CourseSlim;
 export type CourseSyncTask = Components.Schemas.CourseSyncTask;
 export type Credential = Components.Schemas.Credential;
+export type Credentials = Components.Schemas.Credentials;
 export type Enrollment = Components.Schemas.Enrollment;
 export type ErrorResponse = Components.Schemas.ErrorResponse;
 export type Extension = Components.Schemas.Extension;
@@ -3189,8 +3753,11 @@ export type LateRequest = Components.Schemas.LateRequest;
 export type MasterMigration = Components.Schemas.MasterMigration;
 export type MasterMigrationStatistics = Components.Schemas.MasterMigrationStatistics;
 export type Migration = Components.Schemas.Migration;
+export type MigrationScoreChange = Components.Schemas.MigrationScoreChange;
+export type MigrationWithScores = Components.Schemas.MigrationWithScores;
 export type NewPolicy = Components.Schemas.NewPolicy;
 export type Policy = Components.Schemas.Policy;
+export type Score = Components.Schemas.Score;
 export type StudentInformation = Components.Schemas.StudentInformation;
 export type Task = Components.Schemas.Task;
 export type User = Components.Schemas.User;

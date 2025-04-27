@@ -243,6 +243,8 @@ export function ExtensionForm() {
             setLatePassView(!latePassView);
             setSearchValue("");
             setSelectedAssignmentId("");
+            extensionForm.setFieldValue("assignmentId", "");
+            latePassForm.setFieldValue("assignmentId", "");
           }}
           data={["Late Pass", "Extension"]}
         />
@@ -250,7 +252,7 @@ export function ExtensionForm() {
 
       {latePassView ? (
         <form onSubmit={latePassForm.onSubmit(submitLatePass)}>
-          <Stack>
+          <Stack gap="xs">
             {(courseData.late_passes_used ?? 0) >= LATE_PASSES_ALLOWED ? (
               <>
                 <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
@@ -289,6 +291,19 @@ export function ExtensionForm() {
                     latePassForm.setFieldValue("assignmentId", _value ?? "");
                   }}
                 />
+
+                {courseData.course.assignments?.length === 0 && (
+                  <>
+                    <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
+                      There are no loaded/upcoming assignments!
+                    </Text>
+
+                    <Text ta="center" c="gray.7">
+                      Please contact your instructor if you think this is a
+                      mistake.
+                    </Text>
+                  </>
+                )}
 
                 <Text>
                   You have{" "}
@@ -377,14 +392,29 @@ export function ExtensionForm() {
                 extensionForm.setFieldValue("assignmentId", _value ?? "");
               }}
             />
+
+            {courseData.course.assignments?.length === 0 && (
+              <>
+                <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
+                  There are no loaded/upcoming assignments!
+                </Text>
+
+                <Text ta="center" c="gray.7">
+                  Please contact your instructor if you think this is a mistake.
+                </Text>
+              </>
+            )}
+
             <Text>
               Extensions are <strong>only</strong> for medical, excused or
               extenuating personal circumstances.
             </Text>
+
             <Text>
               This request will be sent to and reviewed by{" "}
               <strong>Professor {courseData.professor}</strong>.
             </Text>
+
             <Group>
               <NumberInput
                 withAsterisk
@@ -400,6 +430,7 @@ export function ExtensionForm() {
               />
 
               <Select
+                withAsterisk
                 label="Extension Reason"
                 placeholder="Pick value"
                 data={[
@@ -414,8 +445,9 @@ export function ExtensionForm() {
             </Group>
 
             <Textarea
+              withAsterisk
               label="Comments/Explanation"
-              placeholder="Comments"
+              placeholder="Some comments.."
               key={extensionForm.key("comments")}
               {...extensionForm.getInputProps("comments")}
             />

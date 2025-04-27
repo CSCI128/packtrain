@@ -126,7 +126,8 @@ export function CoursePage() {
         ) : (
           <>
             <Text size="xl" fw={700}>
-              {courseData.name} ({courseData.code}) - {courseData.term}
+              {courseData.name} ({courseData.code}) - {courseData.term}{" "}
+              {!courseData.enabled && <>(DISABLED)</>}
             </Text>
 
             <Text>Course Overview</Text>

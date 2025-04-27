@@ -43,32 +43,106 @@ export function Navbar({ staticLinks, links }: NavbarProps) {
         <SelectClass close={close} />
       </Modal>
 
-      <Box mb="1.5%">
-        <header className={classes.header}>
-          <Group justify="space-between" h="100%">
-            <Group h="100%" gap={0} visibleFrom="sm">
-              <Text
-                className={classes.link}
-                onClick={() => navigate(staticLinks[0]?.href as string)}
-              >
-                packtrain
-              </Text>
+      <header className={classes.header}>
+        <Group justify="space-between" h="100%">
+          <Group h="100%" gap={0} visibleFrom="sm">
+            <Text
+              className={classes.link}
+              onClick={() => navigate(staticLinks[0]?.href as string)}
+            >
+              packtrain
+            </Text>
 
+            {links.map((link) => (
+              <a key={link.href} href={link.href} className={classes.link}>
+                {link.label}
+              </a>
+            ))}
+          </Group>
+
+          <Burger
+            opened={opened}
+            onClick={toggleDrawer}
+            size="sm"
+            hiddenFrom="sm"
+          />
+
+          <Group>
+            {!auth.user ? (
+              <Group visibleFrom="sm">
+                <Button
+                  onClick={() => void auth.signinRedirect()}
+                  variant="default"
+                >
+                  Login
+                </Button>
+              </Group>
+            ) : (
+              <Menu shadow="md" width={200}>
+                <Menu.Target>
+                  <UnstyledButton>
+                    <Group gap={7}>
+                      <Text className={classes.name}>
+                        {auth.user.profile.name}
+                      </Text>
+                      <IconChevronDown size={24} stroke={1.5} />
+                    </Group>
+                  </UnstyledButton>
+                </Menu.Target>
+
+                <Menu.Dropdown>
+                  <Menu.Item component="a" href={staticLinks[1]?.href}>
+                    Profile
+                  </Menu.Item>
+
+                  <Menu.Divider />
+
+                  <Menu.Item
+                    color="red"
+                    onClick={() => {
+                      void auth.signoutRedirect();
+                      store$.id.delete();
+                      store$.name.delete();
+                    }}
+                  >
+                    Logout
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            )}
+
+            <Button variant="default" onClick={open}>
+              {store$.name.get() || "Select Class"}
+            </Button>
+          </Group>
+        </Group>
+
+        <Drawer
+          opened={drawerOpened}
+          onClose={closeDrawer}
+          size="50%"
+          padding="md"
+          title="Navigation"
+          hiddenFrom="sm"
+          zIndex={1000000}
+        >
+          <ScrollArea h="calc(100vh - 80px)" mx="-md">
+            <Divider my="sm" />
+
+            <Box ml={20}>
+              <p onClick={() => navigate(staticLinks[0]?.href as string)}>
+                Grading Admin
+              </p>
               {links.map((link) => (
                 <a key={link.href} href={link.href} className={classes.link}>
                   {link.label}
                 </a>
               ))}
-            </Group>
+            </Box>
 
-            <Burger
-              opened={opened}
-              onClick={toggleDrawer}
-              size="sm"
-              hiddenFrom="sm"
-            />
+            <Divider my="sm" />
 
-            <Group>
+            <Group justify="center" grow pb="xl" px="md">
               {!auth.user ? (
                 <Group visibleFrom="sm">
                   <Button
@@ -80,35 +154,28 @@ export function Navbar({ staticLinks, links }: NavbarProps) {
                 </Group>
               ) : (
                 <Menu shadow="md" width={200}>
-                  <Menu.Target>
-                    <UnstyledButton>
-                      <Group gap={7}>
-                        <Text className={classes.name}>
-                          {auth.user.profile.name}
-                        </Text>
-                        <IconChevronDown size={24} stroke={1.5} />
-                      </Group>
-                    </UnstyledButton>
-                  </Menu.Target>
+                  <Stack>
+                    <Text>{auth.user.profile.name}</Text>
 
-                  <Menu.Dropdown>
-                    <Menu.Item component="a" href={staticLinks[1]?.href}>
-                      Profile
-                    </Menu.Item>
+                    <Menu.Dropdown>
+                      <Menu.Item component="a" href={staticLinks[1]?.href}>
+                        Profile
+                      </Menu.Item>
 
-                    <Menu.Divider />
+                      <Menu.Divider />
 
-                    <Menu.Item
-                      color="red"
-                      onClick={() => {
-                        void auth.signoutRedirect();
-                        store$.id.delete();
-                        store$.name.delete();
-                      }}
-                    >
-                      Logout
-                    </Menu.Item>
-                  </Menu.Dropdown>
+                      <Menu.Item
+                        color="red"
+                        onClick={() => {
+                          void auth.signoutRedirect();
+                          store$.id.delete();
+                          store$.name.delete();
+                        }}
+                      >
+                        Logout
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Stack>
                 </Menu>
               )}
 
@@ -116,78 +183,9 @@ export function Navbar({ staticLinks, links }: NavbarProps) {
                 {store$.name.get() || "Select Class"}
               </Button>
             </Group>
-          </Group>
-
-          <Drawer
-            opened={drawerOpened}
-            onClose={closeDrawer}
-            size="50%"
-            padding="md"
-            title="Navigation"
-            hiddenFrom="sm"
-            zIndex={1000000}
-          >
-            <ScrollArea h="calc(100vh - 80px)" mx="-md">
-              <Divider my="sm" />
-
-              <Box ml={20}>
-                <p onClick={() => navigate(staticLinks[0]?.href as string)}>
-                  Grading Admin
-                </p>
-                {links.map((link) => (
-                  <a key={link.href} href={link.href} className={classes.link}>
-                    {link.label}
-                  </a>
-                ))}
-              </Box>
-
-              <Divider my="sm" />
-
-              <Group justify="center" grow pb="xl" px="md">
-                {!auth.user ? (
-                  <Group visibleFrom="sm">
-                    <Button
-                      onClick={() => void auth.signinRedirect()}
-                      variant="default"
-                    >
-                      Login
-                    </Button>
-                  </Group>
-                ) : (
-                  <Menu shadow="md" width={200}>
-                    <Stack>
-                      <Text>{auth.user.profile.name}</Text>
-
-                      <Menu.Dropdown>
-                        <Menu.Item component="a" href={staticLinks[1]?.href}>
-                          Profile
-                        </Menu.Item>
-
-                        <Menu.Divider />
-
-                        <Menu.Item
-                          color="red"
-                          onClick={() => {
-                            void auth.signoutRedirect();
-                            store$.id.delete();
-                            store$.name.delete();
-                          }}
-                        >
-                          Logout
-                        </Menu.Item>
-                      </Menu.Dropdown>
-                    </Stack>
-                  </Menu>
-                )}
-
-                <Button variant="default" onClick={open}>
-                  {store$.name.get() || "Select Class"}
-                </Button>
-              </Group>
-            </ScrollArea>
-          </Drawer>
-        </header>
-      </Box>
+          </ScrollArea>
+        </Drawer>
+      </header>
     </>
   );
 }

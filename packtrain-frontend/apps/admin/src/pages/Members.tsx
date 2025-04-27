@@ -79,7 +79,7 @@ export function MembersPage() {
         })
       );
     }
-  }, [instructorData]);
+  }, [instructorData, sortBy, reverseSortDirection, search]);
 
   if (isLoading || !data || instructorIsLoading || !instructorData)
     return "Loading...";
@@ -140,17 +140,16 @@ export function MembersPage() {
 
   const rows = sortedData.map((row) => (
     <Table.Tr key={row.cwid}>
-      <Table.Td>{row.cwid}</Table.Td>
       <Table.Td>{row.name}</Table.Td>
-      <Table.Td>{row.course_role}</Table.Td>
+      <Table.Td>{row.cwid}</Table.Td>
       <Table.Td>{row.sections?.toSorted().join(", ")}</Table.Td>
     </Table.Tr>
   ));
 
   const instructorRows = sortedInstructorData.map((row) => (
     <Table.Tr key={row.cwid}>
-      <Table.Td>{row.cwid}</Table.Td>
       <Table.Td>{row.name}</Table.Td>
+      <Table.Td>{row.cwid}</Table.Td>
       <Table.Td>{row.course_role}</Table.Td>
       <Table.Td>{row.sections?.toSorted().join(", ")}</Table.Td>
     </Table.Tr>
@@ -181,13 +180,6 @@ export function MembersPage() {
               <Table.Tbody>
                 <Table.Tr>
                   <TableHeader
-                    sorted={sortBy === "cwid"}
-                    reversed={reverseSortDirection}
-                    onSort={() => setSorting("cwid")}
-                  >
-                    CWID
-                  </TableHeader>
-                  <TableHeader
                     sorted={sortBy === "name"}
                     reversed={reverseSortDirection}
                     onSort={() => setSorting("name")}
@@ -195,11 +187,11 @@ export function MembersPage() {
                     Name
                   </TableHeader>
                   <TableHeader
-                    sorted={sortBy === "course_role"}
+                    sorted={sortBy === "cwid"}
                     reversed={reverseSortDirection}
-                    onSort={() => setSorting("course_role")}
+                    onSort={() => setSorting("cwid")}
                   >
-                    Role
+                    CWID
                   </TableHeader>
                   <TableHeader
                     sorted={sortBy === "sections"}

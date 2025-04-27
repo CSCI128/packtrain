@@ -108,8 +108,8 @@ export function EditCourse() {
       gradescopeId: (value) =>
         value.length == 6 ? null : "Gradescope ID must be 6 characters",
       totalLatePassesAllowed: (value) =>
-        value < 0
-          ? "Total number of late passes must be greater than or equal to 0"
+        value < 0 || value > 1000
+          ? "Total number of late passes must be greater than or equal to 0 and less than 1000"
           : null,
     },
   });
@@ -157,8 +157,13 @@ export function EditCourse() {
 
   const pollTaskUntilComplete = useCallback(
     async (taskId: number, delay = 5000) => {
+      let tries = 0;
       while (true) {
         try {
+          if (tries > 20) {
+            throw new Error("Maximum attempts (20) at polling exceeded..");
+          }
+
           const response = await fetchTask({ task_id: taskId });
 
           if (response.status === "COMPLETED") {
@@ -171,6 +176,7 @@ export function EditCourse() {
             console.log(
               `Task ${taskId} is still in progress, retrying in ${delay}ms...`
             );
+            tries++;
             await new Promise((res) => setTimeout(res, delay));
           }
         } catch (error) {
@@ -292,7 +298,7 @@ export function EditCourse() {
           />
 
           <InputWrapper label="Enabled">
-            <Checkbox 
+            <Checkbox
               defaultChecked={form.getValues().enabled}
               key={form.key("enabled")}
               {...form.getInputProps("enabled", { type: "checkbox" })}

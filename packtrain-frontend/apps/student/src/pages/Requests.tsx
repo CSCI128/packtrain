@@ -78,6 +78,10 @@ export function Requests() {
   const [selectedExtension, setSelectedExtension] =
     useState<LateRequest | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
+  const [
+    openedWithdrawConfirm,
+    { open: openWithdrawConfirm, close: closeWithdrawConfirm },
+  ] = useDisclosure(false);
   const [search, setSearch] = useState("");
   const [sortedData, setSortedData] = useState(data || []);
   const [sortBy, setSortBy] = useState<keyof LateRequest | null>(null);
@@ -180,40 +184,116 @@ export function Requests() {
   return (
     <>
       <Modal opened={opened} onClose={close} title="View Extension" centered>
+        <Stack>
+          <Text size="md">
+            <b>Request Date</b>:{" "}
+            {formattedDate(
+              new Date(selectedExtension?.date_submitted as string)
+            )}
+          </Text>
+          <Text size="md">
+            <b>Assignment</b>: {selectedExtension?.assignment_name}
+          </Text>
+          <Text size="md">
+            <b>Type</b>:{" "}
+            {selectedExtension?.request_type === "late_pass"
+              ? "Late Pass"
+              : "Extension"}
+          </Text>
+          {selectedExtension?.request_type === "extension" && (
+            <Text size="md">
+              <b>Reason</b>: {selectedExtension?.extension?.reason}
+            </Text>
+          )}
+          <Text size="md">
+            <b>Status</b>: {selectedExtension?.status}
+          </Text>
+          {selectedExtension?.request_type === "extension" &&
+            selectedExtension.status === "rejected" && (
+              <>
+                <Divider my="md" />
+
+                <Text size="md" ta="center" c="red.9" fw={700}>
+                  Your request has been rejected.
+                </Text>
+
+                <Text>
+                  <b>Denial Reason</b>:{" "}
+                  {selectedExtension.extension?.response_to_requester}
+                </Text>
+
+                <Text>
+                  <b>Denial Time</b>:{" "}
+                  {formattedDate(
+                    new Date(
+                      selectedExtension.extension?.response_timestamp as string
+                    )
+                  )}
+                </Text>
+              </>
+            )}
+
+          {selectedExtension?.status === "approved" && (
+            <Text>
+              <b>Approval Reason</b>:{" "}
+              {selectedExtension.extension?.response_to_requester}
+            </Text>
+          )}
+
+          <Group justify="flex-end" mt={10}>
+            <Button variant="filled" color="gray" onClick={close}>
+              Close
+            </Button>
+
+            {selectedExtension?.status !== "rejected" && (
+              <Button
+                color="red"
+                onClick={() => {
+                  close();
+                  openWithdrawConfirm();
+                }}
+              >
+                Withdraw Extension
+              </Button>
+            )}
+          </Group>
+        </Stack>
+      </Modal>
+
+      <Modal
+        opened={openedWithdrawConfirm}
+        onClose={closeWithdrawConfirm}
+        title="Are you sure?"
+        centered
+      >
         <Center>
           <Stack>
             <Text size="md">
-              Request Date: {selectedExtension?.date_submitted}
+              Are you sure you want to withdraw this extension? If this is a
+              late pass, you will be returned all of the late passes which you
+              requested.
             </Text>
-            <Text size="md">
-              Assignment: {selectedExtension?.assignment_name}
-            </Text>
-            <Text size="md">
-              Type:{" "}
-              {selectedExtension?.request_type === "late_pass"
-                ? "Late Pass"
-                : "Extension"}
-            </Text>
-            <Text size="md">Status: {selectedExtension?.status}</Text>
-            {selectedExtension?.request_type === "extension" &&
-              selectedExtension.status === "rejected" && (
-                <Text>
-                  Denial Reason:{" "}
-                  {selectedExtension.extension?.response_to_requester}
-                </Text>
-              )}
 
-            <Button variant="outline" color="gray" onClick={close}>
-              Close
+            <Button
+              color="gray"
+              variant="light"
+              onClick={() => {
+                closeWithdrawConfirm();
+                open();
+              }}
+            >
+              Cancel
             </Button>
 
             <Button
               color="red"
               onClick={() => {
                 deleteExtension(selectedExtension?.id as string);
+                closeWithdrawConfirm();
               }}
+              variant="filled"
             >
-              Withdraw Extension
+              Yes, withdraw extension.
             </Button>
           </Stack>
         </Center>
@@ -330,7 +410,11 @@ export function Requests() {
               </>
             )}
             <Button component={Link} to="/extension" variant="filled">
-              Request Late Pass/Extension
+              Request{" "}
+              {studentData.late_passes_used !== LATE_PASSES_ALLOWED && (
+                <>Late Pass/</>
+              )}
+              Extension
             </Button>
           </Stack>
         </Group>
