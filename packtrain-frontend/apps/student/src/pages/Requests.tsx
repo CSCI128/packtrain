@@ -180,43 +180,73 @@ export function Requests() {
   return (
     <>
       <Modal opened={opened} onClose={close} title="View Extension" centered>
-        <Center>
-          <Stack>
+        <Stack>
+          <Text size="md">
+            <b>Request Date</b>:{" "}
+            {formattedDate(
+              new Date(selectedExtension?.date_submitted as string)
+            )}
+          </Text>
+          <Text size="md">
+            <b>Assignment</b>: {selectedExtension?.assignment_name}
+          </Text>
+          <Text size="md">
+            <b>Type</b>:{" "}
+            {selectedExtension?.request_type === "late_pass"
+              ? "Late Pass"
+              : "Extension"}
+          </Text>
+          {selectedExtension?.request_type === "extension" && (
             <Text size="md">
-              Request Date: {selectedExtension?.date_submitted}
+              <b>Reason</b>: {selectedExtension?.extension?.reason}
             </Text>
-            <Text size="md">
-              Assignment: {selectedExtension?.assignment_name}
-            </Text>
-            <Text size="md">
-              Type:{" "}
-              {selectedExtension?.request_type === "late_pass"
-                ? "Late Pass"
-                : "Extension"}
-            </Text>
-            <Text size="md">Status: {selectedExtension?.status}</Text>
-            {selectedExtension?.request_type === "extension" &&
-              selectedExtension.status === "rejected" && (
+          )}
+          <Text size="md">
+            <b>Status</b>: {selectedExtension?.status}
+          </Text>
+          {selectedExtension?.request_type === "extension" &&
+            selectedExtension.status === "rejected" && (
+              <>
+                <Divider my="md" />
+
+                <Text size="md" ta="center" c="red.9" fw={700}>
+                  Your request has been rejected.
+                </Text>
+
                 <Text>
-                  Denial Reason:{" "}
+                  <b>Denial Reason</b>:{" "}
                   {selectedExtension.extension?.response_to_requester}
                 </Text>
-              )}
 
-            <Button variant="outline" color="gray" onClick={close}>
+                <Text>
+                  <b>Denial Time</b>:{" "}
+                  {formattedDate(
+                    new Date(
+                      selectedExtension.extension?.response_timestamp as string
+                    )
+                  )}
+                </Text>
+              </>
+            )}
+
+          <Group justify="flex-end" mt={10}>
+            <Button variant="filled" color="gray" onClick={close}>
               Close
             </Button>
 
-            <Button
-              color="red"
-              onClick={() => {
-                deleteExtension(selectedExtension?.id as string);
-              }}
-            >
-              Withdraw Extension
-            </Button>
-          </Stack>
-        </Center>
+            {selectedExtension?.status !== "rejected" &&
+              selectedExtension?.status !== "approved" && (
+                <Button
+                  color="red"
+                  onClick={() => {
+                    deleteExtension(selectedExtension?.id as string);
+                  }}
+                >
+                  Withdraw Extension
+                </Button>
+              )}
+          </Group>
+        </Stack>
       </Modal>
 
       <Container size="lg">
