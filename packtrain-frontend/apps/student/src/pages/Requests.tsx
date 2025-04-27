@@ -78,6 +78,10 @@ export function Requests() {
   const [selectedExtension, setSelectedExtension] =
     useState<LateRequest | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
+  const [
+    openedWithdrawConfirm,
+    { open: openWithdrawConfirm, close: closeWithdrawConfirm },
+  ] = useDisclosure(false);
   const [search, setSearch] = useState("");
   const [sortedData, setSortedData] = useState(data || []);
   const [sortBy, setSortBy] = useState<keyof LateRequest | null>(null);
@@ -234,19 +238,58 @@ export function Requests() {
               Close
             </Button>
 
-            {selectedExtension?.status !== "rejected" &&
-              selectedExtension?.status !== "approved" && (
-                <Button
-                  color="red"
-                  onClick={() => {
-                    deleteExtension(selectedExtension?.id as string);
-                  }}
-                >
-                  Withdraw Extension
-                </Button>
-              )}
+            {selectedExtension?.status !== "rejected" && (
+              <Button
+                color="red"
+                onClick={() => {
+                  close();
+                  openWithdrawConfirm();
+                }}
+              >
+                Withdraw Extension
+              </Button>
+            )}
           </Group>
         </Stack>
+      </Modal>
+
+      <Modal
+        opened={openedWithdrawConfirm}
+        onClose={closeWithdrawConfirm}
+        title="Are you sure?"
+        centered
+      >
+        <Center>
+          <Stack>
+            <Text size="md">
+              Are you sure you want to withdraw this extension? If this is a
+              late pass, you will be returned all of the late passes which you
+              requested.
+            </Text>
+
+            <Button
+              color="gray"
+              variant="light"
+              onClick={() => {
+                closeWithdrawConfirm();
+                open();
+              }}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              color="red"
+              onClick={() => {
+                deleteExtension(selectedExtension?.id as string);
+                closeWithdrawConfirm();
+              }}
+              variant="filled"
+            >
+              Yes, withdraw extension.
+            </Button>
+          </Stack>
+        </Center>
       </Modal>
 
       <Container size="lg">
