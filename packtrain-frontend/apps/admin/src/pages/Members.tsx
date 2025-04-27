@@ -79,7 +79,7 @@ export function MembersPage() {
         })
       );
     }
-  }, [instructorData]);
+  }, [instructorData, sortBy, reverseSortDirection, search]);
 
   if (isLoading || !data || instructorIsLoading || !instructorData)
     return "Loading...";
