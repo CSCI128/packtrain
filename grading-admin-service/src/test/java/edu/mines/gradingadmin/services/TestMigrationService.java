@@ -3,6 +3,7 @@ package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.data.policyServer.ScoredDTO;
+import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.LateRequestStatus;
 import edu.mines.gradingadmin.models.enums.SubmissionStatus;
@@ -10,8 +11,11 @@ import edu.mines.gradingadmin.models.tasks.PostToCanvasTaskDef;
 import edu.mines.gradingadmin.models.tasks.ProcessScoresAndExtensionsTaskDef;
 import edu.mines.gradingadmin.models.tasks.ZeroOutSubmissionsTaskDef;
 import edu.mines.gradingadmin.repositories.*;
+import edu.mines.gradingadmin.seeders.AssignmentSeeder;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
+import edu.mines.gradingadmin.seeders.MigrationSeeder;
 import edu.mines.gradingadmin.seeders.UserSeeders;
+import edu.mines.gradingadmin.services.external.CanvasService;
 import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.RabbitMqService;
 import jakarta.transaction.Transactional;
@@ -66,6 +70,10 @@ public class TestMigrationService implements PostgresTestContainer {
     private PolicyService policyService;
     @Autowired
     private CourseMemberService courseMemberService;
+    @Autowired
+    private MigrationSeeder migrationSeeder;
+    @Autowired
+    private AssignmentSeeder assignmentSeeder;
 
     @BeforeAll
     static void setupClass(){
@@ -77,7 +85,7 @@ public class TestMigrationService implements PostgresTestContainer {
     void setup(){
         migrationService = new MigrationService(migrationRepo, masterMigrationRepo, migrationTransactionLogRepo, taskRepo, zeroOutSubmissionTaskRepo, postToCanvasTaskTaskRepo,
                 extensionService, courseService, assignmentService, Mockito.mock(ApplicationEventPublisher.class),
-                Mockito.mock(RabbitMqService.class), Mockito.mock(PolicyServerService.class), rawScoreRepo, masterMigrationStatsRepo, policyService, courseMemberService);
+                Mockito.mock(RabbitMqService.class), Mockito.mock(PolicyServerService.class), rawScoreRepo, masterMigrationStatsRepo, policyService, courseMemberService, Mockito.mock(ImpersonationManager.class), Mockito.mock(CanvasService.class));
 
         course = courseSeeders.populatedCourse();
         user = userSeeders.user1();
@@ -86,9 +94,9 @@ public class TestMigrationService implements PostgresTestContainer {
 
     @AfterEach
     void tearDown(){
-        migrationRepo.deleteAll();
-        masterMigrationRepo.deleteAll();
+        migrationSeeder.clearAll();
         policyRepo.deleteAll();
+        assignmentSeeder.clearAll();
         courseSeeders.clearAll();
         userSeeders.clearAll();
     }
@@ -147,11 +155,12 @@ public class TestMigrationService implements PostgresTestContainer {
     }
 
     @Test
-    @Transactional
     void verifyHandleScore(){
-        User user = userSeeders.user1();
+        Assignment assignment =  assignmentSeeder.worksheet1(course);
 
-        UUID migrationId = UUID.randomUUID();
+        MasterMigration masterMigration = migrationSeeder.masterMigration(course, user);
+
+        Migration migration = migrationSeeder.migration(assignment, masterMigration);
 
         ScoredDTO dto = new ScoredDTO();
         dto.setCwid("100000");
@@ -162,11 +171,11 @@ public class TestMigrationService implements PostgresTestContainer {
 
         ResponseStatusException exception = Assertions.assertThrows(
                 ResponseStatusException.class,
-                () -> migrationService.handleScoreReceived(user, migrationId, dto)
+                () -> migrationService.handleScoreReceived(user, migration.getId(), dto)
         );
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-        Assertions.assertEquals("ID does not exist", exception.getReason());
+        Assertions.assertEquals("User does not exist", exception.getReason());
 
     }
 
