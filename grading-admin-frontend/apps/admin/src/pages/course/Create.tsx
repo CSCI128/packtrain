@@ -73,7 +73,7 @@ export function CreatePage() {
   const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
   const [canvasId, setCanvasId] = useState("");
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
-  const [importFailed, setImportFailed] = useState(false);
+  const [tasksFailed, setTasksFailed] = useState(false);
   const [courseCreated, setCourseCreated] = useState(false);
   const [importStatistics, setImportStatistics] = useState({
     members: 0,
@@ -171,6 +171,8 @@ export function CreatePage() {
         })
         .catch((error) => {
           console.error("Some tasks failed:", error);
+          setTasksFailed(true);
+          deleteCourse(store$.id.get() as string);
         });
     };
 
@@ -196,7 +198,6 @@ export function CreatePage() {
   });
     
   const deleteCourse = (course_id: string) => {
-    setImportFailed(true);
     deleteCourseMutation.mutate({
       course_id: course_id
     });
@@ -204,9 +205,6 @@ export function CreatePage() {
 
   useEffect(() => {
     if (courseCreated && allTasksCompleted && data) {
-      if(data.members?.length <= 0 && data.sections?.length <= 0 && data.assignments?.length <= 0){
-        deleteCourse(store$.id.get() as string);
-      }
       setImportStatistics({
         members: data.members?.length || 0,
         sections: data.sections?.length || 0,
@@ -435,7 +433,7 @@ export function CreatePage() {
                   </>
                 ) : (
                   <>
-                  {!importFailed ? (
+                  {!tasksFailed ? (
                     <>
                       <Text>Import complete!</Text>
                       <Text>
@@ -461,7 +459,7 @@ export function CreatePage() {
                 )}
 
                 <Group justify="flex-end" mt="md">
-                  {!importFailed ? (
+                  {!tasksFailed ? (
                     <Button
                     disabled={!allTasksCompleted}
                     color={allTasksCompleted ? "blue" : "gray"}
