@@ -5,11 +5,11 @@ import edu.mines.gradingadmin.models.Course;
 import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.models.User;
-import edu.mines.gradingadmin.repositories.CourseMemberRepo;
 import edu.mines.gradingadmin.repositories.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
@@ -21,19 +21,33 @@ import java.util.*;
 @Slf4j
 public class UserService {
     private final UserRepo userRepo;
-    private final CourseMemberRepo courseMemberRepo;
 
-    public UserService(UserRepo userRepo, CourseMemberRepo courseMemberRepo) {
+    public UserService(UserRepo userRepo) {
         this.userRepo = userRepo;
-        this.courseMemberRepo = courseMemberRepo;
     }
 
-    public Optional<User> getUserByCwid(String cwid){
+    public Optional<User> findUserByCwid(String cwid){
         return userRepo.getByCwid(cwid);
     }
 
-    public Optional<User> getUserByEmail(String email){
-        return userRepo.getByEmail(email);
+    public User getUserByCwid(String cwid){
+        Optional<User> user = userRepo.getByCwid(cwid);
+        if (user.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User '%s' does not exist!", cwid));
+        }
+
+        return user.get();
+    }
+
+    public User getUserByEmail(String email){
+        Optional<User> user = userRepo.getByEmail(email);
+
+        if (user.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User '%s' does not exist!", email));
+        }
+
+        return user.get();
+
     }
 
     public Optional<User> getUserByOauthId(String id){
@@ -50,24 +64,20 @@ public class UserService {
         return userRepo.getAll();
     }
 
-    public Optional<User> updateUser(UserDTO userDTO){
-        Optional<User> user = getUserByCwid(userDTO.getCwid());
+    public User updateUser(UserDTO userDTO){
+        User user = getUserByCwid(userDTO.getCwid());
 
-        if (user.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-        }
+        user.setEmail(userDTO.getEmail());
+        user.setName(userDTO.getName());
 
-        user.get().setEmail(userDTO.getEmail());
-        user.get().setName(userDTO.getName());
-
-        return Optional.of(userRepo.save(user.get()));
+        return userRepo.save(user);
     }
 
     public List<User> getOrCreateUsersFromCanvas(Map<String, edu.ksu.canvas.model.User> canvasUsers){
         List<User> users = new LinkedList<>();
 
         for (edu.ksu.canvas.model.User user : canvasUsers.values()){
-            Optional<User> newUser = getUserByCwid(user.getSisUserId())
+            Optional<User> newUser = findUserByCwid(user.getSisUserId())
                     .or(() -> createNewUser(user.getSisUserId(), false, user.getName(), user.getEmail()));
 
             if (newUser.isEmpty()){
@@ -89,125 +99,117 @@ public class UserService {
 
     public Optional<User> createNewUser(String cwid, boolean isAdmin, String name, String email){
         if (userRepo.existsByCwid(cwid)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User already exists, can not create a user with this CWID");
+            return Optional.empty();
         }
 
-        User user = new User();
-
-        user.setCwid(cwid);
-        user.setName(name);
-        user.setEmail(email);
-        user.setAdmin(isAdmin);
-        user.setEnabled(true);
-
-        log.debug("Created new user: {}", user);
-
-        return Optional.of(userRepo.save(user));
+        return createNewUser(cwid, isAdmin, name, email, null);
     }
 
-    public Optional<User> createNewUser(String cwid, boolean isAdmin, String name, String email, String oauthId){
+    public Optional<User> createNewUser(String cwid, boolean isAdmin, String name, String email, @Nullable String oauthId){
         if (userRepo.existsByCwid(cwid)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User already exists, can not create a user with this CWID");
+            return Optional.empty();
         }
 
         User user = new User();
 
         user.setCwid(cwid);
-        user.setOAuthId(UUID.fromString(oauthId));
         user.setName(name);
         user.setEmail(email);
         user.setAdmin(isAdmin);
         user.setEnabled(true);
 
-        log.debug("Created new user with oauth id: {}", user);
+        if (oauthId != null){
+            user.setOAuthId(UUID.fromString(oauthId));
+            log.debug("Linked oauth id to user!");
+        }
+
+        log.debug("Created new user {}", user);
 
         return Optional.of(userRepo.save(user));
     }
 
-    public Optional<User> disableUser(User actingUser, String cwidToDisable){
+    public boolean disableUser(User actingUser, String cwidToDisable){
         if (actingUser.getCwid().equals(cwidToDisable)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is an admin, can not disable an admin user");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to disable self");
         }
 
-        Optional<User> user = getUserByCwid(cwidToDisable);
-
-        if (user.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
+        if (!actingUser.isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, String.format("Admin action attempted by non admin user '%s'!", actingUser.getEmail()));
         }
 
-        if (user.get().isAdmin()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is an admin, can not disable an admin user");
+        User user = getUserByCwid(cwidToDisable);
+
+        if (user.isAdmin()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User '%s' is an admin, can not disable an admin user", cwidToDisable));
         }
 
-        user.get().setEnabled(false);
+        user.setEnabled(false);
 
-        return Optional.of(userRepo.save(user.get()));
+        return true;
     }
 
-    public Optional<User> enableUser(String cwidToEnable){
-        Optional<User> user = getUserByCwid(cwidToEnable);
-
-        if (user.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
+    public boolean enableUser(User actingUser, String cwidToEnable){
+        if (!actingUser.isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, String.format("Admin action attempted by non admin user '%s'!", actingUser.getEmail()));
         }
 
-        user.get().setEnabled(true);
+        User user = getUserByCwid(cwidToEnable);
 
-        return Optional.of(userRepo.save(user.get()));
+        user.setEnabled(true);
+
+        return true;
     }
 
-    @Transactional
-    public Optional<User> makeAdmin(String cwidToMakeAdmin){
-        Optional<User> user = getUserByCwid(cwidToMakeAdmin);
-
-        if (user.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
+    public boolean makeAdmin(User actingUser, String cwidToMakeAdmin){
+        if (!actingUser.isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, String.format("Admin action attempted by non admin user '%s'!", actingUser.getEmail()));
         }
 
-        boolean isStudent = user.get().getCourseMemberships().stream()
-                .anyMatch(u -> u.getRole() == CourseRole.STUDENT);
+        User user = getUserByCwid(cwidToMakeAdmin);
+
+        boolean isStudent = getCourseMemberships(cwidToMakeAdmin).stream()
+                .anyMatch(m -> m.getRole() == CourseRole.STUDENT);
 
         if (isStudent){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is a student, can not make student an admin user");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User '%s' is a student in at least one course, can not make student an admin user", cwidToMakeAdmin));
         }
 
-        user.get().setAdmin(true);
+        user.setAdmin(true);
 
-        log.info("Made user '{}' an admin", user.get().getEmail());
+        userRepo.save(user);
 
-        return Optional.of(userRepo.save(user.get()));
+        log.info("Made user '{}' an admin", user.getEmail());
+
+        return true;
     }
 
-    @Transactional
-    public Optional<User> demoteAdmin(User actingUser, String cwid) {
+    public boolean demoteAdmin(User actingUser, String cwid) {
+        if (!actingUser.isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, String.format("Admin action attempted by non admin user '%s'!", actingUser.getEmail()));
+        }
+
         if (actingUser.getCwid().equals(cwid)){
             log.warn("Attempt to demote current user '{}' from admin!", cwid);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is an admin, can not demote an admin user");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to demote self!");
         }
-        Optional<User> user = getUserByCwid(cwid);
+        User user = getUserByCwid(cwid);
 
-        if (user.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
-        }
+        user.setAdmin(false);
 
-        user.get().setAdmin(false);
+        userRepo.save(user);
 
-        log.info("Demoted admin '{}' to user", user.get().getEmail());
+        log.info("Demoted admin '{}' to user", user.getEmail());
 
-        return Optional.of(userRepo.save(user.get()));
+        return true;
+    }
+
+    public List<CourseMember> getCourseMemberships(String cwid) {
+        return userRepo.getMembershipsByCwid(cwid);
     }
 
     @Transactional
-    public List<CourseMember> getCourseMemberships(String cwid) {
-        Optional<User> user = userRepo.getByCwid(cwid);
-        if (user.isEmpty()){
-            return List.of();
-        }
-        return userRepo.getUserEnrollmentsById(user.get().getCwid());
-    }
-
     public List<Course> getEnrollments(String cwid) {
-        return courseMemberRepo.getEnabledCoursesByUserId(cwid);
+        return userRepo.getMembershipsByCwid(cwid).stream().map(CourseMember::getCourse).toList();
     }
 
 

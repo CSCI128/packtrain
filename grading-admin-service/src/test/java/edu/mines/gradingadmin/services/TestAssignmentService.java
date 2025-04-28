@@ -51,13 +51,12 @@ public class TestAssignmentService implements PostgresTestContainer {
     void verifyAddAssignments() {
         Course course = courseSeeders.course1();
 
-        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(
+        Assignment assignment = assignmentService.addAssignmentToCourse(
                 course.getId().toString(),
                 new AssignmentDTO().name("Studio 1").points(2.0).category("Studios").dueDate(Instant.now()).unlockDate(Instant.now()).enabled(true)
         );
 
-        Assertions.assertTrue(assignment.isPresent());
-        Assertions.assertTrue(assignment.get().isEnabled());
+        Assertions.assertTrue(assignment.isEnabled());
     }
 
     @Test
@@ -73,16 +72,13 @@ public class TestAssignmentService implements PostgresTestContainer {
     void verifyUpdateAssignment() {
         Course course = courseSeeders.course1();
 
-        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(
+        Assignment assignment = assignmentService.addAssignmentToCourse(
                 course.getId().toString(),
                 new AssignmentDTO().name("Studio 1").points(2.0).category("Studios").dueDate(Instant.now()).unlockDate(Instant.now()).enabled(true)
         );
 
-        Assertions.assertTrue(assignment.isPresent());
+        assignment = assignmentService.updateAssignment(course.getId().toString(), DTOFactory.toDto(assignment).points(10.0));
 
-        assignment = assignmentService.updateAssignment(course.getId().toString(), DTOFactory.toDto(assignment.get()).points(10.0));
-
-        Assertions.assertTrue(assignment.isPresent());
-        Assertions.assertEquals(10, assignment.get().getPoints());
+        Assertions.assertEquals(10, assignment.getPoints());
     }
 }

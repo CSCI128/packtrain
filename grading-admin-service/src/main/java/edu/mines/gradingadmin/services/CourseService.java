@@ -3,22 +3,20 @@ package edu.mines.gradingadmin.services;
 import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.data.CourseLateRequestConfigDTO;
-import edu.mines.gradingadmin.data.policyServer.PolicyServerErrorDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.*;
+import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
 import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.services.external.CanvasService;
-import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.S3Service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
@@ -35,12 +33,12 @@ public class CourseService {
     private final ImpersonationManager impersonationManager;
     private final CanvasService canvasService;
     private final S3Service s3Service;
-    private final PolicyRepo policyRepo;
     private final UserService userService;
+
     public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, GradescopeConfigRepo gradescopeConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
 
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
-                         CanvasService canvasService, S3Service s3Service, PolicyRepo policyRepo, UserService userService) {
+                         CanvasService canvasService, S3Service s3Service, UserService userService) {
 
         this.courseRepo = courseRepo;
         this.lateRequestConfigRepo = lateRequestConfigRepo;
@@ -50,69 +48,70 @@ public class CourseService {
         this.canvasService = canvasService;
         this.eventPublisher = eventPublisher;
         this.s3Service = s3Service;
-        this.policyRepo = policyRepo;
         this.userService = userService;
     }
 
-    public List<Course> getCourses(boolean enabled) {
-            if (enabled) {
-                return courseRepo.getAll(enabled);
-            }
-            return courseRepo.getAll();
+    public List<Course> getAllCourses(boolean enabled) {
+        if (enabled) {
+            return courseRepo.getAll(true);
+        }
+        return courseRepo.getAll();
     }
+
 
     public List<Course> getCoursesStudent(User user){
+        return getCoursesByRole(user, CourseRole.STUDENT, true);
+    }
+
+    public List<Course> getCoursesByRole(User user, CourseRole courseRole, Boolean enabled) {
         List<CourseMember> memberships = userService.getCourseMemberships(user.getCwid());
-        List<Course> existingCourses = courseRepo.getAll(true);
-        List<Course> studentEnrolledCourses = new ArrayList<>();;
-        for (CourseMember courseMember : memberships) {
-            for(Course course: existingCourses) {
-                if (courseMember.getCourse().equals(course)) {
-                    studentEnrolledCourses.add(course);
-                }
-            }
-        }
-        return studentEnrolledCourses;
+
+        return memberships.stream().filter(m -> m.getRole().equals(courseRole))
+                .map(CourseMember::getCourse)
+                // only filter on enabled if boolean is non-null - this is why it has the object instead of primitive
+                .filter(c -> enabled == null || c.isEnabled() == enabled)
+                .toList();
     }
 
-    public Optional<Course> getCourse(UUID courseId){
-        return courseRepo.getById(courseId);
-    }
-
-    public Optional<Course> updateCourse(String courseId, CourseDTO courseDTO) {
-        Optional<Course> course = getCourse(UUID.fromString(courseId));
-
-        if(course.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
+    public Course getCourse(UUID courseId) {
+        Optional<Course> course = courseRepo.getById(courseId);
+        if (course.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Course '%s' does not exist", courseId));
         }
 
-        course.get().setName(courseDTO.getName());
-        course.get().setCode(courseDTO.getCode());
-        course.get().setTerm(courseDTO.getTerm());
-        course.get().setEnabled(courseDTO.getEnabled());
-        CourseLateRequestConfig config = course.get().getLateRequestConfig();
+        return course.get();
+    }
+
+    public Course updateCourse(String courseId, CourseDTO courseDTO) {
+        Course course = getCourse(UUID.fromString(courseId));
+
+        course.setName(courseDTO.getName());
+        course.setCode(courseDTO.getCode());
+        course.setTerm(courseDTO.getTerm());
+        course.setEnabled(courseDTO.getEnabled());
+
+        CourseLateRequestConfig config = course.getLateRequestConfig();
         if (config != null) {
             config.setLatePassesEnabled(courseDTO.getLateRequestConfig().getLatePassesEnabled());
             config.setLatePassName(courseDTO.getLateRequestConfig().getLatePassName());
             config.setEnabledExtensionReasons(courseDTO.getLateRequestConfig().getEnabledExtensionReasons());
             config.setTotalLatePassesAllowed(courseDTO.getLateRequestConfig().getTotalLatePassesAllowed());
 
-            course.get().setLateRequestConfig(lateRequestConfigRepo.save(config));
+            course.setLateRequestConfig(lateRequestConfigRepo.save(config));
         }
 
-        GradescopeConfig gsConfig = course.get().getGradescopeConfig();
-        if(gsConfig != null) {
-            if(courseDTO.getGradescopeId() != null) {
+        GradescopeConfig gsConfig = course.getGradescopeConfig();
+        if (gsConfig != null) {
+            if (courseDTO.getGradescopeId() != null) {
                 gsConfig.setGradescopeId(courseDTO.getGradescopeId().toString());
             }
-            gsConfig.setEnabled(courseDTO.getEnabled());
-            course.get().setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));
+            course.setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));
         }
 
-        return Optional.of(courseRepo.save(course.get()));
+        return courseRepo.save(course);
     }
 
-    public void syncCourseTask(CourseSyncTaskDef task){
+    public void syncCourseTask(CourseSyncTaskDef task) {
         IdentityProvider user = impersonationManager.impersonateUser(task.getCreatedByUser());
         List<edu.ksu.canvas.model.Course> availableCourses =
                 canvasService.asUser(user).getAllAvailableCourses()
@@ -134,7 +133,7 @@ public class CourseService {
 
         Optional<Course> toUpdate = courseRepo.getById(task.getCourseToSync());
 
-        if (toUpdate.isEmpty()){
+        if (toUpdate.isEmpty()) {
             log.warn("Course to sync not found!");
             throw new RuntimeException(String.format("Failed to find course: '%s'", task.getCourseToSync()));
         }
@@ -148,9 +147,9 @@ public class CourseService {
         courseRepo.save(toUpdate.get());
     }
 
-    public Optional<ScheduledTaskDef> syncCourseWithCanvas(User actingUser, UUID courseId, long canvasId,
-                                                             boolean overwriteName, boolean overwriteCode) {
-        if (!courseRepo.existsById(courseId)){
+    public ScheduledTaskDef syncCourseWithCanvas(User actingUser, UUID courseId, long canvasId,
+                                                           boolean overwriteName, boolean overwriteCode) {
+        if (!courseRepo.existsById(courseId)) {
             log.warn("Course '{}' has not been created!", courseId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
         }
@@ -169,12 +168,12 @@ public class CourseService {
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDef));
 
-        return Optional.of(task);
+        return task;
     }
 
     public void enableCourse(UUID courseId) {
         Optional<Course> course = courseRepo.findById(courseId);
-        if(course.isPresent()) {
+        if (course.isPresent()) {
             course.get().setEnabled(true);
             courseRepo.save(course.get());
         }
@@ -182,13 +181,13 @@ public class CourseService {
 
     public void disableCourse(UUID courseId) {
         Optional<Course> course = courseRepo.findById(courseId);
-        if(course.isPresent()) {
+        if (course.isPresent()) {
             course.get().setEnabled(false);
             courseRepo.save(course.get());
         }
     }
 
-    public Optional<Course> createNewCourse(CourseDTO courseDTO){
+    public Course createNewCourse(CourseDTO courseDTO) {
         Course newCourse = new Course();
         newCourse.setName(courseDTO.getName());
         newCourse.setCode(courseDTO.getCode());
@@ -197,15 +196,13 @@ public class CourseService {
 
         Optional<CourseLateRequestConfig> lateRequestConfig = createCourseLateRequestConfig(courseDTO.getLateRequestConfig());
 
-        ExternalServiceConfig externalServiceConfig = new ExternalServiceConfig();
-        if(courseDTO.getGradescopeId() != null) {
-            ExternalServiceConfig.GradescopeConfig config = externalServiceConfig.configureGradescope(true, URI.create("https://www.gradescope.com/courses/" + courseDTO.getGradescopeId()));
 
+        if (courseDTO.getGradescopeId() != null) {
             GradescopeConfig gsConfig = new GradescopeConfig();
             gsConfig.setGradescopeId(courseDTO.getGradescopeId().toString());
-            gsConfig.setEnabled(config.isEnabled());
             newCourse.setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));
         }
+
 
         if (lateRequestConfig.isPresent()) {
             newCourse.setLateRequestConfig(lateRequestConfig.get());
@@ -215,16 +212,21 @@ public class CourseService {
 
         Optional<String> bucketName = s3Service.createNewBucketForCourse(newCourse.getId());
 
-        if (bucketName.isEmpty()){
-            log.warn("Failed to create S3 bucket!");
+
+        if (bucketName.isEmpty()) {
+            log.error("Failed to create S3 bucket for course!");
+            log.error("Cleaning up course");
+            courseRepo.delete(newCourse);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Failed to create S3 bucket for course '%s'!", courseDTO.getCode()));
         }
 
-        return Optional.of(newCourse);
+
+        return newCourse;
     }
 
     private Optional<CourseLateRequestConfig> createCourseLateRequestConfig(CourseLateRequestConfigDTO dto) {
-        if (dto == null){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course late request does not exist");
+        if (dto == null) {
+            return Optional.empty();
         }
         CourseLateRequestConfig lateRequestConfig = new CourseLateRequestConfig();
         lateRequestConfig.setLatePassesEnabled(dto.getLatePassesEnabled());

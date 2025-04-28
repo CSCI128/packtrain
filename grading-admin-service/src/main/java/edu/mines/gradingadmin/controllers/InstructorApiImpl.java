@@ -12,7 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.*;
@@ -64,23 +64,17 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<MasterMigrationDTO> createMasterMigration(String courseId) {
-        Optional<MasterMigrationDTO> masterMigration = migrationService.createMasterMigration(courseId, securityManager.getUser()).map(DTOFactory::toDto);
+        MasterMigration masterMigration = migrationService.createMasterMigration(courseId, securityManager.getUser());
 
-        if (masterMigration.isEmpty()){
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(masterMigration.get());
+        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(masterMigration));
 
     }
 
     @Override
     public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(String courseId, String masterMigrationId, String assignment) {
-        Optional<MasterMigrationDTO> masterMigration = migrationService.addMigration(masterMigrationId, assignment).map(DTOFactory::toDto);
+        MasterMigration masterMigration = migrationService.addMigration(masterMigrationId, assignment);
 
-        if (masterMigration.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(masterMigration.get());
+        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(masterMigration));
     }
 
     @Override
@@ -114,32 +108,28 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<MasterMigrationDTO> getMasterMigrations(String courseId, String masterMigrationId) {
-        Optional<MasterMigrationDTO> masterMigration = migrationService.getMasterMigration(masterMigrationId).map(DTOFactory::toDto);
+        MasterMigration masterMigration = migrationService.getMasterMigration(masterMigrationId);
 
-        if (masterMigration.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(masterMigration.get());
+        return ResponseEntity.ok(DTOFactory.toDto(masterMigration));
     }
 
     @Override
     public ResponseEntity<Void> loadMasterMigration(String courseId, String masterMigrationId) {
-        Optional<MasterMigration> masterMigration = migrationService.finalizeLoadMasterMigration(masterMigrationId);
+        boolean res =  migrationService.finalizeLoadMasterMigration(masterMigrationId);
 
-        if (masterMigration.isEmpty()){
-            return ResponseEntity.badRequest().build();
+        if(!res) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to finalize load phase for migration!");
         }
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.accepted().build();
     }
 
     @Override
     public ResponseEntity<Void> loadValidateMasterMigration(String courseId, String masterMigrationId) {
-        boolean b = migrationService.validateLoadMasterMigration(masterMigrationId);
+        boolean res = migrationService.validateLoadMasterMigration(masterMigrationId);
 
-        if (!b) {
-            return ResponseEntity.badRequest().build();
+        if (!res) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to validate load phase for migration!");
         }
 
         return ResponseEntity.ok().build();
@@ -157,10 +147,10 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<Void> reviewMasterMigration(String courseId, String masterMigrationId) {
-        boolean b = migrationService.finalizeReviewMasterMigration(masterMigrationId);
+        boolean res = migrationService.finalizeReviewMasterMigration(masterMigrationId);
 
-        if (!b) {
-            return ResponseEntity.badRequest().build();
+        if (!res) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to finalize review phase for migration!");
         }
 
         return ResponseEntity.ok().build();
@@ -168,20 +158,19 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<MasterMigrationDTO> setPolicy(String courseId, String masterMigrationId, String migrationId, String policyId) {
-        Optional<Migration> newMigration = migrationService.setPolicyForMigration(migrationId, policyId);
-        if (newMigration.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.accepted().build();
+        Migration newMigration = migrationService.setPolicyForMigration(migrationId, policyId);
 
+        MasterMigration masterMigration = migrationService.getMasterMigration(masterMigrationId);
+
+        return ResponseEntity.accepted().body(DTOFactory.toDto(masterMigration));
     }
 
     @Override
     public ResponseEntity<Void> updateStudentScore(String courseId, String masterMigrationId, String migrationId, MigrationScoreChangeDTO migrationScoreChangeDTO) {
-        boolean b = migrationService.updateStudentScore(securityManager.getUser(), migrationId, migrationScoreChangeDTO);
+        boolean res = migrationService.updateStudentScore(securityManager.getUser(), migrationId, migrationScoreChangeDTO);
 
-        if (!b){
-            return ResponseEntity.badRequest().build();
+        if (!res){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update score for student!");
         }
 
         return ResponseEntity.accepted().build();
@@ -189,7 +178,6 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<MasterMigrationDTO> uploadRawScores(String courseId, String masterMigrationId, String migrationId, Resource body) {
-        // this should be moved to tasks
         try {
             switch (migrationService.getAssignmentForMigration(migrationId).getExternalAssignmentConfig().getType()){
                 case GRADESCOPE -> {
@@ -203,30 +191,21 @@ public class InstructorApiImpl implements InstructorApiDelegate {
             return ResponseEntity.badRequest().build();
         }
 
-        Optional<MasterMigrationDTO> masterMigration = migrationService.getMasterMigration(masterMigrationId).map(DTOFactory::toDto);
+        MasterMigration masterMigration = migrationService.getMasterMigration(masterMigrationId);
 
-        if (masterMigration.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.accepted().body(masterMigration.get());
-
+        return ResponseEntity.accepted().body(DTOFactory.toDto(masterMigration));
     }
 
     @Override
     @Transactional
     public ResponseEntity<CourseDTO> getCourseInformationInstructor(String courseId) {
-        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+        Course course = courseService.getCourse(UUID.fromString(courseId));
 
-        if(course.isEmpty()) {
-            // need to do this with error controller
-            return ResponseEntity.badRequest().build();
-        }
 
-        Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(securityManager.getUser(), course.get());
+        Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(securityManager.getUser(), course);
 
-        CourseDTO courseDTO = DTOFactory.toDto(course.get())
-                .assignments(course.get().getAssignments().stream().map(DTOFactory::toDto).toList())
+        CourseDTO courseDTO = DTOFactory.toDto(course)
+                .assignments(course.getAssignments().stream().map(DTOFactory::toDto).toList())
                 .members(sections.stream().map(Section::getMembers).flatMap(Set::stream).map(DTOFactory::toDto).collect(toList()))
                 .sections(sections.stream().map(Section::getName).toList());
 
@@ -235,58 +214,28 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<List<CourseMemberDTO>> getInstructorEnrollments(String courseId, String name, String cwid) {
-        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-
-        if(course.isEmpty()) {
-            // need to do this with error controller
-            return ResponseEntity.badRequest().build();
-        }
+        Course course = courseService.getCourse(UUID.fromString(courseId));
 
         if(name != null && cwid != null) {
-            // need to do this with error controller
-            return ResponseEntity.badRequest().build();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must define one of 'name' or 'cwid'");
         }
 
-        return ResponseEntity.ok(courseMemberService.searchCourseMembers(course.get(), List.of(), name, cwid)
+        return ResponseEntity.ok(courseMemberService.searchCourseMembers(course, List.of(), name, cwid)
             .stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
     public ResponseEntity<LateRequestDTO> approveExtension(String courseId, String assignmentId, String userId, String extensionId, String reason) {
-        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+        LateRequest lateRequest = extensionService.approveExtension(assignmentId, userId, extensionId, reason);
 
-        if(course.isEmpty()) {
-            // need to do this with error controller
-            return ResponseEntity.badRequest().build();
-        }
-
-        Optional<LateRequest> lateRequest = extensionService.approveExtension(assignmentId, userId, extensionId, reason);
-
-        if(lateRequest.isEmpty()) {
-            // need to do this with error controller
-            return ResponseEntity.badRequest().build();
-        }
-
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(DTOFactory.toDto(lateRequest.get()));
+        return ResponseEntity.accepted().body(DTOFactory.toDto(lateRequest));
     }
 
     @Override
     public ResponseEntity<LateRequestDTO> denyExtension(String courseId, String assignmentId, String userId, String extensionId, String reason) {
-        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
+        LateRequest lateRequest = extensionService.denyExtension(assignmentId, userId, extensionId, reason);
 
-        if(course.isEmpty()) {
-            // need to do this with error controller
-            return ResponseEntity.badRequest().build();
-        }
-
-        Optional<LateRequest> lateRequest = extensionService.denyExtension(assignmentId, userId, extensionId, reason);
-
-        if(lateRequest.isEmpty()) {
-            // need to do this with error controller
-            return ResponseEntity.badRequest().build();
-        }
-
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(DTOFactory.toDto(lateRequest.get()));
+        return ResponseEntity.accepted().body(DTOFactory.toDto(lateRequest));
     }
 
     @Override
@@ -296,9 +245,13 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<TaskDTO>> finalizeMasterMigration(String courseId, String masterMigrationId) {
-        migrationService.finalizeReviewMasterMigration(masterMigrationId);
+    public ResponseEntity<Void> finalizeMasterMigration(String courseId, String masterMigrationId) {
+        boolean res = migrationService.finalizePostToCanvas(masterMigrationId);
 
-        return ResponseEntity.ok().build();
+        if (!res){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to finalize migration!");
+        }
+
+        return ResponseEntity.accepted().build();
     }
 }
