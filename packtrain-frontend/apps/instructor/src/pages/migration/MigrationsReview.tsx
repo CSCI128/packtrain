@@ -11,86 +11,68 @@ import {
   Text,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { Course } from "@repo/api/openapi";
+import { getApiClient } from "@repo/api/index";
+import { Course, MasterMigration } from "@repo/api/openapi";
+import { store$ } from "@repo/api/store";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
 export function MigrationsReviewPage() {
-  const courseData: Course[] = [
-    {
-      late_request_config: {
-        enabled_extension_reasons: ["ext1"],
-        late_pass_name: "Late Pass",
-        late_passes_enabled: true,
-        total_late_passes_allowed: 5,
-      },
-      id: "999-9999-9999-99",
-      term: "Fall 2020",
-      enabled: true,
-      name: "EXCL101",
-      code: "Fall.2020.EXCL.101",
-      canvas_id: 123456,
-      members: [
-        {
-          cwid: "CWID123456",
-          canvas_id: "9876543",
-          course_role: "instructor",
-          sections: ["fall.2020.excl.101.section.a"],
-          late_passes_used: 1,
-        },
-        {
-          cwid: "CWID654321",
-          canvas_id: "1234567",
-          course_role: "student",
-          sections: ["fall.2020.excl.101.section.b"],
-          late_passes_used: 0,
-        },
-      ],
-      assignments: [
-        {
-          id: "999-9999-9999-99",
-          name: "Assessment 1",
-          category: "Quiz",
-          canvas_id: 1245678,
-          points: 15.0,
-          external_service: "Gradescope",
-          external_points: 14,
-          due_date: "2020-01-15T12:00:00.000Z",
-          unlock_date: "2020-01-01T12:00:00.000Z",
-          enabled: true,
-          group_assignment: false,
-          attention_required: false,
-          frozen: false,
-        },
-        {
-          id: "999-8888-7777-66",
-          name: "Final Exam",
-          category: "Exam",
-          canvas_id: 987654,
-          points: 100.0,
-          external_service: "ProctorU",
-          external_points: 95,
-          due_date: "2020-12-20T12:00:00.000Z",
-          unlock_date: "2020-12-01T12:00:00.000Z",
-          enabled: true,
-          group_assignment: false,
-          attention_required: true,
-          frozen: false,
-        },
-      ],
-      sections: [
-        "fall.2020.excl.101.section.a",
-        "fall.2020.excl.101.section.b",
-      ],
-    },
-  ];
+  const {
+    data: courseData,
+    error: courseError,
+    isLoading: courseIsLoading,
+  } = useQuery<Course | null>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course_information_instructor({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const {
+    data: migrationData,
+    error: migrationError,
+    isLoading: migrationIsLoading,
+  } = useQuery<MasterMigration | null>({
+    queryKey: ["getMasterMigrations"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_master_migrations({
+            course_id: store$.id.get() as string,
+            master_migration_id: store$.master_migration_id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   const [confirmOpened, { open: openConfirm, close: closeConfirm }] =
     useDisclosure(false);
-  const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>([
-    "999-9999-9999-99",
-    "999-8888-7777-66",
-  ]);
+  const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
+    []
+  );
+
+  if (migrationIsLoading || !migrationData || courseIsLoading || !courseData)
+    return "Loading...";
+
+  if (migrationError || courseError)
+    return `An error occured: ${migrationError}`;
+
+  console.log(migrationData);
 
   return (
     <>
@@ -143,25 +125,29 @@ export function MigrationsReviewPage() {
 
         <Divider my="sm" />
 
-        <Tabs defaultValue={selectedAssignmentIds.at(0)}>
-          <Tabs.List>
-            {selectedAssignmentIds.map((assignment) => (
-              <Tabs.Tab value={assignment}>
-                {
-                  courseData[0].assignments?.filter(
-                    (a) => a.id === assignment
-                  )[0]?.name
-                }
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
+        {selectedAssignmentIds.length > 0 ? (
+          <Tabs defaultValue={selectedAssignmentIds.at(0)}>
+            <Tabs.List>
+              {selectedAssignmentIds.map((assignment) => (
+                <Tabs.Tab value={assignment}>
+                  {
+                    courseData?.assignments?.filter(
+                      (a) => a.id === assignment
+                    )[0]?.name
+                  }
+                </Tabs.Tab>
+              ))}
+            </Tabs.List>
 
-          {selectedAssignmentIds.map((assignment) => (
-            <Tabs.Panel value={assignment} p={20}>
-              <Text>Hello</Text>
-            </Tabs.Panel>
-          ))}
-        </Tabs>
+            {selectedAssignmentIds.map((assignment) => (
+              <Tabs.Panel value={assignment} p={20}>
+                <Text>Hello</Text>
+              </Tabs.Panel>
+            ))}
+          </Tabs>
+        ) : (
+          <Text>No migrations were found!</Text>
+        )}
 
         <Group justify="space-between" mt="xl">
           <Button color="gray">Export</Button>

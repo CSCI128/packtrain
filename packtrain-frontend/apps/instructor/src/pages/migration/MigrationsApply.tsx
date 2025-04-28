@@ -1,95 +1,150 @@
 import {
   Box,
   Button,
+  Center,
   Container,
   Divider,
   Group,
+  Modal,
+  Select,
   Stack,
   Stepper,
   Text,
 } from "@mantine/core";
-import { Course } from "@repo/api/openapi";
-import React, { useState } from "react";
+import { useDisclosure } from "@mantine/hooks";
+import { getApiClient } from "@repo/api/index";
+import { Course, MasterMigration, Migration, Policy } from "@repo/api/openapi";
+import { store$ } from "@repo/api/store";
+import { useQuery } from "@tanstack/react-query";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 export function MigrationsApplyPage() {
-  const courseData: Course[] = [
-    {
-      late_request_config: {
-        enabled_extension_reasons: ["ext1"],
-        late_pass_name: "Late Pass",
-        late_passes_enabled: true,
-        total_late_passes_allowed: 5,
-      },
-      id: "999-9999-9999-99",
-      term: "Fall 2020",
-      enabled: true,
-      name: "EXCL101",
-      code: "Fall.2020.EXCL.101",
-      canvas_id: 123456,
-      members: [
-        {
-          cwid: "CWID123456",
-          canvas_id: "9876543",
-          course_role: "instructor",
-          sections: ["fall.2020.excl.101.section.a"],
-          late_passes_used: 1,
-        },
-        {
-          cwid: "CWID654321",
-          canvas_id: "1234567",
-          course_role: "student",
-          sections: ["fall.2020.excl.101.section.b"],
-          late_passes_used: 0,
-        },
-      ],
-      assignments: [
-        {
-          id: "999-9999-9999-99",
-          name: "Assessment 1",
-          category: "Quiz",
-          canvas_id: 1245678,
-          points: 15.0,
-          external_service: "Gradescope",
-          external_points: 14,
-          due_date: "2020-01-15T12:00:00.000Z",
-          unlock_date: "2020-01-01T12:00:00.000Z",
-          enabled: true,
-          group_assignment: false,
-          attention_required: false,
-          frozen: false,
-        },
-        {
-          id: "999-8888-7777-66",
-          name: "Final Exam",
-          category: "Exam",
-          canvas_id: 987654,
-          points: 100.0,
-          external_service: "ProctorU",
-          external_points: 95,
-          due_date: "2020-12-20T12:00:00.000Z",
-          unlock_date: "2020-12-01T12:00:00.000Z",
-          enabled: true,
-          group_assignment: false,
-          attention_required: true,
-          frozen: false,
-        },
-      ],
-      sections: [
-        "fall.2020.excl.101.section.a",
-        "fall.2020.excl.101.section.b",
-      ],
-    },
-  ];
+  const [opened, { open, close }] = useDisclosure(false);
+  const [selectedMigration, setSelectedMigration] = useState<Migration | null>(
+    null
+  );
 
-  const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>([
-    "999-9999-9999-99",
-    "999-8888-7777-66",
-  ]);
+  const {
+    data: policyData,
+    error: policyError,
+    isLoading: policyIsLoading,
+  } = useQuery<Policy[] | null>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_all_policies({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const {
+    data: courseData,
+    error: courseError,
+    isLoading: courseIsLoading,
+  } = useQuery<Course | null>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course_information_instructor({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const {
+    data: migrationData,
+    error: migrationError,
+    isLoading: migrationIsLoading,
+  } = useQuery<MasterMigration | null>({
+    queryKey: ["getMasterMigrations"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_master_migrations({
+            course_id: store$.id.get() as string,
+            master_migration_id: store$.master_migration_id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  // /instructor/courses/{course_id}/migrations/{master_migration_id}/{migration_id}/policy:
+  // post:
+  //   tags:
+  //     - instructor
+  //   operationId: set_policy
+
+  const handleSetPolicy = (row: Migration) => {
+    setSelectedMigration(row);
+    open();
+  };
+
+  useEffect(() => {
+    if (migrationData) {
+      let assignmentIds: string[] = [];
+      migrationData.migrations?.forEach((migration: Migration) => {
+        assignmentIds.push(migration.assignment.id as string);
+      });
+      setSelectedAssignmentIds(assignmentIds);
+    }
+  }, [migrationData]);
+
+  const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
+    []
+  );
+
+  if (migrationIsLoading || !migrationData || courseIsLoading || !courseData)
+    return "Loading...";
+
+  if (migrationError || courseError)
+    return `An error occured: ${migrationError}`;
 
   return (
     <>
-      {/* TODO modal for policy selection */}
+      <Modal opened={opened} onClose={close} title="Select Policy" centered>
+        <Center>
+          <Stack>
+            <Select
+              label="Select a policy:"
+              placeholder="Select policy.."
+              data={
+                policyData
+                  ? policyData.flatMap((policy: Policy) => [
+                      { label: policy.name ?? "", value: policy.id as string },
+                    ])
+                  : undefined
+              }
+            />
+            <Group justify="flex-end">
+              <Button color="gray" variant="light" onClick={close}>
+                Cancel
+              </Button>
+
+              <Button color="blue" onClick={() => {}} variant="filled">
+                Select policy
+              </Button>
+            </Group>
+          </Stack>
+        </Center>
+      </Modal>
 
       <Container size="md">
         <Stepper
@@ -122,12 +177,11 @@ export function MigrationsApplyPage() {
                   <Group>
                     <Text fw={800}>
                       {
-                        courseData[0].assignments?.filter(
+                        courseData.assignments?.filter(
                           (a) => a.id === selectedAssignment
                         )[0]?.name
                       }
                     </Text>
-                    <Text>studio1.js</Text>
                   </Group>
 
                   <Group>

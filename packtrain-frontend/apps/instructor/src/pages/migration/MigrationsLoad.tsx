@@ -3,6 +3,7 @@ import {
   Button,
   Container,
   Divider,
+  FileInput,
   Group,
   MultiSelect,
   Stack,
@@ -11,11 +12,11 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
-import { Course, MasterMigration } from "@repo/api/openapi";
+import { Course } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export function MigrationsLoadPage() {
   const navigate = useNavigate();
@@ -33,27 +34,6 @@ export function MigrationsLoadPage() {
         .then((client) =>
           client.get_course_information_instructor({
             course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
-
-  const {
-    data: migrationData,
-    error: migrationError,
-    isLoading: migrationIsLoading,
-  } = useQuery<MasterMigration | null>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_master_migrations({
-            course_id: store$.id.get() as string,
-            master_migration_id: "",
           })
         )
         .then((res) => res.data)
@@ -135,17 +115,20 @@ export function MigrationsLoadPage() {
   });
 
   const validateAssignments = () => {
-    // TODO validate selected assignments
-    loadValidateMasterMigration.mutate({
-      master_migration_id: "",
-    });
-    console.log("validating");
-    setValidated(true);
+    loadValidateMasterMigration.mutate(
+      {
+        master_migration_id: masterMigrationId,
+      },
+      {
+        onSuccess: () => {
+          setValidated(true);
+        },
+      }
+    );
   };
 
   // create_migration_for_master_migration
-  //  /instructor/course/{course_id}/migrations/{master_migration_id}/{migration_id}/scores
-  // /instructor/courses/{course_id}/migrations/{master_migration_id}:
+  // /instructor/course/{course_id}/migrations/{master_migration_id}/{migration_id}/scores
 
   useEffect(() => {
     if (!store$.master_migration_id.get()) {
@@ -161,39 +144,29 @@ export function MigrationsLoadPage() {
     setMasterMigrationId(store$.master_migration_id.get() as string);
   }, [store$]);
 
-  const submitLoadAssignments = (values: typeof form.values) => {
-    // postForm.mutate(
-    //   {
-    //     params: {
-    //       path: {
-    //         course_id: store$.id.get() as string,
-    //       },
-    //     },
-    //     body: {
-    //       user_requester_id: auth.user?.profile.id as string,
-    //       assignment_id: values.assignmentId,
-    //       date_submitted: new Date().toISOString(),
-    //       num_days_requested: values.daysRequested,
-    //       request_type: "extension",
-    //       status: "pending",
-    //       extension: {
-    //         comments: values.comments,
-    //         reason: values.extensionReason,
-    //       },
-    //     },
-    //   },
-    //   {
-    //     onSuccess: () => {
-    //       navigate("/requests");
-    //     },
-    //   }
-    // );
+  useEffect(() => {
+    if (selectedAssignmentIds) {
+      console.log("CHANGED:", selectedAssignmentIds);
+    }
+  }, [selectedAssignmentIds]);
+
+  const loadAssignments = () => {
+    loadMasterMigration.mutate(
+      {
+        master_migration_id: masterMigrationId,
+      },
+      {
+        onSuccess: (data) => {
+          console.log(data);
+          navigate("/instructor/migrate/apply");
+        },
+      }
+    );
   };
 
-  if (isLoading || !data || migrationIsLoading || !migrationData)
-    return "Loading...";
+  if (isLoading || !data) return "Loading...";
 
-  if (error || migrationError) return `An error occured: ${error}`;
+  if (error) return `An error occured: ${error}`;
 
   return (
     <Container size="md">
@@ -213,7 +186,7 @@ export function MigrationsLoadPage() {
 
       <Divider my="sm" />
 
-      <form onSubmit={form.onSubmit(submitLoadAssignments)}>
+      <form onSubmit={form.onSubmit(loadAssignments)}>
         <Stack>
           <MultiSelect
             withAsterisk
@@ -255,7 +228,7 @@ export function MigrationsLoadPage() {
 
                   <Group>
                     <Text>View Data</Text>
-                    <Button color="gray">Upload</Button>
+                    <FileInput placeholder="Upload a file.." />
                   </Group>
                 </Group>
               </Box>
@@ -280,6 +253,7 @@ export function MigrationsLoadPage() {
               onClick={() => {
                 navigate("/instructor/migrate");
                 store$.master_migration_id.delete();
+                // TODO delete master migration too
               }}
               color="gray"
             >
@@ -291,12 +265,7 @@ export function MigrationsLoadPage() {
             </Button>
 
             {validated ? (
-              <Button
-                color="blue"
-                component={Link}
-                to="/instructor/migrate/apply"
-                variant="filled"
-              >
+              <Button color="blue" type="submit">
                 Next
               </Button>
             ) : (

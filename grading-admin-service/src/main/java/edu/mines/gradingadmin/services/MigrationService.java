@@ -100,7 +100,6 @@ public class MigrationService {
        return masterMigrationRepo.getMasterMigrationsByCourseId(UUID.fromString(courseId));
     }
 
-
     public Optional<MasterMigration> createMasterMigration(String courseId, User createdByUser){
         MasterMigration masterMigration = new MasterMigration();
         Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));

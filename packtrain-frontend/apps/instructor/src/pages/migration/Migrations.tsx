@@ -57,7 +57,7 @@ export function MigrationsPage() {
           ))
         ) : (
           <>
-            <Text>No migrations were found!</Text>
+            <Text mb={10}>No migrations were found!</Text>
           </>
         )}
 
