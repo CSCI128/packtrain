@@ -76,50 +76,43 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<UserDTO> adminUpdateUser(UserDTO userDTO) {
-        Optional<User> user;
+        boolean adminRes = userDTO.getAdmin() ? userService.makeAdmin(securityManager.getUser(), userDTO.getCwid()) : userService.demoteAdmin(securityManager.getUser(), userDTO.getCwid());
 
-        if(userDTO.getAdmin()) {
-            user = userService.makeAdmin(userDTO.getCwid());
-        } else {
-            user = userService.demoteAdmin(securityManager.getUser(), userDTO.getCwid());
+        if (!adminRes){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update admin for user!");
         }
 
-        if (user.isEmpty()){
-            return ResponseEntity.badRequest().build();
+        boolean disabledRes = userDTO.getEnabled() ? userService.enableUser(securityManager.getUser(), userDTO.getCwid()) : userService.disableUser(securityManager.getUser(), userDTO.getCwid());
+
+        if (!disabledRes){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update enabled for user!");
         }
 
-        user = userService.updateUser(userDTO);
+        User user = userService.updateUser(userDTO);
 
-        if(userDTO.getEnabled()) {
-            user = userService.enableUser(userDTO.getCwid());
-        }
-        else {
-            user = userService.disableUser(securityManager.getUser(), userDTO.getCwid());
-        }
-
-        return ResponseEntity.accepted().body(DTOFactory.toDto(user.get()));
+        return ResponseEntity.accepted().body(DTOFactory.toDto(user));
     }
 
     @Override
     public ResponseEntity<Void> enableUser(String cwid) {
-        Optional<User> user = userService.enableUser(cwid);
+        boolean res = userService.enableUser(securityManager.getUser(), cwid);
 
-        if (user.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        if (!res){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update enabled for user!");
         }
 
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.noContent().build();
 
     }
 
     @Override
     public ResponseEntity<Void> disableUser(String cwid) {
-        Optional<User> user = userService.disableUser(securityManager.getUser(), cwid);
+        boolean res = userService.disableUser(securityManager.getUser(), cwid);
 
-        if (user.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        if (!res){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update enabled for user!");
         }
 
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.noContent().build();
     }
 }

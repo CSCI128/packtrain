@@ -26,23 +26,13 @@ public class TasksApiImpl implements TasksApiDelegate {
 
     @Override
     public ResponseEntity<List<TaskDTO>> getAllTasksForUser() {
-        return ResponseEntity.ok(taskExecutorService.getScheduledTasks(securityManager.getUser()).stream()
-                .map(t -> DTOFactory.toDto(t)
-                        .completedTime(t.getCompletedTime() == null ? null : t.getCompletedTime())
-                        .message(t.getStatusText())
-        ).toList());
+        return ResponseEntity.ok(taskExecutorService.getScheduledTasks(securityManager.getUser()).stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
     public ResponseEntity<TaskDTO> getTask(Long taskId) {
-        Optional<ScheduledTaskDef> task = taskExecutorService.getScheduledTask(securityManager.getUser(), taskId);
+        ScheduledTaskDef task = taskExecutorService.getScheduledTask(securityManager.getUser(), taskId);
 
-        if (task.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(task.map(t -> DTOFactory.toDto(t)
-                .completedTime(t.getCompletedTime() == null ? null : t.getCompletedTime())
-                .message(t.getStatusText())).get());
+        return ResponseEntity.ok(DTOFactory.toDto(task));
     }
 }

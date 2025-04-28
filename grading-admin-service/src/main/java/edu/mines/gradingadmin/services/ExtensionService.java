@@ -147,9 +147,13 @@ public class ExtensionService {
         return Optional.ofNullable(lateRequestRepo.getLateRequestById(id));
     }
 
-    public void deleteLateRequest(String lateRequestId) {
+    public void deleteLateRequest(Course course, User actingUser, String lateRequestId) {
         LateRequest lateRequest = getLateRequest(UUID.fromString(lateRequestId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request '%s' was not found!", lateRequestId)));
+
+        if(lateRequest.getLateRequestType() == LateRequestType.LATE_PASS) {
+            courseMemberService.refundLatePasses(course, actingUser, lateRequest.getDaysRequested());
+        }
 
         lateRequestRepo.delete(lateRequest);
     }

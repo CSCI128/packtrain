@@ -90,7 +90,9 @@ public class DTOFactory {
             .id(task.getId())
             .name(task.getTaskName())
             .status(task.getStatus().toString())
-            .submittedTime(task.getSubmittedTime());
+            .message(task.getStatusText())
+            .submittedTime(task.getSubmittedTime())
+            .completedTime(task.getCompletedTime());
     }
 
     public static AssignmentDTO toDto(Assignment assignment) {

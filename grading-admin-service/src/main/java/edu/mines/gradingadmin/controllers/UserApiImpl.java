@@ -12,6 +12,7 @@ import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.services.CourseMemberService;
 import edu.mines.gradingadmin.services.CredentialService;
 import edu.mines.gradingadmin.services.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
@@ -41,61 +42,42 @@ public class UserApiImpl implements UserApiDelegate {
 
     @Override
     public ResponseEntity<UserDTO> updateUser(UserDTO userDTO) {
-        Optional<User> user = userService.updateUser(userDTO);
+        User user = userService.updateUser(userDTO);
 
-        if (user.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.accepted().body(DTOFactory.toDto(user.get()));
+        return ResponseEntity.accepted().body(DTOFactory.toDto(user));
     }
 
     @Override
     public ResponseEntity<CredentialDTO> newCredential(CredentialDTO credential) {
-        User user = securityManager.getUser();
+        Credential newCredential = credentialService.createNewCredentialForService(securityManager.getCwid(), credential);
 
-        Optional<Credential> newCredential = credentialService.createNewCredentialForService(user.getCwid(), credential);
-
-        if (newCredential.isEmpty()) {
-            // need to do this with error controller
-            return ResponseEntity.badRequest().build();
-        }
-
-        return ResponseEntity.ok(DTOFactory.toDto(newCredential.get()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(newCredential));
     }
 
     @Override
     public ResponseEntity<List<CredentialDTO>> getCredentials() {
-        User user = securityManager.getUser();
-        return ResponseEntity.ok(credentialService.getAllCredentials(user.getCwid())
+        return ResponseEntity.ok(credentialService.getAllCredentials(securityManager.getCwid())
                 .stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
     public ResponseEntity<Void> markCredentialAsPrivate(String credentialId){
-        Optional<Credential> credential = credentialService.markCredentialAsPrivate(UUID.fromString(credentialId));
-        if (credential.isEmpty()){
-            return ResponseEntity.badRequest().build();
-        }
+        credentialService.markCredentialAsPrivate(securityManager.getCwid(), UUID.fromString(credentialId));
+
         return ResponseEntity.accepted().build();
     }
 
     @Override
     public ResponseEntity<Void> markCredentialAsPublic(String credentialId){
-        Optional<Credential> credential = credentialService.markCredentialAsPublic(UUID.fromString(credentialId));
-        if (credential.isEmpty()){
-            return ResponseEntity.badRequest().build();
-        }
+        credentialService.markCredentialAsPublic(securityManager.getCwid(), UUID.fromString(credentialId));
+
         return ResponseEntity.accepted().build();
     }
 
     @Override
     public ResponseEntity<Void> deleteCredential(String credentialId){
-        Optional<Credential> credential = credentialService.getCredentialById(UUID.fromString(credentialId));
-        if (credential.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-        credentialService.deleteCredential(credential.get());
+        credentialService.deleteCredential(securityManager.getCwid(), UUID.fromString(credentialId));
+
         return ResponseEntity.noContent().build();
     }
 
@@ -113,7 +95,7 @@ public class UserApiImpl implements UserApiDelegate {
                 .cwid(user.getCwid())
                 .courseRole(
                         EnrollmentDTO.CourseRoleEnum.fromValue(
-                                courseMemberService.getCourseMemberByCourseByCwid(course, user.getCwid())
+                                courseMemberService.findCourseMemberGivenCourseAndCwid(course, user.getCwid())
                                         .map(member -> member.getRole().name().toLowerCase())
                                         .orElse("unknown")
                         ))

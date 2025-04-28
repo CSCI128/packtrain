@@ -12,7 +12,8 @@ import java.util.UUID;
 
 @Repository
 public interface CredentialRepo extends CrudRepository<Credential, UUID> {
-    Optional<Credential> getById(UUID id);
+    @Query("select c from credential c where c.owningUser.cwid = ?1 and c.id = ?2")
+    Optional<Credential> getById(String owningUserCwid, UUID id);
 
     @Query("select c from credential c where c.owningUser.cwid = ?1 and c.type = ?2 and c.isPrivate = true")
     Optional<Credential> getByCwidAndType(String owningUserCwid, CredentialType type);

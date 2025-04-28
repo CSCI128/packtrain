@@ -18,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,7 +46,7 @@ public class CourseMemberService {
         this.impersonationManager = impersonationManager;
     }
 
-    public Optional<CourseMember> getCourseMemberByCourseByCwid(Course course, String cwid) {
+    public Optional<CourseMember> findCourseMemberGivenCourseAndCwid(Course course, String cwid) {
         return courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().findFirst();
     }
 
@@ -247,7 +246,7 @@ public class CourseMemberService {
         return members;
     }
 
-    public Optional<ScheduledTaskDef> syncMembersFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean updateExisting, boolean removeOld, boolean addNew) {
+    public ScheduledTaskDef syncMembersFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean updateExisting, boolean removeOld, boolean addNew) {
         UserSyncTaskDef task = new UserSyncTaskDef();
         task.setCreatedByUser(actingUser);
         task.setTaskName(String.format("Sync Course '%s': Course Members", courseId));
@@ -262,23 +261,18 @@ public class CourseMemberService {
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 
-        return Optional.of(task);
+        return task;
     }
 
     public CourseMember addMemberToCourse(String courseId, CourseMemberDTO courseMemberDTO) {
         Course course = courseService.getCourse(UUID.fromString(courseId));
 
-        Optional<User> user = userService.getUserByCwid(courseMemberDTO.getCwid());
-
-        if (user.isEmpty()) {
-            log.error("Failed to add user '{}' to course '{}'", courseMemberDTO.getCwid(), courseId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User '%s' does not exist", courseMemberDTO.getCwid()));
-        }
+        User user = userService.getUserByCwid(courseMemberDTO.getCwid());
 
         CourseMember member = new CourseMember();
         member.setRole(CourseRole.fromString(courseMemberDTO.getCourseRole().getValue()));
         member.setCanvasId(courseMemberDTO.getCanvasId());
-        member.setUser(user.get());
+        member.setUser(user);
         member.setCourse(course);
 
         return courseMemberRepo.save(member);
@@ -352,14 +346,10 @@ public class CourseMemberService {
     }
 
     public Optional<String> getCwidGivenCourseAndEmail(String email, Course course){
-        Optional<User> user = userService.getUserByEmail(email);
+        User user = userService.getUserByEmail(email);
 
-        if (user.isEmpty()){
-            Optional.empty();
-        }
-
-        if(!courseMemberRepo.existsByCourseAndUser(course, user.get())){
-            log.warn("User '{}' is not enrolled in course '{}'", user.get().getEmail(), course.getCode());
+        if(!courseMemberRepo.existsByCourseAndUser(course, user)){
+            log.warn("User '{}' is not enrolled in course '{}'", user.getEmail(), course.getCode());
             return Optional.empty();
         }
 
@@ -367,16 +357,12 @@ public class CourseMemberService {
     }
 
     public String getCanvasIdGivenCourseAndCwid(String cwid, Course course){
-        Optional<User> user = userService.getUserByCwid(cwid);
+        User user = userService.getUserByCwid(cwid);
 
-        if (user.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User '%s' does not exist", cwid));
-        }
-
-        Optional<CourseMember> member = courseMemberRepo.getByUserAndCourse(user.get(), course);
+        Optional<CourseMember> member = courseMemberRepo.getByUserAndCourse(user, course);
 
         if(member.isEmpty()){
-            log.warn("User '{}' is not enrolled in course '{}'", user.get().getCwid(), course.getCode());
+            log.warn("User '{}' is not enrolled in course '{}'", user.getCwid(), course.getCode());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not enrolled in this course");
         }
 

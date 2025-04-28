@@ -2026,12 +2026,6 @@ paths:
       responses:
         202:
           description: "OK"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Task"
         400:
           description: "Invalid"
   /tasks:
@@ -2438,6 +2432,7 @@ components:
         - email
         - cwid
         - name
+        - enabled
         - admin
       properties:
         email:

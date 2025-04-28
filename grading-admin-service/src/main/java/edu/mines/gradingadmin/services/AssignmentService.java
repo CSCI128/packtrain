@@ -142,7 +142,7 @@ public class AssignmentService {
         return assignments;
     }
 
-    public Optional<ScheduledTaskDef> syncAssignmentsFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean addNew, boolean deleteOld, boolean updateExisting){
+    public ScheduledTaskDef syncAssignmentsFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean addNew, boolean deleteOld, boolean updateExisting){
         AssignmentsSyncTaskDef task = new AssignmentsSyncTaskDef();
         task.setCourseToSync(courseId);
         task.setTaskName(String.format("Sync Course '%s': Course Assignments", courseId));
@@ -157,28 +157,26 @@ public class AssignmentService {
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 
-        return Optional.of(task);
+        return task;
     }
 
-    public Optional<Assignment> updateAssignment(String courseId, AssignmentDTO assignmentDTO) {
+    public Assignment updateAssignment(String courseId, AssignmentDTO assignmentDTO) {
         Course course = courseService.getCourse(UUID.fromString(courseId));
 
-        Optional<Assignment> assignment = getAssignmentById(assignmentDTO.getId());
-        if (assignment.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment does not exist");
-        }
-        assignment.get().setName(assignmentDTO.getName());
-        assignment.get().setPoints(assignmentDTO.getPoints());
-        assignment.get().setCategory(assignmentDTO.getCategory());
-        assignment.get().setEnabled(assignmentDTO.getEnabled());
-        assignment.get().setDueDate(assignmentDTO.getDueDate());
-        assignment.get().setUnlockDate(assignmentDTO.getUnlockDate());
-        assignment.get().setCourse(course);
+        Assignment assignment = getAssignmentById(assignmentDTO.getId());
 
-        return Optional.of(assignmentRepo.save(assignment.get()));
+        assignment.setName(assignmentDTO.getName());
+        assignment.setPoints(assignmentDTO.getPoints());
+        assignment.setCategory(assignmentDTO.getCategory());
+        assignment.setEnabled(assignmentDTO.getEnabled());
+        assignment.setDueDate(assignmentDTO.getDueDate());
+        assignment.setUnlockDate(assignmentDTO.getUnlockDate());
+        assignment.setCourse(course);
+
+        return assignmentRepo.save(assignment);
     }
 
-    public Optional<Assignment> addAssignmentToCourse(String courseId, AssignmentDTO assignmentDTO) {
+    public Assignment addAssignmentToCourse(String courseId, AssignmentDTO assignmentDTO) {
         Course course = courseService.getCourse(UUID.fromString(courseId));
 
         Assignment assignment = new Assignment();
@@ -191,7 +189,7 @@ public class AssignmentService {
         assignment.setEnabled(true);
         assignment.setCourse(course);
 
-        return Optional.of(assignmentRepo.save(assignment));
+        return assignmentRepo.save(assignment);
     }
 
     public List<Assignment> getAllUnlockedAssignments(String courseId) {
@@ -204,28 +202,20 @@ public class AssignmentService {
     }
 
 
-    public Optional<Assignment> enableAssignment(String assignmentId){
-        Optional<Assignment> assignment = assignmentRepo.getAssignmentById(UUID.fromString(assignmentId));
+    public Assignment enableAssignment(String assignmentId){
+        Assignment assignment = getAssignmentById(assignmentId);
 
-        if (assignment.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment does not exist");
-        }
+        assignment.setEnabled(true);
 
-        assignment.get().setEnabled(true);
-
-        return Optional.of(assignmentRepo.save(assignment.get()));
+        return assignmentRepo.save(assignment);
 
     }
 
-    public Optional<Assignment> disableAssignment(String assignmentId){
-        Optional<Assignment> assignment = assignmentRepo.getAssignmentById(UUID.fromString(assignmentId));
+    public Assignment disableAssignment(String assignmentId){
+        Assignment assignment = getAssignmentById(assignmentId);
 
-        if (assignment.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment does not exist");
-        }
+        assignment.setEnabled(false);
 
-        assignment.get().setEnabled(false);
-
-        return Optional.of(assignmentRepo.save(assignment.get()));
+        return assignmentRepo.save(assignment);
     }
 }

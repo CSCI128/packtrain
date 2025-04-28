@@ -79,7 +79,7 @@ public class SectionService {
         return section.get();
     }
 
-    public Optional<ScheduledTaskDef> createSectionsFromCanvas(User actingUser, UUID courseId, long canvasId){
+    public ScheduledTaskDef createSectionsFromCanvas(User actingUser, UUID courseId, long canvasId){
         SectionSyncTaskDef task = new SectionSyncTaskDef();
         task.setCreatedByUser(actingUser);
         task.setTaskName(String.format("Sync Course '%s': Course Sections", courseId));
@@ -92,7 +92,7 @@ public class SectionService {
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDef));
 
-        return Optional.of(task);
+        return task;
     }
 
     public List<Section> getSectionsForCourse(UUID courseId){

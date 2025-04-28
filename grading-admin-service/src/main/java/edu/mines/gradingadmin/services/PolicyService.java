@@ -33,9 +33,9 @@ public class PolicyService {
     }
 
 
-    public Optional<Policy> createNewPolicy(User actingUser, UUID courseId, String policyName, String description, String fileName, MultipartFile file){
+    public Policy createNewPolicy(User actingUser, UUID courseId, String policyName, String description, String fileName, MultipartFile file){
         // if this is slow, we may need to make this a task
-        Optional<Course> course = courseRepo.findById(courseId);
+        Optional<Course> course = courseRepo.getById(courseId);
 
         if (course.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
@@ -74,7 +74,7 @@ public class PolicyService {
 
         log.info("Created new policy '{}' for course '{}' at '{}'", policyName, course.get().getCode(), policyUrl.get());
 
-        return Optional.of(policy);
+        return policy;
     }
 
 
@@ -125,13 +125,13 @@ public class PolicyService {
         return policyRepo.getPoliciesByCourse(course.get());
     }
 
-    public Optional<Policy> getPolicy(UUID policyId){
+    public Policy getPolicy(UUID policyId){
         Optional<Policy> policy = policyRepo.getPolicyById(policyId);
 
         if (policy.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy does not exist");
         }
 
-        return policy;
+        return policy.get();
     }
 }

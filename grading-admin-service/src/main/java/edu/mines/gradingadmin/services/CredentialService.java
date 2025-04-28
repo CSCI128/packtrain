@@ -31,8 +31,14 @@ public class CredentialService {
         return credentialRepo.getByCwid(cwid);
     }
 
-    public Optional<Credential> getCredentialById(UUID id) {
-        return credentialRepo.getById(id);
+    public Credential getCredentialById(String cwid, UUID id) {
+        Optional<Credential> credential = credentialRepo.getById(cwid, id);
+
+        if (credential.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Credential '%s' was not found", id));
+        }
+
+        return credential.get();
     }
 
     public Optional<String> getCredentialByService(String cwid, CredentialType type){
@@ -73,38 +79,25 @@ public class CredentialService {
         return credentialRepo.save(credential);
     }
 
-    public Credential markCredentialAsPublic(UUID credentialId){
-        Optional<Credential> credential = credentialRepo.getById(credentialId);
+    public Credential markCredentialAsPublic(String cwid, UUID credentialId){
+        Credential credential = getCredentialById(cwid, credentialId);
 
-        if (credential.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Credential does not exist");
-        }
+        credential.setPrivate(false);
 
-        credential.get().setPrivate(false);
-
-        return credentialRepo.save(credential.get());
+        return credentialRepo.save(credential);
     }
 
-    public Credential markCredentialAsPrivate(UUID credentialId) {
-        Optional<Credential> credential = credentialRepo.getById(credentialId);
+    public Credential markCredentialAsPrivate(String cwid, UUID credentialId) {
+        Credential credential = getCredentialById(cwid, credentialId);
 
-        if (credential.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Credential does not exist");
-        }
+        credential.setPrivate(true);
 
-        credential.get().setPrivate(true);
-
-        return credentialRepo.save(credential.get());
+        return credentialRepo.save(credential);
     }
 
-    public void deleteCredential(UUID credentialId) {
-        Optional<Credential> credential = credentialRepo.getById(credentialId);
+    public void deleteCredential(String cwid, UUID credentialId) {
+        Credential credential = getCredentialById(cwid, credentialId);
 
-        if (credential.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Credential does not exist");
-        }
-
-
-        credentialRepo.delete(credential.get());
+        credentialRepo.delete(credential);
     }
 }

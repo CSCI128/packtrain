@@ -39,8 +39,15 @@ public class UserService {
         return user.get();
     }
 
-    public Optional<User> getUserByEmail(String email){
-        return userRepo.getByEmail(email);
+    public User getUserByEmail(String email){
+        Optional<User> user = userRepo.getByEmail(email);
+
+        if (user.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User '%s' does not exist!", cwid));
+        }
+
+        return user.get();
+
     }
 
     public Optional<User> getUserByOauthId(String id){
