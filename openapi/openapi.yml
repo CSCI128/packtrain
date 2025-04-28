@@ -2538,8 +2538,9 @@ components:
           type: string
           example: "Gradescope"
         external_points:
-          type: integer
-          example: 14
+          type: number
+          format: double
+          example: 14.0
         due_date:
           type: string
           format: date-time
@@ -2884,6 +2885,9 @@ components:
         - assignment
         - policy
       properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
         assignment:
           $ref: "#/components/schemas/Assignment"
         policy:

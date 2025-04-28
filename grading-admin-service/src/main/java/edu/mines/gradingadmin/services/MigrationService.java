@@ -125,9 +125,14 @@ public class MigrationService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment does not exist");
         }
 
+        List<Migration> migrations = masterMigration.get().getMigrations();
+        migrations.add(migration);
+        masterMigration.get().setMigrations(migrations);
+
         migration.setAssignment(assignment.get());
         migration.setMasterMigration(masterMigration.get());
         migrationRepo.save(migration);
+        masterMigrationRepo.save(masterMigration.get());
 
         return masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
     }

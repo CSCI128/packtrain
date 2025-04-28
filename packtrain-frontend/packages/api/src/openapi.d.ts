@@ -46,7 +46,7 @@ declare namespace Components {
              * example:
              * 14
              */
-            external_points?: number;
+            external_points?: number; // double
             /**
              * example:
              * 2020-01-15T12:00:00.000Z
@@ -484,6 +484,11 @@ declare namespace Components {
          * Migration object that has a single assignment and a policy
          */
         export interface Migration {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            id?: string;
             assignment: /* An assignment in a course */ Assignment;
             policy: /* A grading policy */ Policy;
         }

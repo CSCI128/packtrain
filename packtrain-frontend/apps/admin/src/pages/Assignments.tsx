@@ -171,6 +171,8 @@ export function AssignmentsPage() {
           due_date: value?.toISOString(),
           points: values.points,
           unlock_date: unlockDateValue?.toISOString(),
+          external_service: values.external_service,
+          external_points: values.external_points,
           canvas_id: values.canvas_id,
           enabled: values.enabled,
           attention_required: values.attention_required,

@@ -3880,7 +3880,8 @@
             "example": "Gradescope"
           },
           "external_points": {
-            "type": "integer",
+            "type": "number",
+            "format": "double",
             "example": 14
           },
           "due_date": {
@@ -4332,6 +4333,10 @@
           "policy"
         ],
         "properties": {
+          "id": {
+            "type": "string",
+            "example": "999-9999-9999-99"
+          },
           "assignment": {
             "$ref": "#/components/schemas/Assignment"
           },

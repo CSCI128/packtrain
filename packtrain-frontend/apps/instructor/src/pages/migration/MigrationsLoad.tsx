@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
-import { Course } from "@repo/api/openapi";
+import { Course, MasterMigration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
@@ -52,6 +52,58 @@ export function MigrationsLoadPage() {
             course_id: store$.id.get() as string,
           })
         )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
+
+  const createMigration = useMutation({
+    mutationKey: ["createMigration"],
+    mutationFn: ({
+      master_migration_id,
+      assignment_id,
+    }: {
+      master_migration_id: string;
+      assignment_id: string;
+    }) =>
+      getApiClient()
+        .then((client) =>
+          client.create_migration_for_master_migration({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
+            assignment: assignment_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
+
+  const uploadScores = useMutation({
+    mutationKey: ["uploadScores"],
+    mutationFn: ({
+      master_migration_id,
+      migration_id,
+      file,
+    }: {
+      master_migration_id: string;
+      migration_id: string;
+      file: string;
+    }) =>
+      getApiClient()
+        .then((client) => {
+          return client.upload_raw_scores(
+            {
+              course_id: store$.id.get() as string,
+              master_migration_id: master_migration_id,
+              migration_id: migration_id,
+            },
+            file,
+            {
+              headers: {
+                "Content-Type": "application/octet-stream",
+              },
+            }
+          );
+        })
         .then((res) => res.data)
         .catch((err) => console.log(err)),
   });
@@ -127,8 +179,36 @@ export function MigrationsLoadPage() {
     );
   };
 
-  // create_migration_for_master_migration
-  // /instructor/course/{course_id}/migrations/{master_migration_id}/{migration_id}/scores
+  const uploadForAssignment = (file: File, selectedAssignmentId: string) => {
+    createMigration.mutate(
+      {
+        master_migration_id: masterMigrationId,
+        assignment_id: selectedAssignmentId,
+      },
+      {
+        onSuccess: async (data: MasterMigration | void) => {
+          console.log(data);
+
+          // const arrayBuffer = await file.arrayBuffer();
+          // const uint8Array = new Uint8Array(arrayBuffer);
+
+          // let binaryString = "";
+          // for (let i = 0; i < uint8Array.length; i++) {
+          //   binaryString += String.fromCharCode(uint8Array[i]);
+          // }
+
+          uploadScores.mutate({
+            master_migration_id: masterMigrationId,
+            migration_id: data?.migrations
+              ?.filter((x) => x.assignment.id === selectedAssignmentId)
+              .at(0)?.id as string,
+            // @ts-ignore
+            file,
+          });
+        },
+      }
+    );
+  };
 
   useEffect(() => {
     if (!store$.master_migration_id.get()) {
@@ -145,7 +225,7 @@ export function MigrationsLoadPage() {
   }, [store$]);
 
   useEffect(() => {
-    if (selectedAssignmentIds) {
+    if (selectedAssignmentIds && selectedAssignmentIds.length > 0) {
       console.log("CHANGED:", selectedAssignmentIds);
     }
   }, [selectedAssignmentIds]);
@@ -186,96 +266,104 @@ export function MigrationsLoadPage() {
 
       <Divider my="sm" />
 
-      <form onSubmit={form.onSubmit(loadAssignments)}>
-        <Stack>
-          <MultiSelect
-            withAsterisk
-            searchable
-            searchValue={searchValue}
-            onSearchChange={setSearchValue}
-            label="Assignment"
-            placeholder="Select more.."
-            data={
-              data.assignments &&
-              data.assignments.flatMap((x) => [
+      {/* <form onSubmit={form.onSubmit(loadAssignments)}> */}
+      <Stack>
+        <MultiSelect
+          withAsterisk
+          searchable
+          searchValue={searchValue}
+          onSearchChange={setSearchValue}
+          label="Assignment"
+          placeholder="Select more.."
+          data={
+            data.assignments &&
+            data.assignments
+              .flatMap((x) => [
                 {
                   label: x.name,
                   value: x.id as string,
                 },
               ])
-            }
-            key={form.key("assignmentIds")}
-            {...form.getInputProps("assignmentIds")}
-            onChange={(value: string[]): void => {
-              setSelectedAssignmentIds(value);
-            }}
-          />
+              .toSorted((x, y) => x.label.localeCompare(y.label))
+          }
+          key={form.key("assignmentIds")}
+          {...form.getInputProps("assignmentIds")}
+          onChange={(value: string[]): void => {
+            setSelectedAssignmentIds(value);
+          }}
+        />
 
-          {selectedAssignmentIds.map((selectedAssignment) => (
-            <React.Fragment key={selectedAssignment}>
-              <Box p={20} bg="gray.1">
-                <Group justify="space-between">
-                  <Group>
-                    <Text fw={800}>
-                      {
-                        data.assignments?.filter(
-                          (a) => a.id === selectedAssignment
-                        )[0]?.name
-                      }
-                    </Text>
-                    <Text>Status</Text>
-                  </Group>
-
-                  <Group>
-                    <Text>View Data</Text>
-                    <FileInput placeholder="Upload a file.." />
-                  </Group>
+        {selectedAssignmentIds.map((selectedAssignment: string) => (
+          <React.Fragment key={selectedAssignment}>
+            <Box p={20} bg="gray.1">
+              <Group justify="space-between">
+                <Group>
+                  <Text fw={800}>
+                    {
+                      data.assignments?.filter(
+                        (a) => a.id === selectedAssignment
+                      )[0]?.name
+                    }
+                  </Text>
+                  {/*<Text>Status</Text>*/}
                 </Group>
-              </Box>
-            </React.Fragment>
-          ))}
-        </Stack>
 
-        <Group justify="space-between" mt="xl">
+                <Group>
+                  {/*<Text>View Data</Text>*/}
+                  <FileInput
+                    placeholder="Upload a file.."
+                    onChange={(file) =>
+                      uploadForAssignment(file as File, selectedAssignment)
+                    }
+                  />
+                </Group>
+              </Group>
+            </Box>
+          </React.Fragment>
+        ))}
+      </Stack>
+
+      <Group justify="space-between" mt="xl">
+        <Button
+          color="gray"
+          onClick={() => {
+            form.reset();
+            setSelectedAssignmentIds([]);
+          }}
+        >
+          Clear
+        </Button>
+
+        <Group>
           <Button
-            color="gray"
+            variant="light"
             onClick={() => {
-              form.reset();
-              setSelectedAssignmentIds([]);
+              navigate("/instructor/migrate");
+              store$.master_migration_id.delete();
+              // TODO delete master migration too
             }}
+            color="gray"
           >
-            Clear
+            Cancel
           </Button>
 
-          <Group>
-            <Button
-              variant="light"
-              onClick={() => {
-                navigate("/instructor/migrate");
-                store$.master_migration_id.delete();
-                // TODO delete master migration too
-              }}
-              color="gray"
-            >
-              Cancel
-            </Button>
+          <Button color="green" onClick={validateAssignments}>
+            Validate
+          </Button>
 
-            <Button color="green" onClick={validateAssignments}>
-              Validate
+          {validated ? (
+            <Button color="blue" onClick={loadAssignments}>
+              {/* <Button color="blue" type="submit">*/}
+              Next
             </Button>
-
-            {validated ? (
-              <Button color="blue" type="submit">
-                Next
-              </Button>
-            ) : (
-              <Button disabled color="gray">
-                Next
-              </Button>
-            )}
-          </Group>
+          ) : (
+            <Button disabled color="gray">
+              Next
+            </Button>
+          )}
         </Group>
-      </form>
+      </Group>
+      {/* </form> */}
     </Container>
   );
 }

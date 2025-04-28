@@ -3,7 +3,9 @@ package edu.mines.gradingadmin.factories;
 import edu.mines.gradingadmin.data.*;
 import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class DTOFactory {
 
     public static LateRequestDTO toDto(LateRequest lateRequest) {
@@ -94,7 +96,7 @@ public class DTOFactory {
     }
 
     public static AssignmentDTO toDto(Assignment assignment) {
-        return new AssignmentDTO()
+        AssignmentDTO dto = new AssignmentDTO()
             .id(assignment.getId().toString())
             .name(assignment.getName())
             .canvasId(assignment.getCanvasId())
@@ -104,8 +106,15 @@ public class DTOFactory {
             .category(assignment.getCategory())
             .groupAssignment(assignment.isGroupAssignment())
             .attentionRequired(assignment.isAttentionRequired())
-            // TODO need to add external source config
             .enabled(assignment.isEnabled());
+
+        if(assignment.getExternalAssignmentConfig() != null) {
+            if (assignment.getExternalAssignmentConfig().getType() != null) {
+                dto.externalService(assignment.getExternalAssignmentConfig().getType().name());
+            }
+            dto.externalPoints(assignment.getExternalAssignmentConfig().getExternalPoints());
+        }
+        return dto;
     }
 
     public static AssignmentSlimDTO toSlimDto(Assignment assignment) {
@@ -139,9 +148,13 @@ public class DTOFactory {
 
     public static MigrationDTO toDto(Migration migration){
         // we are join fetching the assignment and policy so they will always be available
-        return new MigrationDTO()
-            .assignment(toDto(migration.getAssignment()))
-            .policy(toDto(migration.getPolicy()));
+        MigrationDTO dto = new MigrationDTO()
+                .id(migration.getId().toString())
+                .assignment(toDto(migration.getAssignment()));
+        if(migration.getPolicy() != null) {
+            dto.policy(toDto(migration.getPolicy()));
+        }
+        return dto;
     }
 
     public static MasterMigrationDTO toDto(MasterMigration masterMigration){

@@ -1,15 +1,19 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.data.AssignmentDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Assignment;
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.ExternalAssignment;
 import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.models.enums.ExternalAssignmentType;
 import edu.mines.gradingadmin.models.tasks.AssignmentsSyncTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.repositories.AssignmentRepo;
+import edu.mines.gradingadmin.repositories.ExternalAssignmentRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.services.external.CanvasService;
 import lombok.extern.slf4j.Slf4j;
@@ -31,14 +35,16 @@ public class AssignmentService {
     private final ApplicationEventPublisher eventPublisher;
     private final ImpersonationManager impersonationManager;
     private final CanvasService canvasService;
+    private final ExternalAssignmentRepo externalAssignmentRepo;
 
-    public AssignmentService(ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo, AssignmentRepo assignmentRepo, CourseService courseService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, CanvasService canvasService) {
+    public AssignmentService(ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo, AssignmentRepo assignmentRepo, CourseService courseService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, CanvasService canvasService, ExternalAssignmentRepo externalAssignmentRepo) {
         this.taskRepo = taskRepo;
         this.assignmentRepo = assignmentRepo;
         this.courseService = courseService;
         this.eventPublisher = eventPublisher;
         this.impersonationManager = impersonationManager;
         this.canvasService = canvasService;
+        this.externalAssignmentRepo = externalAssignmentRepo;
     }
 
     public Optional<Assignment> getAssignmentById(String id) {
@@ -177,6 +183,26 @@ public class AssignmentService {
         assignment.get().setUnlockDate(assignmentDTO.getUnlockDate());
         assignment.get().setCourse(course.get());
 
+        ExternalAssignment externalServiceConfig = assignment.get().getExternalAssignmentConfig();
+        if(assignment.get().getExternalAssignmentConfig() == null) {
+            externalServiceConfig = new ExternalAssignment();
+        }
+
+        if(assignmentDTO.getExternalService() != null) {
+            externalServiceConfig.setType(ExternalAssignmentType.valueOf(assignmentDTO.getExternalService()));
+        }
+
+        double externalPoints;
+        if(assignmentDTO.getExternalPoints() == null) {
+            externalPoints = 0.0;
+        }
+        else {
+            externalPoints = assignmentDTO.getExternalPoints();
+        }
+        externalServiceConfig.setExternalPoints(externalPoints);
+
+        assignment.get().setExternalAssignmentConfig(externalServiceConfig);
+        externalAssignmentRepo.save(externalServiceConfig);
         return Optional.of(assignmentRepo.save(assignment.get()));
     }
 
