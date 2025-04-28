@@ -41,8 +41,13 @@ public class AssignmentService {
         this.canvasService = canvasService;
     }
 
-    public Optional<Assignment> getAssignmentById(String id) {
-        return assignmentRepo.getAssignmentById(UUID.fromString(id));
+    public Assignment getAssignmentById(String id) {
+        Optional<Assignment> assignment = assignmentRepo.getAssignmentById(UUID.fromString(id));
+        if (assignment.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Assignment '%s' does not exist!", id));
+        }
+
+        return assignment.get();
     }
 
     public void syncAssignmentTask(AssignmentsSyncTaskDef task){

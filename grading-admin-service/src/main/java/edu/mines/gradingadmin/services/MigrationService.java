@@ -103,11 +103,9 @@ public class MigrationService {
 
     public Optional<MasterMigration> createMasterMigration(String courseId, User createdByUser){
         MasterMigration masterMigration = new MasterMigration();
-        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-        if (course.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
-        }
-        masterMigration.setCourse(course.get());
+        Course course = courseService.getCourse(UUID.fromString(courseId));
+
+        masterMigration.setCourse(course);
         masterMigration.setCreatedByUser(createdByUser);
         return Optional.of(masterMigrationRepo.save(masterMigration));
     }
@@ -120,13 +118,9 @@ public class MigrationService {
         }
 
         Migration migration = new Migration();
-        Optional<Assignment> assignment = assignmentService.getAssignmentById(assignmentId);
+        Assignment assignment = assignmentService.getAssignmentById(assignmentId);
 
-        if (assignment.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment does not exist");
-        }
-
-        migration.setAssignment(assignment.get());
+        migration.setAssignment(assignment);
         migration.setMasterMigration(masterMigration.get());
         migrationRepo.save(migration);
 
@@ -235,17 +229,15 @@ public class MigrationService {
         transactionLogRepo.save(entry);
     }
 
+    @Transactional
     public void processScoresAndExtensionsTask(ProcessScoresAndExtensionsTaskDef task){
-        Optional<Assignment> assignment = assignmentService.getAssignmentById(task.getAssignmentId().toString());
+        Assignment assignment = assignmentService.getAssignmentById(task.getAssignmentId().toString());
 
-        if (assignment.isEmpty()){
-            throw new RuntimeException(String.format("Failed to get assignment '%s'", task.getAssignmentId()));
-        }
         MigrationFactory.ProcessScoresAndExtensionsConfig config;
 
         try {
            config = MigrationFactory.startProcessScoresAndExtensions(task.getMigrationId(), rabbitMqService::createRawGradePublishChannel, rabbitMqService::createScoreReceivedChannel)
-                    .forAssignment(assignment.get())
+                    .forAssignment(assignment)
                     .withPolicy(task.getPolicy())
                     .withOnScoreReceived(dto -> this.handleScoreReceived(task.getCreatedByUser(), task.getMigrationId(), dto))
                     .build();

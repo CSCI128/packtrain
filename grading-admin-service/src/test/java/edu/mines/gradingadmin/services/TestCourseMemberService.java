@@ -104,7 +104,7 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
 
         courseMemberService.syncCourseMembersTask(task);
 
-        section = sectionService.getSection(section.getId()).orElseThrow(AssertionError::new);
+        section = sectionService.getSection(section.getId());
 
         Set<CourseMember> members = courseMemberRepo.getAllByCourse(course);
 

@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,8 +51,24 @@ public class CourseMemberService {
         return courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().findFirst();
     }
 
-    public Optional<CourseMember> getFirstSectionInstructor(Section section) {
-        return section.getMembers().stream().filter(member -> member.getRole() == CourseRole.INSTRUCTOR).findFirst();
+    public CourseMember getStudentInstructor(Course course, Optional<Section> section) {
+        // prefer who ever has less sections - coordinator is listed as instructor for all adjunct classes.
+        // if no instructor exists for that section, then return the owner
+
+        if (section.isEmpty()) {
+            return getCourseOwner(course);
+        }
+
+        List<CourseMember> members = section.get().getMembers().stream()
+                .filter(m -> m.getRole().equals(CourseRole.INSTRUCTOR) || m.getRole().equals(CourseRole.OWNER))
+                .sorted(Comparator.comparingInt(a -> a.getSections().size())).toList();
+
+        if (members.isEmpty()){
+            return getCourseOwner(course);
+        }
+
+
+        return members.getFirst();
     }
 
     public List<CourseMember> searchCourseMembers(Course course, List<CourseRole> roles, String name, String cwid) {
@@ -61,6 +78,17 @@ public class CourseMemberService {
             return courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().filter(x -> roles.contains(x.getRole())).toList();
         }
         return courseMemberRepo.getAllByCourse(course).stream().filter(x -> roles.contains(x.getRole())).toList();
+    }
+
+    public CourseMember getCourseOwner(Course course){
+        Optional<CourseMember> owner = courseMemberRepo.getAllByCourse(course).stream().filter(m -> m.getRole().equals(CourseRole.OWNER)).findFirst();
+
+        if (owner.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, String.format("No owner configured for course '%s'", course.getCode()));
+        }
+
+        return owner.get();
+
     }
 
     public List<CourseMember> getAllStudentsInCourse(Course course){

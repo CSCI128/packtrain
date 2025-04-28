@@ -250,8 +250,8 @@ public class TestTaskExecutorService implements PostgresTestContainer {
 
         taskForUser2 = testTaskRepo.save(taskForUser2);
 
-        Optional<ScheduledTaskDef> actualTasks = executorService.getScheduledTask(user1, taskForUser1.getId());
-        Assertions.assertTrue(actualTasks.isPresent());
+        ScheduledTaskDef actualTasks = executorService.getScheduledTask(user1, taskForUser1.getId());
+        Assertions.assertNotNull(actualTasks);
     }
 
 }

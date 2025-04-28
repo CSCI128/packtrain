@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.List;
@@ -67,7 +68,7 @@ public class AdminApiImpl implements AdminApiDelegate {
         );
 
         if (user.isEmpty()) {
-            return ResponseEntity.badRequest().build();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User '%s' already exists!", userDTO.getCwid()));
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).build();

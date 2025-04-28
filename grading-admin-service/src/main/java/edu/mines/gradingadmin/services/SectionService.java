@@ -45,27 +45,22 @@ public class SectionService {
         IdentityProvider user = impersonationManager.impersonateUser(task.getCreatedByUser());
         List<edu.ksu.canvas.model.Section> canvasSections = canvasService.asUser(user).getCourseSections(task.getCanvasId());
 
-        Optional<Course> course = courseService.getCourse(task.getCourseToImport());
+        Course course = courseService.getCourse(task.getCourseToImport());
 
-        if (course.isEmpty()){
-            log.warn("Requested course does not exit");
-            return;
-        }
-
-        log.debug("Processing {} sections for course '{}'", canvasSections.size(), course.get().getCode());
+        log.debug("Processing {} sections for course '{}'", canvasSections.size(), course.getCode());
 
         List<Section> sections = canvasSections.stream()
-                .map(s -> createSection(s.getId(), s.getName(), course.get()))
+                .map(s -> createSection(s.getId(), s.getName(), course))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
         .toList();
 
-        log.info("Added {} new sections for course '{}'", sections.size(), course.get().getCode());
+        log.info("Added {} new sections for course '{}'", sections.size(), course.getCode());
     }
 
     public Optional<Section> createSection(long canvasId, String name, Course course){
         if (sectionRepo.existsByCanvasId(canvasId)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Section already exists, can not create section with same ID");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Section '%s' already exists, can not create section with same id!", name));
         }
 
         Section newSection = new Section();
@@ -76,8 +71,12 @@ public class SectionService {
         return Optional.of(sectionRepo.save(newSection));
     }
 
-    public Optional<Section> getSection(UUID uuid){
-        return sectionRepo.getById(uuid);
+    public Section getSection(UUID uuid){
+        Optional<Section> section = sectionRepo.getById(uuid);
+        if (section.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Section '%s' was not found!", uuid));
+        }
+        return section.get();
     }
 
     public Optional<ScheduledTaskDef> createSectionsFromCanvas(User actingUser, UUID courseId, long canvasId){

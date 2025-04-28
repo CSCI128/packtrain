@@ -94,7 +94,7 @@ public class SecurityManager implements IdentityProvider{
      * @return An optional populated with the current user, or an empty optional if the user
      */
     private Optional<User> attemptToLinkExistingUser(String cwid, String oauthId){
-        Optional<User> loadedUser = userService.getUserByCwid(cwid);
+        Optional<User> loadedUser = userService.findUserByCwid(cwid);
 
         if (loadedUser.isPresent()){
             loadedUser = userService.linkCwidToOauthId(loadedUser.get(), oauthId);
