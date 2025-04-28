@@ -37,24 +37,16 @@ public class OwnerApiImpl implements OwnerApiDelegate {
 
     @Override
     public ResponseEntity<Void> updateAssignment(String courseId, AssignmentDTO assignmentDto) {
-        Optional<Assignment> assignment = assignmentService.updateAssignment(courseId, assignmentDto);
-
-        if (assignment.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        Assignment assignment = assignmentService.updateAssignment(courseId, assignmentDto);
 
         return ResponseEntity.accepted().build();
     }
 
     @Override
     public ResponseEntity<AssignmentDTO> addAssignment(String courseId, AssignmentDTO assignmentDto) {
-        Optional<Assignment> assignment = assignmentService.addAssignmentToCourse(courseId, assignmentDto);
+        Assignment assignment = assignmentService.addAssignmentToCourse(courseId, assignmentDto);
 
-        if (assignment.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.accepted().body(DTOFactory.toDto(assignment.get()));
+        return ResponseEntity.accepted().body(DTOFactory.toDto(assignment));
     }
 
     @Override

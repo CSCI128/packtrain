@@ -14,9 +14,6 @@ public class GradescopeConfig {
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "enabled", nullable = false)
-    private boolean enabled = true;
-
     @Column(name = "gradescopeId", unique = true, nullable = false)
     private String gradescopeId;
 }

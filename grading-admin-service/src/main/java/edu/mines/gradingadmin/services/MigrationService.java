@@ -167,18 +167,16 @@ public class MigrationService {
     public Migration setPolicyForMigration(String migrationId, String policyId){
         Migration updatedMigration = migrationRepo.getMigrationById(UUID.fromString(migrationId));
 
-        Optional<Policy> policy = policyService.getPolicy(UUID.fromString(policyId)).map(policyService::incrementUsedBy);
+        Policy policy = policyService.getPolicy(UUID.fromString(policyId));
+
+        policyService.incrementUsedBy(policy);
 
         if (updatedMigration.getPolicy() != null){
             policyService.decrementUsedBy(updatedMigration.getPolicy());
             updatedMigration.setPolicy(null);
         }
 
-        if (policy.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy does not exist");
-        }
-
-        updatedMigration.setPolicy(policy.get());
+        updatedMigration.setPolicy(policy);
         return migrationRepo.save(updatedMigration);
 
     }

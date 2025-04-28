@@ -105,7 +105,6 @@ public class CourseService {
             if (courseDTO.getGradescopeId() != null) {
                 gsConfig.setGradescopeId(courseDTO.getGradescopeId().toString());
             }
-            gsConfig.setEnabled(courseDTO.getEnabled());
             course.setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));
         }
 
@@ -197,15 +196,13 @@ public class CourseService {
 
         Optional<CourseLateRequestConfig> lateRequestConfig = createCourseLateRequestConfig(courseDTO.getLateRequestConfig());
 
-        GradescopeConfig gsConfig = new GradescopeConfig();
-        gsConfig.setEnabled(false);
 
         if (courseDTO.getGradescopeId() != null) {
+            GradescopeConfig gsConfig = new GradescopeConfig();
             gsConfig.setGradescopeId(courseDTO.getGradescopeId().toString());
-            gsConfig.setEnabled(true);
+            newCourse.setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));
         }
 
-        newCourse.setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));
 
         if (lateRequestConfig.isPresent()) {
             newCourse.setLateRequestConfig(lateRequestConfig.get());

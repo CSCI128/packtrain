@@ -43,7 +43,7 @@ public class UserService {
         Optional<User> user = userRepo.getByEmail(email);
 
         if (user.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User '%s' does not exist!", cwid));
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("User '%s' does not exist!", email));
         }
 
         return user.get();
@@ -176,6 +176,8 @@ public class UserService {
 
         user.setAdmin(true);
 
+        userRepo.save(user);
+
         log.info("Made user '{}' an admin", user.getEmail());
 
         return true;
@@ -194,8 +196,9 @@ public class UserService {
 
         user.setAdmin(false);
 
-        log.info("Demoted admin '{}' to user", user.getEmail());
+        userRepo.save(user);
 
+        log.info("Demoted admin '{}' to user", user.getEmail());
 
         return true;
     }

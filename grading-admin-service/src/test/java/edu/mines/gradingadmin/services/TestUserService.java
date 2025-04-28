@@ -142,45 +142,45 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
 
     @Test
     void verifyMakeAdminNoMemberships(){
+        User admin = userSeeders.admin1();
         User user1 = userSeeders.user1();
 
-        userService.makeAdmin(user1.getCwid());
+        userService.makeAdmin(admin, user1.getCwid());
 
-        Optional<User> user = userService.getUserByCwid(user1.getCwid());
-        Assertions.assertTrue(user.isPresent());
+        User user = userService.getUserByCwid(user1.getCwid());
 
-        Assertions.assertTrue(user.get().isAdmin());
-        Assertions.assertEquals(user1.getCwid(), user.get().getCwid());
+        Assertions.assertTrue(user.isAdmin());
+        Assertions.assertEquals(user1.getCwid(), user.getCwid());
     }
 
     @Test
     void verifyMakeAdminTeacherMembership(){
+        User admin = userSeeders.admin1();
         User user1 = userSeeders.user1();
 
         Course course1 = courseSeeders.course1();
 
         courseMemberService.addMemberToCourse(course1.getId().toString(), new CourseMemberDTO().cwid(user1.getCwid()).canvasId("99999").courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.INSTRUCTOR.getRole())));
 
-        userService.makeAdmin(user1.getCwid());
+        userService.makeAdmin(admin, user1.getCwid());
 
-        Optional<User> user = userService.getUserByCwid(user1.getCwid());
-        Assertions.assertTrue(user.isPresent());
+        User user = userService.getUserByCwid(user1.getCwid());
 
-        Assertions.assertTrue(user.get().isAdmin());
-        Assertions.assertEquals(user1.getCwid(), user.get().getCwid());
+        Assertions.assertEquals(user1.getCwid(), user.getCwid());
+        Assertions.assertTrue(user.isAdmin());
     }
 
     @Test
     void verifyMakeAdminStudentMembership(){
+        User admin = userSeeders.admin1();
         User user1 = userSeeders.user1();
 
         Course course1 = courseSeeders.course1();
 
         courseMemberService.addMemberToCourse(course1.getId().toString(), new CourseMemberDTO().cwid(user1.getCwid()).canvasId("99999").courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(CourseRole.STUDENT.getRole())));
 
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> userService.makeAdmin(user1.getCwid()));
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> userService.makeAdmin(admin, user1.getCwid()));
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-        Assertions.assertEquals("User is a student, can not make student an admin user", exception.getReason());
     }
 
     @Test

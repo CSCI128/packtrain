@@ -52,7 +52,7 @@ public class Course {
     @JoinColumn(name = "extension_config_id", referencedColumnName = "id")
     private CourseLateRequestConfig lateRequestConfig;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "gradescope_config_id", referencedColumnName = "id")
     private GradescopeConfig gradescopeConfig;
 }

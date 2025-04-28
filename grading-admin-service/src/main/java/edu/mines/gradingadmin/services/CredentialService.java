@@ -26,8 +26,6 @@ public class CredentialService {
     }
 
     public List<Credential> getAllCredentials(String cwid){
-        User user = userService.getUserByCwid(cwid);
-
         return credentialRepo.getByCwid(cwid);
     }
 

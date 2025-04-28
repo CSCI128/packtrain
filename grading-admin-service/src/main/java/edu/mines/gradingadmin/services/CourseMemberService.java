@@ -353,7 +353,7 @@ public class CourseMemberService {
             return Optional.empty();
         }
 
-        return Optional.of(user.get().getCwid());
+        return Optional.of(user.getCwid());
     }
 
     public String getCanvasIdGivenCourseAndCwid(String cwid, Course course){

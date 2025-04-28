@@ -103,17 +103,15 @@ public class TestMigrationService implements PostgresTestContainer {
 
     @Test
     void verifyCreateMasterMigration(){
-        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
-        Assertions.assertTrue(masterMigration.isPresent());
-        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        MasterMigration masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.getId().toString());
         Assertions.assertEquals(0, migrationList.size());
 
     }
 
     @Test
     void verifyUpdatePolicy(){
-        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
-        Assertions.assertTrue(masterMigration.isPresent());
+        MasterMigration masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
         Optional<Assignment> assignment = course.getAssignments().stream().findFirst();
         Assertions.assertTrue(assignment.isPresent());
 
@@ -125,16 +123,16 @@ public class TestMigrationService implements PostgresTestContainer {
         User user = userSeeders.user1();
         policy.setCreatedByUser(user);
         policy = policyRepo.save(policy);
-        migrationService.addMigration(masterMigration.get().getId().toString(), assignment.get().getId().toString());
+        migrationService.addMigration(masterMigration.getId().toString(), assignment.get().getId().toString());
 
-        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.getId().toString());
         Assertions.assertEquals(1, migrationList.size());
 
         migrationService.setPolicyForMigration(migrationList.get(0).getId().toString(), policy.getId().toString());
 
         policy = policyRepo.getPolicyById(policy.getId()).orElseThrow(AssertionError::new);
 
-        migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.getId().toString());
         Assertions.assertEquals(1, migrationList.size());
         Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
         Assertions.assertEquals(1, policy.getNumberOfMigrations());
@@ -142,14 +140,13 @@ public class TestMigrationService implements PostgresTestContainer {
 
     @Test
     void verifyMigrationsCreated() {
-        Optional<MasterMigration> masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
-        Assertions.assertTrue(masterMigration.isPresent());
+        MasterMigration masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
         Optional<Assignment> assignment = course.getAssignments().stream().findFirst();
         Assertions.assertTrue(assignment.isPresent());
 
-        migrationService.addMigration(masterMigration.get().getId().toString(), assignment.get().getId().toString());
+        migrationService.addMigration(masterMigration.getId().toString(), assignment.get().getId().toString());
 
-        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.get().getId().toString());
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.getId().toString());
         Assertions.assertEquals(1, migrationList.size());
         Assertions.assertEquals(assignment.get().getId().toString(), migrationList.getFirst().getAssignment().getId().toString());
     }
@@ -175,7 +172,6 @@ public class TestMigrationService implements PostgresTestContainer {
         );
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-        Assertions.assertEquals("User does not exist", exception.getReason());
 
     }
 

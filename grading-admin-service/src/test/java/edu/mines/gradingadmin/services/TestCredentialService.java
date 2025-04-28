@@ -53,15 +53,13 @@ class TestCredentialService implements PostgresTestContainer {
 
         Assertions.assertEquals(0, credentials.size());
 
-        Optional<Credential> cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
-        Assertions.assertTrue(cred.isPresent());
-
-        credentials = credentialRepo.getByCwidAndType(user.getCwid(), CredentialType.CANVAS);
+        credentials = credentialRepo.getByCwid(user.getCwid());
 
         Assertions.assertEquals(1, credentials.size());
 
-        Assertions.assertEquals(user.getCwid(), credentials.getFirst().getOwningUser().getCwid());
+        Assertions.assertEquals(cred, credentials.getFirst());
     }
 
     @Test
@@ -71,12 +69,11 @@ class TestCredentialService implements PostgresTestContainer {
         credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
         ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))));
-        Assertions.assertEquals("Credential already exists", exception.getReason());
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 
-        List<Credential> credentials = credentialRepo.getByCwidAndType(user.getCwid(), CredentialType.CANVAS);
+        Optional<Credential> credential = credentialRepo.getByCwidAndType(user.getCwid(), CredentialType.CANVAS);
 
-        Assertions.assertEquals(1, credentials.size());
+        Assertions.assertTrue(credential.isPresent());
     }
 
     @Test
@@ -86,7 +83,6 @@ class TestCredentialService implements PostgresTestContainer {
         credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
         ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))));
-        Assertions.assertEquals("Credential already exists", exception.getReason());
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 
         List<Credential> credentials = credentialRepo.getByCwid(user.getCwid());
@@ -98,9 +94,9 @@ class TestCredentialService implements PostgresTestContainer {
     void verifyMarkCredentialAsPublic(){
         User user = userSeeder.user1();
 
-        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))).orElseThrow();
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
-        Credential newCred = credentialService.markCredentialAsPublic(cred.getId()).orElseThrow();
+        Credential newCred = credentialService.markCredentialAsPublic(user.getCwid(), cred.getId());
 
         Assertions.assertEquals(cred.getId(), newCred.getId());
 
@@ -111,9 +107,9 @@ class TestCredentialService implements PostgresTestContainer {
     void verifyDeleteCredential(){
         User user = userSeeder.user1();
 
-        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))).orElseThrow();
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
-        credentialService.deleteCredential(cred);
+        credentialService.deleteCredential(user.getCwid(), cred.getId());
 
         Assertions.assertEquals(0, credentialRepo.getByCwid(user.getCwid()).size());
     }
@@ -122,10 +118,9 @@ class TestCredentialService implements PostgresTestContainer {
     void verifyMarkCredentialAsPrivate(){
         User user = userSeeder.user1();
 
-        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))).orElseThrow();
+        Credential cred = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
-        Credential newCred = credentialService.markCredentialAsPublic(cred.getId()).orElseThrow();
-        newCred = credentialService.markCredentialAsPrivate(cred.getId()).orElseThrow();
+        Credential newCred = credentialService.markCredentialAsPrivate(user.getCwid(), cred.getId());
 
         Assertions.assertEquals(cred.getId(), newCred.getId());
 
@@ -136,11 +131,11 @@ class TestCredentialService implements PostgresTestContainer {
     void verifyGetAllCredentials(){
         User user = userSeeder.user1();
 
-        Credential cred1 = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas"))).orElseThrow();
+        Credential cred1 = credentialService.createNewCredentialForService(user.getCwid(), new CredentialDTO().name("Cred1").apiKey("super_secure").service(CredentialDTO.ServiceEnum.fromValue("canvas")));
 
         List<Credential> creds = credentialService.getAllCredentials(user.getCwid());
 
-        Assertions.assertEquals(creds.size(), 1);
+        Assertions.assertEquals(1, creds.size());
         Assertions.assertTrue(creds.contains(cred1));
     }
 

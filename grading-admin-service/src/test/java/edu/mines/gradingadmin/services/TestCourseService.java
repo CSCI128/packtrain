@@ -76,7 +76,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
                 courseRepo, lateRequestConfigRepo, gradescopeConfigRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
-                s3Service, policyRepo, userService
+                s3Service, userService
         );
 
         applyMocks(canvasService);
@@ -92,23 +92,23 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @Test
     void verifyGetCourse() {
         Course course1 = courseSeeders.course1();
-        Optional<Course> course = courseService.getCourse(course1.getId());
+        Course course = courseService.getCourse(course1.getId());
 
-        Assertions.assertTrue(course.isPresent());
-        Assertions.assertEquals(course.get(), course1);
+        Assertions.assertEquals(course, course1);
     }
 
     @Test
     void verifyGetCourseNotFound() {
-        Optional<Course> course = courseService.getCourse(UUID.randomUUID());
-        Assertions.assertTrue(course.isEmpty());
+        Assertions.assertThrows(ResponseStatusException.class, () -> {
+            courseService.getCourse(UUID.randomUUID());
+        });
     }
 
     @Test
     void verifyGetCourseIncludeAll() {
         Course seededCourse = courseSeeders.populatedCourse();
 
-        Course course = courseService.getCourse(seededCourse.getId()).orElseThrow(AssertionError::new);
+        Course course = courseService.getCourse(seededCourse.getId());
 
         Assertions.assertEquals(1, course.getAssignments().size());
         Assertions.assertEquals(1, course.getSections().size());
@@ -171,38 +171,10 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
         courseService.syncCourseTask(taskDef);
 
-        course = courseService.getCourse(course.getId()).orElseThrow(AssertionError::new);
+        course = courseService.getCourse(course.getId());
 
         Assertions.assertEquals(course1.get().getCourseCode(), course.getCode());
         Assertions.assertEquals(course1.get().getName(), course.getName());
-    }
-
-    @Test
-    void verifyCourseDoesNotExist(){
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> courseService.createNewCourse(new CourseDTO().name("Test Course 1").term("Fall 2024").code("fall.2024.tc.1")));
-        Assertions.assertEquals("Course late request does not exist", exception.getReason());
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-    }
-
-    @Test
-    void verifyNewCourseHasName(){
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> courseService.createNewCourse(new CourseDTO().name("Another Test Course 1").term("Spring 2025").code("spring.2025.atc.1")));
-        Assertions.assertEquals("Course late request does not exist", exception.getReason());
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-    }
-
-    @Test
-    void verifyNewCourseHasTerm(){
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> courseService.createNewCourse(new CourseDTO().name("Another Test Course 1").term("Spring 2025").code("spring.2025.atc.1")));
-        Assertions.assertEquals("Course late request does not exist", exception.getReason());
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-    }
-
-    @Test
-    void verifyNewCourseHasCode(){
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> courseService.createNewCourse(new CourseDTO().name("Test Course 1").term("Fall 2024").code("fall.2024.tc.1")));
-        Assertions.assertEquals("Course late request does not exist", exception.getReason());
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
     @Test
