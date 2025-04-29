@@ -46,6 +46,7 @@ export async function connect(rabbitMqConfig: RabbitMqConfig): Promise<void> {
             console.error(
                 `Connection attempt failed! Retrying ${attempts + 1}/10...`,
             );
+            console.error(e);
         }
 
         await delay(5000);
