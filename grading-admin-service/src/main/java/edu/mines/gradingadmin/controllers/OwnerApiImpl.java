@@ -8,6 +8,7 @@ import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.enums.CourseRole;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.services.*;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -141,15 +142,15 @@ public class OwnerApiImpl implements OwnerApiDelegate {
         CourseDTO courseDto = DTOFactory.toDto(course);
 
         if (include.contains("members")) {
-            courseDto.setMembers(course.getMembers().stream().map(DTOFactory::toDto).toList());
+            courseDto.setMembers(courseMemberService.getAllMembersGivenCourse(course).stream().map(DTOFactory::toDto).toList());
         }
 
         if (include.contains("assignments")) {
-            courseDto.setAssignments(course.getAssignments().stream().map(DTOFactory::toDto).toList());
+            courseDto.setAssignments(assignmentService.getAllAssignmentsGivenCourse(course).stream().map(DTOFactory::toDto).toList());
         }
 
         if (include.contains("sections")) {
-            courseDto.setSections(course.getSections().stream().map(Section::getName).toList());
+            courseDto.setSections(sectionService.getSectionsForCourse(course.getId()).stream().map(Section::getName).toList());
         }
 
         return ResponseEntity.ok(courseDto);

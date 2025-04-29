@@ -56,6 +56,10 @@ public class AssignmentService {
         return assignment.get();
     }
 
+    public List<Assignment> getAllAssignmentsGivenCourse(Course course){
+        return assignmentRepo.getAllAssignmentsByCourseId(course.getId());
+    }
+
     public void syncAssignmentTask(AssignmentsSyncTaskDef task){
         if(!task.shouldUpdateAssignments() && !task.shouldDeleteAssignments() && !task.shouldAddNewAssignments()){
             log.warn("No assignment sync action should be taken. Skipping task.");

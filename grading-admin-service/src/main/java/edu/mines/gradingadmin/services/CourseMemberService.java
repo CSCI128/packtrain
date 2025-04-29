@@ -70,6 +70,10 @@ public class CourseMemberService {
         return members.getFirst();
     }
 
+    public Set<CourseMember> getAllMembersGivenCourse(Course course){
+        return courseMemberRepo.getAllByCourse(course);
+    }
+
     public List<CourseMember> searchCourseMembers(Course course, List<CourseRole> roles, String name, String cwid) {
         if (name != null) {
             return courseMemberRepo.findAllByCourseByUserName(course, name).stream().filter(x -> roles.contains(x.getRole())).toList();

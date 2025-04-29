@@ -33,17 +33,17 @@ public class Course {
     @Column(name = "code")
     private String code;
 
-    @OneToMany(mappedBy = "course", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "course")
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Set<Assignment> assignments;
 
-    @OneToMany(mappedBy = "course", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "course")
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Set<Section> sections;
 
-    @OneToMany(mappedBy = "course", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "course")
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Set<CourseMember> members;

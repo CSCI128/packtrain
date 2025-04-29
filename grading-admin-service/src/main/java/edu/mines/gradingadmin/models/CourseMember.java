@@ -29,18 +29,18 @@ public class CourseMember {
     @Column(name = "late_passes_used", nullable = false)
     private double latePassesUsed = 0;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne()
     @JoinColumn(name = "user_id", referencedColumnName = "cwid", nullable = false)
     @EqualsAndHashCode.Exclude
     private User user;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne()
     @JoinColumn(name = "course_id", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Course course;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany()
     @JoinTable(name="member_section",
             joinColumns = @JoinColumn(name = "member_id", referencedColumnName = "id"),
             inverseJoinColumns  = @JoinColumn(name="section_id", referencedColumnName = "id")
