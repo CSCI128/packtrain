@@ -215,6 +215,7 @@ export function MigrationsLoadPage() {
       createMasterMigration.mutate(undefined, {
         onSuccess: (data) => {
           store$.master_migration_id.set(data?.id);
+          setMasterMigrationId(store$.master_migration_id.get() as string);
         },
       });
     }
@@ -266,7 +267,6 @@ export function MigrationsLoadPage() {
 
       <Divider my="sm" />
 
-      {/* <form onSubmit={form.onSubmit(loadAssignments)}> */}
       <Stack>
         <MultiSelect
           withAsterisk
@@ -353,7 +353,6 @@ export function MigrationsLoadPage() {
 
           {validated ? (
             <Button color="blue" onClick={loadAssignments}>
-              {/* <Button color="blue" type="submit">*/}
               Next
             </Button>
           ) : (
@@ -363,7 +362,6 @@ export function MigrationsLoadPage() {
           )}
         </Group>
       </Group>
-      {/* </form> */}
     </Container>
   );
 }

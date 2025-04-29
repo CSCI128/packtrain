@@ -62,8 +62,8 @@ export function AssignmentsPage() {
         }),
   });
 
-  const [value, setValue] = useState<Date | null>();
-  const [unlockDateValue, setUnlockDateValue] = useState<Date | null>();
+  const [value, setValue] = useState<Date>();
+  const [unlockDateValue, setUnlockDateValue] = useState<Date>();
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedAssignment, setSelectedAssignment] =
     useState<Assignment | null>(null);
