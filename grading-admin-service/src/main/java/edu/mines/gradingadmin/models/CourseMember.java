@@ -29,7 +29,7 @@ public class CourseMember {
     @Column(name = "late_passes_used", nullable = false)
     private double latePassesUsed = 0;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "cwid", nullable = false)
     @EqualsAndHashCode.Exclude
     private User user;
@@ -40,7 +40,7 @@ public class CourseMember {
     @ToString.Exclude
     private Course course;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name="member_section",
             joinColumns = @JoinColumn(name = "member_id", referencedColumnName = "id"),
             inverseJoinColumns  = @JoinColumn(name="section_id", referencedColumnName = "id")

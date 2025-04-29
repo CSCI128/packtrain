@@ -12,7 +12,11 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { Course, MasterMigration } from "@repo/api/openapi";
+import {
+  Course,
+  MasterMigration,
+  MigrationWithScores,
+} from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -60,16 +64,45 @@ export function MigrationsReviewPage() {
         }),
   });
 
+  // rename to migrationData, rename above to mastermigrationdata
+  const {
+    data: migrationData2,
+    error: migrationError2,
+    isLoading: migrationIsLoading2,
+  } = useQuery<MigrationWithScores[] | null>({
+    queryKey: ["getMigrationsWithScores"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_master_migration_to_review({
+            course_id: store$.id.get() as string,
+            master_migration_id: store$.master_migration_id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
   const [confirmOpened, { open: openConfirm, close: closeConfirm }] =
     useDisclosure(false);
   const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
     []
   );
 
-  if (migrationIsLoading || !migrationData || courseIsLoading || !courseData)
+  if (
+    migrationIsLoading ||
+    !migrationData ||
+    courseIsLoading ||
+    !courseData ||
+    !migrationData2 ||
+    migrationIsLoading2
+  )
     return "Loading...";
 
-  if (migrationError || courseError)
+  if (migrationError || courseError || migrationError2)
     return `An error occured: ${migrationError}`;
 
   console.log(migrationData);
