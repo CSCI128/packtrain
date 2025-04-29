@@ -15,15 +15,13 @@ import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
 import { Course, MasterMigration, Migration, Policy } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 export function MigrationsApplyPage() {
   const [opened, { open, close }] = useDisclosure(false);
-  const [selectedMigration, setSelectedMigration] = useState<Migration | null>(
-    null
-  );
+  const [selectedMigration, setSelectedMigration] = useState<Migration>();
 
   const {
     data: policyData,
@@ -86,14 +84,38 @@ export function MigrationsApplyPage() {
         }),
   });
 
-  // /instructor/courses/{course_id}/migrations/{master_migration_id}/{migration_id}/policy:
-  // post:
-  //   tags:
-  //     - instructor
-  //   operationId: set_policy
+  // TODO get policies and populate dropdown
 
-  const handleSetPolicy = (row: Migration) => {
-    setSelectedMigration(row);
+  const setPolicyMigration = useMutation({
+    mutationKey: ["setPolicy"],
+    mutationFn: ({
+      master_migration_id,
+      migration_id,
+      policy_id,
+    }: {
+      master_migration_id: string;
+      migration_id: string;
+      policy_id: string;
+    }) =>
+      getApiClient()
+        .then((client) =>
+          client.set_policy({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
+            migration_id: migration_id,
+            policy_id: policy_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
+
+  const handleSetPolicy = (selectedAssignmentId: string) => {
+    setSelectedMigration(
+      migrationData?.migrations
+        ?.filter((x) => x.assignment.id === selectedAssignmentId)
+        .at(0)
+    );
     open();
   };
 
@@ -177,15 +199,39 @@ export function MigrationsApplyPage() {
                   <Group>
                     <Text fw={800}>
                       {
-                        courseData.assignments?.filter(
-                          (a) => a.id === selectedAssignment
-                        )[0]?.name
+                        migrationData.migrations
+                          ?.filter(
+                            (x) => x.assignment.id === selectedAssignment
+                          )
+                          .at(0)?.assignment.name
+                      }
+                    </Text>
+                    <Text fw={800}>
+                      {
+                        migrationData.migrations
+                          ?.filter(
+                            (x) => x.assignment.id === selectedAssignment
+                          )
+                          .at(0)?.policy?.name
                       }
                     </Text>
                   </Group>
 
                   <Group>
-                    <Button color="blue">Select</Button>
+                    <Button
+                      color="blue"
+                      onClick={() =>
+                        handleSetPolicy(
+                          migrationData.migrations
+                            ?.filter(
+                              (x) => x.assignment.id === selectedAssignment
+                            )
+                            .at(0)?.assignment.id as string
+                        )
+                      }
+                    >
+                      Select
+                    </Button>
                   </Group>
                 </Group>
               </Box>
