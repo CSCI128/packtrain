@@ -1811,7 +1811,7 @@ paths:
                 error_source: "update_policy"
                 error_message: "Failed to update policy for migration"
 
-  /instructor/courses/{course_id}/migrations/{master_migration_id}/apply-validate:
+  /instructor/courses/{course_id}/migrations/{master_migration_id}/apply_validate:
     post:
       tags:
         - instructor

@@ -17,11 +17,13 @@ import { Course, MasterMigration, Migration, Policy } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export function MigrationsApplyPage() {
+  const navigate = useNavigate();
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedMigration, setSelectedMigration] = useState<Migration>();
+  const [selectedPolicyId, setSelectedPolicyId] = useState<string>("");
 
   const {
     data: policyData,
@@ -84,8 +86,6 @@ export function MigrationsApplyPage() {
         }),
   });
 
-  // TODO get policies and populate dropdown
-
   const setPolicyMigration = useMutation({
     mutationKey: ["setPolicy"],
     mutationFn: ({
@@ -119,6 +119,20 @@ export function MigrationsApplyPage() {
     open();
   };
 
+  const applyMasterMigration = useMutation({
+    mutationKey: ["applyMasterMigration"],
+    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
+      getApiClient()
+        .then((client) =>
+          client.apply_master_migration({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
+
   useEffect(() => {
     if (migrationData) {
       let assignmentIds: string[] = [];
@@ -149,19 +163,35 @@ export function MigrationsApplyPage() {
               placeholder="Select policy.."
               data={
                 policyData
-                  ? policyData.flatMap((policy: Policy) => [
+                  ? policyData &&
+                    policyData.flatMap((policy: Policy) => [
                       { label: policy.name ?? "", value: policy.id as string },
                     ])
                   : undefined
               }
+              onChange={(value) => {
+                setSelectedPolicyId(value ?? "");
+              }}
             />
             <Group justify="flex-end">
               <Button color="gray" variant="light" onClick={close}>
                 Cancel
               </Button>
 
-              <Button color="blue" onClick={() => {}} variant="filled">
-                Select policy
+              <Button
+                color="blue"
+                onClick={() => {
+                  setPolicyMigration.mutate({
+                    master_migration_id:
+                      store$.master_migration_id.get() as string,
+                    migration_id: selectedMigration?.id as string,
+                    policy_id: selectedPolicyId,
+                  });
+                  close();
+                }}
+                variant="filled"
+              >
+                Select Policy
               </Button>
             </Group>
           </Stack>
@@ -206,7 +236,7 @@ export function MigrationsApplyPage() {
                           .at(0)?.assignment.name
                       }
                     </Text>
-                    <Text fw={800}>
+                    <Text>
                       {
                         migrationData.migrations
                           ?.filter(
@@ -265,8 +295,20 @@ export function MigrationsApplyPage() {
             Previous
           </Button>
           <Button
-            component={Link}
-            to="/instructor/migrate/review"
+            onClick={() => {
+              applyMasterMigration.mutate(
+                {
+                  master_migration_id:
+                    store$.master_migration_id.get() as string,
+                },
+                {
+                  onSuccess: (data) => {
+                    console.log(data);
+                    navigate("/instructor/migrate/review");
+                  },
+                }
+              );
+            }}
             variant="filled"
             color="blue"
           >
