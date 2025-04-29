@@ -100,41 +100,41 @@ public class MigrationService {
        return masterMigrationRepo.getMasterMigrationsByCourseId(UUID.fromString(courseId));
     }
 
-    public Optional<MasterMigration> createMasterMigration(String courseId, User createdByUser){
-        MasterMigration masterMigration = new MasterMigration();
-        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-        if (course.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
+    public MasterMigration getMasterMigration(String masterMigrationId) {
+        Optional<MasterMigration> masterMigration = masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
+        if (masterMigration.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Failed to find master migration '%s'", masterMigrationId));
         }
-        masterMigration.setCourse(course.get());
-        masterMigration.setCreatedByUser(createdByUser);
-        return Optional.of(masterMigrationRepo.save(masterMigration));
+        return masterMigration.get();
     }
 
-    public Optional<MasterMigration> addMigration(String masterMigrationId, String assignmentId){
-        Optional<MasterMigration> masterMigration = masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
+    public MasterMigration createMasterMigration(String courseId, User createdByUser){
+        MasterMigration masterMigration = new MasterMigration();
+        Course course = courseService.getCourse(UUID.fromString(courseId));
 
-        if (masterMigration.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Master migration does not exist");
-        }
+        masterMigration.setCourse(course);
+        masterMigration.setCreatedByUser(createdByUser);
+        return masterMigrationRepo.save(masterMigration);
+    }
+
+    public MasterMigration addMigration(String masterMigrationId, String assignmentId){
+        MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
         Migration migration = new Migration();
-        Optional<Assignment> assignment = assignmentService.getAssignmentById(assignmentId);
+        Assignment assignment = assignmentService.getAssignmentById(assignmentId);
 
-        if (assignment.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment does not exist");
-        }
-
-        List<Migration> migrations = masterMigration.get().getMigrations();
+        List<Migration> migrations = masterMigration.getMigrations();
         migrations.add(migration);
-        masterMigration.get().setMigrations(migrations);
+        masterMigration.setMigrations(migrations);
 
-        migration.setAssignment(assignment.get());
-        migration.setMasterMigration(masterMigration.get());
+        migration.setAssignment(assignment);
+        migration.setMasterMigration(masterMigration);
         migrationRepo.save(migration);
-        masterMigrationRepo.save(masterMigration.get());
+        masterMigrationRepo.save(masterMigration);
 
-        return masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
+        masterMigration = getMasterMigration(masterMigrationId);
+
+        return masterMigration;
     }
 
     public List<Migration> getMigrationsByMasterMigration(String masterMigrationId){
@@ -157,7 +157,7 @@ public class MigrationService {
     @Transactional
     public Course getCourseForMasterMigration(String migrationId){
 
-        MasterMigration master = getMasterMigration(migrationId).orElseThrow();
+        MasterMigration master = getMasterMigration(migrationId);
 
         return master.getCourse();
     }
@@ -169,22 +169,20 @@ public class MigrationService {
         return migration.getAssignment();
     }
 
-    public Optional<Migration> setPolicyForMigration(String migrationId, String policyId){
+    public Migration setPolicyForMigration(String migrationId, String policyId){
         Migration updatedMigration = migrationRepo.getMigrationById(UUID.fromString(migrationId));
 
-        Optional<Policy> policy = policyService.getPolicy(UUID.fromString(policyId)).map(policyService::incrementUsedBy);
+        Policy policy = policyService.getPolicy(UUID.fromString(policyId));
+
+        policyService.incrementUsedBy(policy);
 
         if (updatedMigration.getPolicy() != null){
             policyService.decrementUsedBy(updatedMigration.getPolicy());
             updatedMigration.setPolicy(null);
         }
 
-        if (policy.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy does not exist");
-        }
-
-        updatedMigration.setPolicy(policy.get());
-        return Optional.of(migrationRepo.save(updatedMigration));
+        updatedMigration.setPolicy(policy);
+        return migrationRepo.save(updatedMigration);
 
     }
 
@@ -239,17 +237,15 @@ public class MigrationService {
         transactionLogRepo.save(entry);
     }
 
+    @Transactional
     public void processScoresAndExtensionsTask(ProcessScoresAndExtensionsTaskDef task){
-        Optional<Assignment> assignment = assignmentService.getAssignmentById(task.getAssignmentId().toString());
+        Assignment assignment = assignmentService.getAssignmentById(task.getAssignmentId().toString());
 
-        if (assignment.isEmpty()){
-            throw new RuntimeException(String.format("Failed to get assignment '%s'", task.getAssignmentId()));
-        }
         MigrationFactory.ProcessScoresAndExtensionsConfig config;
 
         try {
            config = MigrationFactory.startProcessScoresAndExtensions(task.getMigrationId(), rabbitMqService::createRawGradePublishChannel, rabbitMqService::createScoreReceivedChannel)
-                    .forAssignment(assignment.get())
+                    .forAssignment(assignment)
                     .withPolicy(task.getPolicy())
                     .withOnScoreReceived(dto -> this.handleScoreReceived(task.getCreatedByUser(), task.getMigrationId(), dto))
                     .build();
@@ -404,21 +400,15 @@ public class MigrationService {
         return true;
     }
 
-    public Optional<MasterMigration> getMasterMigration(String masterMigrationId) {
-        return masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
-    }
 
     @Transactional
     public boolean validateLoadMasterMigration(String masterMigrationId){
-        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
+        MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
-        if (masterMigration.isEmpty()){
-            return false;
-        }
 
-        if (masterMigration.get().getStatus() != MigrationStatus.CREATED){
-            log.error("Attempt to load migration NOT in created state! Actual state: '{}'", masterMigration.get().getStatus());
-            return false;
+        if (masterMigration.getStatus() != MigrationStatus.CREATED){
+            log.error("Attempt to load migration NOT in created state! Actual state: '{}'", masterMigration.getStatus());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Attempt to load migration NOT in created state! Actual state: '%s'", masterMigration.getStatus()));
         }
 
         List<Migration> migrations = getMigrationsByMasterMigration(masterMigrationId);
@@ -433,37 +423,36 @@ public class MigrationService {
             }
         }
 
-        return errors.isEmpty();
+        if (!errors.isEmpty()){
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    String.join("\n", errors)
+            );
+        }
+
+        return true;
     }
 
     @Transactional
-    public Optional<MasterMigration> finalizeLoadMasterMigration(String masterMigrationId){
+    public boolean finalizeLoadMasterMigration(String masterMigrationId){
         if (!validateLoadMasterMigration(masterMigrationId)){
-            return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to validate load phase");
         }
 
-        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
+        MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
-        if(masterMigration.isEmpty()){
-            return Optional.empty();
-        }
+        masterMigration.setStatus(MigrationStatus.LOADED);
 
-        masterMigration.get().setStatus(MigrationStatus.LOADED);
-
-
-        return Optional.of(masterMigrationRepo.save(masterMigration.get()));
+        masterMigrationRepo.save(masterMigration);
+        return true;
     }
 
     public boolean validateApplyMasterMigration(String masterMigrationId){
-        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
-
-        if (masterMigration.isEmpty()){
-            return false;
-        }
+        MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
         List<String> errors = new LinkedList<>();
 
-        for (Migration migration : masterMigration.get().getMigrations()){
+        for (Migration migration : masterMigration.getMigrations()){
             if (migration.getPolicy() != null && migration.getRawScoreStatus() == RawScoreStatus.PRESENT){
                 continue;
             }
@@ -472,26 +461,29 @@ public class MigrationService {
             errors.add("Either the policy or the raw scores are not set");
         }
 
-        return errors.isEmpty();
+        if (!errors.isEmpty()){
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    String.join("\n", errors)
+            );
+        }
+
+        return true;
     }
 
     @Transactional
     public List<MigrationWithScoresDTO> getMasterMigrationToReview(String masterMigrationId){
-        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
+        MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
-        if (masterMigration.isEmpty()){
-            return List.of();
-        }
+        masterMigration.setStatus(MigrationStatus.AWAITING_REVIEW);
 
-        masterMigration.get().setStatus(MigrationStatus.AWAITING_REVIEW);
-
-        masterMigrationRepo.save(masterMigration.get());
+        masterMigration = masterMigrationRepo.save(masterMigration);
 
 
         List<MigrationWithScoresDTO> migrationWithScoresDTOs = new LinkedList<>();
         Course course = getCourseForMasterMigration(masterMigrationId);
 
-        for(Migration migration : masterMigration.get().getMigrations()){
+        for(Migration migration : masterMigration.getMigrations()){
             AssignmentSlimDTO assignmentSlimDTO = DTOFactory.toSlimDto(migration.getAssignment());
 
             MigrationWithScoresDTO migrationWithScoresDTO = new MigrationWithScoresDTO();
@@ -499,7 +491,7 @@ public class MigrationService {
             Map<String, ScoreDTO> scores = new HashMap<>();
 
             for (MigrationTransactionLog entry : entries){
-                Optional<CourseMember> member = courseMemberService.getCourseMemberByCourseByCwid(course, entry.getCwid());
+                Optional<CourseMember> member = courseMemberService.findCourseMemberGivenCourseAndCwid(course, entry.getCwid());
 
                 if (member.isEmpty()){
                     log.warn("Skipping student '{}' without enrollment in course", entry.getCwid());
@@ -553,13 +545,15 @@ public class MigrationService {
     }
 
     public boolean finalizeReviewMasterMigration(String masterMigrationId){
-        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
+        MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
-        if (masterMigration.isEmpty()){
-            return false;
+        if (!masterMigration.getStatus().equals(MigrationStatus.AWAITING_REVIEW)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Migration not in Awaiting Review state!");
         }
 
-        masterMigration.get().setStatus(MigrationStatus.READY_TO_POST);
+        masterMigration.setStatus(MigrationStatus.READY_TO_POST);
+
+        masterMigrationRepo.save(masterMigration);
 
         return true;
     }
@@ -588,24 +582,20 @@ public class MigrationService {
 
     @Transactional
     public List<ScheduledTaskDef> processMigrationLog(User actingUser, String masterMigrationId){
-        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
+        MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
-        if (masterMigration.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Master migration was not found!");
+        if (masterMigration.getStatus() != MigrationStatus.READY_TO_POST){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Master migration is in invalid state to post! Expected: %s Was: %s", MigrationStatus.READY_TO_POST, masterMigration.getStatus()));
         }
 
-        if (masterMigration.get().getStatus() != MigrationStatus.READY_TO_POST){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Master migration is in invalid state to post! Expected: %s Was: %s", MigrationStatus.READY_TO_POST, masterMigration.get().getStatus()));
-        }
-
-        masterMigration.get().setStatus(MigrationStatus.POSTING);
-        masterMigrationRepo.save(masterMigration.get());
+        masterMigration.setStatus(MigrationStatus.POSTING);
+        masterMigrationRepo.save(masterMigration);
 
         Course course = getCourseForMasterMigration(masterMigrationId);
 
         List<ScheduledTaskDef> tasks = new LinkedList<>();
 
-        for (Migration migration : masterMigration.get().getMigrations()) {
+        for (Migration migration : masterMigration.getMigrations()) {
             Assignment assignment = getAssignmentForMigration(migration.getId().toString());
 
             PostToCanvasTaskDef task = new PostToCanvasTaskDef();
@@ -627,18 +617,15 @@ public class MigrationService {
     }
 
     public boolean finalizePostToCanvas(String masterMigrationId){
-        Optional<MasterMigration> masterMigration = getMasterMigration(masterMigrationId);
+        MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
-        if (masterMigration.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Master migration does not exist!");
+
+        if (!masterMigration.getStatus().equals(MigrationStatus.POSTING)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid status for finalizing migration! Expected: %s Was: %s", MigrationStatus.POSTING, masterMigration.getStatus()));
         }
 
-        if (!masterMigration.get().getStatus().equals(MigrationStatus.POSTING)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid status for finalizing migration! Expected: %s Was: %s", MigrationStatus.POSTING, masterMigration.get().getStatus()));
-        }
-
-        masterMigration.get().setStatus(MigrationStatus.COMPLETED);
-        masterMigrationRepo.save(masterMigration.get());
+        masterMigration.setStatus(MigrationStatus.COMPLETED);
+        masterMigrationRepo.save(masterMigration);
         return true;
     }
 

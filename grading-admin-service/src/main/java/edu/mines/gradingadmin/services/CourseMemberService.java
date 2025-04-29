@@ -46,12 +46,28 @@ public class CourseMemberService {
         this.impersonationManager = impersonationManager;
     }
 
-    public Optional<CourseMember> getCourseMemberByCourseByCwid(Course course, String cwid) {
+    public Optional<CourseMember> findCourseMemberGivenCourseAndCwid(Course course, String cwid) {
         return courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().findFirst();
     }
 
-    public Optional<CourseMember> getFirstSectionInstructor(Section section) {
-        return section.getMembers().stream().filter(member -> member.getRole() == CourseRole.INSTRUCTOR).findFirst();
+    public CourseMember getStudentInstructor(Course course, Optional<Section> section) {
+        // prefer who ever has less sections - coordinator is listed as instructor for all adjunct classes.
+        // if no instructor exists for that section, then return the owner
+
+        if (section.isEmpty()) {
+            return getCourseOwner(course);
+        }
+
+        List<CourseMember> members = section.get().getMembers().stream()
+                .filter(m -> m.getRole().equals(CourseRole.INSTRUCTOR) || m.getRole().equals(CourseRole.OWNER))
+                .sorted(Comparator.comparingInt(a -> a.getSections().size())).toList();
+
+        if (members.isEmpty()){
+            return getCourseOwner(course);
+        }
+
+
+        return members.getFirst();
     }
 
     public List<CourseMember> searchCourseMembers(Course course, List<CourseRole> roles, String name, String cwid) {
@@ -61,6 +77,17 @@ public class CourseMemberService {
             return courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().filter(x -> roles.contains(x.getRole())).toList();
         }
         return courseMemberRepo.getAllByCourse(course).stream().filter(x -> roles.contains(x.getRole())).toList();
+    }
+
+    public CourseMember getCourseOwner(Course course){
+        Optional<CourseMember> owner = courseMemberRepo.getAllByCourse(course).stream().filter(m -> m.getRole().equals(CourseRole.OWNER)).findFirst();
+
+        if (owner.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, String.format("No owner configured for course '%s'", course.getCode()));
+        }
+
+        return owner.get();
+
     }
 
     public List<CourseMember> getAllStudentsInCourse(Course course){
@@ -74,28 +101,24 @@ public class CourseMemberService {
             return;
         }
 
-        Optional<Course> course = courseService.getCourse(task.getCourseToImport());
-        if (course.isEmpty()) {
-            log.warn("Course '{}' does not exist!", task.getCourseToImport());
-            return;
-        }
+        Course course = courseService.getCourse(task.getCourseToImport());
 
         Map<String, Section> sections = sectionService.getSectionsForCourse(task.getCourseToImport()).stream().collect(Collectors.toUnmodifiableMap(s -> String.valueOf(s.getCanvasId()), s -> s));
 
         if (sections.isEmpty()) {
-            log.warn("Course '{}' has no sections!", course.get().getCode());
+            log.warn("Course '{}' has no sections!", course.getCode());
             return;
         }
 
         IdentityProvider impersonatedUser = impersonationManager.impersonateUser(task.getCreatedByUser());
 
-        Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse = canvasService.asUser(impersonatedUser).getCourseMembers(course.get().getCanvasId());
+        Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse = canvasService.asUser(impersonatedUser).getCourseMembers(course.getCanvasId());
 
         List<User> users = userService.getOrCreateUsersFromCanvas(canvasUsersForCourse);
 
         Set<String> incomingCwids = users.stream().map(User::getCwid).collect(Collectors.toSet());
 
-        Set<String> existingCwids = courseMemberRepo.getAllCwidsByCourse(course.get());
+        Set<String> existingCwids = courseMemberRepo.getAllCwidsByCourse(course);
 
         // why the heck does java not define a proper difference function?
         Set<String> cwidsToCreate = incomingCwids.stream().filter(c -> !existingCwids.contains(c)).collect(Collectors.toSet());
@@ -109,26 +132,26 @@ public class CourseMemberService {
                     task,
                     users.stream().filter(u -> cwidsToCreate.contains(u.getCwid())).toList(),
                     canvasUsersForCourse,
-                    course.get(), sections
+                    course, sections
             );
 
-            log.info("Saving {} new course memberships for '{}'", newMembers.size(), course.get().getCode());
+            log.info("Saving {} new course memberships for '{}'", newMembers.size(), course.getCode());
             // this is quite large, so doing it at once will be a lot faster than saving incrementally
             courseMemberRepo.saveAll(newMembers);
         }
 
 
         if (task.shouldRemoveOldUsers()) {
-            log.info("Deleting {} course memberships for '{}'", cwidsToRemove.size(), course.get().getCode());
+            log.info("Deleting {} course memberships for '{}'", cwidsToRemove.size(), course.getCode());
             if (!cwidsToRemove.isEmpty()) {
-                courseMemberRepo.deleteByCourseAndCwid(course.get(), cwidsToRemove);
+                courseMemberRepo.deleteByCourseAndCwid(course, cwidsToRemove);
             }
         }
 
         if (task.shouldUpdateExistingUsers()) {
-            Set<CourseMember> updatedMembers = updateExistingEnrollments(task, cwidsToUpdate, canvasUsersForCourse, course.get(), sections);
+            Set<CourseMember> updatedMembers = updateExistingEnrollments(task, cwidsToUpdate, canvasUsersForCourse, course, sections);
 
-            log.info("Updating {} course memberships for '{}'", updatedMembers.size(), course.get().getCode());
+            log.info("Updating {} course memberships for '{}'", updatedMembers.size(), course.getCode());
 
             courseMemberRepo.saveAll(updatedMembers);
         }
@@ -144,6 +167,8 @@ public class CourseMemberService {
             CourseMember member = members.get(user);
 
             edu.ksu.canvas.model.User canvasUser = canvasUsersForCourse.get(user);
+            // make sure that we keep canvasIds up to date (mostly because they can be self when a course is created)
+            member.setCanvasId(String.valueOf(canvasUser.getId()));
 
             if (canvasUser.getEnrollments().isEmpty()) {
                 log.warn("User '{}' is not enrolled in any sections!", user);
@@ -221,7 +246,7 @@ public class CourseMemberService {
         return members;
     }
 
-    public Optional<ScheduledTaskDef> syncMembersFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean updateExisting, boolean removeOld, boolean addNew) {
+    public ScheduledTaskDef syncMembersFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean updateExisting, boolean removeOld, boolean addNew) {
         UserSyncTaskDef task = new UserSyncTaskDef();
         task.setCreatedByUser(actingUser);
         task.setTaskName(String.format("Sync Course '%s': Course Members", courseId));
@@ -236,57 +261,48 @@ public class CourseMemberService {
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 
-        return Optional.of(task);
+        return task;
     }
 
-    public Optional<CourseMember> addMemberToCourse(String courseId, CourseMemberDTO courseMemberDTO) {
-        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-        if (course.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
-        }
+    public CourseMember addMemberToCourse(String courseId, CourseMemberDTO courseMemberDTO) {
+        Course course = courseService.getCourse(UUID.fromString(courseId));
 
-        Optional<User> user = userService.getUserByCwid(courseMemberDTO.getCwid());
-        if (user.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
-        }
+        User user = userService.getUserByCwid(courseMemberDTO.getCwid());
 
         CourseMember member = new CourseMember();
         member.setRole(CourseRole.fromString(courseMemberDTO.getCourseRole().getValue()));
         member.setCanvasId(courseMemberDTO.getCanvasId());
-        member.setUser(user.get());
-        member.setCourse(course.get());
-        return Optional.of(courseMemberRepo.save(member));
+        member.setUser(user);
+        member.setCourse(course);
+
+        return courseMemberRepo.save(member);
     }
 
     public boolean removeMembershipForUserAndCourse(User user, String courseId) {
-        Optional<Course> course = courseService.getCourse(UUID.fromString(courseId));
-        if (course.isEmpty()) {
-            log.warn("Course '{}' does not exist!", courseId);
-            return false;
-        }
+        Course course = courseService.getCourse(UUID.fromString(courseId));
 
-        Optional<CourseMember> courseMember = courseMemberRepo.getAllByCourseAndUser(course.get(), user);
+        Optional<CourseMember> courseMember = courseMemberRepo.getAllByCourseAndUser(course, user);
 
         if (courseMember.isEmpty()) {
-            log.warn("User '{}' is not enrolled in course '{}'!", user.getEmail(), course.get().getCode());
+            log.warn("User '{}' is not enrolled in course '{}'!", user.getEmail(), course.getCode());
             return false;
         }
 
         if (courseMember.get().getRole() == CourseRole.OWNER) {
-            log.warn("Attempt to remove owner '{}' from '{}'!", user.getEmail(), course.get().getCode());
+            log.warn("Refusing to remove owner '{}' from '{}'!", user.getEmail(), course.getCode());
             return false;
         }
 
         courseMemberRepo.delete(courseMember.get());
-        // may want to do check to make sure that the user is not a admin
-        log.info("Removed user '{}' from course '{}'", user.getEmail(), course.get().getCode());
+
+        log.info("Removed user '{}' from course '{}'", user.getEmail(), course.getCode());
         return true;
     }
 
     public CourseRole getRoleForUserAndCourse(User user, UUID courseId) {
-        Optional<Course> course = courseService.getCourse(courseId);
+        Course course = courseService.getCourse(courseId);
 
-        Optional<CourseMember> membership = courseMemberRepo.getByUserAndCourse(user, course.get());
+        Optional<CourseMember> membership = courseMemberRepo.getByUserAndCourse(user, course);
 
         if (membership.isEmpty()) {
             return CourseRole.NOT_ENROLLED;
@@ -307,8 +323,9 @@ public class CourseMemberService {
 
     public void useLatePasses(Course course, User user, double amount) {
         Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, user.getCwid()).stream().findFirst();
+
         if(courseMember.isEmpty()) {
-            return;
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User '%s' is not enrolled in course '%s'", user.getEmail(), course.getCode()));
         }
 
         double finalLatePasses = courseMember.get().getLatePassesUsed() + amount;
@@ -318,8 +335,9 @@ public class CourseMemberService {
 
     public void refundLatePasses(Course course, User user, double amount) {
         Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, user.getCwid()).stream().findFirst();
+
         if (courseMember.isEmpty()) {
-            return;
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User '%s' is not enrolled in course '%s'", user.getEmail(), course.getCode()));
         }
 
         double finalLatePasses = courseMember.get().getLatePassesUsed() - amount;
@@ -328,31 +346,23 @@ public class CourseMemberService {
     }
 
     public Optional<String> getCwidGivenCourseAndEmail(String email, Course course){
-        Optional<User> user = userService.getUserByEmail(email);
+        User user = userService.getUserByEmail(email);
 
-        if (user.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
+        if(!courseMemberRepo.existsByCourseAndUser(course, user)){
+            log.warn("User '{}' is not enrolled in course '{}'", user.getEmail(), course.getCode());
+            return Optional.empty();
         }
 
-        if(!courseMemberRepo.existsByCourseAndUser(course, user.get())){
-            log.warn("User '{}' is not enrolled in course '{}'", user.get().getCwid(), course.getCode());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not enrolled in this course");
-        }
-
-        return Optional.of(user.get().getCwid());
+        return Optional.of(user.getCwid());
     }
 
     public String getCanvasIdGivenCourseAndCwid(String cwid, Course course){
-        Optional<User> user = userService.getUserByCwid(cwid);
+        User user = userService.getUserByCwid(cwid);
 
-        if (user.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exist");
-        }
-
-        Optional<CourseMember> member = courseMemberRepo.getByUserAndCourse(user.get(), course);
+        Optional<CourseMember> member = courseMemberRepo.getByUserAndCourse(user, course);
 
         if(member.isEmpty()){
-            log.warn("User '{}' is not enrolled in course '{}'", user.get().getCwid(), course.getCode());
+            log.warn("User '{}' is not enrolled in course '{}'", user.getCwid(), course.getCode());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not enrolled in this course");
         }
 

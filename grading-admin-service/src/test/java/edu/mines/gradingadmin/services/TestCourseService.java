@@ -5,7 +5,6 @@ import edu.mines.gradingadmin.containers.PostgresTestContainer;
 import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
 import edu.mines.gradingadmin.repositories.*;
@@ -14,7 +13,6 @@ import edu.mines.gradingadmin.repositories.CourseRepo;
 import edu.mines.gradingadmin.seeders.CourseSeeders;
 import edu.mines.gradingadmin.seeders.UserSeeders;
 import edu.mines.gradingadmin.services.external.CanvasService;
-import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.S3Service;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
@@ -78,7 +76,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
                 courseRepo, lateRequestConfigRepo, gradescopeConfigRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
-                s3Service, policyRepo, userService
+                s3Service, userService
         );
 
         applyMocks(canvasService);
@@ -94,23 +92,23 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @Test
     void verifyGetCourse() {
         Course course1 = courseSeeders.course1();
-        Optional<Course> course = courseService.getCourse(course1.getId());
+        Course course = courseService.getCourse(course1.getId());
 
-        Assertions.assertTrue(course.isPresent());
-        Assertions.assertEquals(course.get(), course1);
+        Assertions.assertEquals(course, course1);
     }
 
     @Test
     void verifyGetCourseNotFound() {
-        Optional<Course> course = courseService.getCourse(UUID.randomUUID());
-        Assertions.assertTrue(course.isEmpty());
+        Assertions.assertThrows(ResponseStatusException.class, () -> {
+            courseService.getCourse(UUID.randomUUID());
+        });
     }
 
     @Test
     void verifyGetCourseIncludeAll() {
         Course seededCourse = courseSeeders.populatedCourse();
 
-        Course course = courseService.getCourse(seededCourse.getId()).orElseThrow(AssertionError::new);
+        Course course = courseService.getCourse(seededCourse.getId());
 
         Assertions.assertEquals(1, course.getAssignments().size());
         Assertions.assertEquals(1, course.getSections().size());
@@ -118,22 +116,22 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     }
 
     @Test
-    void verifyGetCoursesActive() {
+    void verifyGetAllCoursesActive() {
         Course activeCourse = courseSeeders.course1();
         Course inactiveCourse = courseSeeders.course2();
 
-        List<Course> courses = courseService.getCourses(true);
+        List<Course> courses = courseService.getAllCourses(true);
         Assertions.assertEquals(1, courses.size());
         Assertions.assertTrue(courses.contains(activeCourse));
         Assertions.assertFalse(courses.contains(inactiveCourse));
     }
 
     @Test
-    void verifyGetCoursesIncludingInactive() {
+    void verifyGetAllCoursesIncludingInactive() {
         Course activeCourse = courseSeeders.course1();
         Course inactiveCourse = courseSeeders.course2();
 
-        List<Course> courses = courseService.getCourses(false);
+        List<Course> courses = courseService.getAllCourses(false);
         Assertions.assertEquals(2, courses.size());
         Assertions.assertTrue(courses.contains(activeCourse));
         Assertions.assertTrue(courses.contains(inactiveCourse));
@@ -173,38 +171,10 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
         courseService.syncCourseTask(taskDef);
 
-        course = courseService.getCourse(course.getId()).orElseThrow(AssertionError::new);
+        course = courseService.getCourse(course.getId());
 
         Assertions.assertEquals(course1.get().getCourseCode(), course.getCode());
         Assertions.assertEquals(course1.get().getName(), course.getName());
-    }
-
-    @Test
-    void verifyCourseDoesNotExist(){
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> courseService.createNewCourse(new CourseDTO().name("Test Course 1").term("Fall 2024").code("fall.2024.tc.1")));
-        Assertions.assertEquals("Course late request does not exist", exception.getReason());
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-    }
-
-    @Test
-    void verifyNewCourseHasName(){
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> courseService.createNewCourse(new CourseDTO().name("Another Test Course 1").term("Spring 2025").code("spring.2025.atc.1")));
-        Assertions.assertEquals("Course late request does not exist", exception.getReason());
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-    }
-
-    @Test
-    void verifyNewCourseHasTerm(){
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> courseService.createNewCourse(new CourseDTO().name("Another Test Course 1").term("Spring 2025").code("spring.2025.atc.1")));
-        Assertions.assertEquals("Course late request does not exist", exception.getReason());
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-    }
-
-    @Test
-    void verifyNewCourseHasCode(){
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> courseService.createNewCourse(new CourseDTO().name("Test Course 1").term("Fall 2024").code("fall.2024.tc.1")));
-        Assertions.assertEquals("Course late request does not exist", exception.getReason());
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
     @Test
@@ -235,7 +205,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     }
 
     @Test
-    void verifyGetCourseStudent(){
+    void verifyGetAllCourseStudent(){
         Course coursePopulated = courseSeeders.populatedCourse();
         Course course2 = courseSeeders.course2();
         User user = userSeeders.user1();

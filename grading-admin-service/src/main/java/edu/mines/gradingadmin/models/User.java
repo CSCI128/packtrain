@@ -17,7 +17,7 @@ public class User{
     @Column(name="cwid", unique = true, nullable = false)
     private String cwid;
 
-    @Column(name="oauth_id", unique = true)
+    @Column(name="oauth_id", nullable = true)
     private UUID oAuthId;
 
     @Column(name = "admin", nullable = false)

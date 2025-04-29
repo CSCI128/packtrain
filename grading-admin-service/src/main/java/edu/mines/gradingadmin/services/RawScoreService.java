@@ -42,7 +42,7 @@ public class RawScoreService {
     public void uploadGradescopeCSV(InputStream file, UUID migrationId) {
         List<RawScore> scores = List.of();
 
-        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of GradeScope scores started.", ExternalAssignmentType.GRADESCOPE)){
+        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of Gradescope scores started.", ExternalAssignmentType.GRADESCOPE)){
             log.error("Failed to start raw score import for GS!");
             return;
         }
@@ -55,10 +55,12 @@ public class RawScoreService {
         }
         catch (Exception e){
             log.error("Failed to read CSV", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
         if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
             log.error("Failed to complete raw score import for GS!");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to complete raw score import for GS!");
         }
     }
 
@@ -97,12 +99,15 @@ public class RawScoreService {
 
         } catch (IOException e) {
             log.error("Failed to read CSV!", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (CsvException e) {
             log.error("Failed to parse CSV line!", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
         if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
             log.error("Failed to complete raw score import for PL!");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to complete raw score import for GS!");
         }
     }
 
@@ -138,16 +143,18 @@ public class RawScoreService {
         }
         catch (Exception e){
             log.error("Failed to read CSV", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+
         }
 
         if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
             log.error("Failed to complete raw score import for Runestone!");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to complete raw score import for GS!");
         }
 
     }
 
     private String[] extractMembersFromGroup(String groupMembers){
-
         groupMembers = groupMembers.replaceAll("[\\[\"\\]]", "");
 
         return groupMembers.split(",");

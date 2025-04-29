@@ -106,7 +106,7 @@ export function EditCourse() {
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
       gradescopeId: (value) =>
-        value.length == 6 ? null : "Gradescope ID must be 6 characters",
+        value && value.length == 6 ? null : "Gradescope ID must be 6 characters",
       totalLatePassesAllowed: (value) =>
         value < 0 || value > 1000
           ? "Total number of late passes must be greater than or equal to 0 and less than 1000"
@@ -297,8 +297,8 @@ export function EditCourse() {
             {...form.getInputProps("canvasId")}
           />
 
-          <InputWrapper label="Enabled">
-            <Checkbox
+          <InputWrapper label="Course Enabled">
+            <Checkbox 
               defaultChecked={form.getValues().enabled}
               key={form.key("enabled")}
               {...form.getInputProps("enabled", { type: "checkbox" })}
@@ -380,7 +380,10 @@ export function EditCourse() {
           ) : (
             <Text>Canvas re-sync complete!</Text>
           )}
-          <Button type="submit">Save</Button>
+          <Button type="submit"
+                  disabled={syncing}
+                  color={syncing ? "gray" : "blue"}
+          >Save</Button>
         </Group>
       </form>
     </Container>

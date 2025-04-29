@@ -228,7 +228,6 @@ public class TestTaskExecutorService implements PostgresTestContainer {
         TestTaskDef finalTaskForUser = taskForUser2;
         ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> executorService.getScheduledTask(user1, finalTaskForUser.getId()));
         Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-        Assertions.assertEquals("Task does not exist", exception.getReason());
     }
 
     @Test
@@ -250,8 +249,8 @@ public class TestTaskExecutorService implements PostgresTestContainer {
 
         taskForUser2 = testTaskRepo.save(taskForUser2);
 
-        Optional<ScheduledTaskDef> actualTasks = executorService.getScheduledTask(user1, taskForUser1.getId());
-        Assertions.assertTrue(actualTasks.isPresent());
+        ScheduledTaskDef actualTasks = executorService.getScheduledTask(user1, taskForUser1.getId());
+        Assertions.assertNotNull(actualTasks);
     }
 
 }

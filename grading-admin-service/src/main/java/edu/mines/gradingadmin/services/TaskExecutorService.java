@@ -132,14 +132,14 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
         return scheduledTaskRepo.getTasksForUser(currentUser).stream().map(t -> (ScheduledTaskDef) t).toList();
     }
 
-    public Optional<ScheduledTaskDef> getScheduledTask(User currentUser, long taskId) {
+    public ScheduledTaskDef getScheduledTask(User currentUser, long taskId) {
         Optional<ScheduledTaskDef> task = scheduledTaskRepo.getById(taskId).map(t -> (ScheduledTaskDef) t);
 
         if (task.isEmpty() || !task.get().getCreatedByUser().equals(currentUser)){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Task does not exist");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Task '%s' does not exist!", taskId));
         }
 
-        return task;
+        return task.get();
     }
 
 

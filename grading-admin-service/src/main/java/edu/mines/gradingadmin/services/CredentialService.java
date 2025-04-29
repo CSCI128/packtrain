@@ -7,7 +7,6 @@ import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.repositories.CredentialRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -27,99 +26,76 @@ public class CredentialService {
     }
 
     public List<Credential> getAllCredentials(String cwid){
-        Optional<User> user = userService.getUserByCwid(cwid);
-        if (user.isEmpty()){
-            // todo: also needs error handling via error advice handler
-            log.warn("Could not find user with CWID: '{}'", cwid);
-            return List.of();
-        }
-
         return credentialRepo.getByCwid(cwid);
     }
 
-    public Optional<Credential> getCredentialById(UUID id) {
-        return credentialRepo.getById(id);
+    public Credential getCredentialById(String cwid, UUID id) {
+        Optional<Credential> credential = credentialRepo.getById(cwid, id);
+
+        if (credential.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Credential '%s' was not found", id));
+        }
+
+        return credential.get();
     }
 
     public Optional<String> getCredentialByService(String cwid, CredentialType type){
-        List<Credential> availableCredentials = credentialRepo.getByCwidAndEndpoint(cwid, type);
-
-        if (availableCredentials.isEmpty()){
-            throw new AccessDeniedException("Access denied: credential does not exist");
-        }
-
-        // if there is multiple, return the first
-
-        return Optional.of(availableCredentials.getFirst().getApiKey());
+        return credentialRepo.getByCwidAndType(cwid, type).map(Credential::getApiKey);
     }
 
     public Optional<String> getCredentialByService(UUID courseId, CredentialType type){
-        List<Credential> availableCredentials = credentialRepo.getByCourseAndEndpoint(courseId, type);
+        List<Credential> availableCredentials = credentialRepo.getByCourseAndType(courseId, type);
 
         if (availableCredentials.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Credentials do not exist");
+            return Optional.empty();
         }
-
-        // if there is multiple, return the first
 
         return Optional.of(availableCredentials.getFirst().getApiKey());
     }
 
-    public Optional<Credential> createNewCredentialForService(String cwid, CredentialDTO credentialDTO){
-        // todo this needs error handling
-
+    public Credential createNewCredentialForService(String cwid, CredentialDTO credentialDTO){
         Credential credential = new Credential();
 
-        Optional<User> user = userService.getUserByCwid(cwid);
+        User user = userService.getUserByCwid(cwid);
 
         CredentialType credentialType = CredentialType.fromString(credentialDTO.getService().toString());
 
-        if (user.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not find a user with this CWID");
-        }
-
-        if (credentialRepo.existsByCwidAndEndpoint(cwid, credentialType)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credential already exists");
+        if (credentialRepo.existsByCwidAndType(cwid, credentialType)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Credential type '%s' already exists for user '%s'", credentialType, cwid));
         }
 
         if (credentialRepo.existsByCwidAndName(cwid, credentialDTO.getName())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credential already exists");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Credential with name '%s' already exists for user '%s'", credentialDTO.getName(), cwid));
         }
 
-        credential.setOwningUser(user.get());
+        credential.setOwningUser(user);
         credential.setType(credentialType);
         credential.setName(credentialDTO.getName());
         credential.setApiKey(credentialDTO.getApiKey());
         credential.setPrivate(true);
 
-        return Optional.of(credentialRepo.save(credential));
+        return credentialRepo.save(credential);
     }
 
-    public Optional<Credential> markCredentialAsPublic(UUID credentialId){
-        Optional<Credential> credential = credentialRepo.getById(credentialId);
+    public Credential markCredentialAsPublic(String cwid, UUID credentialId){
+        Credential credential = getCredentialById(cwid, credentialId);
 
-        if (credential.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Credential does not exist");
-        }
+        credential.setPrivate(false);
 
-        credential.get().setPrivate(false);
-
-        return Optional.of(credentialRepo.save(credential.get()));
+        return credentialRepo.save(credential);
     }
 
-    public Optional<Credential> markCredentialAsPrivate(UUID credentialId) {
-        Optional<Credential> credential = credentialRepo.getById(credentialId);
+    public Credential markCredentialAsPrivate(String cwid, UUID credentialId) {
+        Credential credential = getCredentialById(cwid, credentialId);
 
-        if (credential.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Credential does not exist");
-        }
+        credential.setPrivate(true);
 
-        credential.get().setPrivate(true);
-
-        return Optional.of(credentialRepo.save(credential.get()));
+        return credentialRepo.save(credential);
     }
 
-    public void deleteCredential(Credential credential) {
+    public void deleteCredential(String cwid, UUID credentialId) {
+        Credential credential = getCredentialById(cwid, credentialId);
+
         credentialRepo.delete(credential);
     }
 }
