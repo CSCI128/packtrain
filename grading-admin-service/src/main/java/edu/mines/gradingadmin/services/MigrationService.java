@@ -311,14 +311,18 @@ public class MigrationService {
 
     @Transactional
     public List<ScheduledTaskDef> startProcessScoresAndExtensions(User actingUser, String masterMigrationId ){
+        if(!validateApplyMasterMigration(masterMigrationId)) {
+            return List.of();
+        }
+
         Optional<MasterMigration> master = masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
 
         if(master.isEmpty()){
             return List.of();
         }
 
-        if (master.get().getStatus() != MigrationStatus.CREATED){
-            log.warn("Migration is in invalid state to start a migration. {} != {}", master.get().getStatus().name(), MigrationStatus.CREATED.name());
+        if (master.get().getStatus() != MigrationStatus.LOADED){
+            log.warn("Migration is in invalid state to start a migration. {} != {}", master.get().getStatus().name(), MigrationStatus.LOADED.name());
             return List.of();
         }
 

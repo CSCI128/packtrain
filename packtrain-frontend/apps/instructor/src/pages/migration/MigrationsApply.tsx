@@ -147,10 +147,17 @@ export function MigrationsApplyPage() {
     []
   );
 
-  if (migrationIsLoading || !migrationData || courseIsLoading || !courseData)
+  if (
+    migrationIsLoading ||
+    !migrationData ||
+    courseIsLoading ||
+    !courseData ||
+    !policyData ||
+    policyIsLoading
+  )
     return "Loading...";
 
-  if (migrationError || courseError)
+  if (migrationError || courseError || policyError)
     return `An error occured: ${migrationError}`;
 
   return (
@@ -162,13 +169,12 @@ export function MigrationsApplyPage() {
               label="Select a policy:"
               placeholder="Select policy.."
               data={
-                policyData
-                  ? policyData &&
-                    policyData.flatMap((policy: Policy) => [
-                      { label: policy.name ?? "", value: policy.id as string },
-                    ])
-                  : undefined
+                policyData &&
+                policyData.flatMap((policy: Policy) => [
+                  { label: policy.name ?? "", value: policy.id as string },
+                ])
               }
+              // TODO set default value
               onChange={(value) => {
                 setSelectedPolicyId(value ?? "");
               }}
