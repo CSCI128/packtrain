@@ -4372,6 +4372,9 @@
       "MigrationWithScores": {
         "description": "A migration for an assignment that contains scores for each student",
         "type": "object",
+        "required": [
+          "scores"
+        ],
         "properties": {
           "migration_id": {
             "type": "string",

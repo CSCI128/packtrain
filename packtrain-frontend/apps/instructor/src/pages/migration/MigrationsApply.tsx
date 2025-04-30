@@ -24,13 +24,16 @@ export function MigrationsApplyPage() {
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedMigration, setSelectedMigration] = useState<Migration>();
   const [selectedPolicyId, setSelectedPolicyId] = useState<string>("");
+  const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
+    []
+  );
 
   const {
     data: policyData,
     error: policyError,
     isLoading: policyIsLoading,
   } = useQuery<Policy[] | null>({
-    queryKey: ["getCourse"],
+    queryKey: ["getAllPolicies"],
     queryFn: () =>
       getApiClient()
         .then((client) =>
@@ -69,6 +72,7 @@ export function MigrationsApplyPage() {
     data: migrationData,
     error: migrationError,
     isLoading: migrationIsLoading,
+    refetch,
   } = useQuery<MasterMigration | null>({
     queryKey: ["getMasterMigrations"],
     queryFn: () =>
@@ -143,10 +147,6 @@ export function MigrationsApplyPage() {
     }
   }, [migrationData]);
 
-  const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
-    []
-  );
-
   if (
     migrationIsLoading ||
     !migrationData ||
@@ -187,13 +187,20 @@ export function MigrationsApplyPage() {
               <Button
                 color="blue"
                 onClick={() => {
-                  setPolicyMigration.mutate({
-                    master_migration_id:
-                      store$.master_migration_id.get() as string,
-                    migration_id: selectedMigration?.id as string,
-                    policy_id: selectedPolicyId,
-                  });
-                  close();
+                  setPolicyMigration.mutate(
+                    {
+                      master_migration_id:
+                        store$.master_migration_id.get() as string,
+                      migration_id: selectedMigration?.id as string,
+                      policy_id: selectedPolicyId,
+                    },
+                    {
+                      onSuccess: () => {
+                        close();
+                        refetch();
+                      },
+                    }
+                  );
                 }}
                 variant="filled"
               >
@@ -256,15 +263,7 @@ export function MigrationsApplyPage() {
                   <Group>
                     <Button
                       color="blue"
-                      onClick={() =>
-                        handleSetPolicy(
-                          migrationData.migrations
-                            ?.filter(
-                              (x) => x.assignment.id === selectedAssignment
-                            )
-                            .at(0)?.assignment.id as string
-                        )
-                      }
+                      onClick={() => handleSetPolicy(selectedAssignment)}
                     >
                       Select
                     </Button>

@@ -528,7 +528,7 @@ declare namespace Components {
              */
             migration_id?: string;
             assignment?: /* An slim assignment in a course */ AssignmentSlim;
-            scores?: /* A score for a student */ Score[];
+            scores: /* A score for a student */ Score[];
         }
         /**
          * Create a new policy file

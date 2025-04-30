@@ -1,4 +1,5 @@
 import {
+  Anchor,
   Box,
   Button,
   Checkbox,
@@ -20,8 +21,6 @@ import { store$ } from "@repo/api/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Anchor } from "@mantine/core";
-
 
 export function CreatePage() {
   const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
@@ -210,7 +209,7 @@ export function CreatePage() {
           term: values.courseTerm,
           enabled: true,
           canvas_id: Number(values.canvasId),
-          gradescope_id: values.gradescopeId,
+          gradescope_id: Number(values.gradescopeId),
           late_request_config: {
             late_passes_enabled: values.latePassesEnabled,
             late_pass_name: values.latePassName,
@@ -288,7 +287,10 @@ export function CreatePage() {
         {!userHasCredential ? (
           <>
             <Text fw={400}>You do not have any active Canvas credentials!</Text>
-            <Text>Please add a credential under <Anchor href="/admin/profile"> your profile</Anchor> to proceed.</Text>
+            <Text>
+              Please add a credential under{" "}
+              <Anchor href="/admin/profile"> your profile</Anchor> to proceed.
+            </Text>
           </>
         ) : (
           <>

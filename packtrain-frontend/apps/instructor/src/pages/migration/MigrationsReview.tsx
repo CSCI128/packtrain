@@ -5,10 +5,13 @@ import {
   Divider,
   Group,
   Modal,
+  ScrollArea,
   Stack,
   Stepper,
+  Table,
   Tabs,
   Text,
+  TextInput,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
@@ -16,10 +19,14 @@ import {
   Course,
   MasterMigration,
   MigrationWithScores,
+  Score,
 } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { sortData, TableHeader } from "@repo/ui/table/Table";
+import { IconSearch } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { BsPencilSquare } from "react-icons/bs";
 import { Link } from "react-router-dom";
 
 export function MigrationsReviewPage() {
@@ -91,6 +98,39 @@ export function MigrationsReviewPage() {
   const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
     []
   );
+  const [selectedAssignment, setSelectedAssignment] = useState<string>("");
+  const [search, setSearch] = useState("");
+  const [sortedData, setSortedData] = useState(
+    migrationData2?.filter((x) => x.assignment?.id === selectedAssignment).at(0)
+      ?.scores || []
+  );
+  const [sortBy, setSortBy] = useState<keyof Score | null>(null);
+  const [reverseSortDirection, setReverseSortDirection] = useState(false);
+
+  // sync sortedData with data
+  useEffect(() => {
+    if (migrationData2) {
+      setSortedData(
+        migrationData2
+          ?.filter((x) => x.assignment?.id === selectedAssignment)
+          .at(0)?.scores as Score[]
+      );
+    }
+  }, [migrationData2]);
+
+  useEffect(() => {
+    if (migrationData && migrationData.migrations) {
+      setSelectedAssignmentIds(
+        migrationData.migrations.map(
+          ({ assignment }) => assignment.id as string
+        )
+      );
+    }
+  }, [migrationData]);
+
+  useEffect(() => {
+    setSelectedAssignment(selectedAssignmentIds[0]);
+  }, [selectedAssignmentIds]);
 
   if (
     migrationIsLoading ||
@@ -104,6 +144,59 @@ export function MigrationsReviewPage() {
 
   if (migrationError || courseError || migrationError2)
     return `An error occured: ${migrationError}`;
+
+  const setSorting = (field: keyof Score) => {
+    const reversed = field === sortBy ? !reverseSortDirection : false;
+    setReverseSortDirection(reversed);
+    setSortBy(field);
+    setSortedData(
+      sortData<Score>(
+        migrationData2
+          ?.filter((x) => x.assignment?.id === selectedAssignment)
+          .at(0)?.scores as Score[],
+        {
+          sortBy: field,
+          reversed,
+          search,
+        }
+      )
+    );
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.currentTarget;
+    setSearch(value);
+    setSortedData(
+      sortData<Score>(
+        migrationData2
+          ?.filter((x) => x.assignment?.id === selectedAssignment)
+          .at(0)?.scores as Score[],
+        {
+          sortBy,
+          reversed: reverseSortDirection,
+          search: value,
+        }
+      )
+    );
+  };
+
+  const handleEditOpen = (row: Score) => {};
+
+  const rows = sortedData.map((row: Score) => (
+    // student name, days late, score to apply, raw score, status
+    <Table.Tr key={row.student?.cwid}>
+      <Table.Td>{row.student?.name}</Table.Td>
+      <Table.Td>{row.submission_date}</Table.Td>
+      <Table.Td>
+        {row.score}
+        <Center>
+          <BsPencilSquare onClick={() => handleEditOpen(row)} />
+        </Center>
+      </Table.Td>
+      <Table.Td>{row.score}</Table.Td>
+      <Table.Td>{row.status}</Table.Td>
+    </Table.Tr>
+  ));
 
   console.log(migrationData);
 
@@ -159,10 +252,16 @@ export function MigrationsReviewPage() {
         <Divider my="sm" />
 
         {selectedAssignmentIds.length > 0 ? (
-          <Tabs defaultValue={selectedAssignmentIds.at(0)}>
+          <Tabs
+            defaultValue={selectedAssignmentIds.at(0)}
+            onChange={(value) => {
+              setSearch("");
+              setSelectedAssignment(value as string);
+            }}
+          >
             <Tabs.List>
               {selectedAssignmentIds.map((assignment) => (
-                <Tabs.Tab value={assignment}>
+                <Tabs.Tab key={assignment} value={assignment}>
                   {
                     courseData?.assignments?.filter(
                       (a) => a.id === assignment
@@ -173,9 +272,81 @@ export function MigrationsReviewPage() {
             </Tabs.List>
 
             {selectedAssignmentIds.map((assignment) => (
-              <Tabs.Panel value={assignment} p={20}>
-                <Text>Hello</Text>
-              </Tabs.Panel>
+              <React.Fragment key={assignment}>
+                <Tabs.Panel value={assignment} p={20}>
+                  <ScrollArea h={750}>
+                    <TextInput
+                      placeholder="Search by any field"
+                      mb="md"
+                      leftSection={<IconSearch size={16} stroke={1.5} />}
+                      value={search}
+                      onChange={handleSearchChange}
+                    />
+                    <Table
+                      horizontalSpacing="md"
+                      verticalSpacing="xs"
+                      miw={700}
+                    >
+                      <Table.Tbody>
+                        <Table.Tr>
+                          <TableHeader
+                            sorted={sortBy === "student"}
+                            reversed={reverseSortDirection}
+                            onSort={() => setSorting("student")}
+                          >
+                            Student
+                          </TableHeader>
+                          <TableHeader
+                            sorted={sortBy === "student"}
+                            reversed={reverseSortDirection}
+                            onSort={() => setSorting("student")}
+                          >
+                            {/* TODO need this */}
+                            Days Late
+                          </TableHeader>
+                          <TableHeader
+                            sorted={sortBy === "score"}
+                            reversed={reverseSortDirection}
+                            onSort={() => setSorting("score")}
+                          >
+                            Score to Apply
+                          </TableHeader>
+                          <TableHeader
+                            sorted={sortBy === "score"}
+                            reversed={reverseSortDirection}
+                            onSort={() => setSorting("score")}
+                          >
+                            {/* TODO need this */}
+                            Raw Score
+                          </TableHeader>
+                          <TableHeader
+                            sorted={sortBy === "status"}
+                            reversed={reverseSortDirection}
+                            onSort={() => setSorting("status")}
+                          >
+                            Status
+                          </TableHeader>
+                        </Table.Tr>
+                      </Table.Tbody>
+                      <Table.Tbody>
+                        {rows.length > 0 ? (
+                          rows
+                        ) : (
+                          <Table.Tr>
+                            <Table.Td
+                              colSpan={Object.keys(migrationData2[0]).length}
+                            >
+                              <Text fw={500} ta="center">
+                                No migration data found
+                              </Text>
+                            </Table.Td>
+                          </Table.Tr>
+                        )}
+                      </Table.Tbody>
+                    </Table>
+                  </ScrollArea>
+                </Tabs.Panel>
+              </React.Fragment>
             ))}
           </Tabs>
         ) : (

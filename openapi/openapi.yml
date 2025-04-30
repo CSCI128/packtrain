@@ -975,7 +975,7 @@ paths:
       description: |
         This endpoint gets all extensions for a given course
       security:
-        - openIDC: [ admin:read ]
+        - openIDC: [admin:read]
       parameters:
         - name: course_id
           required: true
@@ -2924,6 +2924,8 @@ components:
     MigrationWithScores:
       description: "A migration for an assignment that contains scores for each student"
       type: object
+      required:
+        - scores
       properties:
         migration_id:
           type: string
