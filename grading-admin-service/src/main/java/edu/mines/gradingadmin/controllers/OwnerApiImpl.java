@@ -182,7 +182,7 @@ public class OwnerApiImpl implements OwnerApiDelegate {
             }
         }
         List<CourseMember> members = courseMemberService.searchCourseMembers(course, roles, name, cwid);
-//        members.forEach(m -> m.setSections(sectionService.getSectionByMember(m)));
+        members.forEach(m -> m.setSections(sectionService.getSectionByMember(m)));
 
         return ResponseEntity.ok(members
                 .stream().map(DTOFactory::toDto).toList());
