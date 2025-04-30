@@ -349,7 +349,7 @@ public class MigrationService {
             task.setCreatedByUser(actingUser);
             task.setTaskName(String.format("Process scores and extensions for assignment '%s'", assignment.getName()));
             task.setMigrationId(migration.getId());
-            task.setAssignmentId(migration.getId());
+            task.setAssignmentId(assignment.getId());
             task.setPolicy(URI.create(migration.getPolicy().getPolicyURI()));
             task = processScoresTaskRepo.save(task);
 
