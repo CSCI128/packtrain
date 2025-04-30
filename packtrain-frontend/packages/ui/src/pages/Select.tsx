@@ -16,7 +16,7 @@ import { useAuth } from "react-oidc-context";
 
 export const SelectClass = ({ close }: { close?: () => void }) => {
   const auth = useAuth();
-  const [checked, setChecked] = useState(false);
+  const [checked, setChecked] = useState(true);
 
   const { data, error, isLoading, refetch } = useQuery<
     Course[] | CourseSlim[],
