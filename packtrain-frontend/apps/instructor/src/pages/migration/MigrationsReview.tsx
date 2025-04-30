@@ -106,6 +106,9 @@ export function MigrationsReviewPage() {
   );
   const [sortBy, setSortBy] = useState<keyof Score | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
+  const [editScoreOpened, { open: openEditScore, close: closeEditScore }] =
+    useDisclosure(false);
+  const [selectedScore, setSelectedScore] = useState<Score | null>(null);
 
   // sync sortedData with data
   useEffect(() => {
@@ -180,7 +183,10 @@ export function MigrationsReviewPage() {
     );
   };
 
-  const handleEditOpen = (row: Score) => {};
+  const handleEditOpen = (row: Score) => {
+    setSelectedScore(row);
+    openEditScore();
+  };
 
   const rows = sortedData.map((row: Score) => (
     // student name, days late, score to apply, raw score, status
@@ -188,8 +194,9 @@ export function MigrationsReviewPage() {
       <Table.Td>{row.student?.name}</Table.Td>
       <Table.Td>{row.submission_date}</Table.Td>
       <Table.Td>
-        {row.score}
         <Center>
+          {/* TODO add margin here */}
+          {row.score}
           <BsPencilSquare onClick={() => handleEditOpen(row)} />
         </Center>
       </Table.Td>
@@ -226,6 +233,24 @@ export function MigrationsReviewPage() {
             </Button>
           </Stack>
         </Center>
+      </Modal>
+      <Modal
+        opened={editScoreOpened}
+        onClose={closeEditScore}
+        title="Edit Score to Apply"
+      >
+        <>
+          <Text>Bruh</Text>
+
+          <Group gap="xs" justify="flex-end">
+            <Button color="gray" variant="light" onClick={closeEditScore}>
+              Cancel
+            </Button>
+            <Button color="green" type="submit">
+              Add
+            </Button>
+          </Group>
+        </>
       </Modal>
 
       <Container size="md">
@@ -274,7 +299,7 @@ export function MigrationsReviewPage() {
             {selectedAssignmentIds.map((assignment) => (
               <React.Fragment key={assignment}>
                 <Tabs.Panel value={assignment} p={20}>
-                  <ScrollArea h={750}>
+                  <ScrollArea h={750} pb={20}>
                     <TextInput
                       placeholder="Search by any field"
                       mb="md"
@@ -345,6 +370,21 @@ export function MigrationsReviewPage() {
                       </Table.Tbody>
                     </Table>
                   </ScrollArea>
+
+                  <Group>
+                    <Text>
+                      <b>X</b> extensions applied
+                    </Text>
+                    <Text>
+                      <b>X</b> zero credit
+                    </Text>
+                    <Text>
+                      <b>X</b> missing assignments
+                    </Text>
+                    <Text>
+                      <b>X</b> late penalties
+                    </Text>
+                  </Group>
                 </Tabs.Panel>
               </React.Fragment>
             ))}
