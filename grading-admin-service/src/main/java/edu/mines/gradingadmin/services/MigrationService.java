@@ -507,6 +507,8 @@ public class MigrationService {
                 score.setStatus(entry.getSubmissionStatus().getStatus());
                 score.submissionDate(entry.getSubmissionTime());
                 score.setComment(entry.getMessage());
+                score.setRawScore(rawScoreRepo.getByCwidAndMigrationId(entry.getCwid(), entry.getMigrationId()).map(RawScore::getScore).orElse(null));
+                score.daysLate(rawScoreRepo.getByCwidAndMigrationId(entry.getCwid(), entry.getMigrationId()).map(r -> (int)(r.getHoursLate() / 24)).orElse(0));
 
 
                 score.setStudent(DTOFactory.toDto(member.get()));
