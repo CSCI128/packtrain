@@ -13,10 +13,16 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { Course, MasterMigration, Migration, Policy } from "@repo/api/openapi";
+import {
+  Course,
+  MasterMigration,
+  Migration,
+  Policy,
+  Task,
+} from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export function MigrationsApplyPage() {
@@ -27,6 +33,9 @@ export function MigrationsApplyPage() {
   const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
     []
   );
+  const [posting, setPosting] = useState(true);
+  const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
+  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
 
   const {
     data: policyData,
@@ -134,8 +143,83 @@ export function MigrationsApplyPage() {
           })
         )
         .then((res) => res.data)
-        .catch((err) => console.log(err)),
+        .catch((err) => {
+          console.log(err);
+          return [];
+        }),
   });
+
+  const { mutateAsync: fetchTask } = useMutation({
+    mutationKey: ["getTask"],
+    mutationFn: ({ task_id }: { task_id: number }) =>
+      getApiClient()
+        .then((client) =>
+          client.get_task({
+            task_id: task_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const pollTaskUntilComplete = useCallback(
+    async (taskId: number, delay = 5000) => {
+      let tries = 0;
+      while (true) {
+        try {
+          if (tries > 20) {
+            throw new Error("Maximum attempts (20) at polling exceeded..");
+          }
+
+          const response = await fetchTask({ task_id: taskId });
+
+          if (response?.status === "COMPLETED") {
+            console.log(`Task ${taskId} is completed!`);
+            return response;
+          } else if (response?.status === "FAILED") {
+            console.log(`Task ${taskId} failed`);
+            console.log(response);
+            throw new Error("ERR");
+          } else {
+            console.log(
+              `Task ${taskId} is still in progress, retrying in ${delay}ms...`
+            );
+            tries++;
+            await new Promise((res) => setTimeout(res, delay));
+          }
+        } catch (error) {
+          console.error(`Error fetching task ${taskId}:`, error);
+          return;
+        }
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (outstandingTasks.length === 0) return;
+
+    const pollTasks = async () => {
+      Promise.all(
+        outstandingTasks.map((task) => pollTaskUntilComplete(task.id))
+      )
+        .then((results) => {
+          console.log("All tasks are completed:", results);
+          setAllTasksCompleted(true);
+          setOutstandingTasks([]);
+          setPosting(false);
+          navigate("/instructor/migrate/review");
+        })
+        .catch((error) => {
+          console.error("Some tasks failed:", error);
+        });
+    };
+
+    pollTasks();
+  }, [outstandingTasks, pollTaskUntilComplete]);
 
   useEffect(() => {
     if (migrationData) {
@@ -290,16 +374,19 @@ export function MigrationsApplyPage() {
           <strong>0</strong> unapproved extensions
         </Text>
 
+        {!posting && <>Applying grades..</>}
+
         <Group justify="flex-end" mt="md">
           <Button
             component={Link}
             to="/instructor/migrate/load"
-            variant="filled"
             color="gray"
+            variant="light"
           >
             Previous
           </Button>
           <Button
+            disabled={!posting}
             onClick={() => {
               applyMasterMigration.mutate(
                 {
@@ -309,12 +396,12 @@ export function MigrationsApplyPage() {
                 {
                   onSuccess: (data) => {
                     console.log(data);
-                    navigate("/instructor/migrate/review");
+                    setPosting(false);
+                    setOutstandingTasks(data);
                   },
                 }
               );
             }}
-            variant="filled"
             color="blue"
           >
             Next

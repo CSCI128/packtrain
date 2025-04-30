@@ -61,6 +61,10 @@ export function MigrationsPage() {
           </>
         )}
 
+        {store$.master_migration_id.get() && (
+          <>Active master migration: {store$.master_migration_id.get()}</>
+        )}
+
         <Button component={Link} to="/instructor/migrate/load" variant="filled">
           Migrate Grades
         </Button>

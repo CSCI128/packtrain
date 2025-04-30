@@ -24,12 +24,13 @@ import {
 import { store$ } from "@repo/api/store";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export function MigrationsReviewPage() {
+  const navigate = useNavigate();
   const {
     data: courseData,
     error: courseError,
@@ -93,6 +94,41 @@ export function MigrationsReviewPage() {
         }),
   });
 
+  const reviewMasterMigration = useMutation({
+    mutationKey: ["reviewMasterMigration"],
+    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
+      getApiClient()
+        .then((client) =>
+          client.review_master_migration({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
+
+  const updateStudentScore = useMutation({
+    mutationKey: ["updateStudentScore"],
+    mutationFn: ({
+      master_migration_id,
+      migration_id,
+    }: {
+      master_migration_id: string;
+      migration_id: string;
+    }) =>
+      getApiClient()
+        .then((client) =>
+          client.update_student_score({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
+            migration_id: migration_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
+
   const [confirmOpened, { open: openConfirm, close: closeConfirm }] =
     useDisclosure(false);
   const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
@@ -100,26 +136,12 @@ export function MigrationsReviewPage() {
   );
   const [selectedAssignment, setSelectedAssignment] = useState<string>("");
   const [search, setSearch] = useState("");
-  const [sortedData, setSortedData] = useState(
-    migrationData2?.filter((x) => x.assignment?.id === selectedAssignment).at(0)
-      ?.scores || []
-  );
+  const [sortedData, setSortedData] = useState<Score[]>([]);
   const [sortBy, setSortBy] = useState<keyof Score | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
   const [editScoreOpened, { open: openEditScore, close: closeEditScore }] =
     useDisclosure(false);
   const [selectedScore, setSelectedScore] = useState<Score | null>(null);
-
-  // sync sortedData with data
-  useEffect(() => {
-    if (migrationData2) {
-      setSortedData(
-        migrationData2
-          ?.filter((x) => x.assignment?.id === selectedAssignment)
-          .at(0)?.scores as Score[]
-      );
-    }
-  }, [migrationData2]);
 
   useEffect(() => {
     if (migrationData && migrationData.migrations) {
@@ -132,8 +154,18 @@ export function MigrationsReviewPage() {
   }, [migrationData]);
 
   useEffect(() => {
-    setSelectedAssignment(selectedAssignmentIds[0]);
-  }, [selectedAssignmentIds]);
+    if (migrationData2) {
+      if (selectedAssignmentIds.length > 0 && migrationData2) {
+        setSelectedAssignment(selectedAssignmentIds[0]);
+      }
+
+      const matchingMigration = migrationData2.find(
+        (m) => m.assignment?.id === selectedAssignmentIds[0]
+      );
+
+      setSortedData(matchingMigration?.scores ?? []);
+    }
+  }, [selectedAssignmentIds, migrationData2]);
 
   if (
     migrationIsLoading ||
@@ -205,8 +237,6 @@ export function MigrationsReviewPage() {
     </Table.Tr>
   ));
 
-  console.log(migrationData);
-
   return (
     <>
       <Modal
@@ -225,8 +255,20 @@ export function MigrationsReviewPage() {
 
             <Button
               color="blue"
-              component={Link}
-              to="/instructor/migrate/post"
+              onClick={() => {
+                reviewMasterMigration.mutate(
+                  {
+                    master_migration_id:
+                      store$.master_migration_id.get() as string,
+                  },
+                  {
+                    onSuccess: (data) => {
+                      console.log("COMPLETED POST WITH:", data);
+                      navigate("/instructor/migrate/post");
+                    },
+                  }
+                );
+              }}
               variant="filled"
             >
               Post
@@ -359,7 +401,10 @@ export function MigrationsReviewPage() {
                         ) : (
                           <Table.Tr>
                             <Table.Td
-                              colSpan={Object.keys(migrationData2[0]).length}
+                              colSpan={
+                                migrationData2[0] &&
+                                Object.keys(migrationData2[0].scores).length
+                              }
                             >
                               <Text fw={500} ta="center">
                                 No migration data found
@@ -401,6 +446,7 @@ export function MigrationsReviewPage() {
               component={Link}
               to="/instructor/migrate/apply"
               color="gray"
+              variant="light"
             >
               Previous
             </Button>
