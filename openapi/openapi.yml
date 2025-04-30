@@ -2927,6 +2927,13 @@ components:
         comment:
           type: string
           example: "An extension was applied :)"
+        raw_score:
+          type: number
+          format: double
+          example: 7.5
+        days_late:
+          type: integer
+          example: 0
 
     MigrationWithScores:
       description: "A migration for an assignment that contains scores for each student"

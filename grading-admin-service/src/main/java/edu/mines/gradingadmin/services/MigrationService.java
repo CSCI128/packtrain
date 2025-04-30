@@ -507,7 +507,7 @@ public class MigrationService {
                 score.setStatus(entry.getSubmissionStatus().getStatus());
                 score.submissionDate(entry.getSubmissionTime());
                 score.setComment(entry.getMessage());
-                score.setRawScore(rawScoreRepo.getByCwidAndMigrationId(entry.getCwid(), entry.getMigrationId()).map(RawScore::getScore).orElse(0));
+                score.setRawScore(rawScoreRepo.getByCwidAndMigrationId(entry.getCwid(), entry.getMigrationId()).map(RawScore::getScore).orElse(0.));
                 score.daysLate(rawScoreRepo.getByCwidAndMigrationId(entry.getCwid(), entry.getMigrationId()).map(r -> (int)(r.getHoursLate() / 24)).orElse(0));
 
 
