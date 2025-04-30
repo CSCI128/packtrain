@@ -2909,7 +2909,14 @@ components:
           $ref: "#/components/schemas/CourseMember"
         status:
           type: string
+        days_late:
+          type: integer
+          example: 10
         score:
+          type: number
+          format: double
+          example: 10
+        raw_score:
           type: number
           format: double
           example: 10

@@ -378,6 +378,7 @@ export function MigrationsApplyPage() {
 
         <Group justify="flex-end" mt="md">
           <Button
+            disabled={!posting}
             component={Link}
             to="/instructor/migrate/load"
             color="gray"
