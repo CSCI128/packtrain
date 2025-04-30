@@ -55,11 +55,11 @@ public class DTOFactory {
 
     public static CourseMemberDTO toDto(CourseMember courseMember) {
         return new CourseMemberDTO()
+            .name(courseMember.getUser().getName())
             .canvasId(courseMember.getCanvasId())
             .courseRole(CourseMemberDTO.CourseRoleEnum.fromValue(courseMember.getRole().getRole()))
             .cwid(courseMember.getUser().getCwid())
-            .sections(courseMember.getSections().stream().map(Section::getName).toList())
-            .name(courseMember.getUser().getName());
+            .sections(courseMember.getSections().stream().map(Section::getName).toList());
     }
 
     public static CourseSlimDTO toSlimDto(Course course) {

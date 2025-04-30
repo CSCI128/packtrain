@@ -35,12 +35,12 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
 
       const res =
         auth.isAuthenticated && auth.user?.profile.is_admin
-          ? await client.get_courses({ onlyActive })
+          ? await client.owner_get_courses({ onlyActive })
           : await client.get_courses_student();
 
       return res.data;
     },
-    enabled: !!auth.isAuthenticated,
+    enabled: auth.isAuthenticated,
   });
 
   const { data: enrollmentInfo } = useQuery({
@@ -50,7 +50,7 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
         .then((client) => client.get_enrollments())
         .then((res) => res.data)
         .catch((err) => console.log(err)),
-    enabled: !!auth.isAuthenticated,
+    enabled: auth.isAuthenticated,
   });
 
   const switchCourse = (id: string, name: string) => {

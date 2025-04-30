@@ -71,9 +71,13 @@ public class CourseMemberService {
     }
 
     public Set<CourseMember> getAllMembersGivenCourse(Course course){
-        return courseMemberRepo.getAllByCourse(course);
+        Set<CourseMember> members = courseMemberRepo.getAllByCourse(course);
+        members.forEach(m -> m.setSections(sectionService.getSectionByMember(m)));
+
+        return members;
     }
 
+    @Transactional
     public List<CourseMember> searchCourseMembers(Course course, List<CourseRole> roles, String name, String cwid) {
         if (name != null) {
             return courseMemberRepo.findAllByCourseByUserName(course, name).stream().filter(x -> roles.contains(x.getRole())).toList();
