@@ -1,6 +1,5 @@
 package edu.mines.gradingadmin.services;
 
-import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.data.CourseLateRequestConfigDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
@@ -19,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.net.URI;
 import java.util.*;
 
 @Slf4j
@@ -237,4 +235,24 @@ public class CourseService {
     }
 
 
+    public Course getCourseForMigration(String migrationId) {
+        Optional<Course> course = courseRepo.getCourseByMigrationId(UUID.fromString(migrationId));
+
+        if (course.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("No course exists for migration '%s'!", migrationId));
+        }
+
+        return course.get();
+    }
+
+    public Course getCourseForMasterMigration(String masterMigrationId) {
+        Optional<Course> course = courseRepo.getCourseByMasterMigrationId(UUID.fromString(masterMigrationId));
+
+        if (course.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("No course exists for master migration '%s'!", masterMigrationId));
+        }
+
+        return course.get();
+
+    }
 }

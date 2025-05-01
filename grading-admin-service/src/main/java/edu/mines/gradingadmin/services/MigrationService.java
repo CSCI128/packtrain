@@ -145,28 +145,16 @@ public class MigrationService {
         return migrationRepo.getMigrationById(UUID.fromString(migrationId));
     }
 
-    @Transactional
     public Course getCourseForMigration(String migrationId){
-        Migration migration = getMigration(migrationId);
-
-        MasterMigration master = migration.getMasterMigration();
-
-        return master.getCourse();
+        return courseService.getCourseForMigration(migrationId);
     }
 
-    @Transactional
     public Course getCourseForMasterMigration(String migrationId){
-
-        MasterMigration master = getMasterMigration(migrationId);
-
-        return master.getCourse();
+        return courseService.getCourseForMasterMigration(migrationId);
     }
 
-    @Transactional
     public Assignment getAssignmentForMigration(String migrationId){
-        Migration migration = getMigration(migrationId);
-
-        return migration.getAssignment();
+        return assignmentService.getAssignmentForMigration(migrationId);
     }
 
     public Migration setPolicyForMigration(String migrationId, String policyId){
@@ -186,7 +174,6 @@ public class MigrationService {
 
     }
 
-    @Transactional
     public void handleScoreReceived(User asUser, UUID migrationId, ScoredDTO dto){
         MigrationTransactionLog entry = new MigrationTransactionLog();
         Optional<MigrationTransactionLog> existing = transactionLogRepo.getByCwidAndMigrationId(dto.getCwid(), migrationId);
@@ -237,7 +224,6 @@ public class MigrationService {
         transactionLogRepo.save(entry);
     }
 
-    @Transactional
     public void processScoresAndExtensionsTask(ProcessScoresAndExtensionsTaskDef task){
         Assignment assignment = assignmentService.getAssignmentById(task.getAssignmentId().toString());
 
@@ -405,7 +391,6 @@ public class MigrationService {
     }
 
 
-    @Transactional
     public boolean validateLoadMasterMigration(String masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
@@ -437,7 +422,6 @@ public class MigrationService {
         return true;
     }
 
-    @Transactional
     public boolean finalizeLoadMasterMigration(String masterMigrationId){
         if (!validateLoadMasterMigration(masterMigrationId)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to validate load phase");
@@ -475,7 +459,6 @@ public class MigrationService {
         return true;
     }
 
-    @Transactional
     public List<MigrationWithScoresDTO> getMasterMigrationToReview(String masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 

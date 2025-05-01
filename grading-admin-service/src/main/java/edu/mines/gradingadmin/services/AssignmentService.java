@@ -249,4 +249,14 @@ public class AssignmentService {
 
         return assignmentRepo.save(assignment);
     }
+
+    public Assignment getAssignmentForMigration(String migrationId) {
+        Optional<Assignment> assignment = assignmentRepo.getAssignmentByMigrationId(UUID.fromString(migrationId));
+
+        if (assignment.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("No assignment found for migration '%s'", migrationId));
+        }
+
+        return assignment.get();
+    }
 }
