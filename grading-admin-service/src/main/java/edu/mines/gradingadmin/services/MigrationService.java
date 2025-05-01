@@ -22,7 +22,6 @@ import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.services.external.CanvasService;
 import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.RabbitMqService;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
@@ -95,7 +94,6 @@ public class MigrationService {
         return masterMigrationRepo.save(masterMigration);
     }
 
-    @Transactional
     public List<MasterMigration> getAllMasterMigrations(String courseId){
        return masterMigrationRepo.getMasterMigrationsByCourseId(UUID.fromString(courseId));
     }
@@ -257,7 +255,6 @@ public class MigrationService {
         }
     }
 
-    @Transactional
     public void zeroOutSubmissions(ZeroOutSubmissionsTaskDef task){
         Course course = getCourseForMigration(task.getMigrationId().toString());
 
@@ -295,7 +292,6 @@ public class MigrationService {
         return dto;
     }
 
-    @Transactional
     public List<ScheduledTaskDef> startProcessScoresAndExtensions(User actingUser, String masterMigrationId ){
         if(!validateApplyMasterMigration(masterMigrationId)) {
             return List.of();
@@ -517,7 +513,6 @@ public class MigrationService {
         return migrationWithScoresDTOs;
     }
 
-    @Transactional
     public boolean updateStudentScore(User asUser, String migrationId, MigrationScoreChangeDTO dto){
         ScoredDTO scored = new ScoredDTO();
         scored.setCwid(dto.getCwid());
@@ -569,7 +564,6 @@ public class MigrationService {
         // We will probably want to periodically check in on this and then only flag this as completed once this is done
     }
 
-    @Transactional
     public List<ScheduledTaskDef> processMigrationLog(User actingUser, String masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
