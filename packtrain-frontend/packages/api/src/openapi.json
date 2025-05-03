@@ -4394,16 +4394,7 @@
           "status": {
             "type": "string"
           },
-          "days_late": {
-            "type": "integer",
-            "example": 10
-          },
           "score": {
-            "type": "number",
-            "format": "double",
-            "example": 10
-          },
-          "raw_score": {
             "type": "number",
             "format": "double",
             "example": 10
@@ -4416,6 +4407,15 @@
           "comment": {
             "type": "string",
             "example": "An extension was applied :)"
+          },
+          "raw_score": {
+            "type": "number",
+            "format": "double",
+            "example": 7.5
+          },
+          "days_late": {
+            "type": "integer",
+            "example": 0
           }
         }
       },

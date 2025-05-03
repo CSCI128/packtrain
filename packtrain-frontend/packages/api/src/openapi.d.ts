@@ -598,17 +598,7 @@ declare namespace Components {
              * example:
              * 10
              */
-            days_late?: number;
-            /**
-             * example:
-             * 10
-             */
             score?: number; // double
-            /**
-             * example:
-             * 10
-             */
-            raw_score?: number; // double
             /**
              * example:
              * 2020-01-01T12:00:00.000Z
@@ -619,6 +609,16 @@ declare namespace Components {
              * An extension was applied :)
              */
             comment?: string;
+            /**
+             * example:
+             * 7.5
+             */
+            raw_score?: number; // double
+            /**
+             * example:
+             * 0
+             */
+            days_late?: number;
         }
         /**
          * Information relevant to a student
