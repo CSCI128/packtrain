@@ -292,12 +292,10 @@ export function MigrationsLoadPage() {
           data={
             data.assignments &&
             data.assignments
-              .flatMap((x) => [
-                {
-                  label: x.name,
-                  value: x.id as string,
-                },
-              ])
+              .map((x) => ({
+                label: x.name,
+                value: x.id as string,
+              }))
               .toSorted((x, y) => x.label.localeCompare(y.label))
           }
           key={form.key("assignmentIds")}

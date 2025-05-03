@@ -254,9 +254,10 @@ export function MigrationsApplyPage() {
               placeholder="Select policy.."
               data={
                 policyData &&
-                policyData.flatMap((policy: Policy) => [
-                  { label: policy.name ?? "", value: policy.id as string },
-                ])
+                policyData.map((policy: Policy) => ({
+                  label: policy.name ?? "",
+                  value: policy.id as string,
+                }))
               }
               // TODO set default value
               onChange={(value) => {
