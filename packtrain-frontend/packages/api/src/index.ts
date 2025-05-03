@@ -36,17 +36,23 @@ export const configureApiClient = (options: {
 export const getApiClient = async () => {
   const client = await api.getClient<Client>();
 
-  const u = await userManager.getUser();
-  if (u == null) {
-    throw new Error("Failed to get user");
-  }
-
-  client.defaults.headers["authorization"] = `Bearer ${u.access_token}`;
-
   // axios doesn't serialize array params properly as Spring wants it:
   // https://github.com/axios/axios/issues/5058#issuecomment-1272107602
   client.defaults.paramsSerializer = (params) =>
     qs.stringify(params, { arrayFormat: "repeat" });
+
+  client.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      return Promise.reject(error); // ✅ critical
+    }
+  );
+
+  const u = await userManager.getUser();
+  if (u == null) {
+    throw new Error("Failed to get user");
+  }
+  client.defaults.headers["authorization"] = `Bearer ${u.access_token}`;
 
   return client;
 };
