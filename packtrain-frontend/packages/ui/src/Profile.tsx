@@ -142,7 +142,7 @@ export function ProfilePage() {
       email: data?.email,
       cwid: data?.cwid,
     });
-  }, [data]);
+  }, [data, editUserForm]);
 
   if (isLoading || !data) return "Loading...";
 
