@@ -23,7 +23,7 @@ export const LandingPage = () => {
 
   useEffect(() => {
     if (enrollmentInfo) {
-      let enrollment = enrollmentInfo
+      const enrollment = enrollmentInfo
         .filter((c) => c.id === store$.id.get())
         .at(0);
       if (enrollment !== undefined) {

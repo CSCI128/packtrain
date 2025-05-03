@@ -155,7 +155,7 @@ export function EditCourse() {
           data.late_request_config.enabled_extension_reasons,
       });
     }
-  }, [data]);
+  }, [data, form]);
 
   const pollTaskUntilComplete = useCallback(
     async (taskId: number, delay = 5000) => {
@@ -187,7 +187,7 @@ export function EditCourse() {
         }
       }
     },
-    []
+    [fetchTask]
   );
 
   useEffect(() => {
