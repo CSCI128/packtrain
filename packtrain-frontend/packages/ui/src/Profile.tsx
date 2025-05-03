@@ -179,6 +179,7 @@ export function ProfilePage() {
             cwid: data.cwid,
             name: data.name,
             admin: data.admin,
+            enabled: data.enabled,
           },
           service: values.service as "canvas",
           api_key: values.apiKey,

@@ -35,7 +35,6 @@ export function MigrationsApplyPage() {
   );
   const [posting, setPosting] = useState(true);
   const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
-  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
 
   const {
     data: policyData,
@@ -208,7 +207,6 @@ export function MigrationsApplyPage() {
       )
         .then((results) => {
           console.log("All tasks are completed:", results);
-          setAllTasksCompleted(true);
           setOutstandingTasks([]);
           setPosting(false);
           navigate("/instructor/migrate/review");
