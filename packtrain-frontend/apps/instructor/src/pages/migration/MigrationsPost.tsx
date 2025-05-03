@@ -12,9 +12,10 @@ import { Task } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export function MigrationsPostPage() {
+  const navigate = useNavigate();
   const [posting, setPosting] = useState(false);
   const [postingFinished, setPostingFinished] = useState(false);
   const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
@@ -187,17 +188,24 @@ export function MigrationsPostPage() {
           see them!
         </Text>
 
-        {/* TODO clear store on either of these actions */}
         {postingFinished && (
           <Group justify="flex-end" mt="md">
-            <Button color="blue" component={Link} to="/instructor/migrate/load">
+            <Button
+              color="blue"
+              onClick={() => {
+                store$.master_migration_id.delete();
+                navigate("/instructor/migrate/load");
+              }}
+            >
               Again
             </Button>
 
             <Button
               color="blue"
-              component={Link}
-              to="/instructor/migrate"
+              onClick={() => {
+                store$.master_migration_id.delete();
+                navigate("/instructor/migrate");
+              }}
               variant="filled"
             >
               Done
