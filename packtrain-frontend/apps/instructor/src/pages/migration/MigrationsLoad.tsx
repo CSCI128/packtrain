@@ -136,6 +136,20 @@ export function MigrationsLoadPage() {
         .catch((err) => console.log(err)),
   });
 
+  const deleteMasterMigration = useMutation({
+    mutationKey: ["deleteMasterMigration"],
+    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
+      getApiClient()
+        .then((client) =>
+          client.delete_master_migration({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
+
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -339,8 +353,10 @@ export function MigrationsLoadPage() {
             variant="light"
             onClick={() => {
               navigate("/instructor/migrate");
+              deleteMasterMigration.mutate({
+                master_migration_id: store$.master_migration_id.get() as string,
+              });
               store$.master_migration_id.delete();
-              // TODO delete master migration too
             }}
             color="gray"
           >

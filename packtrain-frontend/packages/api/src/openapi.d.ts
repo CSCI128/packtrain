@@ -984,6 +984,36 @@ declare namespace Paths {
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
+    namespace DeleteMasterMigration {
+        namespace Parameters {
+            /**
+             * example:
+             * 99-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 99-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+        }
+        namespace Responses {
+            export interface $204 {
+            }
+        }
+    }
     namespace DeletePolicy {
         namespace Parameters {
             /**
@@ -2743,6 +2773,17 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.CreateMigrationForMasterMigration.Responses.$202>
   /**
+   * delete_master_migration - Delete a master migration
+   * 
+   * Deletes the specified master migration
+   * 
+   */
+  'delete_master_migration'(
+    parameters?: Parameters<Paths.DeleteMasterMigration.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.DeleteMasterMigration.Responses.$204>
+  /**
    * upload_raw_scores - Upload the scores for a migration
    * 
    * Upload the raw scores for a student from an external service.
@@ -3477,6 +3518,17 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.CreateMigrationForMasterMigration.Responses.$202>
+    /**
+     * delete_master_migration - Delete a master migration
+     * 
+     * Deletes the specified master migration
+     * 
+     */
+    'delete'(
+      parameters?: Parameters<Paths.DeleteMasterMigration.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.DeleteMasterMigration.Responses.$204>
   }
   ['/instructor/course/{course_id}/migrations/{master_migration_id}/{migration_id}/scores']: {
     /**

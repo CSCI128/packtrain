@@ -1616,6 +1616,32 @@ paths:
               example:
                 error_source: "User Service"
                 error_message: "Error: Master Migration not found"
+    delete:
+      tags:
+        - instructor
+      operationId: delete_master_migration
+      summary: Delete a master migration
+      description: |
+        Deletes the specified master migration
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        204:
+          description: "No Content"
 
   /instructor/course/{course_id}/migrations/{master_migration_id}/{migration_id}/scores:
     post:

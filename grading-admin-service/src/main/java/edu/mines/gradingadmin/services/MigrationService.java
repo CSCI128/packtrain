@@ -115,6 +115,19 @@ public class MigrationService {
         return masterMigrationRepo.save(masterMigration);
     }
 
+    public boolean deleteMasterMigration(UUID courseId, UUID masterMigrationId) {
+        Optional<MasterMigration> masterMigration = masterMigrationRepo.getMasterMigrationById(masterMigrationId);
+
+        if (masterMigration.isEmpty()){
+            log.warn("Attempt to get master migration that doesn't exist!");
+            return false;
+        }
+
+        masterMigrationRepo.delete(masterMigration.get());
+
+        return true;
+    }
+
     public MasterMigration addMigration(String masterMigrationId, String assignmentId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
