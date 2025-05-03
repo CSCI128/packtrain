@@ -13,7 +13,7 @@ import { store$ } from "@repo/api/store";
 import { TableHeader } from "@repo/ui/table/Table";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { BsBoxArrowUpRight, BsTrash } from "react-icons/bs";
+import { BsTrash } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 
 export function CoursePage() {
@@ -48,7 +48,7 @@ export function CoursePage() {
     queryFn: () =>
       getApiClient()
         .then((client) =>
-          client.admin_get_all_policies({
+          client.owner_get_all_policies({
             course_id: store$.id.get() as string,
           })
         )

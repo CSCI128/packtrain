@@ -1,15 +1,19 @@
 package edu.mines.gradingadmin.services;
 
+import edu.mines.gradingadmin.config.ExternalServiceConfig;
 import edu.mines.gradingadmin.data.AssignmentDTO;
 import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Assignment;
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.ExternalAssignment;
 import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.models.enums.ExternalAssignmentType;
 import edu.mines.gradingadmin.models.tasks.AssignmentsSyncTaskDef;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
 import edu.mines.gradingadmin.repositories.AssignmentRepo;
+import edu.mines.gradingadmin.repositories.ExternalAssignmentRepo;
 import edu.mines.gradingadmin.repositories.ScheduledTaskRepo;
 import edu.mines.gradingadmin.services.external.CanvasService;
 import lombok.extern.slf4j.Slf4j;
@@ -31,14 +35,16 @@ public class AssignmentService {
     private final ApplicationEventPublisher eventPublisher;
     private final ImpersonationManager impersonationManager;
     private final CanvasService canvasService;
+    private final ExternalAssignmentRepo externalAssignmentRepo;
 
-    public AssignmentService(ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo, AssignmentRepo assignmentRepo, CourseService courseService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, CanvasService canvasService) {
+    public AssignmentService(ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo, AssignmentRepo assignmentRepo, CourseService courseService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, CanvasService canvasService, ExternalAssignmentRepo externalAssignmentRepo) {
         this.taskRepo = taskRepo;
         this.assignmentRepo = assignmentRepo;
         this.courseService = courseService;
         this.eventPublisher = eventPublisher;
         this.impersonationManager = impersonationManager;
         this.canvasService = canvasService;
+        this.externalAssignmentRepo = externalAssignmentRepo;
     }
 
     public Assignment getAssignmentById(String id) {
@@ -48,6 +54,10 @@ public class AssignmentService {
         }
 
         return assignment.get();
+    }
+
+    public List<Assignment> getAllAssignmentsGivenCourse(Course course){
+        return assignmentRepo.getAllAssignmentsByCourseId(course.getId());
     }
 
     public void syncAssignmentTask(AssignmentsSyncTaskDef task){
@@ -165,6 +175,27 @@ public class AssignmentService {
 
         Assignment assignment = getAssignmentById(assignmentDTO.getId());
 
+        ExternalAssignment externalServiceConfig = assignment.getExternalAssignmentConfig();
+        if(assignment.getExternalAssignmentConfig() == null) {
+            externalServiceConfig = new ExternalAssignment();
+        }
+
+        if(assignmentDTO.getExternalService() != null) {
+            externalServiceConfig.setType(ExternalAssignmentType.valueOf(assignmentDTO.getExternalService()));
+        }
+
+        double externalPoints;
+        if(assignmentDTO.getExternalPoints() == null) {
+            externalPoints = 0.0;
+        }
+        else {
+            externalPoints = assignmentDTO.getExternalPoints();
+        }
+        externalServiceConfig.setExternalPoints(externalPoints);
+
+        assignment.setExternalAssignmentConfig(externalServiceConfig);
+        externalAssignmentRepo.save(externalServiceConfig);
+
         assignment.setName(assignmentDTO.getName());
         assignment.setPoints(assignmentDTO.getPoints());
         assignment.setCategory(assignmentDTO.getCategory());
@@ -217,5 +248,15 @@ public class AssignmentService {
         assignment.setEnabled(false);
 
         return assignmentRepo.save(assignment);
+    }
+
+    public Assignment getAssignmentForMigration(String migrationId) {
+        Optional<Assignment> assignment = assignmentRepo.getAssignmentByMigrationId(UUID.fromString(migrationId));
+
+        if (assignment.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("No assignment found for migration '%s'", migrationId));
+        }
+
+        return assignment.get();
     }
 }

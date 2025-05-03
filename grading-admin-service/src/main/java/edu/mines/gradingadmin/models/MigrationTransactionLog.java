@@ -50,6 +50,6 @@ public class MigrationTransactionLog {
     @Column(name = "submission_time")
     private Instant submissionTime;
 
-    @Column(name = "message")
+    @Column(name = "message", length = 1000)
     private String message;
 }

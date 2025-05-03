@@ -1,15 +1,14 @@
 serverConfig:
-  port: 80
-  basePath: /api/policies
-  trustedCA: /opt/certs/localhost.CA.crt
+    port: 80
+    basePath: /api/policies
+    trustedCA: /opt/certs/localhost.CA.crt
 
 policyConfig:
-  trustedServer: "https://localhost.dev"
+    trustedServer: "https://localhost.dev"
 
 rabbitMqConfig:
-  username: "admin"
-  password: "changeme!"
-  endpoint: "localhost.dev"
-  exchangeName: "exchange"
-  port: 5672
-
+    username: "admin"
+    password: "changeme!"
+    endpoint: "localhost.dev"
+    exchangeName: "exchange"
+    port: 5672

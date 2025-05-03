@@ -29,5 +29,6 @@ public interface AssignmentRepo extends CrudRepository<Assignment, UUID> {
     @Modifying
     void deleteByCourseAndCanvasId(Course course, Set<Long> canvasIds);
 
-
+    @Query("select a from migration m join assignment a on a.id = m.assignment.id where m.id = ?1")
+    Optional<Assignment> getAssignmentByMigrationId(UUID migrationId);
 }

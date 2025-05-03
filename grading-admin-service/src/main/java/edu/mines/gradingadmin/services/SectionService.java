@@ -4,6 +4,7 @@ import edu.mines.gradingadmin.events.NewTaskEvent;
 import edu.mines.gradingadmin.managers.IdentityProvider;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
 import edu.mines.gradingadmin.models.Course;
+import edu.mines.gradingadmin.models.CourseMember;
 import edu.mines.gradingadmin.models.Section;
 import edu.mines.gradingadmin.models.User;
 import edu.mines.gradingadmin.models.tasks.ScheduledTaskDef;
@@ -19,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -56,6 +58,10 @@ public class SectionService {
         .toList();
 
         log.info("Added {} new sections for course '{}'", sections.size(), course.getCode());
+    }
+
+    public Set<Section> getSectionByMember(CourseMember member){
+        return sectionRepo.getSectionsByMember(member.getId());
     }
 
     public Optional<Section> createSection(long canvasId, String name, Course course){

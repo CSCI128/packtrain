@@ -46,7 +46,7 @@ declare namespace Components {
              * example:
              * 14
              */
-            external_points?: number;
+            external_points?: number; // double
             /**
              * example:
              * 2020-01-15T12:00:00.000Z
@@ -484,6 +484,11 @@ declare namespace Components {
          * Migration object that has a single assignment and a policy
          */
         export interface Migration {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            id?: string;
             assignment: /* An assignment in a course */ Assignment;
             policy: /* A grading policy */ Policy;
         }
@@ -523,7 +528,7 @@ declare namespace Components {
              */
             migration_id?: string;
             assignment?: /* An slim assignment in a course */ AssignmentSlim;
-            scores?: /* A score for a student */ Score[];
+            scores: /* A score for a student */ Score[];
         }
         /**
          * Create a new policy file
@@ -604,6 +609,16 @@ declare namespace Components {
              * An extension was applied :)
              */
             comment?: string;
+            /**
+             * example:
+             * 7.5
+             */
+            raw_score?: number; // double
+            /**
+             * example:
+             * 0
+             */
+            days_late?: number;
         }
         /**
          * Information relevant to a student
@@ -689,7 +704,7 @@ declare namespace Components {
              * example:
              * true
              */
-            enabled?: boolean;
+            enabled: boolean;
         }
     }
 }
@@ -713,47 +728,6 @@ declare namespace Paths {
         namespace Responses {
             export type $201 = /* An assignment in a course */ Components.Schemas.Assignment;
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
-        }
-    }
-    namespace AddCourseMember {
-        namespace Parameters {
-            /**
-             * example:
-             * 999-9999-9999-99
-             */
-            export type CourseId = string;
-        }
-        export interface PathParameters {
-            course_id: /**
-             * example:
-             * 999-9999-9999-99
-             */
-            Parameters.CourseId;
-        }
-        export type RequestBody = /* A user in a course */ Components.Schemas.CourseMember;
-        namespace Responses {
-            export interface $201 {
-            }
-            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
-        }
-    }
-    namespace AdminGetAllPolicies {
-        namespace Parameters {
-            /**
-             * example:
-             * 999-9999-9999-99
-             */
-            export type CourseId = string;
-        }
-        export interface PathParameters {
-            course_id: /**
-             * example:
-             * 999-9999-9999-99
-             */
-            Parameters.CourseId;
-        }
-        namespace Responses {
-            export type $200 = /* A grading policy */ Components.Schemas.Policy[];
         }
     }
     namespace AdminUpdateUser {
@@ -1010,6 +984,36 @@ declare namespace Paths {
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
+    namespace DeleteMasterMigration {
+        namespace Parameters {
+            /**
+             * example:
+             * 99-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 99-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+        }
+        namespace Responses {
+            export interface $204 {
+            }
+        }
+    }
     namespace DeletePolicy {
         namespace Parameters {
             /**
@@ -1233,7 +1237,8 @@ declare namespace Paths {
             Parameters.MasterMigrationId;
         }
         namespace Responses {
-            export type $202 = /* An async task on the server */ Components.Schemas.Task[];
+            export interface $202 {
+            }
             export interface $400 {
             }
         }
@@ -1340,6 +1345,30 @@ declare namespace Paths {
              * 999-9999-9999-99
              */
             Parameters.CourseId;
+        }
+        namespace Responses {
+            export type $200 = /* A generic request for extending work deadlines */ Components.Schemas.LateRequest[];
+            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
+        }
+    }
+    namespace GetAllExtensionsForCourse {
+        namespace Parameters {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type CourseId = string;
+            export type Status = "approved" | "denied" | "pending";
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.CourseId;
+        }
+        export interface QueryParameters {
+            status?: Parameters.Status;
         }
         namespace Responses {
             export type $200 = /* A generic request for extending work deadlines */ Components.Schemas.LateRequest[];
@@ -1517,25 +1546,6 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* Information relevant to a student */ Components.Schemas.StudentInformation;
-        }
-    }
-    namespace GetCourses {
-        namespace Parameters {
-            /**
-             * example:
-             * true
-             */
-            export type OnlyActive = boolean;
-        }
-        export interface QueryParameters {
-            onlyActive?: /**
-             * example:
-             * true
-             */
-            Parameters.OnlyActive;
-        }
-        namespace Responses {
-            export type $200 = /* A complete course */ Components.Schemas.Course[];
         }
     }
     namespace GetCoursesStudent {
@@ -1946,6 +1956,44 @@ declare namespace Paths {
             export type $201 = /* A grading policy */ Components.Schemas.Policy;
         }
     }
+    namespace OwnerGetAllPolicies {
+        namespace Parameters {
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type CourseId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.CourseId;
+        }
+        namespace Responses {
+            export type $200 = /* A grading policy */ Components.Schemas.Policy[];
+        }
+    }
+    namespace OwnerGetCourses {
+        namespace Parameters {
+            /**
+             * example:
+             * true
+             */
+            export type OnlyActive = boolean;
+        }
+        export interface QueryParameters {
+            onlyActive?: /**
+             * example:
+             * true
+             */
+            Parameters.OnlyActive;
+        }
+        namespace Responses {
+            export type $200 = /* A complete course */ Components.Schemas.Course[];
+        }
+    }
     namespace PostMasterMigration {
         namespace Parameters {
             /**
@@ -2128,28 +2176,6 @@ declare namespace Paths {
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
-    namespace UpdateCourseMember {
-        namespace Parameters {
-            /**
-             * example:
-             * 999-9999-9999-99
-             */
-            export type CourseId = string;
-        }
-        export interface PathParameters {
-            course_id: /**
-             * example:
-             * 999-9999-9999-99
-             */
-            Parameters.CourseId;
-        }
-        export type RequestBody = /* A user in a course */ Components.Schemas.CourseMember;
-        namespace Responses {
-            export interface $201 {
-            }
-            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
-        }
-    }
     namespace UpdateStudentScore {
         namespace Parameters {
             /**
@@ -2283,21 +2309,6 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.CheckHealth.Responses.$200>
   /**
-   * get_courses - Get all courses
-   * 
-   * Get all courses, returning
-   * only active courses by default, and
-   * inactive courses if specified. Will
-   * return an empty list if there are no
-   * courses.
-   * 
-   */
-  'get_courses'(
-    parameters?: Parameters<Paths.GetCourses.QueryParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetCourses.Responses.$200>
-  /**
    * new_course - Create a new course
    * 
    * Create a new course.
@@ -2308,6 +2319,76 @@ export interface OperationMethods {
     data?: Paths.NewCourse.RequestBody,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.NewCourse.Responses.$201>
+  /**
+   * get_all_users - Get all users
+   * 
+   * Gets all the users in the system
+   * 
+   */
+  'get_all_users'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetAllUsers.Responses.$200>
+  /**
+   * admin_update_user - Updates a user's information, including admin and disabled/enabled status
+   * 
+   * Updates a user's information based on the User provided in body and provided JWT.
+   * 
+   */
+  'admin_update_user'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: Paths.AdminUpdateUser.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.AdminUpdateUser.Responses.$202>
+  /**
+   * create_user - Create a new user
+   * 
+   * Creates a new user.
+   * 
+   */
+  'create_user'(
+    parameters?: Parameters<UnknownParamsObject> | null,
+    data?: Paths.CreateUser.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.CreateUser.Responses.$201>
+  /**
+   * enable_user - enable a user
+   * 
+   * Enables a user
+   * 
+   */
+  'enable_user'(
+    parameters?: Parameters<Paths.EnableUser.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.EnableUser.Responses.$201>
+  /**
+   * disable_user - disable a user
+   * 
+   * Disables a user
+   * 
+   */
+  'disable_user'(
+    parameters?: Parameters<Paths.DisableUser.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.DisableUser.Responses.$201>
+  /**
+   * owner_get_courses - Get all courses
+   * 
+   * Get all courses, returning
+   * only active courses by default, and
+   * inactive courses if specified. Will
+   * return an empty list if there are no
+   * courses.
+   * 
+   */
+  'owner_get_courses'(
+    parameters?: Parameters<Paths.OwnerGetCourses.QueryParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.OwnerGetCourses.Responses.$200>
   /**
    * get_course - Get existing course
    * 
@@ -2412,40 +2493,16 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetMembers.Responses.$200>
   /**
-   * update_course_member - Updates a member's membership in a course
-   * 
-   * Updates a member in a course. If they do not exist, then they are rejected.
-   * 
-   */
-  'update_course_member'(
-    parameters?: Parameters<Paths.UpdateCourseMember.PathParameters> | null,
-    data?: Paths.UpdateCourseMember.RequestBody,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.UpdateCourseMember.Responses.$201>
-  /**
-   * add_course_member - Add a member to a course
-   * 
-   * Adds a member to a course. 
-   * If they already exist, the request is rejected.
-   * If the user does not exist in system, then the request is rejected.
-   * 
-   */
-  'add_course_member'(
-    parameters?: Parameters<Paths.AddCourseMember.PathParameters> | null,
-    data?: Paths.AddCourseMember.RequestBody,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.AddCourseMember.Responses.$201>
-  /**
-   * admin_get_all_policies - Get all policies
+   * owner_get_all_policies - Get all policies
    * 
    * Get all policies for a course
    * 
    */
-  'admin_get_all_policies'(
-    parameters?: Parameters<Paths.AdminGetAllPolicies.PathParameters> | null,
+  'owner_get_all_policies'(
+    parameters?: Parameters<Paths.OwnerGetAllPolicies.PathParameters> | null,
     data?: any,
     config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.AdminGetAllPolicies.Responses.$200>
+  ): OperationResponse<Paths.OwnerGetAllPolicies.Responses.$200>
   /**
    * new_policy - Create a new policy
    * 
@@ -2458,9 +2515,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.NewPolicy.Responses.$201>
   /**
-   * delete_policy - Create a new policy
+   * delete_policy - Delete a policy
    * 
-   * Create a new policy for the course
+   * Delete policy for the course
    * 
    */
   'delete_policy'(
@@ -2468,61 +2525,6 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.DeletePolicy.Responses.$204>
-  /**
-   * get_all_users - Get all users
-   * 
-   * Gets all the users in the system
-   * 
-   */
-  'get_all_users'(
-    parameters?: Parameters<UnknownParamsObject> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetAllUsers.Responses.$200>
-  /**
-   * admin_update_user - Updates a user's information, including admin and disabled/enabled status
-   * 
-   * Updates a user's information based on the User provided in body and provided JWT.
-   * 
-   */
-  'admin_update_user'(
-    parameters?: Parameters<UnknownParamsObject> | null,
-    data?: Paths.AdminUpdateUser.RequestBody,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.AdminUpdateUser.Responses.$202>
-  /**
-   * create_user - Create a new user
-   * 
-   * Creates a new user.
-   * 
-   */
-  'create_user'(
-    parameters?: Parameters<UnknownParamsObject> | null,
-    data?: Paths.CreateUser.RequestBody,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.CreateUser.Responses.$201>
-  /**
-   * enable_user - enable a user
-   * 
-   * Enables a user
-   * 
-   */
-  'enable_user'(
-    parameters?: Parameters<Paths.EnableUser.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.EnableUser.Responses.$201>
-  /**
-   * disable_user - disable a user
-   * 
-   * Disables a user
-   * 
-   */
-  'disable_user'(
-    parameters?: Parameters<Paths.DisableUser.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.DisableUser.Responses.$201>
   /**
    * get_user - Gets a user's information
    * 
@@ -2616,6 +2618,17 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.MarkCredentialAsPrivate.Responses.$202>
+  /**
+   * get_all_extensions_for_course - Get all the extensions for the course
+   * 
+   * This endpoint gets all extensions for a given course
+   * 
+   */
+  'get_all_extensions_for_course'(
+    parameters?: Parameters<Paths.GetAllExtensionsForCourse.QueryParameters & Paths.GetAllExtensionsForCourse.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetAllExtensionsForCourse.Responses.$200>
   /**
    * approve_extension - Approves an extension for an assignment for the user.
    * 
@@ -2759,6 +2772,17 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.CreateMigrationForMasterMigration.Responses.$202>
+  /**
+   * delete_master_migration - Delete a master migration
+   * 
+   * Deletes the specified master migration
+   * 
+   */
+  'delete_master_migration'(
+    parameters?: Parameters<Paths.DeleteMasterMigration.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.DeleteMasterMigration.Responses.$204>
   /**
    * upload_raw_scores - Upload the scores for a migration
    * 
@@ -2969,21 +2993,6 @@ export interface PathsDictionary {
   }
   ['/admin/courses']: {
     /**
-     * get_courses - Get all courses
-     * 
-     * Get all courses, returning
-     * only active courses by default, and
-     * inactive courses if specified. Will
-     * return an empty list if there are no
-     * courses.
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetCourses.QueryParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetCourses.Responses.$200>
-    /**
      * new_course - Create a new course
      * 
      * Create a new course.
@@ -2994,184 +3003,6 @@ export interface PathsDictionary {
       data?: Paths.NewCourse.RequestBody,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.NewCourse.Responses.$201>
-  }
-  ['/admin/courses/{course_id}']: {
-    /**
-     * update_course - Update existing course
-     * 
-     * Update an existing course.
-     * 
-     */
-    'put'(
-      parameters?: Parameters<Paths.UpdateCourse.PathParameters> | null,
-      data?: Paths.UpdateCourse.RequestBody,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.UpdateCourse.Responses.$204>
-    /**
-     * get_course - Get existing course
-     * 
-     * Gets a course
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetCourse.QueryParameters & Paths.GetCourse.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetCourse.Responses.$200>
-  }
-  ['/admin/courses/{course_id}/import']: {
-    /**
-     * import_course - Import course from Canvas
-     * 
-     * Imports data from Canvas into an existing course
-     * 
-     */
-    'post'(
-      parameters?: Parameters<Paths.ImportCourse.PathParameters> | null,
-      data?: Paths.ImportCourse.RequestBody,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.ImportCourse.Responses.$202>
-  }
-  ['/admin/courses/{course_id}/sync']: {
-    /**
-     * sync_course - Sync with established course controller
-     * 
-     * Syncs with a course in the controller.
-     * 
-     */
-    'post'(
-      parameters?: Parameters<Paths.SyncCourse.PathParameters> | null,
-      data?: Paths.SyncCourse.RequestBody,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.SyncCourse.Responses.$202>
-  }
-  ['/admin/courses/{course_id}/assignments']: {
-    /**
-     * update_assignment - Update an assignment in a course
-     * 
-     * Update an assignment in a course
-     * 
-     */
-    'put'(
-      parameters?: Parameters<Paths.UpdateAssignment.PathParameters> | null,
-      data?: Paths.UpdateAssignment.RequestBody,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.UpdateAssignment.Responses.$201>
-    /**
-     * add_assignment - Add assignment to a course
-     * 
-     * Add assignments to a course.
-     * If any assignment already exists in the class,
-     * its information will be updated.
-     * 
-     */
-    'post'(
-      parameters?: Parameters<Paths.AddAssignment.PathParameters> | null,
-      data?: Paths.AddAssignment.RequestBody,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.AddAssignment.Responses.$201>
-  }
-  ['/admin/courses/{course_id}/assignment/{assignment_id}/disable']: {
-    /**
-     * disable_assignment - Disable the specified assignment.
-     * 
-     * Disable the specified assignment.
-     * 
-     */
-    'put'(
-      parameters?: Parameters<Paths.DisableAssignment.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.DisableAssignment.Responses.$200>
-  }
-  ['/admin/courses/{course_id}/assignment/{assignment_id}/enable']: {
-    /**
-     * enable_assignment - Enable the specified assignment.
-     * 
-     * Enable the specified assignment.
-     * 
-     */
-    'put'(
-      parameters?: Parameters<Paths.EnableAssignment.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.EnableAssignment.Responses.$200>
-  }
-  ['/admin/courses/{course_id}/members']: {
-    /**
-     * get_members - Get all members for a course
-     * 
-     * Gets all members for a course.
-     * Optional query params can be used to filter by TAs, Instructors, or Students.
-     * Can also be used to search by CWID or by name
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetMembers.QueryParameters & Paths.GetMembers.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetMembers.Responses.$200>
-    /**
-     * add_course_member - Add a member to a course
-     * 
-     * Adds a member to a course. 
-     * If they already exist, the request is rejected.
-     * If the user does not exist in system, then the request is rejected.
-     * 
-     */
-    'post'(
-      parameters?: Parameters<Paths.AddCourseMember.PathParameters> | null,
-      data?: Paths.AddCourseMember.RequestBody,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.AddCourseMember.Responses.$201>
-    /**
-     * update_course_member - Updates a member's membership in a course
-     * 
-     * Updates a member in a course. If they do not exist, then they are rejected.
-     * 
-     */
-    'put'(
-      parameters?: Parameters<Paths.UpdateCourseMember.PathParameters> | null,
-      data?: Paths.UpdateCourseMember.RequestBody,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.UpdateCourseMember.Responses.$201>
-  }
-  ['/admin/courses/{course_id}/policies']: {
-    /**
-     * new_policy - Create a new policy
-     * 
-     * Create a new policy for the course
-     * 
-     */
-    'post'(
-      parameters?: Parameters<Paths.NewPolicy.PathParameters> | null,
-      data?: Paths.NewPolicy.RequestBody,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.NewPolicy.Responses.$201>
-    /**
-     * admin_get_all_policies - Get all policies
-     * 
-     * Get all policies for a course
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.AdminGetAllPolicies.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.AdminGetAllPolicies.Responses.$200>
-  }
-  ['/admin/course/{course_id}/policies/{policy_id}']: {
-    /**
-     * delete_policy - Create a new policy
-     * 
-     * Create a new policy for the course
-     * 
-     */
-    'delete'(
-      parameters?: Parameters<Paths.DeletePolicy.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.DeletePolicy.Responses.$204>
   }
   ['/admin/users']: {
     /**
@@ -3233,6 +3064,177 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.DisableUser.Responses.$201>
+  }
+  ['/owner/courses']: {
+    /**
+     * owner_get_courses - Get all courses
+     * 
+     * Get all courses, returning
+     * only active courses by default, and
+     * inactive courses if specified. Will
+     * return an empty list if there are no
+     * courses.
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.OwnerGetCourses.QueryParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.OwnerGetCourses.Responses.$200>
+  }
+  ['/owner/courses/{course_id}']: {
+    /**
+     * update_course - Update existing course
+     * 
+     * Update an existing course.
+     * 
+     */
+    'put'(
+      parameters?: Parameters<Paths.UpdateCourse.PathParameters> | null,
+      data?: Paths.UpdateCourse.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.UpdateCourse.Responses.$204>
+    /**
+     * get_course - Get existing course
+     * 
+     * Gets a course
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetCourse.QueryParameters & Paths.GetCourse.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetCourse.Responses.$200>
+  }
+  ['/owner/courses/{course_id}/import']: {
+    /**
+     * import_course - Import course from Canvas
+     * 
+     * Imports data from Canvas into an existing course
+     * 
+     */
+    'post'(
+      parameters?: Parameters<Paths.ImportCourse.PathParameters> | null,
+      data?: Paths.ImportCourse.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.ImportCourse.Responses.$202>
+  }
+  ['/owner/courses/{course_id}/sync']: {
+    /**
+     * sync_course - Sync with established course controller
+     * 
+     * Syncs with a course in the controller.
+     * 
+     */
+    'post'(
+      parameters?: Parameters<Paths.SyncCourse.PathParameters> | null,
+      data?: Paths.SyncCourse.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.SyncCourse.Responses.$202>
+  }
+  ['/owner/courses/{course_id}/assignments']: {
+    /**
+     * update_assignment - Update an assignment in a course
+     * 
+     * Update an assignment in a course
+     * 
+     */
+    'put'(
+      parameters?: Parameters<Paths.UpdateAssignment.PathParameters> | null,
+      data?: Paths.UpdateAssignment.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.UpdateAssignment.Responses.$201>
+    /**
+     * add_assignment - Add assignment to a course
+     * 
+     * Add assignments to a course.
+     * If any assignment already exists in the class,
+     * its information will be updated.
+     * 
+     */
+    'post'(
+      parameters?: Parameters<Paths.AddAssignment.PathParameters> | null,
+      data?: Paths.AddAssignment.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.AddAssignment.Responses.$201>
+  }
+  ['/owner/courses/{course_id}/assignment/{assignment_id}/disable']: {
+    /**
+     * disable_assignment - Disable the specified assignment.
+     * 
+     * Disable the specified assignment.
+     * 
+     */
+    'put'(
+      parameters?: Parameters<Paths.DisableAssignment.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.DisableAssignment.Responses.$200>
+  }
+  ['/owner/courses/{course_id}/assignment/{assignment_id}/enable']: {
+    /**
+     * enable_assignment - Enable the specified assignment.
+     * 
+     * Enable the specified assignment.
+     * 
+     */
+    'put'(
+      parameters?: Parameters<Paths.EnableAssignment.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.EnableAssignment.Responses.$200>
+  }
+  ['/owner/courses/{course_id}/members']: {
+    /**
+     * get_members - Get all members for a course
+     * 
+     * Gets all members for a course.
+     * Optional query params can be used to filter by TAs, Instructors, or Students.
+     * Can also be used to search by CWID or by name
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetMembers.QueryParameters & Paths.GetMembers.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetMembers.Responses.$200>
+  }
+  ['/owner/courses/{course_id}/policies']: {
+    /**
+     * new_policy - Create a new policy
+     * 
+     * Create a new policy for the course
+     * 
+     */
+    'post'(
+      parameters?: Parameters<Paths.NewPolicy.PathParameters> | null,
+      data?: Paths.NewPolicy.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.NewPolicy.Responses.$201>
+    /**
+     * owner_get_all_policies - Get all policies
+     * 
+     * Get all policies for a course
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.OwnerGetAllPolicies.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.OwnerGetAllPolicies.Responses.$200>
+  }
+  ['/owner/course/{course_id}/policies/{policy_id}']: {
+    /**
+     * delete_policy - Delete a policy
+     * 
+     * Delete policy for the course
+     * 
+     */
+    'delete'(
+      parameters?: Parameters<Paths.DeletePolicy.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.DeletePolicy.Responses.$204>
   }
   ['/user']: {
     /**
@@ -3338,6 +3340,19 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.MarkCredentialAsPrivate.Responses.$202>
+  }
+  ['/instructor/courses/{course_id}/extensions']: {
+    /**
+     * get_all_extensions_for_course - Get all the extensions for the course
+     * 
+     * This endpoint gets all extensions for a given course
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetAllExtensionsForCourse.QueryParameters & Paths.GetAllExtensionsForCourse.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetAllExtensionsForCourse.Responses.$200>
   }
   ['/instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/approve']: {
     /**
@@ -3503,6 +3518,17 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.CreateMigrationForMasterMigration.Responses.$202>
+    /**
+     * delete_master_migration - Delete a master migration
+     * 
+     * Deletes the specified master migration
+     * 
+     */
+    'delete'(
+      parameters?: Parameters<Paths.DeleteMasterMigration.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.DeleteMasterMigration.Responses.$204>
   }
   ['/instructor/course/{course_id}/migrations/{master_migration_id}/{migration_id}/scores']: {
     /**
@@ -3517,7 +3543,7 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.UploadRawScores.Responses.$202>
   }
-  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/load-validate']: {
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/load_validate']: {
     /**
      * load_validate_master_migration - Verify that all information provided in master migration is valid
      */
@@ -3551,7 +3577,7 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.SetPolicy.Responses.$202>
   }
-  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/apply-validate']: {
+  ['/instructor/courses/{course_id}/migrations/{master_migration_id}/apply_validate']: {
     /**
      * apply_validate_master_migration - Verify that all information provided in master migration is valid
      */

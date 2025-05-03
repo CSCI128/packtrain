@@ -37,6 +37,10 @@ public class StudentCourseFilter implements HandlerInterceptor {
             throw new AccessDeniedException("Failed to get course id from request");
         }
 
+        if (courseId.equals("undefined")){
+            throw new AccessDeniedException("Not enrolled in course as an instructor!");
+        }
+
         if (!securityManager.hasCourseMembership(CourseRole.STUDENT, UUID.fromString(courseId))){
             log.warn("Blocked attempt by '{}' to access course '{}' as a student!", securityManager.getUser().getEmail(), courseId);
             throw new AccessDeniedException("Not enrolled in course as a student!");

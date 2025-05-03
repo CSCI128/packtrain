@@ -975,7 +975,7 @@ paths:
       description: |
         This endpoint gets all extensions for a given course
       security:
-        - openIDC: [ admin:read ]
+        - openIDC: [admin:read]
       parameters:
         - name: course_id
           required: true
@@ -1147,7 +1147,6 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to deny extension for user"
 
-
   /instructor/courses/{course_id}:
     get:
       tags:
@@ -1253,7 +1252,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Policy"
-
 
   /instructor/courses/{course_id}/assignments/{assignment_id}/user/{user_id}/extensions:
     post:
@@ -1541,7 +1539,6 @@ paths:
                 items:
                   $ref: "#/components/schemas/MasterMigration"
 
-
   /instructor/courses/{course_id}/migrations/{master_migration_id}:
     get:
       tags:
@@ -1619,6 +1616,32 @@ paths:
               example:
                 error_source: "User Service"
                 error_message: "Error: Master Migration not found"
+    delete:
+      tags:
+        - instructor
+      operationId: delete_master_migration
+      summary: Delete a master migration
+      description: |
+        Deletes the specified master migration
+      security:
+        - openIDC: [instructor:write]
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "99-9999-9999-99"
+        - name: master_migration_id
+          required: true
+          description: "The master migration ID"
+          in: path
+          schema:
+            type: string
+            example: "999-9999-9999-99"
+      responses:
+        204:
+          description: "No Content"
 
   /instructor/course/{course_id}/migrations/{master_migration_id}/{migration_id}/scores:
     post:
@@ -1675,8 +1698,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: Master Migration not found"
 
-
-  /instructor/courses/{course_id}/migrations/{master_migration_id}/load-validate:
+  /instructor/courses/{course_id}/migrations/{master_migration_id}/load_validate:
     post:
       tags:
         - instructor
@@ -1796,7 +1818,7 @@ paths:
                 error_source: "update_policy"
                 error_message: "Failed to update policy for migration"
 
-  /instructor/courses/{course_id}/migrations/{master_migration_id}/apply-validate:
+  /instructor/courses/{course_id}/migrations/{master_migration_id}/apply_validate:
     post:
       tags:
         - instructor
@@ -2082,7 +2104,6 @@ paths:
                 error_source: "get_task"
                 error_message: "Requested task was not found"
 
-
   /student/courses/{course_id}:
     get:
       tags:
@@ -2274,7 +2295,6 @@ paths:
               example:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
-
 
 components:
   securitySchemes:
@@ -2520,8 +2540,9 @@ components:
           type: string
           example: "Gradescope"
         external_points:
-          type: integer
-          example: 14
+          type: number
+          format: double
+          example: 14.0
         due_date:
           type: string
           format: date-time
@@ -2866,6 +2887,9 @@ components:
         - assignment
         - policy
       properties:
+        id:
+          type: string
+          example: "999-9999-9999-99"
         assignment:
           $ref: "#/components/schemas/Assignment"
         policy:
@@ -2922,10 +2946,19 @@ components:
         comment:
           type: string
           example: "An extension was applied :)"
+        raw_score:
+          type: number
+          format: double
+          example: 7.5
+        days_late:
+          type: integer
+          example: 0
 
     MigrationWithScores:
       description: "A migration for an assignment that contains scores for each student"
       type: object
+      required:
+        - scores
       properties:
         migration_id:
           type: string

@@ -1,95 +1,298 @@
 import {
   Box,
   Button,
+  Center,
   Container,
   Divider,
   Group,
+  Modal,
+  Select,
   Stack,
   Stepper,
   Text,
 } from "@mantine/core";
-import { Course } from "@repo/api/openapi";
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useDisclosure } from "@mantine/hooks";
+import { getApiClient } from "@repo/api/index";
+import {
+  Course,
+  MasterMigration,
+  Migration,
+  Policy,
+  Task,
+} from "@repo/api/openapi";
+import { store$ } from "@repo/api/store";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import React, { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export function MigrationsApplyPage() {
-  const courseData: Course[] = [
-    {
-      late_request_config: {
-        enabled_extension_reasons: ["ext1"],
-        late_pass_name: "Late Pass",
-        late_passes_enabled: true,
-        total_late_passes_allowed: 5,
-      },
-      id: "999-9999-9999-99",
-      term: "Fall 2020",
-      enabled: true,
-      name: "EXCL101",
-      code: "Fall.2020.EXCL.101",
-      canvas_id: 123456,
-      members: [
-        {
-          cwid: "CWID123456",
-          canvas_id: "9876543",
-          course_role: "instructor",
-          sections: ["fall.2020.excl.101.section.a"],
-          late_passes_used: 1,
-        },
-        {
-          cwid: "CWID654321",
-          canvas_id: "1234567",
-          course_role: "student",
-          sections: ["fall.2020.excl.101.section.b"],
-          late_passes_used: 0,
-        },
-      ],
-      assignments: [
-        {
-          id: "999-9999-9999-99",
-          name: "Assessment 1",
-          category: "Quiz",
-          canvas_id: 1245678,
-          points: 15.0,
-          external_service: "Gradescope",
-          external_points: 14,
-          due_date: "2020-01-15T12:00:00.000Z",
-          unlock_date: "2020-01-01T12:00:00.000Z",
-          enabled: true,
-          group_assignment: false,
-          attention_required: false,
-          frozen: false,
-        },
-        {
-          id: "999-8888-7777-66",
-          name: "Final Exam",
-          category: "Exam",
-          canvas_id: 987654,
-          points: 100.0,
-          external_service: "ProctorU",
-          external_points: 95,
-          due_date: "2020-12-20T12:00:00.000Z",
-          unlock_date: "2020-12-01T12:00:00.000Z",
-          enabled: true,
-          group_assignment: false,
-          attention_required: true,
-          frozen: false,
-        },
-      ],
-      sections: [
-        "fall.2020.excl.101.section.a",
-        "fall.2020.excl.101.section.b",
-      ],
-    },
-  ];
+  const navigate = useNavigate();
+  const [opened, { open, close }] = useDisclosure(false);
+  const [selectedMigration, setSelectedMigration] = useState<Migration>();
+  const [selectedPolicyId, setSelectedPolicyId] = useState<string>("");
+  const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
+    []
+  );
+  const [posting, setPosting] = useState(true);
+  const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
 
-  const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>([
-    "999-9999-9999-99",
-    "999-8888-7777-66",
-  ]);
+  const {
+    data: policyData,
+    error: policyError,
+    isLoading: policyIsLoading,
+  } = useQuery<Policy[] | null>({
+    queryKey: ["getAllPolicies"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_all_policies({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const {
+    data: courseData,
+    error: courseError,
+    isLoading: courseIsLoading,
+  } = useQuery<Course | null>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course_information_instructor({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const {
+    data: migrationData,
+    error: migrationError,
+    isLoading: migrationIsLoading,
+    refetch,
+  } = useQuery<MasterMigration | null>({
+    queryKey: ["getMasterMigrations"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_master_migrations({
+            course_id: store$.id.get() as string,
+            master_migration_id: store$.master_migration_id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const setPolicyMigration = useMutation({
+    mutationKey: ["setPolicy"],
+    mutationFn: ({
+      master_migration_id,
+      migration_id,
+      policy_id,
+    }: {
+      master_migration_id: string;
+      migration_id: string;
+      policy_id: string;
+    }) =>
+      getApiClient()
+        .then((client) =>
+          client.set_policy({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
+            migration_id: migration_id,
+            policy_id: policy_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
+
+  const handleSetPolicy = (selectedAssignmentId: string) => {
+    setSelectedMigration(
+      migrationData?.migrations
+        ?.filter((x) => x.assignment.id === selectedAssignmentId)
+        .at(0)
+    );
+    open();
+  };
+
+  const applyMasterMigration = useMutation({
+    mutationKey: ["applyMasterMigration"],
+    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
+      getApiClient()
+        .then((client) =>
+          client.apply_master_migration({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return [];
+        }),
+  });
+
+  const { mutateAsync: fetchTask } = useMutation({
+    mutationKey: ["getTask"],
+    mutationFn: ({ task_id }: { task_id: number }) =>
+      getApiClient()
+        .then((client) =>
+          client.get_task({
+            task_id: task_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const pollTaskUntilComplete = useCallback(
+    async (taskId: number, delay = 5000) => {
+      let tries = 0;
+      while (true) {
+        try {
+          if (tries > 20) {
+            throw new Error("Maximum attempts (20) at polling exceeded..");
+          }
+
+          const response = await fetchTask({ task_id: taskId });
+
+          if (response?.status === "COMPLETED") {
+            console.log(`Task ${taskId} is completed!`);
+            return response;
+          } else if (response?.status === "FAILED") {
+            console.log(`Task ${taskId} failed`);
+            console.log(response);
+            throw new Error("ERR");
+          } else {
+            console.log(
+              `Task ${taskId} is still in progress, retrying in ${delay}ms...`
+            );
+            tries++;
+            await new Promise((res) => setTimeout(res, delay));
+          }
+        } catch (error) {
+          console.error(`Error fetching task ${taskId}:`, error);
+          return;
+        }
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (outstandingTasks.length === 0) return;
+
+    const pollTasks = async () => {
+      Promise.all(
+        outstandingTasks.map((task) => pollTaskUntilComplete(task.id))
+      )
+        .then((results) => {
+          console.log("All tasks are completed:", results);
+          setOutstandingTasks([]);
+          setPosting(false);
+          navigate("/instructor/migrate/review");
+        })
+        .catch((error) => {
+          console.error("Some tasks failed:", error);
+        });
+    };
+
+    pollTasks();
+  }, [outstandingTasks, pollTaskUntilComplete]);
+
+  useEffect(() => {
+    if (migrationData) {
+      let assignmentIds: string[] = [];
+      migrationData.migrations?.forEach((migration: Migration) => {
+        assignmentIds.push(migration.assignment.id as string);
+      });
+      setSelectedAssignmentIds(assignmentIds);
+    }
+  }, [migrationData]);
+
+  if (
+    migrationIsLoading ||
+    !migrationData ||
+    courseIsLoading ||
+    !courseData ||
+    !policyData ||
+    policyIsLoading
+  )
+    return "Loading...";
+
+  if (migrationError || courseError || policyError)
+    return `An error occured: ${migrationError}`;
 
   return (
     <>
-      {/* TODO modal for policy selection */}
+      <Modal opened={opened} onClose={close} title="Select Policy" centered>
+        <Center>
+          <Stack>
+            <Select
+              label="Select a policy:"
+              placeholder="Select policy.."
+              data={
+                policyData &&
+                policyData.map((policy: Policy) => ({
+                  label: policy.name ?? "",
+                  value: policy.id as string,
+                }))
+              }
+              // TODO set default value
+              onChange={(value) => {
+                setSelectedPolicyId(value ?? "");
+              }}
+            />
+            <Group justify="flex-end">
+              <Button color="gray" variant="light" onClick={close}>
+                Cancel
+              </Button>
+
+              <Button
+                color="blue"
+                onClick={() => {
+                  setPolicyMigration.mutate(
+                    {
+                      master_migration_id:
+                        store$.master_migration_id.get() as string,
+                      migration_id: selectedMigration?.id as string,
+                      policy_id: selectedPolicyId,
+                    },
+                    {
+                      onSuccess: () => {
+                        close();
+                        refetch();
+                      },
+                    }
+                  );
+                }}
+                variant="filled"
+              >
+                Select Policy
+              </Button>
+            </Group>
+          </Stack>
+        </Center>
+      </Modal>
 
       <Container size="md">
         <Stepper
@@ -122,16 +325,31 @@ export function MigrationsApplyPage() {
                   <Group>
                     <Text fw={800}>
                       {
-                        courseData[0].assignments?.filter(
-                          (a) => a.id === selectedAssignment
-                        )[0]?.name
+                        migrationData.migrations
+                          ?.filter(
+                            (x) => x.assignment.id === selectedAssignment
+                          )
+                          .at(0)?.assignment.name
                       }
                     </Text>
-                    <Text>studio1.js</Text>
+                    <Text>
+                      {
+                        migrationData.migrations
+                          ?.filter(
+                            (x) => x.assignment.id === selectedAssignment
+                          )
+                          .at(0)?.policy?.name
+                      }
+                    </Text>
                   </Group>
 
                   <Group>
-                    <Button color="blue">Select</Button>
+                    <Button
+                      color="blue"
+                      onClick={() => handleSetPolicy(selectedAssignment)}
+                    >
+                      Select
+                    </Button>
                   </Group>
                 </Group>
               </Box>
@@ -155,19 +373,35 @@ export function MigrationsApplyPage() {
           <strong>0</strong> unapproved extensions
         </Text>
 
+        {!posting && <>Applying grades..</>}
+
         <Group justify="flex-end" mt="md">
           <Button
+            disabled={!posting}
             component={Link}
             to="/instructor/migrate/load"
-            variant="filled"
             color="gray"
+            variant="light"
           >
             Previous
           </Button>
           <Button
-            component={Link}
-            to="/instructor/migrate/review"
-            variant="filled"
+            disabled={!posting}
+            onClick={() => {
+              applyMasterMigration.mutate(
+                {
+                  master_migration_id:
+                    store$.master_migration_id.get() as string,
+                },
+                {
+                  onSuccess: (data) => {
+                    console.log(data);
+                    setPosting(false);
+                    setOutstandingTasks(data);
+                  },
+                }
+              );
+            }}
             color="blue"
           >
             Next

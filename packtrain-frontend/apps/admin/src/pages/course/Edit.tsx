@@ -67,7 +67,7 @@ export function EditCourse() {
           term: values.courseTerm as string,
           enabled: values.enabled,
           canvas_id: Number(values.canvasId),
-          gradescope_id: values.gradescopeId,
+          gradescope_id: Number(values.gradescopeId),
           late_request_config: {
             late_passes_enabled: values.latePassesEnabled,
             late_pass_name: values.latePassName,
@@ -106,7 +106,9 @@ export function EditCourse() {
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
       gradescopeId: (value) =>
-        value && value.length == 6 ? null : "Gradescope ID must be 6 characters",
+        value && value.length == 6
+          ? null
+          : "Gradescope ID must be 6 characters",
       totalLatePassesAllowed: (value) =>
         value < 0 || value > 1000
           ? "Total number of late passes must be greater than or equal to 0 and less than 1000"
@@ -153,7 +155,7 @@ export function EditCourse() {
           data.late_request_config.enabled_extension_reasons,
       });
     }
-  }, [data]);
+  }, [data, form]);
 
   const pollTaskUntilComplete = useCallback(
     async (taskId: number, delay = 5000) => {
@@ -185,7 +187,7 @@ export function EditCourse() {
         }
       }
     },
-    []
+    [fetchTask]
   );
 
   useEffect(() => {
@@ -298,7 +300,7 @@ export function EditCourse() {
           />
 
           <InputWrapper label="Course Enabled">
-            <Checkbox 
+            <Checkbox
               defaultChecked={form.getValues().enabled}
               key={form.key("enabled")}
               {...form.getInputProps("enabled", { type: "checkbox" })}
@@ -380,10 +382,13 @@ export function EditCourse() {
           ) : (
             <Text>Canvas re-sync complete!</Text>
           )}
-          <Button type="submit"
-                  disabled={syncing}
-                  color={syncing ? "gray" : "blue"}
-          >Save</Button>
+          <Button
+            type="submit"
+            disabled={syncing}
+            color={syncing ? "gray" : "blue"}
+          >
+            Save
+          </Button>
         </Group>
       </form>
     </Container>

@@ -27,7 +27,7 @@ public class MasterMigration {
     @Column(name = "status")
     private MigrationStatus status = MigrationStatus.CREATED;
 
-    @OneToMany()
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "migrations", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
     protected List<Migration> migrations;

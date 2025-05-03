@@ -286,7 +286,7 @@ export function ExtensionForm() {
                   }
                   key={latePassForm.key("assignmentId")}
                   {...latePassForm.getInputProps("assignmentId")}
-                  onChange={(_value, _) => {
+                  onChange={(_value) => {
                     setSelectedAssignmentId(_value ?? "");
                     latePassForm.setFieldValue("assignmentId", _value ?? "");
                   }}
@@ -387,7 +387,7 @@ export function ExtensionForm() {
               }
               key={extensionForm.key("assignmentId")}
               {...extensionForm.getInputProps("assignmentId")}
-              onChange={(_value, _) => {
+              onChange={(_value) => {
                 setSelectedAssignmentId(_value ?? "");
                 extensionForm.setFieldValue("assignmentId", _value ?? "");
               }}

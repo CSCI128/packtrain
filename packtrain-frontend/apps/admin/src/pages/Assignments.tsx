@@ -62,8 +62,8 @@ export function AssignmentsPage() {
         }),
   });
 
-  const [value, setValue] = useState<Date | null>();
-  const [unlockDateValue, setUnlockDateValue] = useState<Date | null>();
+  const [value, setValue] = useState<Date>();
+  const [unlockDateValue, setUnlockDateValue] = useState<Date>();
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedAssignment, setSelectedAssignment] =
     useState<Assignment | null>(null);
@@ -171,6 +171,8 @@ export function AssignmentsPage() {
           due_date: value?.toISOString(),
           points: values.points,
           unlock_date: unlockDateValue?.toISOString(),
+          external_service: values.external_service,
+          external_points: values.external_points,
           canvas_id: values.canvas_id,
           enabled: values.enabled,
           attention_required: values.attention_required,

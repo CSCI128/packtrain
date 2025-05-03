@@ -5,6 +5,7 @@ import { syncObservable } from "@legendapp/state/sync";
 interface CourseStore {
   id: string;
   name: string;
+  master_migration_id: string;
 }
 
 export const store$ = observable<CourseStore>();
