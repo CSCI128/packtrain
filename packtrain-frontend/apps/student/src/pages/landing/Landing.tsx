@@ -1,5 +1,6 @@
 import { Button, Container, Text, Title } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
+import { Enrollment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -11,13 +12,16 @@ export const LandingPage = () => {
   const auth = useAuth();
   const navigate = useNavigate();
 
-  const { data: enrollmentInfo } = useQuery({
+  const { data: enrollmentInfo } = useQuery<Enrollment[]>({
     queryKey: ["getEnrollments"],
     queryFn: () =>
       getApiClient()
         .then((client) => client.get_enrollments())
         .then((res) => res.data)
-        .catch((err) => console.log(err)),
+        .catch((err) => {
+          console.log(err);
+          return [];
+        }),
     enabled: !!auth.isAuthenticated,
   });
 

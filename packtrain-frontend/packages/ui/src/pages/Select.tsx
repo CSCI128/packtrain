@@ -8,7 +8,7 @@ import {
   Text,
 } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
-import { Course, CourseSlim } from "@repo/api/openapi";
+import { Course, CourseSlim, Enrollment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -43,14 +43,17 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     enabled: auth.isAuthenticated,
   });
 
-  const { data: enrollmentInfo } = useQuery({
+  const { data: enrollmentInfo } = useQuery<Enrollment[]>({
     queryKey: ["getEnrollments"],
     queryFn: () =>
       getApiClient()
         .then((client) => client.get_enrollments())
         .then((res) => res.data)
-        .catch((err) => console.log(err)),
-    enabled: auth.isAuthenticated,
+        .catch((err) => {
+          console.log(err);
+          return [];
+        }),
+    enabled: !!auth.isAuthenticated,
   });
 
   const switchCourse = (id: string, name: string) => {

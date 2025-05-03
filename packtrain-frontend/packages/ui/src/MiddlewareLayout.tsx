@@ -1,4 +1,5 @@
 import { getApiClient } from "@repo/api/index";
+import { User } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -15,7 +16,7 @@ export const MiddlewareLayout = () => {
     data: userInfo,
     error: userError,
     status,
-  } = useQuery({
+  } = useQuery<User | null>({
     queryKey: ["getUser"],
     queryFn: () =>
       getApiClient()
