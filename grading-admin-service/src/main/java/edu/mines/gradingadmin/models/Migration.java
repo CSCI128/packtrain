@@ -23,7 +23,8 @@ public class Migration {
     @EqualsAndHashCode.Exclude
     private Policy policy;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne()
+//    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "master_migration", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
     private MasterMigration masterMigration;

@@ -18,7 +18,6 @@ import edu.mines.gradingadmin.seeders.UserSeeders;
 import edu.mines.gradingadmin.services.external.CanvasService;
 import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.RabbitMqService;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +29,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @SpringBootTest
 public class TestMigrationService implements PostgresTestContainer {
@@ -153,7 +151,7 @@ public class TestMigrationService implements PostgresTestContainer {
 
     @Test
     void verifyHandleScore(){
-        Assignment assignment =  assignmentSeeder.worksheet1(course);
+        Assignment assignment = assignmentSeeder.worksheet1(course);
 
         MasterMigration masterMigration = migrationSeeder.masterMigration(course, user);
 
@@ -172,7 +170,5 @@ public class TestMigrationService implements PostgresTestContainer {
         );
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-
     }
-
 }

@@ -27,10 +27,8 @@ public class MasterMigration {
     @Column(name = "status")
     private MigrationStatus status = MigrationStatus.CREATED;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "migrations", referencedColumnName = "id")
-    @EqualsAndHashCode.Exclude
-    protected List<Migration> migrations;
+    @OneToMany(mappedBy = "masterMigration", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<Migration> migrations;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", referencedColumnName = "cwid")
