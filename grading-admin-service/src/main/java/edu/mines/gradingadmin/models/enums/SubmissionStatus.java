@@ -1,12 +1,23 @@
 package edu.mines.gradingadmin.models.enums;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 import java.util.stream.Stream;
 
 public enum SubmissionStatus {
-    MISSING("missing"), EXCUSED("excused"), LATE("late"), EXTENDED("extended"), ON_TIME("on_time");
+    @JsonProperty("missing")
+    MISSING("missing"),
+    @JsonProperty("excused")
+    EXCUSED("excused"),
+    @JsonProperty("late")
+    LATE("late"),
+    @JsonProperty("extended")
+    EXTENDED("extended"),
+    @JsonProperty("on_time")
+    ON_TIME("on_time");
 
     @Getter
     private final String status;

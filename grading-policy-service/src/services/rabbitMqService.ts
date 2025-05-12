@@ -122,7 +122,7 @@ export async function startMigration(
                         return;
                     }
                     if (
-                        msg.properties.type === "grade.raw_score" &&
+                        msg.properties.type === "grading.raw_score" &&
                         msg.properties.contentType === "application/json"
                     ) {
                         const content = JSON.parse(
@@ -185,7 +185,7 @@ function onRawScoreReceive(
             Buffer.from(JSON.stringify(scored)),
             {
                 contentType: "application/json",
-                type: "grade.scored",
+                type: "grading.scored",
             },
         );
     } catch (e) {

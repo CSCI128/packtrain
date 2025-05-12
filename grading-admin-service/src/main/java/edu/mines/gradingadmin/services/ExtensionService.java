@@ -159,6 +159,6 @@ public class ExtensionService {
     }
 
     public Map<String, LateRequest> getLateRequestsForAssignment(UUID assignment) {
-        return lateRequestRepo.getLateRequestsForAssignment(assignment).collect(Collectors.toUnmodifiableMap(l -> l.getRequestingUser().getCwid(), l -> l));
+        return lateRequestRepo.getLateRequestsForAssignment(assignment).stream().collect(Collectors.toUnmodifiableMap(l -> l.getRequestingUser().getCwid(), l -> l));
     }
 }

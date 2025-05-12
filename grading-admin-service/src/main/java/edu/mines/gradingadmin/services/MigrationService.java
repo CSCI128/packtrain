@@ -236,7 +236,6 @@ public class MigrationService {
         transactionLogRepo.save(entry);
     }
 
-    @Transactional
     public void processScoresAndExtensionsTask(ProcessScoresAndExtensionsTaskDef task){
         Assignment assignment = assignmentService.getAssignmentById(task.getAssignmentId().toString());
 
@@ -293,7 +292,7 @@ public class MigrationService {
     private static @NotNull RawGradeDTO createRawGradeDTO(RawScore score, Optional<LateRequest> extension) {
         RawGradeDTO dto = new RawGradeDTO();
         dto.setCwid(score.getCwid());
-        dto.setRawScore(score.getScore());
+        dto.setRawScore(score.getScore() == null ? 0 : score.getScore());
         dto.setSubmissionDate(score.getSubmissionTime());
         dto.setSubmissionStatus(score.getSubmissionStatus());
 
