@@ -162,7 +162,7 @@ return {
             Buffer.from(JSON.stringify(rawScore)),
             {
                 contentType: "application/json",
-                type: "grade.raw_score",
+                type: "grading.raw_score",
             },
         );
 
