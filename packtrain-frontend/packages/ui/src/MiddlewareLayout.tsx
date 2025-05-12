@@ -1,5 +1,5 @@
-import "@mantine/core/styles.css";
 import { getApiClient } from "@repo/api/index";
+import { User } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -12,7 +12,11 @@ export const MiddlewareLayout = () => {
   const auth = useAuth();
   const currentPage = location.pathname;
 
-  const { data: userInfo, error: userError } = useQuery({
+  const {
+    data: userInfo,
+    error: userError,
+    status,
+  } = useQuery<User | null>({
     queryKey: ["getUser"],
     queryFn: () =>
       getApiClient()
@@ -22,20 +26,26 @@ export const MiddlewareLayout = () => {
           console.log(err);
           return null;
         }),
-    enabled: !!auth.isAuthenticated,
   });
 
   useEffect(() => {
+    const shouldSkip =
+      status === "pending" || status === "error" || auth.isLoading;
+    if (shouldSkip) return;
+
     const fetchData = async () => {
-      if (auth.isAuthenticated && userError) {
-        navigate("/disabled");
-      }
-
-      if (auth.isAuthenticated && store$.id.get() === undefined) {
-        navigate("/select");
-      }
-
       if (
+        !userInfo &&
+        !userError &&
+        (currentPage.includes("/admin") || currentPage.includes("/instructor"))
+      ) {
+        navigate("/");
+        window.location.href = "/";
+      } else if (auth.isAuthenticated && userError) {
+        navigate("/disabled");
+      } else if (auth.isAuthenticated && store$.id.get() === undefined) {
+        navigate("/select");
+      } else if (
         userInfo !== undefined &&
         !userInfo?.admin &&
         currentPage.includes("/admin")
@@ -56,7 +66,7 @@ export const MiddlewareLayout = () => {
     ) {
       fetchData();
     }
-  }, [userInfo, navigate, currentPage]);
+  }, [auth, userInfo, userError, navigate, currentPage, status]);
 
   return <Outlet />;
 };

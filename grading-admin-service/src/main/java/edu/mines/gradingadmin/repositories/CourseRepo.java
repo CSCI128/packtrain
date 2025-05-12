@@ -33,5 +33,10 @@ public interface CourseRepo extends CrudRepository<Course, UUID> {
     @Query("select c.code from course c where c.code like ?1")
     List<Course> searchByCode(String code);
 
+    @Query("select c from migration m join master_migration mm on mm.id = m.masterMigration.id join course c on mm.course.id = c.id where m.id = ?1")
+    Optional<Course> getCourseByMigrationId(UUID migrationId);
 
+
+    @Query("select c from master_migration mm join course c on c.id = mm.course.id where mm.id = ?1")
+    Optional<Course> getCourseByMasterMigrationId(UUID masterMigrationId);
 }

@@ -45,6 +45,10 @@
     {
       "name": "student",
       "description": "Student functions for the grading server"
+    },
+    {
+      "name": "owner",
+      "description": "Course owner functions for the grading server"
     }
   ],
   "paths": {
@@ -66,48 +70,6 @@
       }
     },
     "/admin/courses": {
-      "get": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "get_courses",
-        "summary": "Get all courses",
-        "description": "Get all courses, returning\nonly active courses by default, and\ninactive courses if specified. Will\nreturn an empty list if there are no\ncourses.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:read"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "onlyActive",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "example": true,
-              "default": true
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Course"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
       "post": {
         "tags": [
           "admin"
@@ -142,864 +104,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/admin/courses/{course_id}": {
-      "put": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "update_course",
-        "summary": "Update existing course",
-        "description": "Update an existing course.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Course"
-              }
-            }
-          }
-        },
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "404": {
-            "description": "Course does not exist",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "course_creation",
-                  "error_message": "Course '999-9999-9999-99' does not exist"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "get_course",
-        "summary": "Get existing course",
-        "description": "Gets a course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:read"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          },
-          {
-            "name": "include",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "members",
-                  "assignments",
-                  "sections"
-                ]
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Course"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Course does not exist",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "course_creation",
-                  "error_message": "Course '999-9999-9999-99' does not exist"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/courses/{course_id}/import": {
-      "post": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "import_course",
-        "summary": "Import course from Canvas",
-        "description": "Imports data from Canvas into an existing course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "required": true,
-            "description": "The course id",
-            "in": "path",
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CourseSyncTask"
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Task Queued",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Task"
-                  }
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "An authentication error occurred",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "Canvas Service",
-                  "error_message": "Error: invalid token"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Course not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "Course Service",
-                  "error_message": "Error: course id not found"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/courses/{course_id}/sync": {
-      "post": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "sync_course",
-        "summary": "Sync with established course controller",
-        "description": "Syncs with a course in the controller.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CourseSyncTask"
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Task Queued",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Task"
-                  }
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "An authentication error occurred",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "Canvas Service",
-                  "error_message": "Error: invalid token"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Course Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "update_course",
-                  "error_message": "Course '999-9999-9999-99' does not exist"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/courses/{course_id}/assignments": {
-      "put": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "update_assignment",
-        "summary": "Update an assignment in a course",
-        "description": "Update an assignment in a course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Assignment"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Accepted"
-          },
-          "404": {
-            "description": "Course Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "update_course",
-                  "error_message": "Course '999-9999-9999-99' does not exist"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "add_assignment",
-        "summary": "Add assignment to a course",
-        "description": "Add assignments to a course.\nIf any assignment already exists in the class,\nits information will be updated.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Assignment"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Accepted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Assignment"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Course Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "update_course",
-                  "error_message": "Course '999-9999-9999-99' does not exist"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/courses/{course_id}/assignment/{assignment_id}/disable": {
-      "put": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "disable_assignment",
-        "summary": "Disable the specified assignment.",
-        "description": "Disable the specified assignment.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          },
-          {
-            "name": "assignment_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Assignment not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "disable_assignment",
-                  "error_message": "Assignment '999-9999-9999-99' does not exist"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/courses/{course_id}/assignment/{assignment_id}/enable": {
-      "put": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "enable_assignment",
-        "summary": "Enable the specified assignment.",
-        "description": "Enable the specified assignment.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          },
-          {
-            "name": "assignment_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Assignment not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "enable_assignment",
-                  "error_message": "Assignment '999-9999-9999-99' does not exist"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/courses/{course_id}/members": {
-      "get": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "get_members",
-        "security": [
-          {
-            "openIDC": [
-              "admin:read"
-            ]
-          }
-        ],
-        "summary": "Get all members for a course",
-        "description": "Gets all members for a course.\nOptional query params can be used to filter by TAs, Instructors, or Students.\nCan also be used to search by CWID or by name\n",
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          },
-          {
-            "name": "enrollments",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "tas",
-                  "instructors",
-                  "students"
-                ]
-              }
-            }
-          },
-          {
-            "name": "name",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "description": "Part of (or full) name to search for",
-              "example": "Alex"
-            }
-          },
-          {
-            "name": "cwid",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "description": "Part of (or full) cwid to search for",
-              "example": "9999999"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CourseMember"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Course Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "update_course",
-                  "error_message": "Course '999-9999-9999-99' does not exist"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "add_course_member",
-        "summary": "Add a member to a course",
-        "description": "Adds a member to a course. \nIf they already exist, the request is rejected.\nIf the user does not exist in system, then the request is rejected.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CourseMember"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "404": {
-            "description": "Course Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "update_course",
-                  "error_message": "Course '999-9999-9999-99' does not exist"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "update_course_member",
-        "summary": "Updates a member's membership in a course",
-        "description": "Updates a member in a course. If they do not exist, then they are rejected.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CourseMember"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "404": {
-            "description": "Course Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "update_course",
-                  "error_message": "Course '999-9999-9999-99' does not exist"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/courses/{course_id}/policies": {
-      "post": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "new_policy",
-        "summary": "Create a new policy",
-        "description": "Create a new policy for the course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPolicy"
-              },
-              "encoding": {
-                "file_data": {
-                  "contentType": "text/javascript"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Policy"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "admin_get_all_policies",
-        "summary": "Get all policies",
-        "description": "Get all policies for a course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:read"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Policy"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/course/{course_id}/policies/{policy_id}": {
-      "delete": {
-        "tags": [
-          "admin"
-        ],
-        "operationId": "delete_policy",
-        "summary": "Create a new policy",
-        "description": "Create a new policy for the course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          },
-          {
-            "name": "policy_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "999-9999-9999-99"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
           }
         }
       }
@@ -1207,6 +311,798 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/owner/courses": {
+      "get": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "owner_get_courses",
+        "summary": "Get all courses",
+        "description": "Get all courses, returning\nonly active courses by default, and\ninactive courses if specified. Will\nreturn an empty list if there are no\ncourses.\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "onlyActive",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "example": true,
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Course"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owner/courses/{course_id}": {
+      "put": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "update_course",
+        "summary": "Update existing course",
+        "description": "Update an existing course.\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Course"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Course does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "course_creation",
+                  "error_message": "Course '999-9999-9999-99' does not exist"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "get_course",
+        "summary": "Get existing course",
+        "description": "Gets a course\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "members",
+                  "assignments",
+                  "sections"
+                ]
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Course"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "course_creation",
+                  "error_message": "Course '999-9999-9999-99' does not exist"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owner/courses/{course_id}/import": {
+      "post": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "import_course",
+        "summary": "Import course from Canvas",
+        "description": "Imports data from Canvas into an existing course\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "required": true,
+            "description": "The course id",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseSyncTask"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Task Queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Task"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "An authentication error occurred",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "Canvas Service",
+                  "error_message": "Error: invalid token"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "Course Service",
+                  "error_message": "Error: course id not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owner/courses/{course_id}/sync": {
+      "post": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "sync_course",
+        "summary": "Sync with established course controller",
+        "description": "Syncs with a course in the controller.\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseSyncTask"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Task Queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Task"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "An authentication error occurred",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "Canvas Service",
+                  "error_message": "Error: invalid token"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "update_course",
+                  "error_message": "Course '999-9999-9999-99' does not exist"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owner/courses/{course_id}/assignments": {
+      "put": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "update_assignment",
+        "summary": "Update an assignment in a course",
+        "description": "Update an assignment in a course\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Assignment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Accepted"
+          },
+          "404": {
+            "description": "Course Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "update_course",
+                  "error_message": "Course '999-9999-9999-99' does not exist"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "add_assignment",
+        "summary": "Add assignment to a course",
+        "description": "Add assignments to a course.\nIf any assignment already exists in the class,\nits information will be updated.\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Assignment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assignment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "update_course",
+                  "error_message": "Course '999-9999-9999-99' does not exist"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owner/courses/{course_id}/assignment/{assignment_id}/disable": {
+      "put": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "disable_assignment",
+        "summary": "Disable the specified assignment.",
+        "description": "Disable the specified assignment.\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          },
+          {
+            "name": "assignment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Assignment not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "disable_assignment",
+                  "error_message": "Assignment '999-9999-9999-99' does not exist"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owner/courses/{course_id}/assignment/{assignment_id}/enable": {
+      "put": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "enable_assignment",
+        "summary": "Enable the specified assignment.",
+        "description": "Enable the specified assignment.\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          },
+          {
+            "name": "assignment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Assignment not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "enable_assignment",
+                  "error_message": "Assignment '999-9999-9999-99' does not exist"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owner/courses/{course_id}/members": {
+      "get": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "get_members",
+        "security": [
+          {
+            "openIDC": [
+              "admin:read"
+            ]
+          }
+        ],
+        "summary": "Get all members for a course",
+        "description": "Gets all members for a course.\nOptional query params can be used to filter by TAs, Instructors, or Students.\nCan also be used to search by CWID or by name\n",
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          },
+          {
+            "name": "enrollments",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "tas",
+                  "instructors",
+                  "students"
+                ]
+              }
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Part of (or full) name to search for",
+              "example": "Alex"
+            }
+          },
+          {
+            "name": "cwid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Part of (or full) cwid to search for",
+              "example": "9999999"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseMember"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "update_course",
+                  "error_message": "Course '999-9999-9999-99' does not exist"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owner/courses/{course_id}/policies": {
+      "post": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "new_policy",
+        "summary": "Create a new policy",
+        "description": "Create a new policy for the course\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/NewPolicy"
+              },
+              "encoding": {
+                "file_data": {
+                  "contentType": "text/javascript"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Policy"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "owner_get_all_policies",
+        "summary": "Get all policies",
+        "description": "Get all policies for a course\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Policy"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owner/course/{course_id}/policies/{policy_id}": {
+      "delete": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "delete_policy",
+        "summary": "Delete a policy",
+        "description": "Delete policy for the course\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          },
+          {
+            "name": "policy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
           }
         }
       }
@@ -1607,6 +1503,77 @@
                 "example": {
                   "error_source": "update_user",
                   "error_message": "Credential '99-9999-9999-99' does not exist!"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instructor/courses/{course_id}/extensions": {
+      "get": {
+        "tags": [
+          "instructor"
+        ],
+        "operationId": "get_all_extensions_for_course",
+        "summary": "Get all the extensions for the course",
+        "description": "This endpoint gets all extensions for a given course\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "required": true,
+            "description": "The course ID",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "approved",
+                "denied",
+                "pending"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LateRequest"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Extension not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "User Service",
+                  "error_message": "Error: extension request not found"
                 }
               }
             }
@@ -2541,6 +2508,47 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "instructor"
+        ],
+        "operationId": "delete_master_migration",
+        "summary": "Delete a master migration",
+        "description": "Deletes the specified master migration\n",
+        "security": [
+          {
+            "openIDC": [
+              "instructor:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "99-9999-9999-99"
+            }
+          },
+          {
+            "name": "master_migration_id",
+            "required": true,
+            "description": "The master migration ID",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
       }
     },
     "/instructor/course/{course_id}/migrations/{master_migration_id}/{migration_id}/scores": {
@@ -2628,7 +2636,7 @@
         }
       }
     },
-    "/instructor/courses/{course_id}/migrations/{master_migration_id}/load-validate": {
+    "/instructor/courses/{course_id}/migrations/{master_migration_id}/load_validate": {
       "post": {
         "tags": [
           "instructor"
@@ -2815,7 +2823,7 @@
         }
       }
     },
-    "/instructor/courses/{course_id}/migrations/{master_migration_id}/apply-validate": {
+    "/instructor/courses/{course_id}/migrations/{master_migration_id}/apply_validate": {
       "post": {
         "tags": [
           "instructor"
@@ -3174,17 +3182,7 @@
         ],
         "responses": {
           "202": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Task"
-                  }
-                }
-              }
-            }
+            "description": "OK"
           },
           "400": {
             "description": "Invalid"
@@ -3769,6 +3767,7 @@
           "email",
           "cwid",
           "name",
+          "enabled",
           "admin"
         ],
         "properties": {
@@ -3880,7 +3879,8 @@
             "example": "Gradescope"
           },
           "external_points": {
-            "type": "integer",
+            "type": "number",
+            "format": "double",
             "example": 14
           },
           "due_date": {
@@ -4332,6 +4332,10 @@
           "policy"
         ],
         "properties": {
+          "id": {
+            "type": "string",
+            "example": "999-9999-9999-99"
+          },
           "assignment": {
             "$ref": "#/components/schemas/Assignment"
           },
@@ -4403,12 +4407,24 @@
           "comment": {
             "type": "string",
             "example": "An extension was applied :)"
+          },
+          "raw_score": {
+            "type": "number",
+            "format": "double",
+            "example": 7.5
+          },
+          "days_late": {
+            "type": "integer",
+            "example": 0
           }
         }
       },
       "MigrationWithScores": {
         "description": "A migration for an assignment that contains scores for each student",
         "type": "object",
+        "required": [
+          "scores"
+        ],
         "properties": {
           "migration_id": {
             "type": "string",

@@ -71,6 +71,15 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
+    public ResponseEntity<Void> deleteMasterMigration(String courseId, String masterMigrationId) {
+        if (!migrationService.deleteMasterMigration(UUID.fromString(courseId), UUID.fromString(masterMigrationId))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to delete master migration!");
+        }
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @Override
     public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(String courseId, String masterMigrationId, String assignment) {
         MasterMigration masterMigration = migrationService.addMigration(masterMigrationId, assignment);
 

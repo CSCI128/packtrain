@@ -8,7 +8,7 @@ import {
   Text,
 } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
-import { Course, CourseSlim } from "@repo/api/openapi";
+import { Course, CourseSlim, Enrollment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -16,7 +16,7 @@ import { useAuth } from "react-oidc-context";
 
 export const SelectClass = ({ close }: { close?: () => void }) => {
   const auth = useAuth();
-  const [checked, setChecked] = useState(false);
+  const [checked, setChecked] = useState(true);
 
   const { data, error, isLoading, refetch } = useQuery<
     Course[] | CourseSlim[],
@@ -35,21 +35,24 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
 
       const res =
         auth.isAuthenticated && auth.user?.profile.is_admin
-          ? await client.get_courses({ onlyActive })
+          ? await client.owner_get_courses({ onlyActive })
           : await client.get_courses_student();
 
       return res.data;
     },
-    enabled: !!auth.isAuthenticated,
+    enabled: auth.isAuthenticated,
   });
 
-  const { data: enrollmentInfo } = useQuery({
+  const { data: enrollmentInfo } = useQuery<Enrollment[]>({
     queryKey: ["getEnrollments"],
     queryFn: () =>
       getApiClient()
         .then((client) => client.get_enrollments())
         .then((res) => res.data)
-        .catch((err) => console.log(err)),
+        .catch((err) => {
+          console.log(err);
+          return [];
+        }),
     enabled: !!auth.isAuthenticated,
   });
 
@@ -61,7 +64,7 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     }
 
     if (enrollmentInfo) {
-      let enrollment = enrollmentInfo
+      const enrollment = enrollmentInfo
         .filter((c) => c.id === store$.id.get())
         .at(0);
       if (enrollment !== undefined) {

@@ -3,7 +3,7 @@ import { getApiClient } from "@repo/api/index";
 import { MasterMigration, Migration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 
 export function MigrationsPage() {
@@ -12,7 +12,7 @@ export function MigrationsPage() {
     queryFn: () =>
       getApiClient()
         .then((client) =>
-          client.get_all_master_migrations_for_course({
+          client.get_all_migrations({
             course_id: store$.id.get() as string,
           })
         )
@@ -21,6 +21,20 @@ export function MigrationsPage() {
           console.log(err);
           return null;
         }),
+  });
+
+  const deleteMasterMigration = useMutation({
+    mutationKey: ["deleteMasterMigration"],
+    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
+      getApiClient()
+        .then((client) =>
+          client.delete_master_migration({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
   });
 
   if (isLoading || !data) return "Loading...";
@@ -44,9 +58,8 @@ export function MigrationsPage() {
                   {formattedDate(new Date(migration.date_started as string))}
                 </strong>
               </Text>
-              {/* TODO send back name with CourseMember */}
               <Text>
-                <strong>By</strong>: {migration.migrator?.cwid}
+                <strong>By</strong>: {migration.migrator?.name}
               </Text>
               <Text>
                 <strong>Migrated Assignments</strong>:{" "}
@@ -57,14 +70,41 @@ export function MigrationsPage() {
             </Box>
           ))
         ) : (
-          <>
-            <Text>No migrations were found!</Text>
-          </>
+          <Text mb={10}>No migrations were found!</Text>
         )}
 
-        <Button component={Link} to="/instructor/migrate/load" variant="filled">
-          Migrate Grades
-        </Button>
+        {store$.master_migration_id.get() ? (
+          <>
+            <Button
+              mr={10}
+              onClick={() => {
+                store$.master_migration_id.delete();
+                deleteMasterMigration.mutate({
+                  master_migration_id:
+                    store$.master_migration_id.get() as string,
+                });
+              }}
+              variant="filled"
+            >
+              Delete active migration
+            </Button>
+            <Button
+              component={Link}
+              to="/instructor/migrate/load"
+              variant="filled"
+            >
+              Continue active migration
+            </Button>
+          </>
+        ) : (
+          <Button
+            component={Link}
+            to="/instructor/migrate/load"
+            variant="filled"
+          >
+            Migrate Grades
+          </Button>
+        )}
       </Container>
     </>
   );

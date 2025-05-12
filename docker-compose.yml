@@ -161,7 +161,7 @@ services:
       - minio-store:/data
 
   rabbitmq:
-    image: rabbitmq:4-alpine
+    image: rabbitmq:4.1.0-alpine
     restart: unless-stopped
     healthcheck:
       test: rabbitmq-diagnostics check_port_connectivity

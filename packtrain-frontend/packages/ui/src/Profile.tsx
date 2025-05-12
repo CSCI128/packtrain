@@ -14,7 +14,7 @@ import {
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { Credential, User } from "@repo/api/openapi";
+import { Credential, Enrollment, User } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
@@ -50,7 +50,7 @@ export function ProfilePage() {
     error,
     isLoading,
     refetch: refetchUser,
-  } = useQuery({
+  } = useQuery<User | null>({
     queryKey: ["getUser"],
     queryFn: () =>
       getApiClient()
@@ -96,13 +96,16 @@ export function ProfilePage() {
         }),
   });
 
-  const { data: enrollmentInfo } = useQuery({
+  const { data: enrollmentInfo } = useQuery<Enrollment[]>({
     queryKey: ["getEnrollments"],
     queryFn: () =>
       getApiClient()
         .then((client) => client.get_enrollments())
         .then((res) => res.data)
-        .catch((err) => console.log(err)),
+        .catch((err) => {
+          console.log(err);
+          return [];
+        }),
     enabled: !!auth.isAuthenticated,
   });
 
@@ -139,7 +142,7 @@ export function ProfilePage() {
       email: data?.email,
       cwid: data?.cwid,
     });
-  }, [data]);
+  }, [data, editUserForm]);
 
   if (isLoading || !data) return "Loading...";
 
@@ -176,6 +179,7 @@ export function ProfilePage() {
             cwid: data.cwid,
             name: data.name,
             admin: data.admin,
+            enabled: data.enabled,
           },
           service: values.service as "canvas",
           api_key: values.apiKey,

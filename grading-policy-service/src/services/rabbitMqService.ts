@@ -1,19 +1,19 @@
-import { RabbitMqConfig } from "../config/config";
 import {
-    Connection,
-    connect as rabbitMqConnect,
     Channel,
+    Connection,
     ConsumeMessage,
+    connect as rabbitMqConnect,
 } from "amqplib";
+import { RabbitMqConfig } from "../config/config";
 import GradingStartDTO, {
     GlobalAssignmentMetadata,
 } from "../data/GradingStartDTO";
 import RawScoreDTO from "../data/RawScoreDTO";
+import ScoredDTO from "../data/ScoredDTO";
 import {
     ApplyPolicyFunctionSig,
     downloadAndVerifyPolicy,
 } from "./policyService";
-import ScoredDTO from "../data/ScoredDTO";
 
 export interface ConsumerChannel {
     channel: Channel;

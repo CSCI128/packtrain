@@ -22,7 +22,6 @@ import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.services.external.CanvasService;
 import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.RabbitMqService;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
@@ -95,7 +94,6 @@ public class MigrationService {
         return masterMigrationRepo.save(masterMigration);
     }
 
-    @Transactional
     public List<MasterMigration> getAllMasterMigrations(String courseId){
        return masterMigrationRepo.getMasterMigrationsByCourseId(UUID.fromString(courseId));
     }
@@ -117,15 +115,33 @@ public class MigrationService {
         return masterMigrationRepo.save(masterMigration);
     }
 
+    public boolean deleteMasterMigration(UUID courseId, UUID masterMigrationId) {
+        Optional<MasterMigration> masterMigration = masterMigrationRepo.getMasterMigrationById(masterMigrationId);
+
+        if (masterMigration.isEmpty()){
+            log.warn("Attempt to get master migration that doesn't exist!");
+            return false;
+        }
+
+        masterMigrationRepo.delete(masterMigration.get());
+
+        return true;
+    }
+
     public MasterMigration addMigration(String masterMigrationId, String assignmentId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
         Migration migration = new Migration();
         Assignment assignment = assignmentService.getAssignmentById(assignmentId);
 
+        List<Migration> migrations = masterMigration.getMigrations();
+        migrations.add(migration);
+        masterMigration.setMigrations(migrations);
+
         migration.setAssignment(assignment);
         migration.setMasterMigration(masterMigration);
         migrationRepo.save(migration);
+        masterMigrationRepo.save(masterMigration);
 
         masterMigration = getMasterMigration(masterMigrationId);
 
@@ -140,28 +156,16 @@ public class MigrationService {
         return migrationRepo.getMigrationById(UUID.fromString(migrationId));
     }
 
-    @Transactional
     public Course getCourseForMigration(String migrationId){
-        Migration migration = getMigration(migrationId);
-
-        MasterMigration master = migration.getMasterMigration();
-
-        return master.getCourse();
+        return courseService.getCourseForMigration(migrationId);
     }
 
-    @Transactional
     public Course getCourseForMasterMigration(String migrationId){
-
-        MasterMigration master = getMasterMigration(migrationId);
-
-        return master.getCourse();
+        return courseService.getCourseForMasterMigration(migrationId);
     }
 
-    @Transactional
     public Assignment getAssignmentForMigration(String migrationId){
-        Migration migration = getMigration(migrationId);
-
-        return migration.getAssignment();
+        return assignmentService.getAssignmentForMigration(migrationId);
     }
 
     public Migration setPolicyForMigration(String migrationId, String policyId){
@@ -181,7 +185,6 @@ public class MigrationService {
 
     }
 
-    @Transactional
     public void handleScoreReceived(User asUser, UUID migrationId, ScoredDTO dto){
         MigrationTransactionLog entry = new MigrationTransactionLog();
         Optional<MigrationTransactionLog> existing = transactionLogRepo.getByCwidAndMigrationId(dto.getCwid(), migrationId);
@@ -232,7 +235,6 @@ public class MigrationService {
         transactionLogRepo.save(entry);
     }
 
-    @Transactional
     public void processScoresAndExtensionsTask(ProcessScoresAndExtensionsTaskDef task){
         Assignment assignment = assignmentService.getAssignmentById(task.getAssignmentId().toString());
 
@@ -266,7 +268,6 @@ public class MigrationService {
         }
     }
 
-    @Transactional
     public void zeroOutSubmissions(ZeroOutSubmissionsTaskDef task){
         Course course = getCourseForMigration(task.getMigrationId().toString());
 
@@ -304,16 +305,19 @@ public class MigrationService {
         return dto;
     }
 
-    @Transactional
     public List<ScheduledTaskDef> startProcessScoresAndExtensions(User actingUser, String masterMigrationId ){
+        if(!validateApplyMasterMigration(masterMigrationId)) {
+            return List.of();
+        }
+
         Optional<MasterMigration> master = masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
 
         if(master.isEmpty()){
             return List.of();
         }
 
-        if (master.get().getStatus() != MigrationStatus.CREATED){
-            log.warn("Migration is in invalid state to start a migration. {} != {}", master.get().getStatus().name(), MigrationStatus.CREATED.name());
+        if (master.get().getStatus() != MigrationStatus.LOADED){
+            log.warn("Migration is in invalid state to start a migration. {} != {}", master.get().getStatus().name(), MigrationStatus.LOADED.name());
             return List.of();
         }
 
@@ -340,7 +344,7 @@ public class MigrationService {
             task.setCreatedByUser(actingUser);
             task.setTaskName(String.format("Process scores and extensions for assignment '%s'", assignment.getName()));
             task.setMigrationId(migration.getId());
-            task.setAssignmentId(migration.getId());
+            task.setAssignmentId(assignment.getId());
             task.setPolicy(URI.create(migration.getPolicy().getPolicyURI()));
             task = processScoresTaskRepo.save(task);
 
@@ -396,7 +400,6 @@ public class MigrationService {
     }
 
 
-    @Transactional
     public boolean validateLoadMasterMigration(String masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
@@ -428,7 +431,6 @@ public class MigrationService {
         return true;
     }
 
-    @Transactional
     public boolean finalizeLoadMasterMigration(String masterMigrationId){
         if (!validateLoadMasterMigration(masterMigrationId)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to validate load phase");
@@ -466,7 +468,6 @@ public class MigrationService {
         return true;
     }
 
-    @Transactional
     public List<MigrationWithScoresDTO> getMasterMigrationToReview(String masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
@@ -498,6 +499,8 @@ public class MigrationService {
                 score.setStatus(entry.getSubmissionStatus().getStatus());
                 score.submissionDate(entry.getSubmissionTime());
                 score.setComment(entry.getMessage());
+                score.setRawScore(rawScoreRepo.getByCwidAndMigrationId(entry.getCwid(), entry.getMigrationId()).map(RawScore::getScore).orElse(0.));
+                score.daysLate(rawScoreRepo.getByCwidAndMigrationId(entry.getCwid(), entry.getMigrationId()).map(r -> (int)(r.getHoursLate() / 24)).orElse(0));
 
 
                 score.setStudent(DTOFactory.toDto(member.get()));
@@ -523,7 +526,6 @@ public class MigrationService {
         return migrationWithScoresDTOs;
     }
 
-    @Transactional
     public boolean updateStudentScore(User asUser, String migrationId, MigrationScoreChangeDTO dto){
         ScoredDTO scored = new ScoredDTO();
         scored.setCwid(dto.getCwid());
@@ -575,7 +577,6 @@ public class MigrationService {
         // We will probably want to periodically check in on this and then only flag this as completed once this is done
     }
 
-    @Transactional
     public List<ScheduledTaskDef> processMigrationLog(User actingUser, String masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 

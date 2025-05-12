@@ -15,7 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 
 export function MembersPage() {
-  const { data, error, isLoading } = useQuery({
+  const { data, error, isLoading } = useQuery<CourseMember[]>({
     queryKey: ["getMembers"],
     queryFn: () =>
       getApiClient()
@@ -26,14 +26,17 @@ export function MembersPage() {
           })
         )
         .then((res) => res.data)
-        .catch((err) => console.log(err)),
+        .catch((err) => {
+          console.log(err);
+          return [];
+        }),
   });
 
   const {
     data: instructorData,
     error: instructorError,
     isLoading: instructorIsLoading,
-  } = useQuery({
+  } = useQuery<CourseMember[]>({
     queryKey: ["getInstructors"],
     queryFn: () =>
       getApiClient()
@@ -44,7 +47,10 @@ export function MembersPage() {
           })
         )
         .then((res) => res.data)
-        .catch((err) => console.log(err)),
+        .catch((err) => {
+          console.log(err);
+          return [];
+        }),
   });
 
   const [search, setSearch] = useState("");
