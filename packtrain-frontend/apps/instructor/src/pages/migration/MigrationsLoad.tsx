@@ -194,6 +194,7 @@ export function MigrationsLoadPage() {
   };
 
   const uploadForAssignment = (file: File, selectedAssignmentId: string) => {
+    console.log(selectedAssignmentId)
     createMigration.mutate(
       {
         master_migration_id: masterMigrationId,

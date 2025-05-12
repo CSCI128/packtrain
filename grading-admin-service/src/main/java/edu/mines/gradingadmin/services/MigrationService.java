@@ -22,6 +22,7 @@ import edu.mines.gradingadmin.repositories.*;
 import edu.mines.gradingadmin.services.external.CanvasService;
 import edu.mines.gradingadmin.services.external.PolicyServerService;
 import edu.mines.gradingadmin.services.external.RabbitMqService;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
@@ -187,11 +188,11 @@ public class MigrationService {
 
     public void handleScoreReceived(User asUser, UUID migrationId, ScoredDTO dto){
         MigrationTransactionLog entry = new MigrationTransactionLog();
-        Optional<MigrationTransactionLog> existing = transactionLogRepo.getByCwidAndMigrationId(dto.getCwid(), migrationId);
+        List<MigrationTransactionLog> existing = transactionLogRepo.getByCwidAndMigrationId(dto.getCwid(), migrationId);
 
-        if (existing.isPresent()){
-            log.info("Overwriting exising score for {} under rev {}", dto.getCwid(), existing.get().getRevision()+1);
-            entry.setRevision(existing.get().getRevision()+1);
+        if (!existing.isEmpty()){
+            log.info("Overwriting exising score for {} under rev {}", dto.getCwid(), existing.getLast().getRevision()+1);
+            entry.setRevision(existing.getLast().getRevision()+1);
         }
 
         entry.setPerformedByUser(asUser);
@@ -235,6 +236,7 @@ public class MigrationService {
         transactionLogRepo.save(entry);
     }
 
+    @Transactional
     public void processScoresAndExtensionsTask(ProcessScoresAndExtensionsTaskDef task){
         Assignment assignment = assignmentService.getAssignmentById(task.getAssignmentId().toString());
 
@@ -500,7 +502,7 @@ public class MigrationService {
                 score.submissionDate(entry.getSubmissionTime());
                 score.setComment(entry.getMessage());
                 score.setRawScore(rawScoreRepo.getByCwidAndMigrationId(entry.getCwid(), entry.getMigrationId()).map(RawScore::getScore).orElse(0.));
-                score.daysLate(rawScoreRepo.getByCwidAndMigrationId(entry.getCwid(), entry.getMigrationId()).map(r -> (int)(r.getHoursLate() / 24)).orElse(0));
+                score.daysLate(rawScoreRepo.getByCwidAndMigrationId(entry.getCwid(), entry.getMigrationId()).map(r -> (int)(r.getHoursLate() == null ? 0 : r.getHoursLate() / 24)).orElse(0));
 
 
                 score.setStudent(DTOFactory.toDto(member.get()));

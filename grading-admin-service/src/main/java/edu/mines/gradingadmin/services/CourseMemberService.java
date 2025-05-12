@@ -47,7 +47,13 @@ public class CourseMemberService {
     }
 
     public Optional<CourseMember> findCourseMemberGivenCourseAndCwid(Course course, String cwid) {
-        return courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().findFirst();
+        Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().findFirst();
+        if (courseMember.isEmpty()){
+            return Optional.empty();
+        }
+
+        courseMember.get().setSections(sectionService.getSectionByMember(courseMember.get()));
+        return courseMember;
     }
 
     public CourseMember getStudentInstructor(Course course, Optional<Section> section) {

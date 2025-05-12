@@ -11,8 +11,9 @@ import java.util.UUID;
 public interface MigrationTransactionLogRepo extends CrudRepository< MigrationTransactionLog, Long> {
     List<MigrationTransactionLog> getAllByMigrationId(UUID migrationId);
 
-    @Query("select l from migration_transaction_log l where l.migrationId = ?1 order by l.cwid, l.revision desc")
+    @Query("select l from migration_transaction_log l where l.migrationId = ?1 order by l.cwid, l.revision asc ")
     List<MigrationTransactionLog> getAllByMigrationIdSorted(UUID migrationId);
 
-    Optional<MigrationTransactionLog> getByCwidAndMigrationId(String cwid, UUID migrationId);
+    @Query("select l from migration_transaction_log l where l.migrationId = ?2 and l.cwid = ?1 order by l.revision asc")
+    List<MigrationTransactionLog> getByCwidAndMigrationId(String cwid, UUID migrationId);
 }

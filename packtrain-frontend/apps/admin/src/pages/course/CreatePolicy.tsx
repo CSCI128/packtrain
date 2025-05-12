@@ -36,7 +36,7 @@ export function CreatePolicy() {
       formData.append("description", values.description);
 
       axios
-        .post(`/api/admin/courses/${store$.id.get()}/policies`, formData, {
+        .post(`/api/owner/courses/${store$.id.get()}/policies`, formData, {
           headers: {
             authorization: `Bearer ${u.access_token}`,
             "content-type": "multipart/form-data",

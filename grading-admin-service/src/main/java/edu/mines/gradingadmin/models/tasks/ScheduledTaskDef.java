@@ -34,6 +34,6 @@ public abstract class ScheduledTaskDef {
     protected ScheduleStatus status = ScheduleStatus.CREATED;
 
 
-    @Column(name = "status_text")
+    @Column(name = "status_text", length = 10000)
     protected String statusText;
 }
