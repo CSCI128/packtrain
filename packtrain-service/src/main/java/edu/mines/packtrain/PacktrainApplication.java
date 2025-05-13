@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
-public class GradingAdminApplication {
+public class PacktrainApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(GradingAdminApplication.class, args);
+		SpringApplication.run(PacktrainApplication.class, args);
 	}
 }
