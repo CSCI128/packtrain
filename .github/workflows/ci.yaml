@@ -18,12 +18,12 @@ jobs:
           distribution: temurin
           java-version: 23
           cache: "maven"
-          cache-dependency-path: "grading-admin-service/pom.xml"
+          cache-dependency-path: "packtrain-service/pom.xml"
 
       - name: Run Java Tests
         run: |
           mvn compile test -Dspring.profiles.active=test
-        working-directory: grading-admin-service
+        working-directory: packtrain-service
   ts-test:
     name: Run Grading Policy Tests
     runs-on: ubuntu-latest
@@ -68,7 +68,7 @@ jobs:
         with:
           context: .
           push: true
-          file: ./grading-admin-service/Dockerfile
+          file: ./packtrain-service/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Generate artifact attestation
