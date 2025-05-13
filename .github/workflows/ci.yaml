@@ -34,10 +34,10 @@ jobs:
         with:
           node-version: "23.6.x"
       - name: Install dependencies
-        working-directory: grading-policy-service
+        working-directory: packtrain-policy-service
         run: npm i --include=dev
       - name: Run tests
-        working-directory: grading-policy-service
+        working-directory: packtrain-policy-service
         run: npm test
 
   publish-backend:
@@ -215,9 +215,9 @@ jobs:
         id: push
         uses: docker/build-push-action@v6
         with:
-          context: ./grading-policy-service
+          context: ./packtrain-policy-service
           push: true
-          file: ./grading-policy-service/Dockerfile
+          file: ./packtrain-policy-service/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Generate artifact attestation

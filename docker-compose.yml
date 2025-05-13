@@ -2,7 +2,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./grading-admin-service/Dockerfile
+      dockerfile: ./packtrain-service/Dockerfile
     env_file:
       - .env
     environment:
@@ -135,8 +135,8 @@ services:
     volumes:
       - authentik-redis-store:/data
 
-  grading-policy-service:
-    build: ./grading-policy-service
+  packtrain-policy-service:
+    build: ./packtrain-policy-service
     command:
       - /opt/config.yaml
     healthcheck:
@@ -147,8 +147,8 @@ services:
       timeout: 3s
     volumes:
       - "./certificates/certs/localhost-root/localhost-root.CA.pem:/opt/certs/localhost.CA.crt"
-      - "./grading-policy-service/config.yaml:/opt/config.yaml"
-      - "./grading-policy-service/healthcheck.sh:/usr/bin/healthcheck.sh"
+      - "./packtrain-policy-service/config.yaml:/opt/config.yaml"
+      - "./packtrain-policy-service/healthcheck.sh:/usr/bin/healthcheck.sh"
 
   minio:
     image: minio/minio:latest
@@ -228,7 +228,7 @@ services:
         condition: service_started
       openapi-docs:
         condition: service_started
-      grading-policy-service:
+      packtrain-policy-service:
         condition: service_healthy
 
   localhost.dev-local:
@@ -269,7 +269,7 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      grading-policy-service:
+      packtrain-policy-service:
         condition: service_started
 
 volumes:
