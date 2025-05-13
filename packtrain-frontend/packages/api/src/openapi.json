@@ -7,9 +7,9 @@
     }
   ],
   "info": {
-    "title": "Grading Admin",
+    "title": "packtrain",
     "description": "This API defines the operations required manage grades for classes\nthat utilize multiple platforms while respecting custom late policies\n",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "license": {
       "name": "MIT"
     }

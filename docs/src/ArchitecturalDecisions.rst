@@ -1,12 +1,57 @@
 .. _Architecting:
 
-Architectural Decisions
+Architecture
 ==========================
-This page explains the major architectural decisions that were made for the project. It outlines the main
-components that were chosen, what they do, and why they were chosen.
+This page explains the major architectural decisions that were made for the project and the 
+project's structure and architecture. It outlines the main components that were chosen, what they do, and why they were chosen.
 
 .. image:: images/packtrainsystemarchitecture.png
     :alt: This is an image showing a system diagram of the Packtrain system
+
+At a high level, our services are as follows:
+
+Backend
+~~~~~~~~~~~~
+
+This is the REST API for the grading admin application.
+
+This is where all the business logic lives.
+
+All requests must be made with Bearer JWTs.
+These JWTs are validated against Authentik.
+Importantly, the service does not do any authentication.
+
+Frontend
+~~~~~~~~~~~~
+
+This is the web user interface for the grading admin application.
+
+It gets an access key from Authentik via OAuth, then makes authenticated requests against the rest API.
+
+Authentik
+~~~~~~~~~~~~
+
+This is the Authentication server / identity broker that manages the integration between all identity providers
+(like Canvas / Azure).
+It also is the issuer for all tokens and manages what scopes users have access to.
+
+Authentik-Sidecar
+~~~~~~~~~~~~
+
+This is a simple Python script that makes back channel requests against Authentik to configure it.
+
+If it detects that something is already configured, then it does not take any action.
+
+In the future, this will also pre-seed it with users with varying scopes.
+
+Certificates
+~~~~~~~~~~~~
+
+This is a simple bash script that creates a self-signed certificate chain for the application
+in development mode. If it detects that certs have already been generated, then it takes no action.
+
+Architectural Decisions
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Grading Policy Server
 ---------------------
