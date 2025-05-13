@@ -136,6 +136,9 @@ public class MigrationService {
         Assignment assignment = assignmentService.getAssignmentById(assignmentId);
 
         List<Migration> migrations = masterMigration.getMigrations();
+        if(migrations == null) {
+            migrations = new ArrayList<>();
+        }
         migrations.add(migration);
         masterMigration.setMigrations(migrations);
 
