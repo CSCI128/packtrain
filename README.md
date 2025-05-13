@@ -1,15 +1,17 @@
 # 🐴📦 packtrain
 
-The 128 grading management and migration website monorepo.
+> packtrain: a line or succession of pack animals, as mules or burros, used to transport food and supplies over terrain unsuitable for wagons or other vehicles.
 
-packtrain is software for grading and student extension management.
+packtrain is software for grading and student extension management. It
+has a simple interface for instructors to create classes, manage student
+extension requests, and migrate grades from external websites to Canvas.
+Additionally, it provides full-feature functionality for students requesting
+extensions on work.
 
 # Development Environment
 
-To setup the development environment with [Docker](https://www.docker.com) and [Docker Compose](https://docs.docker.com/compose/),
-first setup the environment file.
-
-Rename `.env.sample` to `.env` and generate the following tokens as follows:
+Install [Docker](https://www.docker.com) and [Docker Compose](https://docs.docker.com/compose/) and
+then copy `.env.sample` to `.env` and generate the following tokens as follows:
 
 ```
 echo "PG_PASS=$(openssl rand -base64 36 | tr -d '\n')" >> .env
@@ -22,20 +24,19 @@ echo "CA_PASS=$(openssl rand -base64 36 | tr -d '\n')" >> certificates/certs/pas
 echo "KEY_PASS=$(openssl rand -base64 36 | tr -d '\n')" >> certificates/certs/passwords
 ```
 
-Generate certificates before running the full compose (only needs to be done once per setup): `docker compose up certificates`
+Generate certificates (only needs to be done once per setup): `docker compose up certificates`
 
 Build all services: `docker compose build`
 
 Run the compose: `docker compose up -d`
 
-Add `localhost.dev 127.0.0.1` to your hosts file.
-(the process varies for windows and macos, I would google how to edit the hosts file for your specific platform)
+To run without backend and frontend containers running, run: `docker compose up localhost.dev-local -d`
 
 ## Backend
 
-Install [JDK 23](https://www.oracle.com/java/technologies/downloads/#jdk23-mac) and [Docker Desktop](https://www.docker.com).
+Install [JDK 23](https://www.oracle.com/java/technologies/downloads/#jdk23-mac).
 
-To run the backend on Linux/Mac, enter the `grading-admin-service` directory and run: `./mvnw spring-boot:run`
+To run the backend on Linux/Mac, enter the `packtrain-service` directory and run: `./mvnw spring-boot:run`
 
 To run the backend tests, run: `./mvnw test "-Dspring.profiles.active=test"`
 
@@ -44,13 +45,11 @@ If you run into an issue building on Windows, make sure that your user has permi
 
 ## Frontend
 
-Install [Node.js](https://nodejs.org/en) and navigate to the `grading-admin-web` directory.
+Install [Node.js](https://nodejs.org/en) and navigate to the `packtrain-frontend` directory.
 
 Run `npm i` to install all the dependencies.
 
 Run `npm run dev` to launch the development server.
-
-To rebuild TypeScript types from OpenAPI, run `npm run types`.
 
 Additionally, copy `.env.sample` to `.env` in **all** of the `packtrain-frontend/apps` directories.
 
@@ -63,6 +62,7 @@ You can sign in at `https://localhost.dev/auth/` with the username `akadmin` and
 If everything is working, `https://localhost.dev/auth/` should be the authentik login URL.
 
 Create a new application, it can be any name, but it must have the slug `grading-admin`.
+
 Create a new provider called `grading-admin` with the following settings.
 
 Client type: `public`
@@ -72,19 +72,16 @@ Redirect URIs: `regex`, `https://localhost.dev/.*`
 
 Finally, assign that provider to the application that you just created.
 
-## Creating users
+### Creating users
 
 To create a user, copy the `user.json.template` in `authentik-sidecar/src/users` to `user.json` and fill in values.
 
 Recreate authentik and you can now login with the information you provided in that user file.
 
-## Running locally
+## Certificates
 
-You can run locally from your IDE (so you can have debugging support) with all the services!
+Make sure that you trust the `localhost.dev` certificates when running the backend and frontend.
 
-To do this, make sure that you trust the `localhost.dev` certificate.
-
-This is done with
 macOS:
 
 ```bash
@@ -113,9 +110,32 @@ docker compose up localhost.dev-local -d
 
 This starts all the local services and proxies them behind `https://localhost.dev`.
 
+Additionally, add `localhost.dev 127.0.0.1` to your hosts file (google for your specific setup).
+
 Then you can start (and restart) the frontend and backend independently of the docker environment.
 
-### Issues
+## Regenerating Authentik
+
+If you run into issues with Authentik (or we change a config param that requires you to regenerate),
+you can regenerate the Authentik config by running:
+
+```bash
+docker compose build authentik-sidecar
+docker compose run --rm authentik-sidecar --recreate
+```
+
+## Postman
+
+1. Create a new collection called `API`.
+2. Click the **Auth** tab and change `Auth Type` to `OAuth 2.0`.
+3. Name the `Token Name` as anything.
+4. Toggle "Authorize using browser" under `Callback URL`.
+5. Set `Auth URL` to `https://localhost.dev/auth/application/o/authorize/`.
+6. Set `Access Token URL` to `https://localhost.dev/auth/application/o/token/`
+7. Set `Client ID` to `grading_admin_provider`.
+8. Leave everything else blank and hit **Get New Access Token** at the bottom of the page.
+
+## Issues
 
 If you run into issues relating to your DB password not working,
 ensure that there are no other postgres instances running on your computer.
@@ -131,66 +151,3 @@ Then you can kill those processes by running
 ```bash
 sudo kill -9 <pid of process to kill>
 ```
-
-## Regenerating Authentik
-
-If you run into issues with Authentik (or we change a config param that requires you to regenerate),
-you can regenerate the Authentik config by running:
-
-```bash
-docker compose build authentik-sidecar
-docker compose run --rm authentik-sidecar --recreate
-```
-
-## Postman
-
-1. Create a new collection (called anything, should do something like `API`).
-2. Click the **Auth** tab and change `Auth Type` to `OAuth 2.0`.
-3. Name the `Token Name` as anything.
-4. Toggle "Authorize using browser" under `Callback URL`.
-5. Set `Auth URL` to `https://localhost.dev/auth/application/o/authorize/`.
-6. Set `Access Token URL` to `https://localhost.dev/auth/application/o/token/`
-7. Set `Client ID` to `grading_admin_provider`.
-8. Leave everything else blank and hit **Get New Access Token** at the bottom of the page.
-
-## Services
-
-### Primary Services
-
-#### Backend
-
-This is the REST API for the grading admin application.
-
-This is where all the business logic lives.
-
-All requests must be made with Bearer JWTs.
-These JWTs are validated against Authentik.
-Importantly, the service does not do any authentication.
-
-#### Frontend
-
-This is the web user interface for the grading admin application.
-
-It gets an access key from Authentik via OAuth, then makes authenticated requests against the rest API.
-
-#### Authentik
-
-This is the Authentication server / identity broker that manages the integration between all identity providers
-(like Canvas / Azure).
-It also is the issuer for all tokens and manages what scopes users have access to.
-
-### Utilities
-
-#### Authentik-Sidecar
-
-This is a simple Python script that makes back channel requests against Authentik to configure it.
-
-If it detects that something is already configured, then it does not take any action.
-
-In the future, this will also pre-seed it with users with varying scopes.
-
-#### Certificates
-
-This is a simple bash script that creates a self-signed certificate chain for the application.
-
-If it detects that certs have already been generated, then it takes no action.
