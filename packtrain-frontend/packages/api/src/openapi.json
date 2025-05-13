@@ -106,6 +106,62 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "delete_course",
+        "summary": "delete existing course",
+        "description": "Deletes a course\n",
+        "security": [
+          {
+            "openIDC": [
+              "admin:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Failed to delete course",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "course_creation",
+                  "error_message": "Failed to delete course"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "course_creation",
+                  "error_message": "Course '999-9999-9999-99' does not exist"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/admin/users": {

@@ -2,16 +2,12 @@ package edu.mines.gradingadmin.services;
 
 import edu.mines.gradingadmin.containers.MinioTestContainer;
 import edu.mines.gradingadmin.containers.PostgresTestContainer;
-import edu.mines.gradingadmin.data.CourseDTO;
 import edu.mines.gradingadmin.managers.ImpersonationManager;
-import edu.mines.gradingadmin.models.Course;
-import edu.mines.gradingadmin.models.User;
+import edu.mines.gradingadmin.models.*;
 import edu.mines.gradingadmin.models.tasks.CourseSyncTaskDef;
 import edu.mines.gradingadmin.repositories.*;
-import edu.mines.gradingadmin.seeders.CanvasSeeder;
+import edu.mines.gradingadmin.seeders.*;
 import edu.mines.gradingadmin.repositories.CourseRepo;
-import edu.mines.gradingadmin.seeders.CourseSeeders;
-import edu.mines.gradingadmin.seeders.UserSeeders;
 import edu.mines.gradingadmin.services.external.CanvasService;
 import edu.mines.gradingadmin.services.external.S3Service;
 import jakarta.transaction.Transactional;
@@ -21,7 +17,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
@@ -47,7 +42,11 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     private CourseService courseService;
     @Mock
     private CanvasService canvasService;
+    @Autowired
+    private MigrationSeeder migrationSeeder;
 
+    @Autowired
+    private AssignmentSeeder assignmentSeeder;
     @Autowired
     private UserSeeders userSeeders;
 
@@ -64,6 +63,16 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @Autowired
     private PolicyRepo policyRepo;
 
+    @Autowired
+    private MasterMigrationRepo masterMigrationRepo;
+
+    @Autowired
+    private MigrationRepo migrationRepo;
+    @Autowired
+    private MigrationService migrationService;
+    @Autowired
+    private CourseMemberRepo courseMemberRepo;
+
     @BeforeAll
     static void setupClass() {
         postgres.start();
@@ -76,7 +85,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
                 courseRepo, lateRequestConfigRepo, gradescopeConfigRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
-                s3Service, userService
+                s3Service, userService, masterMigrationRepo, migrationRepo, courseMemberRepo
         );
 
         applyMocks(canvasService);
@@ -85,6 +94,9 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     @AfterEach
     void tearDown() {
+        migrationRepo.deleteAll();
+        masterMigrationRepo.deleteAll();
+        policyRepo.deleteAll();
         courseSeeders.clearAll();
         userSeeders.clearAll();
     }
@@ -218,4 +230,34 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
 
     }
 
+    @Test
+    void verifyDeleteCourse(){
+        Course coursePopulated = courseSeeders.populatedCourse();
+        Course course2 = courseSeeders.course2();
+        User user = userSeeders.user1();
+
+        // Create master migration from seeder
+        MasterMigration masterMigration = migrationService.createMasterMigration(coursePopulated.getId().toString(), user);
+
+        Assignment assignment = assignmentSeeder.worksheet1(coursePopulated);
+
+        Policy policy = new Policy();
+        policy.setPolicyName("test_policy");
+        policy.setPolicyURI("http://file.js");
+        policy.setFileName("file.js");
+        policy.setCourse(coursePopulated);
+        policy.setCreatedByUser(user);
+
+        policyRepo.save(policy);
+
+        // Add migration to master migration for coursePopulated
+        migrationService.addMigration(masterMigration.getId().toString(), assignment.getId().toString());
+
+        // Check that it doesn't delete because it has a migration
+        Assertions.assertFalse(courseService.deleteCourse(coursePopulated.getId()));
+
+        // Check that it does delete because there isn't any migrations
+        Assertions.assertTrue(courseService.deleteCourse(course2.getId()));
+
+    }
 }

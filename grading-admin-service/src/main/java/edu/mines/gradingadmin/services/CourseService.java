@@ -32,12 +32,14 @@ public class CourseService {
     private final CanvasService canvasService;
     private final S3Service s3Service;
     private final UserService userService;
+    private final MasterMigrationRepo masterMigrationRepo;
+    private final MigrationRepo migrationRepo;
+    private final CourseMemberRepo courseMemberRepo;
 
     public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, GradescopeConfigRepo gradescopeConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
-
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
-                         CanvasService canvasService, S3Service s3Service, UserService userService) {
-
+                         CanvasService canvasService, S3Service s3Service, UserService userService,
+                         MasterMigrationRepo masterMigrationRepo, MigrationRepo migrationRepo, CourseMemberRepo courseMemberRepo) {
         this.courseRepo = courseRepo;
         this.lateRequestConfigRepo = lateRequestConfigRepo;
         this.gradescopeConfigRepo = gradescopeConfigRepo;
@@ -47,6 +49,9 @@ public class CourseService {
         this.eventPublisher = eventPublisher;
         this.s3Service = s3Service;
         this.userService = userService;
+        this.masterMigrationRepo = masterMigrationRepo;
+        this.migrationRepo = migrationRepo;
+        this.courseMemberRepo = courseMemberRepo;
     }
 
     public List<Course> getAllCourses(boolean enabled) {
@@ -107,6 +112,31 @@ public class CourseService {
         }
 
         return courseRepo.save(course);
+    }
+
+    public boolean deleteCourse(UUID courseId) {
+        Optional<Course> course = courseRepo.getById(courseId);
+
+        if (course.isEmpty()){
+            log.warn("Attempt to get course that doesn't exist!");
+            return false;
+        }
+
+        List<MasterMigration> masterMigrations = masterMigrationRepo.getMasterMigrationsByCourseId(courseId);
+
+        for(MasterMigration masterMigration : masterMigrations){
+            if (!migrationRepo.getMigrationListByMasterMigrationId(masterMigration.getId()).isEmpty()){
+                log.warn("Attempt to delete course that has existing migrations!");
+                return false;
+            }
+        }
+
+        // must delete accidentally imported course members first
+        courseMemberRepo.deleteByCourseAndCwid(course.get(), courseMemberRepo.getAllCwidsByCourse(course.get()));
+
+        courseRepo.delete(course.get());
+
+        return true;
     }
 
     public void syncCourseTask(CourseSyncTaskDef task) {

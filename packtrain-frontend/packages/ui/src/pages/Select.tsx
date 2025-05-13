@@ -90,8 +90,6 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
 
   if (error) return `An error occured: ${error}`;
 
-  console.log(data);
-
   return (
     <Container size="sm">
       <Center>

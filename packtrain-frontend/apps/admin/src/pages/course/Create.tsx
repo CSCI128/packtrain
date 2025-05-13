@@ -32,6 +32,8 @@ export function CreatePage() {
     assignments: 0,
     sections: 0,
   });
+  const [tasksFailed, setTasksFailed] = useState(false);
+  const [courseDeleted, setCourseDeleted] = useState(false);
 
   const mutation = useMutation({
     mutationKey: ["newCourse"],
@@ -69,6 +71,15 @@ export function CreatePage() {
           console.log(err);
           return null;
         }),
+  });
+
+  const deleteCourseMutation = useMutation({
+    mutationKey: ["deleteCourse"],
+    mutationFn: ({ course_id }: { course_id: string }) =>
+      getApiClient()
+        .then((client) => client.delete_course(course_id))
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
   });
 
   const { data: credentialData, error: credentialError } = useQuery<
@@ -154,6 +165,7 @@ export function CreatePage() {
             return response;
           } else if (response.status === "FAILED") {
             console.log(`Task ${taskId} failed`);
+            setTasksFailed(true);
             throw new Error("ERR");
           } else {
             console.log(
@@ -191,6 +203,21 @@ export function CreatePage() {
     pollTasks();
   }, [outstandingTasks, pollTaskUntilComplete]);
 
+  const deleteCourse = (course_id: string) => {
+    deleteCourseMutation.mutate(
+      {
+        course_id: course_id,
+      },
+      {
+        onSuccess: () => {
+          console.log("Delete course successful..");
+          store$.id.delete();
+          store$.name.delete();
+        },
+      }
+    );
+  };
+
   useEffect(() => {
     if (allTasksCompleted && data) {
       setImportStatistics({
@@ -199,7 +226,15 @@ export function CreatePage() {
         assignments: data.assignments?.length || 0,
       });
     }
-  }, [allTasksCompleted, data]);
+
+    if (tasksFailed && store$.id.get() && !courseDeleted) {
+      console.log(
+        `Tasks failed, deleting course by ID: ${store$.id.get() as string}`
+      );
+      deleteCourse(store$.id.get() as string);
+      setCourseDeleted(true);
+    }
+  }, [allTasksCompleted, data, tasksFailed, courseDeleted]);
 
   const createCourse = (values: typeof form.values) => {
     mutation.mutate(
@@ -249,7 +284,9 @@ export function CreatePage() {
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
       gradescopeId: (value) =>
-        value.length == 6 ? null : "Gradescope ID must be 6 characters",
+        value && value.length !== 6
+          ? "Gradescope ID must be 6 characters"
+          : null,
       totalLatePassesAllowed: (value) =>
         value < 0 || value > 1000
           ? "Total number of late passes must be greater than or equal to 0 and less than 1000"
@@ -404,31 +441,51 @@ export function CreatePage() {
                   </>
                 ) : (
                   <>
-                    <Text>Import complete!</Text>
-                    <Text>
-                      <strong>{importStatistics.assignments}</strong>{" "}
-                      assignments imported
-                    </Text>
-                    <Text>
-                      <strong>{importStatistics.members}</strong> members
-                      imported
-                    </Text>
-                    <Text>
-                      <strong>{importStatistics.sections}</strong> sections
-                      imported
-                    </Text>
+                    {!tasksFailed ? (
+                      <>
+                        <Text>Import complete!</Text>
+                        <Text>
+                          <strong>{importStatistics.assignments}</strong>{" "}
+                          assignments imported
+                        </Text>
+                        <Text>
+                          <strong>{importStatistics.members}</strong> members
+                          imported
+                        </Text>
+                        <Text>
+                          <strong>{importStatistics.sections}</strong> sections
+                          imported
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <Text>Import Failed!</Text>
+                        <Text>Deleting attempted import!</Text>
+                      </>
+                    )}
                   </>
                 )}
 
                 <Group justify="flex-end" mt="md">
-                  <Button
-                    disabled={!allTasksCompleted}
-                    color={allTasksCompleted ? "blue" : "gray"}
-                    component={Link}
-                    to="/admin"
-                  >
-                    Continue
-                  </Button>
+                  {!tasksFailed ? (
+                    <Button
+                      disabled={!allTasksCompleted}
+                      color={allTasksCompleted ? "blue" : "gray"}
+                      component={Link}
+                      to="/admin"
+                    >
+                      Continue
+                    </Button>
+                  ) : (
+                    <Button
+                      disabled={!allTasksCompleted}
+                      color={allTasksCompleted ? "blue" : "gray"}
+                      component={Link}
+                      to="/select"
+                    >
+                      Return
+                    </Button>
+                  )}
                 </Group>
               </Box>
             )}
