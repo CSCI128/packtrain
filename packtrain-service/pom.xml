@@ -9,7 +9,7 @@
 		<relativePath/>
 	</parent>
 	<groupId>edu.mines</groupId>
-	<artifactId>gradingadmin</artifactId>
+	<artifactId>packtrain-service</artifactId>
 	<version>1.0.0</version>
 	<name>GradingAdmin</name>
 	<description>Grading admin for CSCI128</description>
@@ -189,8 +189,8 @@
 								src/main/resources/openapi.yml
 							</inputSpec>
 							<generatorName>spring</generatorName>
-							<apiPackage>edu.mines.gradingadmin.api</apiPackage>
-							<modelPackage>edu.mines.gradingadmin.data</modelPackage>
+							<apiPackage>edu.mines.packtrain.api</apiPackage>
+							<modelPackage>edu.mines.packtrain.data</modelPackage>
 							<supportingFilesToGenerate>
 								ApiUtil.java
 							</supportingFilesToGenerate>
