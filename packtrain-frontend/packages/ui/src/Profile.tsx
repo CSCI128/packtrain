@@ -17,7 +17,7 @@ import { getApiClient } from "@repo/api/index";
 import { Credential, Enrollment, User } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "react-oidc-context";
 
 export function ProfilePage() {
@@ -135,14 +135,6 @@ export function ProfilePage() {
         .then((res) => res.data)
         .catch((err) => console.log(err)),
   });
-
-  useEffect(() => {
-    editUserForm.setValues({
-      name: data?.name,
-      email: data?.email,
-      cwid: data?.cwid,
-    });
-  }, [data, editUserForm]);
 
   if (isLoading || !data) return "Loading...";
 
@@ -322,7 +314,18 @@ export function ProfilePage() {
           <Text size="xl" fw={700}>
             Profile
           </Text>
-          <Button justify="flex-end" variant="filled" onClick={openEditUser}>
+          <Button
+            justify="flex-end"
+            variant="filled"
+            onClick={() => {
+              editUserForm.setValues({
+                name: data?.name,
+                email: data?.email,
+                cwid: data?.cwid,
+              });
+              openEditUser();
+            }}
+          >
             Edit
           </Button>
         </Group>
