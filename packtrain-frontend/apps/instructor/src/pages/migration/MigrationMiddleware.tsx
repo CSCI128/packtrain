@@ -4,7 +4,6 @@ import { MasterMigration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 import { JSX } from "react";
-import "./app.scss";
 
 export const MigrationMiddleware = ({
   children,
