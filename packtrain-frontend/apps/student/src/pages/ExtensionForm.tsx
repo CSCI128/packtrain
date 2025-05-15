@@ -83,6 +83,8 @@ export function ExtensionForm() {
         }),
   });
 
+  console.log(courseData);
+
   const getAssignmentDueDate = (assignmentId: string) => {
     return courseData?.course.assignments
       ?.filter((x: Assignment) => x.id === assignmentId)
@@ -433,12 +435,19 @@ export function ExtensionForm() {
                 withAsterisk
                 label="Extension Reason"
                 placeholder="Pick value"
-                data={[
-                  { label: "Tech Issues", value: "TECH" },
-                  { label: "Health-Related", value: "HEALTH" },
-                  { label: "Family Emergency", value: "FAMILY" },
-                  { label: "Personal", value: "PERSONAL" },
-                ]}
+                data={
+                  courseData.course.late_request_config &&
+                  courseData.course.late_request_config
+                    .enabled_extension_reasons
+                    ? courseData.course.late_request_config
+                        .enabled_extension_reasons
+                    : [
+                        { label: "Tech Issues", value: "TECH" },
+                        { label: "Health-Related", value: "HEALTH" },
+                        { label: "Family Emergency", value: "FAMILY" },
+                        { label: "Personal", value: "PERSONAL" },
+                      ]
+                }
                 key={extensionForm.key("extensionReason")}
                 {...extensionForm.getInputProps("extensionReason")}
               />
