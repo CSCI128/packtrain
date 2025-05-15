@@ -194,7 +194,7 @@ export function MigrationsLoadPage() {
   };
 
   const uploadForAssignment = (file: File, selectedAssignmentId: string) => {
-    console.log(selectedAssignmentId)
+    console.log(selectedAssignmentId);
     createMigration.mutate(
       {
         master_migration_id: masterMigrationId,
@@ -203,14 +203,6 @@ export function MigrationsLoadPage() {
       {
         onSuccess: async (data: MasterMigration | void) => {
           console.log(data);
-
-          // const arrayBuffer = await file.arrayBuffer();
-          // const uint8Array = new Uint8Array(arrayBuffer);
-
-          // let binaryString = "";
-          // for (let i = 0; i < uint8Array.length; i++) {
-          //   binaryString += String.fromCharCode(uint8Array[i]);
-          // }
 
           uploadScores.mutate({
             master_migration_id: masterMigrationId,

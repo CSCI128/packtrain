@@ -9,43 +9,42 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { getApiClient } from "@repo/api/index";
 import { store$ } from "@repo/api/store";
+import { useMutation } from "@tanstack/react-query";
 import CodeMirror, { EditorState, Extension } from "@uiw/react-codemirror";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { userManager } from "../../auth.ts";
 
 export function CreatePolicy() {
   const navigate = useNavigate();
   let errors = "";
 
-  const createNewPolicy = (values: typeof form.values) => {
-    const file = new File([values.content], values.fileName, {
-      type: "application/javascript",
-    });
-    userManager.getUser().then((u) => {
-      if (u == null) {
-        throw new Error("Failed to get user");
-      }
-
-      const formData = new FormData();
-
-      formData.append("name", values.policyName);
-      formData.append("file_path", values.fileName);
-      formData.append("file_data", file);
-      formData.append("description", values.description);
-
-      axios
-        .post(`/api/owner/courses/${store$.id.get()}/policies`, formData, {
-          headers: {
-            authorization: `Bearer ${u.access_token}`,
-            "content-type": "multipart/form-data",
-          },
+  const newPolicy = useMutation({
+    mutationKey: ["newPolicy"],
+    mutationFn: ({ formData }: { formData: FormData }) =>
+      getApiClient()
+        .then((client) => {
+          return client.new_policy(
+            {
+              course_id: store$.id.get() as string,
+            },
+            {
+              name: formData.get("name").toString(),
+              file_path: formData.get("file_path").toString(),
+              // @ts-ignore
+              file_data: formData.get("file_data"),
+              description: formData.get("description").toString(),
+            },
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
         })
-        .then(() => navigate("/admin/"))
-        .catch((e) => (errors = e));
-    });
-  };
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
+  });
 
   const form = useForm({
     mode: "uncontrolled",
@@ -71,6 +70,29 @@ export function CreatePolicy() {
     },
   });
 
+  const handleNewPolicy = (values: typeof form.values) => {
+    const file = new File([values.content], values.fileName, {
+      type: "application/javascript",
+    });
+
+    const formData = new FormData();
+    formData.append("name", values.policyName);
+    formData.append("file_path", values.fileName);
+    formData.append("file_data", file);
+    formData.append("description", values.description);
+
+    newPolicy.mutate(
+      {
+        formData,
+      },
+      {
+        onSuccess: () => {
+          navigate("/admin/");
+        },
+      }
+    );
+  };
+
   // language=JavaScript
   const fullCode = `function policy(rawScore){\n${form.values.content}\n}`;
 
@@ -94,12 +116,13 @@ export function CreatePolicy() {
       // Returning false blocks the entire change
       return !blocked;
     });
+
   return (
     <>
       <Container size="md">
         {errors != null && errors}
 
-        <form onSubmit={form.onSubmit(createNewPolicy)}>
+        <form onSubmit={form.onSubmit(handleNewPolicy)}>
           <TextInput
             pb={8}
             label="Policy Name"
