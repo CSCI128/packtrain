@@ -7,7 +7,6 @@ import { NotFoundPage } from "@repo/ui/pages/NotFoundPage";
 import { SelectClass } from "@repo/ui/pages/Select";
 import { ProfilePage } from "@repo/ui/Profile";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { JSX } from "react";
 import ReactDOM from "react-dom/client";
 import { AuthProvider } from "react-oidc-context";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -16,6 +15,7 @@ import { userManager } from "./auth";
 import { AUTH_CONFIG } from "./auth.ts";
 import { ApprovalPage } from "./pages/Approvals";
 import { MembersPage } from "./pages/Members";
+import { MigrationMiddleware } from "./pages/migration/MigrationMiddleware.tsx";
 import { MigrationsPage } from "./pages/migration/Migrations";
 import { MigrationsApplyPage } from "./pages/migration/MigrationsApply";
 import { MigrationsLoadPage } from "./pages/migration/MigrationsLoad";
@@ -32,12 +32,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-const MigrationMiddleware = ({ children }: { children: JSX.Element }) => {
-  // Four step migrate process: send people to first or last or active state
-  // and prevent them from going to future states
-  return children;
-};
 
 const router = createBrowserRouter([
   {

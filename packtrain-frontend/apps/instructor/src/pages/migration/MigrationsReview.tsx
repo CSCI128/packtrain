@@ -27,7 +27,7 @@ import { IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export function MigrationsReviewPage() {
   const navigate = useNavigate();
@@ -442,15 +442,6 @@ export function MigrationsReviewPage() {
           <Button color="gray">Export</Button>
 
           <Group>
-            <Button
-              component={Link}
-              to="/instructor/migrate/apply"
-              color="gray"
-              variant="light"
-            >
-              Previous
-            </Button>
-
             <Button onClick={openConfirm}>Post</Button>
           </Group>
         </Group>
