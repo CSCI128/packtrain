@@ -246,6 +246,11 @@ declare namespace Components {
              * Fall.2020.EXCL.101
              */
             code: string;
+            /**
+             * example:
+             * true
+             */
+            enabled?: boolean;
         }
         /**
          * Import a new course from canvas

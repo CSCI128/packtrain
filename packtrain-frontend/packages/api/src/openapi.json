@@ -4133,6 +4133,10 @@
           "code": {
             "type": "string",
             "example": "Fall.2020.EXCL.101"
+          },
+          "enabled": {
+            "type": "boolean",
+            "example": true
           }
         }
       },

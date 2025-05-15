@@ -67,7 +67,8 @@ public class DTOFactory {
             .id(course.getId().toString())
             .term(course.getTerm())
             .name(course.getName())
-            .code(course.getCode());
+            .code(course.getCode())
+            .enabled(course.isEnabled());
     }
 
     public static CourseDTO toDto(Course course) {
