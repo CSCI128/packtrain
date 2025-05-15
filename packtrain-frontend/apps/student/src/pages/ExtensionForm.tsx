@@ -174,6 +174,8 @@ export function ExtensionForm() {
   const LATE_PASSES_ALLOWED =
     courseData.course.late_request_config.total_late_passes_allowed;
 
+  const LATE_PASS_NAME = courseData.course.late_request_config.late_pass_name;
+
   function CalculatedDate() {
     return (
       <>
@@ -248,7 +250,15 @@ export function ExtensionForm() {
             extensionForm.setFieldValue("assignmentId", "");
             latePassForm.setFieldValue("assignmentId", "");
           }}
-          data={["Late Pass", "Extension"]}
+          data={
+            courseData.course.late_request_config &&
+            courseData.course.late_request_config.late_passes_enabled
+              ? [
+                  courseData.course.late_request_config.late_pass_name,
+                  "Extension",
+                ]
+              : ["Extension"]
+          }
         />
       </InputWrapper>
 
@@ -258,7 +268,7 @@ export function ExtensionForm() {
             {(courseData.late_passes_used ?? 0) >= LATE_PASSES_ALLOWED ? (
               <>
                 <Text size="md" mt={20} ta="center" c="red.9" fw={700}>
-                  You have no late passes remaining!
+                  You have no {LATE_PASS_NAME.toLowerCase()}es remaining!
                 </Text>
 
                 <Text ta="center" c="gray.7">
@@ -312,8 +322,9 @@ export function ExtensionForm() {
                   <strong>
                     {LATE_PASSES_ALLOWED - (courseData.late_passes_used ?? 0)}
                   </strong>{" "}
-                  late passes remaining. Late passes are five, free passes to
-                  use over the course of the semester to extend your work.
+                  {LATE_PASS_NAME.toLowerCase()}es remaining. {LATE_PASS_NAME}es
+                  are five, free passes to use over the course of the semester
+                  to extend your work.
                 </Text>
 
                 <Group>
