@@ -31,7 +31,7 @@ export function CreatePolicy() {
             {
               name: formData.get("name").toString(),
               file_path: formData.get("file_path").toString(),
-              // @ts-ignore
+              // @ts-expect-error OpenAPI generates expecting strings when it shouldn't
               file_data: formData.get("file_data"),
               description: formData.get("description").toString(),
             },
@@ -43,7 +43,11 @@ export function CreatePolicy() {
           );
         })
         .then((res) => res.data)
-        .catch((err) => console.log(err)),
+        .catch((err) => {
+          console.log(err);
+          errors = err;
+          throw err;
+        }),
   });
 
   const form = useForm({

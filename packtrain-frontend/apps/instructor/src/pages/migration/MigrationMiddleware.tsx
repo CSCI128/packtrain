@@ -4,12 +4,15 @@ import { MasterMigration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 import { JSX } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const MigrationMiddleware = ({
   children,
 }: {
   children: JSX.Element;
 }) => {
+  const navigate = useNavigate();
+
   const {
     data: migrationData,
     error: migrationError,
@@ -31,7 +34,13 @@ export const MigrationMiddleware = ({
         }),
   });
 
-  console.log(migrationData);
+  if (migrationError) {
+    navigate("/instructor/migrate");
+  }
+
+  if (!migrationIsLoading) {
+    console.log(migrationData);
+  }
 
   return children;
 };

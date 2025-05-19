@@ -221,7 +221,7 @@ export function MigrationsApplyPage() {
 
   useEffect(() => {
     if (migrationData) {
-      let assignmentIds: string[] = [];
+      const assignmentIds: string[] = [];
       migrationData.migrations?.forEach((migration: Migration) => {
         assignmentIds.push(migration.assignment.id as string);
       });

@@ -19,7 +19,6 @@ export function MigrationsPostPage() {
   const [posting, setPosting] = useState(false);
   const [postingFinished, setPostingFinished] = useState(false);
   const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
-  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
 
   const { mutateAsync: fetchTask } = useMutation({
     mutationKey: ["getTask"],
@@ -67,7 +66,7 @@ export function MigrationsPostPage() {
         }
       }
     },
-    []
+    [fetchTask]
   );
 
   useEffect(() => {
@@ -79,7 +78,6 @@ export function MigrationsPostPage() {
       )
         .then((results) => {
           console.log("All tasks are completed:", results);
-          setAllTasksCompleted(true);
           setOutstandingTasks([]);
           setPostingFinished(true);
           setPosting(false);
@@ -143,7 +141,6 @@ export function MigrationsPostPage() {
   };
 
   useEffect(() => {
-    console.log("running");
     handlePostMasterMigration();
   }, [posting]);
 
