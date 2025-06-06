@@ -13,7 +13,7 @@ At a high level, our services are as follows:
 Backend
 ~~~~~~~~~~~~
 
-This is the REST API for the grading admin application.
+This is the REST API for packtrain.
 
 This is where all the business logic lives.
 
@@ -24,7 +24,7 @@ Importantly, the service does not do any authentication.
 Frontend
 ~~~~~~~~~~~~
 
-This is the web user interface for the grading admin application.
+This is the web user interface for packtrain.
 
 It gets an access key from Authentik via OAuth, then makes authenticated requests against the rest API.
 

@@ -3,7 +3,7 @@ spring:
     banner-mode: off
 
   application:
-    name: Grading Admin Service - Test
+    name: Packtrain Service - Test
   web:
     resources:
       add-mappings: false

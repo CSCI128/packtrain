@@ -3,7 +3,7 @@
 Frontend
 ==========================
 
-The frontend of the grading admin application is responsible for the user interface of the system. It manages user and data interaction with the :ref:`backend's <Backend>` REST API. The frontend is architected into three applications that run concurrently:
+The frontend of packtrain application is responsible for the user interface of the system. It manages user and data interaction with the :ref:`backend's <Backend>` REST API. The frontend is architected into three applications that run concurrently:
 
 - **Admin App:** This contains the bulk of the code, responsible for most of the user and course management.
 - **Student App:** This displays course information, assignments, and grades, allowing students to request extensions or use late passes.

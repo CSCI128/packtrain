@@ -131,7 +131,7 @@ export function Navbar({ staticLinks, links }: NavbarProps) {
 
             <Box ml={20}>
               <p onClick={() => navigate(staticLinks[0]?.href as string)}>
-                Grading Admin
+                packtrain
               </p>
               {links.map((link) => (
                 <a key={link.href} href={link.href} className={classes.link}>

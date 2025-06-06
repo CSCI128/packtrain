@@ -11,8 +11,8 @@
 	<groupId>edu.mines</groupId>
 	<artifactId>packtrain-service</artifactId>
 	<version>1.0.0</version>
-	<name>GradingAdmin</name>
-	<description>Grading admin for CSCI128</description>
+	<name>packtrain</name>
+	<description>Software for grading and student extension management.</description>
 	<url/>
 	<licenses>
 		<license/>

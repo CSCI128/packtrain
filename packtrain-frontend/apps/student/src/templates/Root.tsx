@@ -5,7 +5,7 @@ import { Navbar } from "@repo/ui/navbar/Navbar";
 import { Outlet } from "react-router-dom";
 
 const staticLinks = [
-  { href: "/requests", label: "Grading Admin" },
+  { href: "/requests", label: "packtrain" },
   { href: "/profile", label: "Profile" },
 ];
 
