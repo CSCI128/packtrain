@@ -94,20 +94,18 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     <Container size="sm">
       <Center>
         <Stack>
-          {data
-            // admins can see disabled courses (toggleable), students can't
-            .filter((x) => !auth.user?.profile.is_admin && x.enabled)
-            .map((course: Course | CourseSlim) => (
-              <Button
-                key={course.id}
-                onClick={() => switchCourse(course.id as string, course.name)}
-              >
-                {course.name} ({course.term}){" "}
-                {store$.id.get() == course.id && <>(selected)</>}
-              </Button>
-            ))}
+          {/* students can only see enabled courses, admin sees all */}
           {auth.user?.profile.is_admin ? (
             <>
+              {data.map((course: Course | CourseSlim) => (
+                <Button
+                  key={course.id}
+                  onClick={() => switchCourse(course.id as string, course.name)}
+                >
+                  {course.name} ({course.term}){" "}
+                  {store$.id.get() == course.id && <>(selected)</>}
+                </Button>
+              ))}
               <Button color="green" onClick={handleCreateClass}>
                 Create Class
               </Button>
@@ -125,7 +123,21 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
               </Center>
             </>
           ) : (
-            <></>
+            <>
+              {data
+                .filter((course: Course | CourseSlim) => course.enabled)
+                .map((course: Course | CourseSlim) => (
+                  <Button
+                    key={course.id}
+                    onClick={() =>
+                      switchCourse(course.id as string, course.name)
+                    }
+                  >
+                    {course.name} ({course.term}){" "}
+                    {store$.id.get() == course.id && <>(selected)</>}
+                  </Button>
+                ))}
+            </>
           )}
         </Stack>
       </Center>
