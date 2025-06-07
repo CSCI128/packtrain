@@ -409,13 +409,15 @@ export function Requests() {
                 </Text>
               </>
             )}
-            <Button component={Link} to="/extension" variant="filled">
-              Request{" "}
-              {studentData.late_passes_used !== LATE_PASSES_ALLOWED && (
-                <>Late Pass/</>
-              )}
-              Extension
-            </Button>
+            {studentData.course.enabled && (
+              <Button component={Link} to="/extension" variant="filled">
+                Request{" "}
+                {studentData.late_passes_used !== LATE_PASSES_ALLOWED && (
+                  <>Late Pass/</>
+                )}
+                Extension
+              </Button>
+            )}
           </Stack>
         </Group>
       </Container>

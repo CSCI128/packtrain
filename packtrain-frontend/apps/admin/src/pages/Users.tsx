@@ -16,7 +16,8 @@ import {
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { User } from "@repo/api/openapi";
+import { Course, User } from "@repo/api/openapi";
+import { store$ } from "@repo/api/store";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -25,6 +26,26 @@ import { BsPencilSquare } from "react-icons/bs";
 import { useAuth } from "react-oidc-context";
 
 export function UsersPage() {
+  const {
+    data: courseData,
+    error: courseError,
+    isLoading: courseIsLoading,
+  } = useQuery<Course>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course_information_instructor({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
   const { data, error, isLoading, refetch } = useQuery<User[]>({
     queryKey: ["getUsers"],
     queryFn: () =>
@@ -205,12 +226,14 @@ export function UsersPage() {
       <Table.Td>{row.email}</Table.Td>
       <Table.Td>{row.cwid}</Table.Td>
       <Table.Td onClick={() => handleEditOpen(row)}>
-        <Center>
-          <Text size="sm" pr={5}>
-            Edit
-          </Text>
-          <BsPencilSquare />
-        </Center>
+        {courseData && courseData.enabled && (
+          <Center>
+            <Text size="sm" pr={5}>
+              Edit
+            </Text>
+            <BsPencilSquare />
+          </Center>
+        )}
       </Table.Td>
     </Table.Tr>
   ));
@@ -325,9 +348,11 @@ export function UsersPage() {
           <Text size="xl" fw={700}>
             Users
           </Text>
-          <Button justify="flex-end" variant="filled" onClick={openAddUser}>
-            Add User
-          </Button>
+          {courseData && courseData.enabled && (
+            <Button justify="flex-end" variant="filled" onClick={openAddUser}>
+              Add User
+            </Button>
+          )}
         </Group>
         <Stack mt={10}>
           <TextInput

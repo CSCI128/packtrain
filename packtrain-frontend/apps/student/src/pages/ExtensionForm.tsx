@@ -83,8 +83,6 @@ export function ExtensionForm() {
         }),
   });
 
-  console.log(courseData);
-
   const getAssignmentDueDate = (assignmentId: string) => {
     return courseData?.course.assignments
       ?.filter((x: Assignment) => x.id === assignmentId)
@@ -484,7 +482,9 @@ export function ExtensionForm() {
             >
               Cancel
             </Button>
-            {selectedAssignmentId && <Button type="submit">Submit</Button>}
+            {courseData.course.enabled && selectedAssignmentId && (
+              <Button type="submit">Submit</Button>
+            )}
           </Group>
         </form>
       )}

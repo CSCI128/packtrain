@@ -219,12 +219,14 @@ export function AssignmentsPage() {
       <Table.Td>{element.enabled ? "Yes" : "No"}</Table.Td>
       <Table.Td>{element.attention_required && "Attention required!"}</Table.Td>
       <Table.Td onClick={() => handleAssignmentEdit(element)}>
-        <Center>
-          <Text size="sm" pr={5}>
-            Edit
-          </Text>
-          <BsPencilSquare />
-        </Center>
+        {data.enabled && (
+          <Center>
+            <Text size="sm" pr={5}>
+              Edit
+            </Text>
+            <BsPencilSquare />
+          </Center>
+        )}
       </Table.Td>
     </Table.Tr>
   ));

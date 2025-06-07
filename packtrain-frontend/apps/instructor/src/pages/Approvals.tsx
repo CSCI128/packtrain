@@ -14,7 +14,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { LateRequest } from "@repo/api/openapi";
+import { Course, LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
@@ -23,6 +23,26 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 export function ApprovalPage() {
+  const {
+    data: courseData,
+    error: courseError,
+    isLoading: courseIsLoading,
+  } = useQuery<Course | null>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course_information_instructor({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
   const [denyOpened, { open: openDeny, close: closeDeny }] =
     useDisclosure(false);
   const [approveOpened, { open: openApprove, close: closeApprove }] =
@@ -114,9 +134,9 @@ export function ApprovalPage() {
     }
   }, [data]);
 
-  if (isLoading || !data) return "Loading...";
+  if (isLoading || !data || courseIsLoading || !courseData) return "Loading...";
 
-  if (error) return `An error occured: ${error}`;
+  if (error || courseError) return `An error occured: ${error} ${courseError}`;
 
   const setSorting = (field: keyof LateRequest) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
@@ -207,34 +227,38 @@ export function ApprovalPage() {
         {row.request_type === "late_pass" ? (
           <></>
         ) : (
-          <Center>
-            {row.status !== "approved" && (
-              <Box
-                size="sm"
-                py={5}
-                px={10}
-                mr={5}
-                bd="1px solid green"
-                c="green"
-                onClick={() => handleApproveExtension(row)}
-              >
-                Approve
-              </Box>
+          <>
+            {courseData && courseData.enabled && (
+              <Center>
+                {row.status !== "approved" && (
+                  <Box
+                    size="sm"
+                    py={5}
+                    px={10}
+                    mr={5}
+                    bd="1px solid green"
+                    c="green"
+                    onClick={() => handleApproveExtension(row)}
+                  >
+                    Approve
+                  </Box>
+                )}
+                {row.status !== "rejected" && (
+                  <Box
+                    size="sm"
+                    py={5}
+                    px={10}
+                    mr={5}
+                    bd="1px solid red"
+                    c="red"
+                    onClick={() => handleDenyExtension(row)}
+                  >
+                    Deny
+                  </Box>
+                )}
+              </Center>
             )}
-            {row.status !== "rejected" && (
-              <Box
-                size="sm"
-                py={5}
-                px={10}
-                mr={5}
-                bd="1px solid red"
-                c="red"
-                onClick={() => handleDenyExtension(row)}
-              >
-                Deny
-              </Box>
-            )}
-          </Center>
+          </>
         )}
       </Table.Td>
     </Table.Tr>

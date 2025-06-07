@@ -161,9 +161,11 @@ export function CoursePage() {
             Course Policies
           </Text>
 
-          <Button component={Link} to="/admin/policies/new" variant="filled">
-            New
-          </Button>
+          {courseData && courseData.enabled && (
+            <Button component={Link} to="/admin/policies/new" variant="filled">
+              New
+            </Button>
+          )}
         </Group>
 
         <Divider my="md" />
