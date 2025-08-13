@@ -27,7 +27,9 @@ export function filterData<T extends Record<string, any>>(
 ) {
   const query = search.toLowerCase().trim();
   return data.filter((item) =>
-    keys(data[0]).some((key) => String(item[key]).toLowerCase().includes(query))
+    keys(data[0]!).some((key) =>
+      String(item[key]).toLowerCase().includes(query)
+    )
   );
 }
 
@@ -39,21 +41,32 @@ export function sortData<T extends Record<string, any>>(
     search: string;
   }
 ) {
-  const { sortBy } = payload;
+  const { sortBy, reversed, search } = payload;
 
   if (!sortBy) {
-    return filterData(data, payload.search);
+    return filterData(data, search);
   }
 
   return filterData(
     [...data].sort((a, b) => {
-      if (payload.reversed) {
-        return String(b[sortBy]).localeCompare(String(a[sortBy]));
+      const aValue = a[sortBy];
+      const bValue = b[sortBy];
+
+      const aNum = parseFloat(aValue);
+      const bNum = parseFloat(bValue);
+      const bothAreNumbers = !isNaN(aNum) && !isNaN(bNum);
+
+      let comparison = 0;
+
+      if (bothAreNumbers) {
+        comparison = aNum - bNum;
+      } else {
+        comparison = String(aValue).localeCompare(String(bValue));
       }
 
-      return String(a[sortBy]).localeCompare(String(b[sortBy]));
+      return reversed ? -comparison : comparison;
     }),
-    payload.search
+    search
   );
 }
 
