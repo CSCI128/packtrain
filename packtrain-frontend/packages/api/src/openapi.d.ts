@@ -64,9 +64,9 @@ declare namespace Components {
             enabled: boolean;
             /**
              * example:
-             * false
+             * true
              */
-            group_assignment?: boolean;
+            group_assignment: boolean;
             /**
              * example:
              * false

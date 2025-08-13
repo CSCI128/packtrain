@@ -3905,7 +3905,8 @@
           "unlock_date",
           "enabled",
           "category",
-          "canvas_id"
+          "canvas_id",
+          "group_assignment"
         ],
         "properties": {
           "id": {
@@ -3955,7 +3956,7 @@
           },
           "group_assignment": {
             "type": "boolean",
-            "example": false
+            "example": true
           },
           "attention_required": {
             "type": "boolean",

@@ -201,6 +201,7 @@ public class AssignmentService {
         assignment.setEnabled(assignmentDTO.getEnabled());
         assignment.setDueDate(assignmentDTO.getDueDate());
         assignment.setUnlockDate(assignmentDTO.getUnlockDate());
+        assignment.setGroupAssignment(assignmentDTO.getGroupAssignment());
         assignment.setCourse(course);
 
         return assignmentRepo.save(assignment);

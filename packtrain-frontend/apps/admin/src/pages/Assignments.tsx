@@ -162,6 +162,7 @@ export function AssignmentsPage() {
   });
 
   const editAssignment = (values: typeof form.values) => {
+    console.log(values.group_assignment);
     updateAssignment.mutate(
       {
         body: {
@@ -308,14 +309,15 @@ export function AssignmentsPage() {
               />
             </InputWrapper>
 
-            <InputWrapper
-              label={
-                <>
-                  Group assignment:{" "}
-                  {selectedAssignment?.group_assignment ? "Yes" : "No"}
-                </>
-              }
-            ></InputWrapper>
+            <InputWrapper withAsterisk label="Group Assignment">
+              <Checkbox
+                defaultChecked={form.values.group_assignment}
+                key={form.key("group_assignment")}
+                {...form.getInputProps("group_assignment", {
+                  type: "checkbox",
+                })}
+              />
+            </InputWrapper>
 
             <InputWrapper
               label={
