@@ -78,7 +78,7 @@ public class OwnerApiImpl implements OwnerApiDelegate {
         }
 
         if (courseSyncTaskDTO.getImportAssignments()) {
-            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseUUID, true, true, false);
+            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseUUID, true, true, true);
 
             tasks.add(DTOFactory.toDto(importAssignmentsTask));
         }
@@ -110,8 +110,7 @@ public class OwnerApiImpl implements OwnerApiDelegate {
         }
 
         if (courseSyncTaskDTO.getImportAssignments()) {
-            // currently not doing the update because oh god reconciling that seems like a pain
-            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseUUID, true, true, false);
+            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseUUID, true, true, true);
 
             tasks.add(DTOFactory.toDto(importAssignmentsTask));
         }
