@@ -8,6 +8,7 @@ import edu.mines.packtrain.models.*;
 import edu.mines.packtrain.models.enums.CourseRole;
 import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
 import edu.mines.packtrain.services.*;
+import edu.mines.packtrain.services.tasks.AssignmentTaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -25,26 +26,30 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     private final PolicyService policyService;
     private final SecurityManager securityManager;
     private final AssignmentService assignmentService;
+    private final AssignmentTaskService assignmentTaskService;
 
-    public OwnerApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager, PolicyService policyService) {
+    public OwnerApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager, PolicyService policyService, AssignmentTaskService assignmentTaskService) {
         this.courseService = courseService;
         this.sectionService = sectionService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
         this.assignmentService = assignmentService;
         this.policyService = policyService;
+        this.assignmentTaskService = assignmentTaskService;
     }
 
     @Override
     public ResponseEntity<Void> updateAssignment(String courseId, AssignmentDTO assignmentDto) {
-        Assignment assignment = assignmentService.updateAssignment(courseId, assignmentDto);
+        Course course = courseService.getCourse(UUID.fromString(courseId));
+        Assignment assignment = assignmentService.updateAssignment(course, assignmentDto);
 
         return ResponseEntity.accepted().build();
     }
 
     @Override
     public ResponseEntity<AssignmentDTO> addAssignment(String courseId, AssignmentDTO assignmentDto) {
-        Assignment assignment = assignmentService.addAssignmentToCourse(courseId, assignmentDto);
+        Course course = courseService.getCourse(UUID.fromString(courseId));
+        Assignment assignment = assignmentService.addAssignmentToCourse(course, assignmentDto);
 
         return ResponseEntity.accepted().body(DTOFactory.toDto(assignment));
     }
@@ -73,8 +78,7 @@ public class OwnerApiImpl implements OwnerApiDelegate {
         }
 
         if (courseSyncTaskDTO.getImportAssignments()) {
-            // currently not doing the update because oh god reconciling that seems like a pain
-            ScheduledTaskDef importAssignmentsTask = assignmentService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseUUID, true, true, false);
+            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseUUID, true, true, true);
 
             tasks.add(DTOFactory.toDto(importAssignmentsTask));
         }
@@ -106,8 +110,7 @@ public class OwnerApiImpl implements OwnerApiDelegate {
         }
 
         if (courseSyncTaskDTO.getImportAssignments()) {
-            // currently not doing the update because oh god reconciling that seems like a pain
-            ScheduledTaskDef importAssignmentsTask = assignmentService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseUUID, true, true, false);
+            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseUUID, true, true, true);
 
             tasks.add(DTOFactory.toDto(importAssignmentsTask));
         }

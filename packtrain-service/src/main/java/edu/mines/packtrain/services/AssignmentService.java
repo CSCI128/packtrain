@@ -1,16 +1,10 @@
 package edu.mines.packtrain.services;
 
 import edu.mines.packtrain.data.AssignmentDTO;
-import edu.mines.packtrain.events.NewTaskEvent;
-import edu.mines.packtrain.managers.IdentityProvider;
 import edu.mines.packtrain.managers.ImpersonationManager;
-import edu.mines.packtrain.models.Assignment;
-import edu.mines.packtrain.models.Course;
-import edu.mines.packtrain.models.ExternalAssignment;
-import edu.mines.packtrain.models.User;
+import edu.mines.packtrain.models.*;
 import edu.mines.packtrain.models.enums.ExternalAssignmentType;
 import edu.mines.packtrain.models.tasks.AssignmentsSyncTaskDef;
-import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
 import edu.mines.packtrain.repositories.AssignmentRepo;
 import edu.mines.packtrain.repositories.ExternalAssignmentRepo;
 import edu.mines.packtrain.repositories.ScheduledTaskRepo;
@@ -28,21 +22,11 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class AssignmentService {
-    private final ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo;
     private final AssignmentRepo assignmentRepo;
-    private final CourseService courseService;
-    private final ApplicationEventPublisher eventPublisher;
-    private final ImpersonationManager impersonationManager;
-    private final CanvasService canvasService;
     private final ExternalAssignmentRepo externalAssignmentRepo;
 
-    public AssignmentService(ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo, AssignmentRepo assignmentRepo, CourseService courseService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, CanvasService canvasService, ExternalAssignmentRepo externalAssignmentRepo) {
-        this.taskRepo = taskRepo;
+    public AssignmentService(AssignmentRepo assignmentRepo, ExternalAssignmentRepo externalAssignmentRepo) {
         this.assignmentRepo = assignmentRepo;
-        this.courseService = courseService;
-        this.eventPublisher = eventPublisher;
-        this.impersonationManager = impersonationManager;
-        this.canvasService = canvasService;
         this.externalAssignmentRepo = externalAssignmentRepo;
     }
 
@@ -56,60 +40,11 @@ public class AssignmentService {
     }
 
     public List<Assignment> getAllAssignmentsGivenCourse(Course course){
-        return assignmentRepo.getAllAssignmentsByCourseId(course.getId());
+        return assignmentRepo.getAssignmentByCourse(course);
     }
 
-    public void syncAssignmentTask(AssignmentsSyncTaskDef task){
-        if(!task.shouldUpdateAssignments() && !task.shouldDeleteAssignments() && !task.shouldAddNewAssignments()){
-            log.warn("No assignment sync action should be taken. Skipping task.");
-            return;
-        }
 
-        Course course = courseService.getCourse(task.getCourseToSync());
-
-        IdentityProvider impersonatedUser = impersonationManager.impersonateUser(task.getCreatedByUser());
-
-        Map<Long, String> assignmentGroups = canvasService.asUser(impersonatedUser).getAssignmentGroups(course.getCanvasId());
-        List<edu.ksu.canvas.model.assignment.Assignment> assignments = canvasService.asUser(impersonatedUser).getCourseAssignments(course.getCanvasId());
-
-        Set<Long> incomingAssignments = assignments.stream().map(edu.ksu.canvas.model.assignment.Assignment::getId).collect(Collectors.toSet());
-
-        Set<Long> existingAssignments = assignmentRepo.getAssignmentIdsByCourse(course);
-
-        Set<Long> assignmentsToCreate = incomingAssignments.stream().filter(id -> !existingAssignments.contains(id)).collect(Collectors.toSet());
-        Set<Long> assignmentsToRemove = existingAssignments.stream().filter(id -> !incomingAssignments.contains(id)).collect(Collectors.toSet());
-        Set<Long> assignmentsToUpdate = incomingAssignments.stream().filter(id -> !assignmentsToCreate.contains(id)).collect(Collectors.toSet());
-
-        if (task.shouldAddNewAssignments()){
-            Set<Assignment> newAssignments = createNewAssignments(
-                    assignmentGroups,
-                    assignments.stream().filter(a -> assignmentsToCreate.contains(a.getId())).toList(),
-                    course
-            );
-            log.info("Saving {} new assignments for '{}'", newAssignments.size(), course.getCode());
-
-            assignmentRepo.saveAll(newAssignments);
-        }
-
-        if (task.shouldDeleteAssignments()){
-            log.info("Deleting {} assignments for '{}'", assignmentsToRemove.size(), course.getCode());
-            if (!assignmentsToRemove.isEmpty()) {
-                assignmentRepo.deleteByCourseAndCanvasId(course, assignmentsToRemove);
-            }
-        }
-
-        if (task.shouldAddNewAssignments()){
-            Set<Assignment> updatedMembers = Set.of();
-            log.info("Updating {} assignments for '{}'", updatedMembers.size(), course.getCode());
-
-            if (!updatedMembers.isEmpty()) {
-                assignmentRepo.saveAll(updatedMembers);
-            }
-        }
-
-    }
-
-    private Set<Assignment> createNewAssignments(Map<Long, String> assignmentGroups, List<edu.ksu.canvas.model.assignment.Assignment> canvasAssignments, Course course){
+    public void createNewAssignmentsFromCanvas(Map<Long, String> assignmentGroups, List<edu.ksu.canvas.model.assignment.Assignment> canvasAssignments, Course course){
         Set<Assignment> assignments = new HashSet<>();
 
         for (edu.ksu.canvas.model.assignment.Assignment assignment : canvasAssignments){
@@ -148,31 +83,56 @@ public class AssignmentService {
             assignments.add(a);
         }
 
-        return assignments;
+        log.info("Saving {} new assignments for '{}'", assignments.size(), course.getCode());
+
+        assignmentRepo.saveAll(assignments);
     }
 
-    public ScheduledTaskDef syncAssignmentsFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean addNew, boolean deleteOld, boolean updateExisting){
-        AssignmentsSyncTaskDef task = new AssignmentsSyncTaskDef();
-        task.setCourseToSync(courseId);
-        task.setTaskName(String.format("Sync Course '%s': Course Assignments", courseId));
-        task.setCreatedByUser(actingUser);
-        task.shouldAddNewAssignments(addNew);
-        task.shouldDeleteAssignments(deleteOld);
-        task.shouldUpdateAssignments(updateExisting);
-        task = taskRepo.save(task);
+    public void updateAssignmentsFromCanvas(Map<Long, String> assignmentGroups, Set<Long> assignmentCanvasIds, List<edu.ksu.canvas.model.assignment.Assignment> canvasAssignments, Course course){
+        Set<Assignment> assignments = assignmentRepo.getAllByCourseAndCanvasId(course, assignmentCanvasIds);
 
-        NewTaskEvent.TaskData<AssignmentsSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncAssignmentTask);
-        taskDefinition.setDependsOn(dependencies);
+        Set<Assignment> assignmentsToUpdate = new HashSet<>();
 
-        eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
+        for (Assignment assignment : assignments){
+            Optional<edu.ksu.canvas.model.assignment.Assignment> canvasAssignment = canvasAssignments.stream().filter(a -> a.getId().equals(assignment.getCanvasId())).findFirst();
+            if (canvasAssignment.isEmpty()){
+                log.warn("Requested to update assignment '{}', but no corresponding canvas assignment was provided!",assignment.getName());
+                continue;
+            }
 
-        return task;
+            assignment.setPoints(canvasAssignment.get().getPointsPossible());
+            assignment.setName(canvasAssignment.get().getName());
+
+            if (canvasAssignment.get().getAssignmentGroupId() != null && assignmentGroups.containsKey(canvasAssignment.get().getAssignmentGroupId())){
+                assignment.setCategory(assignmentGroups.get(canvasAssignment.get().getAssignmentGroupId()));
+            }
+
+            if (canvasAssignment.get().getDueAt() != null){
+                assignment.setDueDate(canvasAssignment.get().getDueAt().toInstant());
+            }
+
+            if (canvasAssignment.get().getUnlockAt() != null){
+                assignment.setUnlockDate(canvasAssignment.get().getUnlockAt().toInstant());
+            }
+
+            assignmentsToUpdate.add(assignment);
+        }
+
+        log.info("Updating {} assignments from canvas for course '{}'", assignmentsToUpdate.size(), course.getCode());
+
+        assignmentRepo.saveAll(assignmentsToUpdate);
     }
 
-    public Assignment updateAssignment(String courseId, AssignmentDTO assignmentDTO) {
-        Course course = courseService.getCourse(UUID.fromString(courseId));
 
+    public void deleteAssignments(Set<Long> assignments, Course course){
+        log.info("Deleting {} assignments for course '{}'", assignments.size(), course.getCode());
+
+        assignmentRepo.deleteByCourseAndCanvasId(course, assignments);
+    }
+
+    public Assignment updateAssignment(Course course, AssignmentDTO assignmentDTO) {
         Assignment assignment = getAssignmentById(assignmentDTO.getId());
+        boolean shouldClearFlag = false;
 
         ExternalAssignment externalServiceConfig = assignment.getExternalAssignmentConfig();
         if(assignment.getExternalAssignmentConfig() == null) {
@@ -189,6 +149,7 @@ public class AssignmentService {
         }
         else {
             externalPoints = assignmentDTO.getExternalPoints();
+            shouldClearFlag = true;
         }
         externalServiceConfig.setExternalPoints(externalPoints);
 
@@ -204,12 +165,14 @@ public class AssignmentService {
         assignment.setGroupAssignment(assignmentDTO.getGroupAssignment());
         assignment.setCourse(course);
 
+        if (assignment.isAttentionRequired() && shouldClearFlag){
+            assignment.setAttentionRequired(false);
+        }
+
         return assignmentRepo.save(assignment);
     }
 
-    public Assignment addAssignmentToCourse(String courseId, AssignmentDTO assignmentDTO) {
-        Course course = courseService.getCourse(UUID.fromString(courseId));
-
+    public Assignment addAssignmentToCourse(Course course, AssignmentDTO assignmentDTO) {
         Assignment assignment = new Assignment();
         assignment.setName(assignmentDTO.getName());
         assignment.setPoints(assignmentDTO.getPoints());
@@ -223,12 +186,12 @@ public class AssignmentService {
         return assignmentRepo.save(assignment);
     }
 
-    public List<Assignment> getAllUnlockedAssignments(String courseId) {
-        List<Assignment> assignments = assignmentRepo.getAssignmentsByCourseId(UUID.fromString(courseId));
+    public List<Assignment> getAllUnlockedAssignments(Course course) {
+        List<Assignment> assignments = assignmentRepo.getAssignmentByCourse(course);
         Instant now = Instant.now();
 
         return assignments.stream()
-                .filter(a -> a.getUnlockDate() == null || a.getUnlockDate().isBefore(now))
+                .filter(a -> (a.getUnlockDate() == null || a.getUnlockDate().isBefore(now)) && a.isEnabled())
                 .toList();
     }
 
@@ -239,7 +202,6 @@ public class AssignmentService {
         assignment.setEnabled(true);
 
         return assignmentRepo.save(assignment);
-
     }
 
     public Assignment disableAssignment(String assignmentId){
@@ -250,13 +212,18 @@ public class AssignmentService {
         return assignmentRepo.save(assignment);
     }
 
-    public Assignment getAssignmentForMigration(String migrationId) {
-        Optional<Assignment> assignment = assignmentRepo.getAssignmentByMigrationId(UUID.fromString(migrationId));
+    public Assignment getAssignmentForMigration(Migration migration) {
+        Optional<Assignment> assignment = assignmentRepo.getAssignmentByMigration(migration);
 
         if (assignment.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("No assignment found for migration '%s'", migrationId));
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("No assignment found for migration '%s'", migration.getId()));
         }
 
         return assignment.get();
+    }
+
+
+    public Set<Long> getAssignmentCanvasIdsByCourse(Course course) {
+        return assignmentRepo.getAssignmentByCourse(course).stream().map(Assignment::getCanvasId).collect(Collectors.toSet());
     }
 }

@@ -84,7 +84,8 @@ public class StudentApiImpl implements StudentApiDelegate {
 
     @Override
     public ResponseEntity<List<AssignmentSlimDTO>> getCourseAssignmentsStudent(String courseId) {
-        List<Assignment> assignments = assignmentService.getAllUnlockedAssignments(courseId);
+        Course course = courseService.getCourse(UUID.fromString(courseId));
+        List<Assignment> assignments = assignmentService.getAllUnlockedAssignments(course);
         return ResponseEntity.ok(assignments.stream().map(DTOFactory::toSlimDto).toList());
     }
 

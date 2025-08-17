@@ -168,7 +168,9 @@ public class MigrationService {
     }
 
     public Assignment getAssignmentForMigration(String migrationId){
-        return assignmentService.getAssignmentForMigration(migrationId);
+        // will clean this up - out of scope for this ticket
+        Migration migration = getMigration(migrationId);
+        return assignmentService.getAssignmentForMigration(migration);
     }
 
     public Migration setPolicyForMigration(String migrationId, String policyId){
