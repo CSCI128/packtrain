@@ -81,11 +81,11 @@ public class TestRawScoreService implements PostgresTestContainer {
 
     private static MockMultipartFile getGradescopeGradesheet() {
         String fileContent = """
-First Name,Last Name,SID,,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)
-Jane,Doe,12344321,,,,12.0,12.0,Graded,,2022-06-25 13:16:26 -0600,13:29:30
-Tester,Testing,testtest,,,,12.0,12.0,Graded,,2022-06-25 13:16:58 -0600,00:00:00
-Jimmy,yyy,jimmyyyy,,,,11.5,12.0,Ungraded,,2022-06-25 13:25:12 -0600,07:32:50
-Joe,Jam,121212,,,,,12.0,Missing
+First Name,Last Name,SID,,,Total Score,Max Points,Status,,Submission Time,Lateness (H:M:S)
+Jane,Doe,12344321,,,12.0,12.0,Graded,,2022-06-25 13:16:26 -0600,13:29:30
+Tester,Testing,testtest,,,12.0,12.0,Graded,,2022-06-25 13:16:58 -0600,00:00:00
+Jimmy,yyy,jimmyyyy,,,11.5,12.0,Ungraded,,2022-06-25 13:25:12 -0600,07:32:50
+Joe,Jam,121212,,,,12.0,Missing
                 """;
 
         String filename = "test.csv";

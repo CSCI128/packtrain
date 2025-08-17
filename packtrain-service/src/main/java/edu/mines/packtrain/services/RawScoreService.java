@@ -279,10 +279,10 @@ public class RawScoreService {
 
     private Optional<RawScore> parseLineGS(UUID migrationId, String[] line){
         final int CWID_IDX = 2;
-        final int SCORE_IDX = 6;
-        final int STATUS_IDX = 8;
-        final int SUBMISSION_TIME_IDX = 10;
-        final int HOURS_LATE_IDX = 11;
+        final int SCORE_IDX = 5;
+        final int STATUS_IDX = 7;
+        final int SUBMISSION_TIME_IDX = 9;
+        final int HOURS_LATE_IDX = 10;
 
         String cwid = line[CWID_IDX].trim();
 
