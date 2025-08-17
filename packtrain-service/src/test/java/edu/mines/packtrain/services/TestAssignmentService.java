@@ -22,8 +22,6 @@ public class TestAssignmentService implements PostgresTestContainer {
     @Autowired
     private AssignmentService assignmentService;
     @Autowired
-    private CourseService courseService;
-    @Autowired
     private CourseSeeders courseSeeders;
     @Autowired
     private UserRepo userRepo;
@@ -49,7 +47,7 @@ public class TestAssignmentService implements PostgresTestContainer {
         Course course = courseSeeders.course1();
 
         Assignment assignment = assignmentService.addAssignmentToCourse(
-                course.getId().toString(),
+                course,
                 new AssignmentDTO().name("Studio 1").points(2.0).category("Studios").dueDate(Instant.now()).unlockDate(Instant.now()).enabled(true)
         );
 
@@ -60,7 +58,7 @@ public class TestAssignmentService implements PostgresTestContainer {
     void verifyGetAssignmentUnlocked(){
         Course course = courseSeeders.populatedCourse();
 
-        List<Assignment> assignments = assignmentService.getAllUnlockedAssignments(course.getId().toString());
+        List<Assignment> assignments = assignmentService.getAllUnlockedAssignments(course);
 
         Assertions.assertEquals(course.getAssignments().size(), assignments.size());
     }
@@ -70,11 +68,11 @@ public class TestAssignmentService implements PostgresTestContainer {
         Course course = courseSeeders.course1();
 
         Assignment assignment = assignmentService.addAssignmentToCourse(
-                course.getId().toString(),
+                course,
                 new AssignmentDTO().name("Studio 1").points(2.0).category("Studios").dueDate(Instant.now()).unlockDate(Instant.now()).enabled(true)
         );
 
-        assignment = assignmentService.updateAssignment(course.getId().toString(), DTOFactory.toDto(assignment).points(10.0));
+        assignment = assignmentService.updateAssignment(course, DTOFactory.toDto(assignment).points(10.0));
 
         Assertions.assertEquals(10, assignment.getPoints());
     }

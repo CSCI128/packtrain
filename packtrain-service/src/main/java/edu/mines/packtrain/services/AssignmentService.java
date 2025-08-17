@@ -191,7 +191,7 @@ public class AssignmentService {
         Instant now = Instant.now();
 
         return assignments.stream()
-                .filter(a -> a.getUnlockDate() == null || a.getUnlockDate().isBefore(now))
+                .filter(a -> (a.getUnlockDate() == null || a.getUnlockDate().isBefore(now)) && a.isEnabled())
                 .toList();
     }
 
