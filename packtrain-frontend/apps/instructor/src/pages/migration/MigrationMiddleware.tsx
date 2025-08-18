@@ -39,7 +39,7 @@ export const MigrationMiddleware = ({
   }
 
   if (!migrationIsLoading) {
-    console.log(migrationData);
+    console.log("MIDDLEWARE DATA:", migrationData);
   }
 
   return children;

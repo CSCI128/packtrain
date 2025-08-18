@@ -213,7 +213,6 @@ export function MigrationsLoadPage() {
       },
       {
         onSuccess: (data) => {
-          console.log(data);
           navigate("/instructor/migrate/apply");
         },
       }
