@@ -5,7 +5,12 @@ import edu.mines.packtrain.data.CourseLateRequestConfigDTO;
 import edu.mines.packtrain.events.NewTaskEvent;
 import edu.mines.packtrain.managers.IdentityProvider;
 import edu.mines.packtrain.managers.ImpersonationManager;
-import edu.mines.packtrain.models.*;
+import edu.mines.packtrain.models.Course;
+import edu.mines.packtrain.models.CourseLateRequestConfig;
+import edu.mines.packtrain.models.CourseMember;
+import edu.mines.packtrain.models.GradescopeConfig;
+import edu.mines.packtrain.models.MasterMigration;
+import edu.mines.packtrain.models.User;
 import edu.mines.packtrain.models.enums.CourseRole;
 import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
 import edu.mines.packtrain.models.tasks.CourseSyncTaskDef;
@@ -18,7 +23,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -85,8 +92,8 @@ public class CourseService {
         return course.get();
     }
 
-    public Course updateCourse(String courseId, CourseDTO courseDTO) {
-        Course course = getCourse(UUID.fromString(courseId));
+    public Course updateCourse(UUID courseId, CourseDTO courseDTO) {
+        Course course = getCourse(courseId);
 
         course.setName(courseDTO.getName());
         course.setCode(courseDTO.getCode());
@@ -265,8 +272,8 @@ public class CourseService {
     }
 
 
-    public Course getCourseForMigration(String migrationId) {
-        Optional<Course> course = courseRepo.getCourseByMigrationId(UUID.fromString(migrationId));
+    public Course getCourseForMigration(UUID migrationId) {
+        Optional<Course> course = courseRepo.getCourseByMigrationId(migrationId);
 
         if (course.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("No course exists for migration '%s'!", migrationId));
@@ -275,8 +282,8 @@ public class CourseService {
         return course.get();
     }
 
-    public Course getCourseForMasterMigration(String masterMigrationId) {
-        Optional<Course> course = courseRepo.getCourseByMasterMigrationId(UUID.fromString(masterMigrationId));
+    public Course getCourseForMasterMigration(UUID masterMigrationId) {
+        Optional<Course> course = courseRepo.getCourseByMasterMigrationId(masterMigrationId);
 
         if (course.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("No course exists for master migration '%s'!", masterMigrationId));

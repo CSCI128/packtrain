@@ -34,25 +34,25 @@ public class ExtensionService {
         this.courseService = courseService;
     }
 
-    public List<Extension> getExtensionsByMigrationId(String migrationId) {
-        return extensionRepo.getExtensionsByMigrationId(UUID.fromString(migrationId));
+    public List<Extension> getExtensionsByMigrationId(UUID migrationId) {
+        return extensionRepo.getExtensionsByMigrationId(migrationId);
     }
 
-    public List<LateRequest> getAllLateRequests(String courseId, String lateRequestStatus) {
+    public List<LateRequest> getAllLateRequests(UUID courseId, String lateRequestStatus) {
         if (lateRequestStatus == null) {
-            return lateRequestRepo.getAllLateRequests(UUID.fromString(courseId));
+            return lateRequestRepo.getAllLateRequests(courseId);
         } else if (lateRequestStatus.equalsIgnoreCase("approved")) {
-            return lateRequestRepo.getAllLateRequests(UUID.fromString(courseId)).stream().filter(c -> c.getStatus() == LateRequestStatus.APPROVED).toList();
+            return lateRequestRepo.getAllLateRequests(courseId).stream().filter(c -> c.getStatus() == LateRequestStatus.APPROVED).toList();
         } else if (lateRequestStatus.equalsIgnoreCase("denied")) {
-            return lateRequestRepo.getAllLateRequests(UUID.fromString(courseId)).stream().filter(c -> c.getStatus() == LateRequestStatus.REJECTED || c.getStatus() == LateRequestStatus.IGNORED).toList();
+            return lateRequestRepo.getAllLateRequests(courseId).stream().filter(c -> c.getStatus() == LateRequestStatus.REJECTED || c.getStatus() == LateRequestStatus.IGNORED).toList();
         } else if (lateRequestStatus.equalsIgnoreCase("pending")) {
-            return lateRequestRepo.getAllLateRequests(UUID.fromString(courseId)).stream().filter(c -> c.getStatus() == LateRequestStatus.PENDING).toList();
+            return lateRequestRepo.getAllLateRequests(courseId).stream().filter(c -> c.getStatus() == LateRequestStatus.PENDING).toList();
         }
         return List.of();
     }
 
-    public LateRequest approveExtension(String assignmentId, String userId, String extensionId, String reason) {
-        Optional<LateRequest> lateRequest = getLateRequest(UUID.fromString(extensionId));
+    public LateRequest approveExtension(UUID assignmentId, String userId, UUID extensionId, String reason) {
+        Optional<LateRequest> lateRequest = getLateRequest(extensionId);
 
         if (lateRequest.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request '%s' for user '%s' does not exist", extensionId, userId));
@@ -67,8 +67,8 @@ public class ExtensionService {
         return lateRequestRepo.save(lateRequest.get());
     }
 
-    public LateRequest denyExtension(String assignmentId, String userId, String extensionId, String reason) {
-        Optional<LateRequest> lateRequest = getLateRequest(UUID.fromString(extensionId));
+    public LateRequest denyExtension(UUID assignmentId, String userId, UUID extensionId, String reason) {
+        Optional<LateRequest> lateRequest = getLateRequest(extensionId);
 
         if (lateRequest.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request '%s' for user '%s' does not exist", extensionId, userId));
@@ -83,16 +83,16 @@ public class ExtensionService {
         return lateRequestRepo.save(lateRequest.get());
     }
 
-    public List<LateRequest> getAllLateRequestsForStudent(String courseId, User user) {
-        return extensionRepo.getAllLateRequestsForStudent(UUID.fromString(courseId), user);
+    public List<LateRequest> getAllLateRequestsForStudent(UUID courseId, User user) {
+        return extensionRepo.getAllLateRequestsForStudent(courseId, user);
     }
 
-    public Extension createExtensionFromDTO(String courseId, User user, ExtensionDTO extensionDTO) {
+    public Extension createExtensionFromDTO(UUID courseId, User user, ExtensionDTO extensionDTO) {
         Extension newExtension = new Extension();
         newExtension.setReason(extensionDTO.getReason());
         newExtension.setComments(extensionDTO.getComments());
 
-        Course course = courseService.getCourse(UUID.fromString(courseId));
+        Course course = courseService.getCourse(courseId);
 
         Optional<Section> userSection = courseMemberService.getSectionsForUserAndCourse(user, course).stream().findFirst();
 
@@ -107,12 +107,12 @@ public class ExtensionService {
     }
 
 
-    public LateRequest createLateRequest(String courseId,
+    public LateRequest createLateRequest(UUID courseId,
                                          User actingUser,
                                          LateRequestDTO.RequestTypeEnum requestType,
                                          double daysRequested,
                                          Instant submissionDate,
-                                         String assignmentId,
+                                         UUID assignmentId,
                                          @Nullable ExtensionDTO extension) {
         LateRequest lateRequest = new LateRequest();
         lateRequest.setDaysRequested(daysRequested);
@@ -146,8 +146,8 @@ public class ExtensionService {
         return Optional.ofNullable(lateRequestRepo.getLateRequestById(id));
     }
 
-    public void deleteLateRequest(Course course, User actingUser, String lateRequestId) {
-        LateRequest lateRequest = getLateRequest(UUID.fromString(lateRequestId))
+    public void deleteLateRequest(Course course, User actingUser, UUID lateRequestId) {
+        LateRequest lateRequest = getLateRequest(lateRequestId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request '%s' was not found!", lateRequestId)));
 
         if(lateRequest.getLateRequestType() == LateRequestType.LATE_PASS) {

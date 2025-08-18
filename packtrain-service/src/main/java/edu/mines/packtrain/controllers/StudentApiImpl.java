@@ -38,7 +38,7 @@ public class StudentApiImpl implements StudentApiDelegate {
 
     @Override
     public ResponseEntity<StudentInformationDTO> getCourseInformationStudent(UUID courseId) {
-        Course course = courseService.getCourse(UUID.fromString(courseId));
+        Course course = courseService.getCourse(courseId);
 
         Optional<CourseMember> courseMember = courseMemberService.findCourseMemberGivenCourseAndCwid(course, securityManager.getUser().getCwid());
 
@@ -73,7 +73,7 @@ public class StudentApiImpl implements StudentApiDelegate {
 
     @Override
     public ResponseEntity<List<AssignmentSlimDTO>> getCourseAssignmentsStudent(UUID courseId) {
-        Course course = courseService.getCourse(UUID.fromString(courseId));
+        Course course = courseService.getCourse(courseId);
         List<Assignment> assignments = assignmentService.getAllUnlockedAssignments(course);
         return ResponseEntity.ok(assignments.stream().map(DTOFactory::toSlimDto).toList());
     }
@@ -91,7 +91,7 @@ public class StudentApiImpl implements StudentApiDelegate {
     public ResponseEntity<LateRequestDTO> createExtensionRequest(UUID courseId, LateRequestDTO lateRequestDTO) {
         User user = securityManager.getUser();
 
-        Course course = courseService.getCourse(UUID.fromString(courseId));
+        Course course = courseService.getCourse(courseId);
 
         LateRequest lateRequest = extensionService.createLateRequest(
             courseId,
@@ -112,7 +112,7 @@ public class StudentApiImpl implements StudentApiDelegate {
 
     @Override
     public ResponseEntity<Void> withdrawExtension(UUID courseId, UUID extensionId) {
-        Course course = courseService.getCourse(UUID.fromString(courseId));
+        Course course = courseService.getCourse(courseId);
 
         extensionService.deleteLateRequest(course, securityManager.getUser(), extensionId);
 

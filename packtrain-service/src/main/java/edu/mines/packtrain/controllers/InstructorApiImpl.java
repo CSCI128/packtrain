@@ -72,7 +72,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<Void> deleteMasterMigration(UUID courseId, UUID masterMigrationId) {
-        if (!migrationService.deleteMasterMigration(UUID.fromString(courseId), UUID.fromString(masterMigrationId))) {
+        if (!migrationService.deleteMasterMigration(courseId, masterMigrationId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to delete master migration!");
         }
 
@@ -145,11 +145,6 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
-    public ResponseEntity<ExtensionDTO> newExtension(UUID courseId, UUID assignmentId, String cwid, UUID extensionId) {
-        return InstructorApiDelegate.super.newExtension(courseId, assignmentId, cwid, extensionId);
-    }
-
-    @Override
     public ResponseEntity<List<TaskDTO>> postMasterMigration(UUID courseId, UUID masterMigrationId) {
         return ResponseEntity.accepted().body(migrationService.processMigrationLog(securityManager.getUser(), masterMigrationId).stream().map(DTOFactory::toDto).toList());
     }
@@ -190,10 +185,10 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         try {
             switch (migrationService.getAssignmentForMigration(migrationId).getExternalAssignmentConfig().getType()){
                 case GRADESCOPE -> {
-                        rawScoreService.uploadGradescopeCSV(body.getInputStream(), UUID.fromString(migrationId));
+                        rawScoreService.uploadGradescopeCSV(body.getInputStream(), migrationId);
                 }
-                case PRAIRIELEARN -> rawScoreService.uploadPrairieLearnCSV(body.getInputStream(), UUID.fromString(migrationId));
-                case RUNESTONE -> rawScoreService.uploadRunestoneCSV(body.getInputStream(), UUID.fromString(migrationId));
+                case PRAIRIELEARN -> rawScoreService.uploadPrairieLearnCSV(body.getInputStream(), migrationId);
+                case RUNESTONE -> rawScoreService.uploadRunestoneCSV(body.getInputStream(), migrationId);
                 default -> throw new IllegalStateException("Request to import non supported csv");
             }
         } catch (IOException e) {
@@ -208,7 +203,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     @Override
     @Transactional
     public ResponseEntity<CourseDTO> getCourseInformationInstructor(UUID courseId) {
-        Course course = courseService.getCourse(UUID.fromString(courseId));
+        Course course = courseService.getCourse(courseId);
 
 
         Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(securityManager.getUser(), course);
@@ -223,7 +218,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<List<CourseMemberDTO>> getInstructorEnrollments(UUID courseId, String name, String cwid) {
-        Course course = courseService.getCourse(UUID.fromString(courseId));
+        Course course = courseService.getCourse(courseId);
 
         if(name != null && cwid != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must define one of 'name' or 'cwid'");
@@ -249,7 +244,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<List<PolicyDTO>> getAllPolicies(UUID courseId) {
-        List<Policy> policies = policyService.getAllPolicies(UUID.fromString(courseId));
+        List<Policy> policies = policyService.getAllPolicies(courseId);
         return ResponseEntity.ok(policies.stream().map(DTOFactory::toDto).toList());
     }
 
