@@ -360,16 +360,17 @@ export function MigrationsApplyPage() {
           Statistics
         </Text>
         <Text>
-          <strong>0</strong> students
+          <strong>{migrationData.stats?.total_submission}</strong> students
         </Text>
         <Text>
-          <strong>0</strong> late submissions
+          <strong>{migrationData.stats?.late_requests}</strong> late submissions
         </Text>
         <Text>
-          <strong>0</strong> extensions
+          <strong>{migrationData.stats?.total_extensions}</strong> extensions
         </Text>
         <Text>
-          <strong>0</strong> unapproved extensions
+          <strong>{migrationData.stats?.unapproved_requests}</strong> unapproved
+          extensions
         </Text>
 
         {!posting && <Text mt={20}>Applying grades..</Text>}
