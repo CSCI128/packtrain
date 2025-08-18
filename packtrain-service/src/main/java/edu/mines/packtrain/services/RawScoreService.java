@@ -326,6 +326,10 @@ public class RawScoreService {
         newScore.setHoursLate(hoursLate);
         newScore.setSubmissionStatus(submissionStatus);
 
+        if (rawScoreRepo.existsByCwidAndMigrationId(cwid, migrationId)){
+            return Optional.empty();
+        }
+
         return Optional.of(rawScoreRepo.save(newScore));
     }
 
