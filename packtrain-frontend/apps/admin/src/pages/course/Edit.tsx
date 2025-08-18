@@ -16,6 +16,7 @@ import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
 import { Course, CourseSyncTask, Task } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { Loading } from "@repo/ui/Loading";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -155,7 +156,8 @@ export function EditCourse() {
           data.late_request_config.enabled_extension_reasons,
       });
     }
-  }, [data, form]);
+    // eslint-disable-next-line
+  }, [data]);
 
   const pollTaskUntilComplete = useCallback(
     async (taskId: number, delay = 5000) => {
@@ -249,7 +251,7 @@ export function EditCourse() {
     );
   };
 
-  if (isLoading || !data) return "Loading...";
+  if (isLoading || !data) return <Loading />;
 
   if (error) return `An error occurred: ${error}`;
 

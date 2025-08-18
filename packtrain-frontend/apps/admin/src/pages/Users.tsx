@@ -18,6 +18,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
 import { Course, User } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { Loading } from "@repo/ui/Loading";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -30,7 +31,7 @@ export function UsersPage() {
     data: courseData,
     error: courseError,
     isLoading: courseIsLoading,
-  } = useQuery<Course>({
+  } = useQuery<Course | null>({
     queryKey: ["getCourse"],
     queryFn: () =>
       getApiClient()
@@ -195,9 +196,9 @@ export function UsersPage() {
     }
   }, [data]);
 
-  if (isLoading || !data) return "Loading...";
+  if (isLoading || !data || !courseData || courseIsLoading) return <Loading />;
 
-  if (error) return `An error occured: ${error}`;
+  if (error || courseError) return `An error occured: ${error}`;
 
   const setSorting = (field: keyof User) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;

@@ -16,6 +16,7 @@ import { getApiClient } from "@repo/api/index";
 import { Assignment, LateRequest, StudentInformation } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store.js";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
+import { Loading } from "@repo/ui/Loading";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
@@ -165,7 +166,7 @@ export function ExtensionForm() {
     );
   };
 
-  if (isLoading || !courseData || courseIsLoading || !data) return "Loading...";
+  if (isLoading || !courseData || courseIsLoading || !data) return <Loading />;
 
   if (error || courseError) return `An error occured: ${error}`;
 

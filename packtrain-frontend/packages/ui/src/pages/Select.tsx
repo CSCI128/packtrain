@@ -10,6 +10,7 @@ import {
 import { getApiClient } from "@repo/api/index";
 import { Enrollment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { Loading } from "@repo/ui/Loading";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
@@ -42,16 +43,14 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
       close();
     }
 
-    if (data) {
-      const enrollment = data.filter((c) => c.id === store$.id.get()).at(0);
-      if (enrollment !== undefined) {
-        if (enrollment.course_role === "owner") {
-          window.location.href = "/admin/";
-        } else if (enrollment.course_role === "instructor") {
-          window.location.href = "/instructor/";
-        } else if (enrollment.course_role === "student") {
-          window.location.href = "/requests";
-        }
+    const enrollment = data?.filter((c) => c.id === store$.id.get()).at(0);
+    if (enrollment !== undefined) {
+      if (enrollment.course_role === "owner") {
+        window.location.href = "/admin/";
+      } else if (enrollment.course_role === "instructor") {
+        window.location.href = "/instructor/";
+      } else if (enrollment.course_role === "student") {
+        window.location.href = "/requests";
       }
     }
   };
@@ -66,7 +65,6 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
   function ClassButton(enrollment: Enrollment) {
     return (
       <Button
-        key={enrollment.id}
         onClick={() => switchCourse(enrollment.id as string, enrollment.name)}
       >
         {enrollment.name} ({enrollment.term}){" "}
@@ -75,7 +73,7 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     );
   }
 
-  if (!data || isLoading) return "Loading...";
+  if (!data || isLoading) return <Loading />;
 
   if (error) return `An error occured: ${error}`;
 
@@ -86,9 +84,13 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
           {/* students can only see enabled courses, admin sees all */}
           {auth.user?.profile.is_admin ? (
             <>
-              {data.map((enrollment: Enrollment) => (
-                <ClassButton {...enrollment} />
-              ))}
+              {data.length === 0 ? (
+                <Text>No enrollments found!</Text>
+              ) : (
+                data.map((enrollment: Enrollment) => (
+                  <ClassButton key={enrollment.id} {...enrollment} />
+                ))
+              )}
               <Button color="green" onClick={handleCreateClass}>
                 Create Class
               </Button>
@@ -107,11 +109,15 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
             </>
           ) : (
             <>
-              {data
-                .filter((enrollment: Enrollment) => enrollment.enabled)
-                .map((enrollment: Enrollment) => (
-                  <ClassButton {...enrollment} />
-                ))}
+              {data.length === 0 ? (
+                <Text>No enrollments found!</Text>
+              ) : (
+                data
+                  .filter((enrollment: Enrollment) => enrollment.enabled)
+                  .map((enrollment: Enrollment) => (
+                    <ClassButton key={enrollment.id} {...enrollment} />
+                  ))
+              )}
             </>
           )}
         </Stack>
