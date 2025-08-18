@@ -126,14 +126,6 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<CourseDTO>> ownerGetCourses(Boolean enabled) {
-        User user = securityManager.getUser();
-        List<Course> courses = courseService.getCoursesByRole(securityManager.getUser(), CourseRole.OWNER, enabled);
-
-        return ResponseEntity.ok(courses.stream().map(DTOFactory::toDto).toList());
-    }
-
-    @Override
     public ResponseEntity<CourseDTO> getCourse(String id, List<String> include) {
         if (include == null) {
             include = List.of();

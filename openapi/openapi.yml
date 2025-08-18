@@ -234,37 +234,6 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to update user"
 
-  /owner/courses:
-    get:
-      tags:
-        - owner
-      operationId: owner_get_courses
-      summary: "Get all courses"
-      description: |
-        Get all courses, returning
-        only active courses by default, and
-        inactive courses if specified. Will
-        return an empty list if there are no
-        courses.
-      security:
-        - openIDC: [admin:read]
-      parameters:
-        - name: onlyActive
-          in: query
-          required: false
-          schema:
-            type: boolean
-            example: true
-            default: true
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Course"
   /owner/courses/{course_id}:
     put:
       tags:
@@ -2167,26 +2136,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/StudentInformation"
 
-  /student/courses:
-    get:
-      tags:
-        - student
-      operationId: get_courses_student
-      summary: "Get all courses"
-      description: |
-        Get all active courses for a student
-      security:
-        - openIDC: [user:read]
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CourseSlim"
-
   /student/courses/{course_id}/assignments:
     get:
       tags:
@@ -2707,29 +2656,6 @@ components:
           type: string
           example: "Late Passes"
 
-    CourseSlim:
-      description: "A slim course"
-      type: object
-      required:
-        - term
-        - name
-        - code
-      properties:
-        id:
-          type: string
-          example: "999-9999-9999-99"
-        term:
-          type: string
-          example: "Fall 2020"
-        name:
-          type: string
-          example: "EXCL101"
-        code:
-          type: string
-          example: "Fall.2020.EXCL.101"
-        enabled:
-          type: boolean
-          example: true
     Enrollment:
       description: "A slim course and a CourseMember"
       type: object
@@ -2763,6 +2689,9 @@ components:
             - ta
             - owner
           example: "owner"
+        enabled:
+          type: boolean
+          example: true
     StudentInformation:
       description: "Information relevant to a student"
       type: object
