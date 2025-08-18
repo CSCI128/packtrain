@@ -169,16 +169,18 @@ export function MigrationsPostPage() {
 
         <Divider my="sm" />
 
-        <Text size="lg" fw={700}>
-          {posting ? (
-            <>
+        {posting ? (
+          <>
+            <Text size="lg" fw={700}>
               Posting grades..
-              <Progress my="md" radius="xl" size="lg" value={50} animated />
-            </>
-          ) : (
-            <>Done posting!</>
-          )}
-        </Text>
+            </Text>
+            <Progress my="md" radius="xl" size="lg" value={50} animated />
+          </>
+        ) : (
+          <Text size="lg" fw={700}>
+            Done posting!
+          </Text>
+        )}
 
         <Text size="md" c="gray.6" ta="center">
           Reminder: You must post/publish the grades in Canvas for students to
