@@ -269,6 +269,13 @@ public class MigrationService {
             Optional<LateRequest> extension = Optional.ofNullable(lateRequests.getOrDefault(score.getCwid(), null));
             RawGradeDTO dto = createRawGradeDTO(score, extension);
 
+            if(courseMemberService.isUserEnrolledInCourse(score.getCwid(), assignment.getCourse())){
+                log.warn("User '{}' is not enrolled in course '{}'", score, assignment.getCourse());
+                continue;
+
+            }
+
+
             rabbitMqService.sendScore(config.getRawGradePublishChannel(), config.getGradingStartDTO().getRawGradeRoutingKey(), dto);
         }
     }
@@ -504,9 +511,9 @@ public class MigrationService {
                 score.setStatus(entry.getSubmissionStatus().getStatus());
                 score.submissionDate(entry.getSubmissionTime());
                 score.setComment(entry.getMessage());
+                // TODO this is bad
                 score.setRawScore(rawScoreRepo.getByCwidAndMigrationId(entry.getCwid(), entry.getMigrationId()).map(RawScore::getScore).orElse(0.));
                 score.daysLate(rawScoreRepo.getByCwidAndMigrationId(entry.getCwid(), entry.getMigrationId()).map(r -> (int)(r.getHoursLate() == null ? 0 : r.getHoursLate() / 24)).orElse(0));
-
 
                 score.setStudent(DTOFactory.toDto(member.get()));
 
