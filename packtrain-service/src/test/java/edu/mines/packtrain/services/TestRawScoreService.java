@@ -86,6 +86,7 @@ Jane,Doe,12344321,,,12.0,12.0,Graded,,2022-06-25 13:16:26 -0600,13:29:30
 Tester,Testing,testtest,,,12.0,12.0,Graded,,2022-06-25 13:16:58 -0600,00:00:00
 Jimmy,yyy,jimmyyyy,,,11.5,12.0,Ungraded,,2022-06-25 13:25:12 -0600,07:32:50
 Joe,Jam,121212,,,,12.0,Missing
+Tester,Testing,testtest,,,,12.0,Missing
                 """;
 
         String filename = "test.csv";
@@ -238,6 +239,22 @@ Group C,"[""eve@example.com"", ""frank@example.com""]",5,10,10,50,5,10,0,0,2020-
         Assertions.assertTrue(score.isEmpty());
     }
 
+    @Test
+    @SneakyThrows
+    void testParseGSDuplicate(){
+        Migration migration = migrationSeeder.migration(worksheet, masterMigration);
+        MockMultipartFile file = getGradescopeGradesheet();
+
+        // Should add scores to the list that were properly saved
+        rawScoreService.uploadGradescopeCSV(file.getInputStream(), migration.getId());
+        List<RawScore> rawScores = rawScoreService.getRawScoresFromMigration(migration.getId());
+
+        Assertions.assertEquals(3, rawScores.size());
+
+        Optional<RawScore> score = rawScoreService.getRawScoreForCwidAndMigration("testtest", migration.getId());
+        Assertions.assertTrue(score.isPresent());
+        Assertions.assertEquals(12, score.get().getScore());
+    }
     @Test
     @SneakyThrows
     void testEmptyRunestone(){
