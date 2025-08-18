@@ -37,7 +37,7 @@ public class StudentApiImpl implements StudentApiDelegate {
     }
 
     @Override
-    public ResponseEntity<StudentInformationDTO> getCourseInformationStudent(String courseId) {
+    public ResponseEntity<StudentInformationDTO> getCourseInformationStudent(UUID courseId) {
         Course course = courseService.getCourse(UUID.fromString(courseId));
 
         Optional<CourseMember> courseMember = courseMemberService.findCourseMemberGivenCourseAndCwid(course, securityManager.getUser().getCwid());
@@ -72,14 +72,14 @@ public class StudentApiImpl implements StudentApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<AssignmentSlimDTO>> getCourseAssignmentsStudent(String courseId) {
+    public ResponseEntity<List<AssignmentSlimDTO>> getCourseAssignmentsStudent(UUID courseId) {
         Course course = courseService.getCourse(UUID.fromString(courseId));
         List<Assignment> assignments = assignmentService.getAllUnlockedAssignments(course);
         return ResponseEntity.ok(assignments.stream().map(DTOFactory::toSlimDto).toList());
     }
 
     @Override
-    public ResponseEntity<List<LateRequestDTO>> getAllExtensions(String courseId) {
+    public ResponseEntity<List<LateRequestDTO>> getAllExtensions(UUID courseId) {
         User user = securityManager.getUser();
 
         List<LateRequest> lateRequests = extensionService.getAllLateRequestsForStudent(courseId, user);
@@ -88,7 +88,7 @@ public class StudentApiImpl implements StudentApiDelegate {
     }
 
     @Override
-    public ResponseEntity<LateRequestDTO> createExtensionRequest(String courseId, LateRequestDTO lateRequestDTO) {
+    public ResponseEntity<LateRequestDTO> createExtensionRequest(UUID courseId, LateRequestDTO lateRequestDTO) {
         User user = securityManager.getUser();
 
         Course course = courseService.getCourse(UUID.fromString(courseId));
@@ -111,7 +111,7 @@ public class StudentApiImpl implements StudentApiDelegate {
     }
 
     @Override
-    public ResponseEntity<Void> withdrawExtension(String courseId, String extensionId) {
+    public ResponseEntity<Void> withdrawExtension(UUID courseId, UUID extensionId) {
         Course course = courseService.getCourse(UUID.fromString(courseId));
 
         extensionService.deleteLateRequest(course, securityManager.getUser(), extensionId);

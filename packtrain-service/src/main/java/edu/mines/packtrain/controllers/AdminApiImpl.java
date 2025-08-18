@@ -47,8 +47,8 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
-    public ResponseEntity<Void> deleteCourse(String courseId) {
-        if (!courseService.deleteCourse(UUID.fromString(courseId))) {
+    public ResponseEntity<Void> deleteCourse(UUID courseId) {
+        if (!courseService.deleteCourse(courseId)) {
             return ResponseEntity.badRequest().build();
         }
 
