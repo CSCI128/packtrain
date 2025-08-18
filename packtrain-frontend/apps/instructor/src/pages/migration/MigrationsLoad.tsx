@@ -27,7 +27,7 @@ export function MigrationsLoadPage() {
     []
   );
   const [uploading, setUploading] = useState(false);
-  const [canValidate, setCanValidate] = useState(false); // canValidate if files finished uploading
+  const [canValidate, setCanValidate] = useState(false); // can validate if files finished uploading
   const [validated, setValidated] = useState(false);
   const [masterMigrationId, setMasterMigrationId] = useState<string>("");
 
