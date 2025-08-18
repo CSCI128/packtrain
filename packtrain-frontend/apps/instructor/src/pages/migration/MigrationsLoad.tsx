@@ -43,19 +43,6 @@ export function MigrationsLoadPage() {
         }),
   });
 
-  const createMasterMigration = useMutation({
-    mutationKey: ["createMasterMigration"],
-    mutationFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.create_master_migration({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
-  });
-
   const createMigration = useMutation({
     mutationKey: ["createMigration"],
     mutationFn: ({
@@ -194,7 +181,6 @@ export function MigrationsLoadPage() {
   };
 
   const uploadForAssignment = (file: File, selectedAssignmentId: string) => {
-    console.log(selectedAssignmentId);
     createMigration.mutate(
       {
         master_migration_id: masterMigrationId,
@@ -202,8 +188,6 @@ export function MigrationsLoadPage() {
       },
       {
         onSuccess: async (data: MasterMigration | void) => {
-          console.log(data);
-
           uploadScores.mutate({
             master_migration_id: masterMigrationId,
             migration_id: data?.migrations
@@ -217,26 +201,10 @@ export function MigrationsLoadPage() {
     );
   };
 
+  // set master migration id for queries
   useEffect(() => {
-    if (!store$.master_migration_id.get()) {
-      createMasterMigration.mutate(undefined, {
-        onSuccess: (data) => {
-          store$.master_migration_id.set(data?.id);
-          setMasterMigrationId(store$.master_migration_id.get() as string);
-        },
-      });
-    }
-    console.log(
-      `Setting master migration id ${store$.master_migration_id.get()}..`
-    );
     setMasterMigrationId(store$.master_migration_id.get() as string);
   }, [store$]);
-
-  useEffect(() => {
-    if (selectedAssignmentIds && selectedAssignmentIds.length > 0) {
-      console.log("CHANGED:", selectedAssignmentIds);
-    }
-  }, [selectedAssignmentIds]);
 
   const loadAssignments = () => {
     loadMasterMigration.mutate(
@@ -245,7 +213,6 @@ export function MigrationsLoadPage() {
       },
       {
         onSuccess: (data) => {
-          console.log(data);
           navigate("/instructor/migrate/apply");
         },
       }

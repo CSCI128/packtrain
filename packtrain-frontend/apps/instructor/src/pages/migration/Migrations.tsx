@@ -4,9 +4,10 @@ import { MasterMigration, Migration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export function MigrationsPage() {
+  const navigate = useNavigate();
   const { data, error, isLoading } = useQuery<MasterMigration[] | null>({
     queryKey: ["getMigrations"],
     queryFn: () =>
@@ -21,6 +22,19 @@ export function MigrationsPage() {
           console.log(err);
           return null;
         }),
+  });
+
+  const createMasterMigration = useMutation({
+    mutationKey: ["createMasterMigration"],
+    mutationFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.create_master_migration({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => console.log(err)),
   });
 
   const deleteMasterMigration = useMutation({
@@ -73,16 +87,18 @@ export function MigrationsPage() {
           <Text mb={10}>No migrations were found!</Text>
         )}
 
+        <Divider pt={10} my="sm" />
+
         {store$.master_migration_id.get() ? (
           <>
             <Button
               mr={10}
               onClick={() => {
-                store$.master_migration_id.delete();
                 deleteMasterMigration.mutate({
                   master_migration_id:
                     store$.master_migration_id.get() as string,
                 });
+                store$.master_migration_id.delete();
               }}
               variant="filled"
             >
@@ -98,8 +114,14 @@ export function MigrationsPage() {
           </>
         ) : (
           <Button
-            component={Link}
-            to="/instructor/migrate/load"
+            onClick={() => {
+              createMasterMigration.mutate(undefined, {
+                onSuccess: (data) => {
+                  store$.master_migration_id.set(data?.id);
+                  navigate("/instructor/migrate/load");
+                },
+              });
+            }}
             variant="filled"
           >
             Migrate Grades
