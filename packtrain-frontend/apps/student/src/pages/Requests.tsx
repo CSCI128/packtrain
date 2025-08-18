@@ -13,15 +13,16 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { LateRequest, StudentInformation } from "@repo/api/openapi";
+import { LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { Link } from "react-router-dom";
+import { useGetCourseStudent, useGetExtensions } from "../hooks";
 
 export function Requests() {
   const {
@@ -29,37 +30,8 @@ export function Requests() {
     error: studentError,
     isLoading: studentIsLoading,
     refetch: refetchStudent,
-  } = useQuery<StudentInformation | null>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course_information_student({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
-
-  const { data, error, isLoading, refetch } = useQuery<LateRequest[] | null>({
-    queryKey: ["getExtensions"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_all_extensions({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  } = useGetCourseStudent();
+  const { data, error, isLoading, refetch } = useGetExtensions();
 
   const withdrawExtension = useMutation({
     mutationKey: ["withdrawExtension"],

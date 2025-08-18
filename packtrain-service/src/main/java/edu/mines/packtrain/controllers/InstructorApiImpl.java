@@ -5,6 +5,7 @@ import edu.mines.packtrain.data.*;
 import edu.mines.packtrain.factories.DTOFactory;
 import edu.mines.packtrain.managers.SecurityManager;
 import edu.mines.packtrain.models.*;
+import edu.mines.packtrain.models.enums.CourseRole;
 import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
 import edu.mines.packtrain.services.*;
 import jakarta.transaction.Transactional;
@@ -22,6 +23,7 @@ import static java.util.stream.Collectors.toList;
 @Controller
 public class InstructorApiImpl implements InstructorApiDelegate {
     private final CourseService courseService;
+    private final SectionService sectionService;
     private final ExtensionService extensionService;
     private final CourseMemberService courseMemberService;
     private final SecurityManager securityManager;
@@ -29,8 +31,9 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     private final PolicyService policyService;
     private final RawScoreService rawScoreService;
 
-    public InstructorApiImpl(CourseService courseService, ExtensionService extensionService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService, PolicyService policyService, RawScoreService rawScoreService) {
+    public InstructorApiImpl(CourseService courseService, SectionService sectionService, ExtensionService extensionService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService, PolicyService policyService, RawScoreService rawScoreService) {
         this.courseService = courseService;
+        this.sectionService = sectionService;
         this.extensionService = extensionService;
         this.courseMemberService = courseMemberService;
         this.securityManager = securityManager;
@@ -116,7 +119,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
-    public ResponseEntity<MasterMigrationDTO> getMasterMigrations(String courseId, String masterMigrationId) {
+    public ResponseEntity<MasterMigrationDTO> getMasterMigration(String courseId, String masterMigrationId) {
         MasterMigration masterMigration = migrationService.getMasterMigration(masterMigrationId);
 
         return ResponseEntity.ok(DTOFactory.toDto(masterMigration));
@@ -219,6 +222,38 @@ public class InstructorApiImpl implements InstructorApiDelegate {
                 .sections(sections.stream().map(Section::getName).toList());
 
         return ResponseEntity.ok(courseDTO);
+    }
+
+    @Override
+    public ResponseEntity<List<CourseMemberDTO>> getMembersInstructor(String courseId, List<String> enrollments, String name, String cwid) {
+        Course course = courseService.getCourse(UUID.fromString(courseId));
+
+        if (name != null && cwid != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must define one of 'name' or 'cwid'");
+        }
+
+        List<CourseRole> roles = new ArrayList<>();
+        if (enrollments == null) {
+            roles = List.of(CourseRole.values());
+        } else {
+            if (enrollments.contains("tas")) {
+                roles.add(CourseRole.TA);
+            }
+
+            if (enrollments.contains("instructors")) {
+                roles.add(CourseRole.INSTRUCTOR);
+                roles.add(CourseRole.OWNER);
+            }
+
+            if (enrollments.contains("students")) {
+                roles.add(CourseRole.STUDENT);
+            }
+        }
+        List<CourseMember> members = courseMemberService.searchCourseMembers(course, roles, name, cwid);
+        members.forEach(m -> m.setSections(sectionService.getSectionByMember(m)));
+
+        return ResponseEntity.ok(members
+                .stream().map(DTOFactory::toDto).toList());
     }
 
     @Override

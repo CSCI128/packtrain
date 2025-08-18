@@ -6,52 +6,19 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
-import { getApiClient } from "@repo/api/index";
 import { CourseMember } from "@repo/api/openapi";
-import { store$ } from "@repo/api/store";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
-import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
+import { useGetMembersInstructor } from "../hooks";
 
 export function MembersPage() {
-  const { data, error, isLoading } = useQuery<CourseMember[]>({
-    queryKey: ["getMembers"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_members({
-            course_id: store$.id.get() as string,
-            enrollments: ["students"],
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return [];
-        }),
-  });
-
+  const { data, error, isLoading } = useGetMembersInstructor(["students"]);
   const {
     data: instructorData,
     error: instructorError,
     isLoading: instructorIsLoading,
-  } = useQuery<CourseMember[]>({
-    queryKey: ["getInstructors"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_members({
-            course_id: store$.id.get() as string,
-            enrollments: ["instructors"],
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return [];
-        }),
-  });
+  } = useGetMembersInstructor(["instructors"]);
 
   const [search, setSearch] = useState("");
   const [sortedData, setSortedData] = useState(data || []);

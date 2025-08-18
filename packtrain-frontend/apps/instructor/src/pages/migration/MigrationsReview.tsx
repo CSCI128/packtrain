@@ -16,19 +16,19 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import {
-  Course,
-  MasterMigration,
-  MigrationWithScores,
-  Score,
-} from "@repo/api/openapi";
+import { Score } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
+import {
+  useGetCourseInstructor,
+  useGetMasterMigration,
+  useGetMigrationWithScores,
+} from "../../hooks";
 
 export function MigrationsReviewPage() {
   const navigate = useNavigate();
@@ -36,64 +36,20 @@ export function MigrationsReviewPage() {
     data: courseData,
     error: courseError,
     isLoading: courseIsLoading,
-  } = useQuery<Course | null>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course_information_instructor({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  } = useGetCourseInstructor();
 
+  const {
+    data: masterMigrationData,
+    error: masterMigrationError,
+    isLoading: masterMigrationIsLoading,
+  } = useGetMasterMigration();
+
+  // rename to migrationData, rename above to mastermigrationdata
   const {
     data: migrationData,
     error: migrationError,
     isLoading: migrationIsLoading,
-  } = useQuery<MasterMigration | null>({
-    queryKey: ["getMasterMigrations"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_master_migrations({
-            course_id: store$.id.get() as string,
-            master_migration_id: store$.master_migration_id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
-
-  // rename to migrationData, rename above to mastermigrationdata
-  const {
-    data: migrationData2,
-    error: migrationError2,
-    isLoading: migrationIsLoading2,
-  } = useQuery<MigrationWithScores[] | null>({
-    queryKey: ["getMigrationsWithScores"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_master_migration_to_review({
-            course_id: store$.id.get() as string,
-            master_migration_id: store$.master_migration_id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  } = useGetMigrationWithScores();
 
   const reviewMasterMigration = useMutation({
     mutationKey: ["reviewMasterMigration"],

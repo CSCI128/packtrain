@@ -18,14 +18,15 @@ import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { Assignment, Course } from "@repo/api/openapi";
+import { Assignment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
+import { useGetCourse } from "../hooks";
 
 interface AssignmentRowData {
   id: string;
@@ -45,23 +46,7 @@ interface AssignmentRowData {
 }
 
 export function AssignmentsPage() {
-  const { data, error, isLoading, refetch } = useQuery<Course>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course({
-            course_id: store$.id.get() as string,
-            include: ["assignments"],
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
-
+  const { data, error, isLoading, refetch } = useGetCourse(["assignments"]);
   const [value, setValue] = useState<Date>();
   const [unlockDateValue, setUnlockDateValue] = useState<Date>();
   const [opened, { open, close }] = useDisclosure(false);

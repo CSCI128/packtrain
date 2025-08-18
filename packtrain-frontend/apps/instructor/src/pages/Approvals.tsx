@@ -14,34 +14,22 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { Course, LateRequest } from "@repo/api/openapi";
+import { LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { useGetCourseInstructor, useGetExtensions } from "../hooks";
 
 export function ApprovalPage() {
   const {
     data: courseData,
     error: courseError,
     isLoading: courseIsLoading,
-  } = useQuery<Course | null>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course_information_instructor({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  } = useGetCourseInstructor();
+  const { data, error, isLoading, refetch } = useGetExtensions();
 
   const [denyOpened, { open: openDeny, close: closeDeny }] =
     useDisclosure(false);
@@ -51,22 +39,6 @@ export function ApprovalPage() {
     useState<LateRequest | null>(null);
   const [denialReason, setDenialReason] = useState<string>("");
   const [approvalReason, setApprovalReason] = useState<string>("");
-
-  const { data, error, isLoading, refetch } = useQuery<LateRequest[] | null>({
-    queryKey: ["getExtensions"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_all_extensions_for_course({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
 
   const approveExtensionMutation = useMutation({
     mutationKey: ["approveExtension"],

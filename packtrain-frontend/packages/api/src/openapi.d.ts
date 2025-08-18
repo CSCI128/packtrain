@@ -1606,6 +1606,35 @@ declare namespace Paths {
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
+    namespace GetMasterMigration {
+        namespace Parameters {
+            /**
+             * example:
+             * 99-9999-9999-99
+             */
+            export type CourseId = string;
+            /**
+             * example:
+             * 999-9999-9999-99
+             */
+            export type MasterMigrationId = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 99-9999-9999-99
+             */
+            Parameters.CourseId;
+            master_migration_id: /**
+             * example:
+             * 999-9999-9999-99
+             */
+            Parameters.MasterMigrationId;
+        }
+        namespace Responses {
+            export type $200 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
+        }
+    }
     namespace GetMasterMigrationToReview {
         namespace Parameters {
             /**
@@ -1635,36 +1664,55 @@ declare namespace Paths {
             export type $200 = /* A migration for an assignment that contains scores for each student */ Components.Schemas.MigrationWithScores[];
         }
     }
-    namespace GetMasterMigrations {
+    namespace GetMembers {
         namespace Parameters {
-            /**
-             * example:
-             * 99-9999-9999-99
-             */
-            export type CourseId = string;
             /**
              * example:
              * 999-9999-9999-99
              */
-            export type MasterMigrationId = string;
+            export type CourseId = string;
+            /**
+             * Part of (or full) cwid to search for
+             * example:
+             * 9999999
+             */
+            export type Cwid = string;
+            export type Enrollments = ("tas" | "instructors" | "students")[];
+            /**
+             * Part of (or full) name to search for
+             * example:
+             * Alex
+             */
+            export type Name = string;
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 99-9999-9999-99
-             */
-            Parameters.CourseId;
-            master_migration_id: /**
-             * example:
              * 999-9999-9999-99
              */
-            Parameters.MasterMigrationId;
+            Parameters.CourseId;
+        }
+        export interface QueryParameters {
+            enrollments?: Parameters.Enrollments;
+            name?: /**
+             * Part of (or full) name to search for
+             * example:
+             * Alex
+             */
+            Parameters.Name;
+            cwid?: /**
+             * Part of (or full) cwid to search for
+             * example:
+             * 9999999
+             */
+            Parameters.Cwid;
         }
         namespace Responses {
-            export type $200 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
+            export type $200 = /* A user in a course */ Components.Schemas.CourseMember[];
+            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
-    namespace GetMembers {
+    namespace GetMembersInstructor {
         namespace Parameters {
             /**
              * example:
@@ -2638,6 +2686,19 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetCourseInformationInstructor.Responses.$200>
   /**
+   * get_members_instructor - Get all members for a course
+   * 
+   * Gets all members for a course.
+   * Optional query params can be used to filter by TAs, Instructors, or Students.
+   * Can also be used to search by CWID or by name
+   * 
+   */
+  'get_members_instructor'(
+    parameters?: Parameters<Paths.GetMembersInstructor.QueryParameters & Paths.GetMembersInstructor.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetMembersInstructor.Responses.$200>
+  /**
    * get_instructor_enrollments - Get all enrollments for all sections
    * 
    * Gets user enrollments for all sections 
@@ -2725,13 +2786,13 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.CreateMasterMigration.Responses.$201>
   /**
-   * get_master_migrations - Get master migrations
+   * get_master_migration - Get master migration
    */
-  'get_master_migrations'(
-    parameters?: Parameters<Paths.GetMasterMigrations.PathParameters> | null,
+  'get_master_migration'(
+    parameters?: Parameters<Paths.GetMasterMigration.PathParameters> | null,
     data?: any,
     config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetMasterMigrations.Responses.$200>
+  ): OperationResponse<Paths.GetMasterMigration.Responses.$200>
   /**
    * create_migration_for_master_migration - Create migration for a master migration
    * 
@@ -3351,6 +3412,21 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetCourseInformationInstructor.Responses.$200>
   }
+  ['/instructor/courses/{course_id}/members']: {
+    /**
+     * get_members_instructor - Get all members for a course
+     * 
+     * Gets all members for a course.
+     * Optional query params can be used to filter by TAs, Instructors, or Students.
+     * Can also be used to search by CWID or by name
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetMembersInstructor.QueryParameters & Paths.GetMembersInstructor.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetMembersInstructor.Responses.$200>
+  }
   ['/instructor/courses/{course_id}/enrollments']: {
     /**
      * get_instructor_enrollments - Get all enrollments for all sections
@@ -3454,13 +3530,13 @@ export interface PathsDictionary {
   }
   ['/instructor/courses/{course_id}/migrations/{master_migration_id}']: {
     /**
-     * get_master_migrations - Get master migrations
+     * get_master_migration - Get master migration
      */
     'get'(
-      parameters?: Parameters<Paths.GetMasterMigrations.PathParameters> | null,
+      parameters?: Parameters<Paths.GetMasterMigration.PathParameters> | null,
       data?: any,
       config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetMasterMigrations.Responses.$200>
+    ): OperationResponse<Paths.GetMasterMigration.Responses.$200>
     /**
      * create_migration_for_master_migration - Create migration for a master migration
      * 

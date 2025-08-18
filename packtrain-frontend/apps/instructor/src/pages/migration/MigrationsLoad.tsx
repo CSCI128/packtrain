@@ -12,11 +12,12 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
-import { Course, MasterMigration } from "@repo/api/openapi";
+import { MasterMigration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useGetCourseInstructor } from "../../hooks";
 
 export function MigrationsLoadPage() {
   const navigate = useNavigate();
@@ -26,22 +27,7 @@ export function MigrationsLoadPage() {
   );
   const [validated, setValidated] = useState(false);
   const [masterMigrationId, setMasterMigrationId] = useState<string>("");
-
-  const { data, error, isLoading } = useQuery<Course | null>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course_information_instructor({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  const { data, error, isLoading } = useGetCourseInstructor();
 
   const createMigration = useMutation({
     mutationKey: ["createMigration"],

@@ -1841,6 +1841,99 @@
         }
       }
     },
+    "/instructor/courses/{course_id}/members": {
+      "get": {
+        "tags": [
+          "instructor"
+        ],
+        "operationId": "get_members_instructor",
+        "security": [
+          {
+            "openIDC": [
+              "instructor:read"
+            ]
+          }
+        ],
+        "summary": "Get all members for a course",
+        "description": "Gets all members for a course.\nOptional query params can be used to filter by TAs, Instructors, or Students.\nCan also be used to search by CWID or by name\n",
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "999-9999-9999-99"
+            }
+          },
+          {
+            "name": "enrollments",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "tas",
+                  "instructors",
+                  "students"
+                ]
+              }
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Part of (or full) name to search for",
+              "example": "Alex"
+            }
+          },
+          {
+            "name": "cwid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Part of (or full) cwid to search for",
+              "example": "9999999"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseMember"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error_source": "update_course",
+                  "error_message": "Course '999-9999-9999-99' does not exist"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/instructor/courses/{course_id}/enrollments": {
       "get": {
         "tags": [
@@ -2405,8 +2498,8 @@
         "tags": [
           "instructor"
         ],
-        "operationId": "get_master_migrations",
-        "summary": "Get master migrations",
+        "operationId": "get_master_migration",
+        "summary": "Get master migration",
         "security": [
           {
             "openIDC": [
