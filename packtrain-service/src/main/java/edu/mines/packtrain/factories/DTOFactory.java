@@ -10,16 +10,16 @@ public class DTOFactory {
 
     public static LateRequestDTO toDto(LateRequest lateRequest) {
         return new LateRequestDTO()
-            .id(lateRequest.getId().toString())
+            .id(lateRequest.getId())
             .numDaysRequested(lateRequest.getDaysRequested())
             .requestType(LateRequestDTO.RequestTypeEnum.fromValue(lateRequest.getLateRequestType().name().toLowerCase()))
             .status(LateRequestDTO.StatusEnum.fromValue(lateRequest.getStatus().name().toLowerCase()))
             .dateSubmitted(lateRequest.getSubmissionDate())
-            .assignmentId(lateRequest.getAssignment().getId().toString())
+            .assignmentId(lateRequest.getAssignment().getId())
             .assignmentName(lateRequest.getAssignment().getName())
             .extension(lateRequest.getExtension() != null ?
                 new ExtensionDTO()
-                    .id(lateRequest.getExtension().getId().toString())
+                    .id(lateRequest.getExtension().getId())
                     .reason(lateRequest.getExtension().getReason())
                     .comments(lateRequest.getExtension().getComments())
                     .responseToRequester(lateRequest.getExtension().getReviewerResponse())
@@ -29,7 +29,7 @@ public class DTOFactory {
 
     public static PolicyDTO toDto(Policy policy) {
         return new PolicyDTO()
-            .id(policy.getId().toString())
+            .id(policy.getId())
             .name(policy.getPolicyName())
             .description(policy.getDescription())
             .numberOfMigrations(policy.getNumberOfMigrations())
@@ -64,7 +64,7 @@ public class DTOFactory {
 
     public static CourseDTO toDto(Course course) {
         CourseDTO courseDto = new CourseDTO()
-            .id(course.getId().toString())
+            .id(course.getId())
             .term(course.getTerm())
             .enabled(course.isEnabled())
             .name(course.getName())
@@ -91,7 +91,7 @@ public class DTOFactory {
 
     public static AssignmentDTO toDto(Assignment assignment) {
         AssignmentDTO dto = new AssignmentDTO()
-            .id(assignment.getId().toString())
+            .id(assignment.getId())
             .name(assignment.getName())
             .canvasId(assignment.getCanvasId())
             .points(assignment.getPoints())
@@ -113,7 +113,7 @@ public class DTOFactory {
 
     public static AssignmentSlimDTO toSlimDto(Assignment assignment) {
         return new AssignmentSlimDTO()
-            .id(assignment.getId().toString())
+            .id(assignment.getId())
             .name(assignment.getName())
             .points(assignment.getPoints())
             .dueDate(assignment.getDueDate())
@@ -143,7 +143,7 @@ public class DTOFactory {
     public static MigrationDTO toDto(Migration migration){
         // we are join fetching the assignment and policy so they will always be available
         MigrationDTO dto = new MigrationDTO()
-                .id(migration.getId().toString())
+                .id(migration.getId())
                 .assignment(toDto(migration.getAssignment()));
         if(migration.getPolicy() != null) {
             dto.policy(toDto(migration.getPolicy()));
@@ -153,7 +153,7 @@ public class DTOFactory {
 
     public static MasterMigrationDTO toDto(MasterMigration masterMigration){
         MasterMigrationDTO dto = new MasterMigrationDTO()
-                .id(masterMigration.getId().toString())
+                .id(masterMigration.getId())
                 .dateStarted(masterMigration.getDateStarted())
                 .status(MasterMigrationDTO.StatusEnum.fromValue(masterMigration.getStatus().getStatus()))
                 .migrator(toDto(masterMigration.getCreatedByUser()));

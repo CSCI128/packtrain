@@ -87,7 +87,7 @@ public class UserApiImpl implements UserApiDelegate {
         List<Course> enrollments = userService.getEnrollments(user.getCwid());
 
         return ResponseEntity.ok(enrollments.stream().map(course -> new EnrollmentDTO()
-                .id(course.getId().toString())
+                .id(course.getId())
                 .term(course.getTerm())
                 .name(course.getName())
                 .code(course.getCode())

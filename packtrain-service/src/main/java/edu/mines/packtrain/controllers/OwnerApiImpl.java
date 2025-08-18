@@ -39,46 +39,45 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<Void> updateAssignment(String courseId, AssignmentDTO assignmentDto) {
-        Course course = courseService.getCourse(UUID.fromString(courseId));
+    public ResponseEntity<Void> updateAssignment(UUID courseId, AssignmentDTO assignmentDto) {
+        Course course = courseService.getCourse(courseId);
         Assignment assignment = assignmentService.updateAssignment(course, assignmentDto);
 
         return ResponseEntity.accepted().build();
     }
 
     @Override
-    public ResponseEntity<AssignmentDTO> addAssignment(String courseId, AssignmentDTO assignmentDto) {
-        Course course = courseService.getCourse(UUID.fromString(courseId));
+    public ResponseEntity<AssignmentDTO> addAssignment(UUID courseId, AssignmentDTO assignmentDto) {
+        Course course = courseService.getCourse(courseId);
         Assignment assignment = assignmentService.addAssignmentToCourse(course, assignmentDto);
 
         return ResponseEntity.accepted().body(DTOFactory.toDto(assignment));
     }
 
     @Override
-    public ResponseEntity<List<TaskDTO>> syncCourse(String courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+    public ResponseEntity<List<TaskDTO>> syncCourse(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
         List<TaskDTO> tasks = new LinkedList<>();
-        UUID courseUUID = UUID.fromString(courseId);
 
         ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
-                securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId(),
+                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId(),
                 courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
 
 
         tasks.add(DTOFactory.toDto(courseTask));
 
         ScheduledTaskDef sectionTask = sectionService.createSectionsFromCanvas(
-                securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
+                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId());
 
         tasks.add(DTOFactory.toDto(sectionTask));
 
         if (courseSyncTaskDTO.getImportUsers()) {
-            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()), courseUUID, true, true, true);
+            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()), courseId, true, true, true);
 
             tasks.add(DTOFactory.toDto(importUsersTask));
         }
 
         if (courseSyncTaskDTO.getImportAssignments()) {
-            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseUUID, true, true, true);
+            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseId, true, true, true);
 
             tasks.add(DTOFactory.toDto(importAssignmentsTask));
         }
@@ -87,30 +86,29 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<TaskDTO>> importCourse(String courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+    public ResponseEntity<List<TaskDTO>> importCourse(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
         List<TaskDTO> tasks = new LinkedList<>();
-        UUID courseUUID = UUID.fromString(courseId);
 
         ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
-                securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId(),
+                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId(),
                 courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
 
         tasks.add(DTOFactory.toDto(courseTask));
 
         ScheduledTaskDef sectionTask = sectionService.createSectionsFromCanvas(
-                securityManager.getUser(), courseUUID, courseSyncTaskDTO.getCanvasId());
+                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId());
 
 
         tasks.add(DTOFactory.toDto(sectionTask));
 
         if (courseSyncTaskDTO.getImportUsers()) {
-            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()), courseUUID, true, true, true);
+            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()), courseId, true, true, true);
 
             tasks.add(DTOFactory.toDto(importUsersTask));
         }
 
         if (courseSyncTaskDTO.getImportAssignments()) {
-            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseUUID, true, true, true);
+            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseId, true, true, true);
 
             tasks.add(DTOFactory.toDto(importAssignmentsTask));
         }
@@ -119,19 +117,19 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<Void> updateCourse(String courseId, CourseDTO courseDTO) {
+    public ResponseEntity<Void> updateCourse(UUID courseId, CourseDTO courseDTO) {
         Course course = courseService.updateCourse(courseId, courseDTO);
 
         return ResponseEntity.noContent().build();
     }
 
     @Override
-    public ResponseEntity<CourseDTO> getCourse(String id, List<String> include) {
+    public ResponseEntity<CourseDTO> getCourse(UUID id, List<String> include) {
         if (include == null) {
             include = List.of();
         }
 
-        Course course = courseService.getCourse(UUID.fromString(id));
+        Course course = courseService.getCourse(id);
 
         CourseDTO courseDto = DTOFactory.toDto(course);
 
@@ -151,8 +149,8 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<CourseMemberDTO>> getMembers(String courseId, List<String> enrollments, String name, String cwid) {
-        Course course = courseService.getCourse(UUID.fromString(courseId));
+    public ResponseEntity<List<CourseMemberDTO>> getMembers(UUID courseId, List<String> enrollments, String name, String cwid) {
+        Course course = courseService.getCourse(courseId);
 
         if (name != null && cwid != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must define one of 'name' or 'cwid'");
@@ -183,15 +181,15 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<PolicyDTO> newPolicy(String courseId, String name, String filePath, MultipartFile fileData, String description) {
-        Policy policy = policyService.createNewPolicy(securityManager.getUser(), UUID.fromString(courseId), name, description, filePath, fileData);
+    public ResponseEntity<PolicyDTO> newPolicy(UUID courseId, String name, String filePath, MultipartFile fileData, String description) {
+        Policy policy = policyService.createNewPolicy(securityManager.getUser(), courseId, name, description, filePath, fileData);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(policy));
     }
 
     @Override
-    public ResponseEntity<Void> deletePolicy(String courseId, String policyId) {
-        if (!policyService.deletePolicy(UUID.fromString(courseId), UUID.fromString(policyId))) {
+    public ResponseEntity<Void> deletePolicy(UUID courseId, UUID policyId) {
+        if (!policyService.deletePolicy(courseId, policyId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to delete policy!");
         }
 
@@ -200,20 +198,20 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<PolicyDTO>> ownerGetAllPolicies(String courseId) {
-        List<Policy> policies = policyService.getAllPolicies(UUID.fromString(courseId));
+    public ResponseEntity<List<PolicyDTO>> ownerGetAllPolicies(UUID courseId) {
+        List<Policy> policies = policyService.getAllPolicies(courseId);
         return ResponseEntity.ok(policies.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
-    public ResponseEntity<Void> enableAssignment(String courseId, String assignmentId) {
+    public ResponseEntity<Void> enableAssignment(UUID courseId, UUID assignmentId) {
         Assignment assignment = assignmentService.enableAssignment(assignmentId);
 
         return ResponseEntity.accepted().build();
     }
 
     @Override
-    public ResponseEntity<Void> disableAssignment(String courseId, String assignmentId) {
+    public ResponseEntity<Void> disableAssignment(UUID courseId, UUID assignmentId) {
         Assignment assignment = assignmentService.disableAssignment(assignmentId);
 
         return ResponseEntity.accepted().build();

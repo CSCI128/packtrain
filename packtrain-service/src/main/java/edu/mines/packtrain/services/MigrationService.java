@@ -94,21 +94,21 @@ public class MigrationService {
         return masterMigrationRepo.save(masterMigration);
     }
 
-    public List<MasterMigration> getAllMasterMigrations(String courseId){
-       return masterMigrationRepo.getMasterMigrationsByCourseId(UUID.fromString(courseId));
+    public List<MasterMigration> getAllMasterMigrations(UUID courseId){
+       return masterMigrationRepo.getMasterMigrationsByCourseId(courseId);
     }
 
-    public MasterMigration getMasterMigration(String masterMigrationId) {
-        Optional<MasterMigration> masterMigration = masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
+    public MasterMigration getMasterMigration(UUID masterMigrationId) {
+        Optional<MasterMigration> masterMigration = masterMigrationRepo.getMasterMigrationById(masterMigrationId);
         if (masterMigration.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Failed to find master migration '%s'", masterMigrationId));
         }
         return masterMigration.get();
     }
 
-    public MasterMigration createMasterMigration(String courseId, User createdByUser){
+    public MasterMigration createMasterMigration(UUID courseId, User createdByUser){
         MasterMigration masterMigration = new MasterMigration();
-        Course course = courseService.getCourse(UUID.fromString(courseId));
+        Course course = courseService.getCourse(courseId);
 
         masterMigration.setCourse(course);
         masterMigration.setCreatedByUser(createdByUser);
@@ -128,7 +128,7 @@ public class MigrationService {
         return true;
     }
 
-    public MasterMigration addMigration(String masterMigrationId, String assignmentId){
+    public MasterMigration addMigration(UUID masterMigrationId, UUID assignmentId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
         Migration migration = new Migration();
@@ -151,32 +151,32 @@ public class MigrationService {
         return masterMigration;
     }
 
-    public List<Migration> getMigrationsByMasterMigration(String masterMigrationId){
-        return migrationRepo.getMigrationListByMasterMigrationId(UUID.fromString(masterMigrationId));
+    public List<Migration> getMigrationsByMasterMigration(UUID masterMigrationId){
+        return migrationRepo.getMigrationListByMasterMigrationId(masterMigrationId);
     }
 
-    public Migration getMigration(String migrationId){
-        return migrationRepo.getMigrationById(UUID.fromString(migrationId));
+    public Migration getMigration(UUID migrationId){
+        return migrationRepo.getMigrationById(migrationId);
     }
 
-    public Course getCourseForMigration(String migrationId){
+    public Course getCourseForMigration(UUID migrationId){
         return courseService.getCourseForMigration(migrationId);
     }
 
-    public Course getCourseForMasterMigration(String migrationId){
+    public Course getCourseForMasterMigration(UUID migrationId){
         return courseService.getCourseForMasterMigration(migrationId);
     }
 
-    public Assignment getAssignmentForMigration(String migrationId){
+    public Assignment getAssignmentForMigration(UUID migrationId){
         // will clean this up - out of scope for this ticket
         Migration migration = getMigration(migrationId);
         return assignmentService.getAssignmentForMigration(migration);
     }
 
-    public Migration setPolicyForMigration(String migrationId, String policyId){
-        Migration updatedMigration = migrationRepo.getMigrationById(UUID.fromString(migrationId));
+    public Migration setPolicyForMigration(UUID migrationId, UUID policyId){
+        Migration updatedMigration = migrationRepo.getMigrationById(migrationId);
 
-        Policy policy = policyService.getPolicy(UUID.fromString(policyId));
+        Policy policy = policyService.getPolicy(policyId);
 
         policyService.incrementUsedBy(policy);
 
@@ -201,7 +201,7 @@ public class MigrationService {
 
         entry.setPerformedByUser(asUser);
         entry.setCwid(dto.getCwid());
-        entry.setCanvasId(courseMemberService.getCanvasIdGivenCourseAndCwid(dto.getCwid(), getCourseForMigration(migrationId.toString())));
+        entry.setCanvasId(courseMemberService.getCanvasIdGivenCourseAndCwid(dto.getCwid(), getCourseForMigration(migrationId)));
         entry.setMigrationId(migrationId);
         entry.setExtensionId(dto.getExtensionId());
         if (entry.getExtensionId() != null){
@@ -241,7 +241,7 @@ public class MigrationService {
     }
 
     public void processScoresAndExtensionsTask(ProcessScoresAndExtensionsTaskDef task){
-        Assignment assignment = assignmentService.getAssignmentById(task.getAssignmentId().toString());
+        Assignment assignment = assignmentService.getAssignmentById(task.getAssignmentId());
 
         MigrationFactory.ProcessScoresAndExtensionsConfig config;
 
@@ -279,7 +279,7 @@ public class MigrationService {
     }
 
     public void zeroOutSubmissions(ZeroOutSubmissionsTaskDef task){
-        Course course = getCourseForMigration(task.getMigrationId().toString());
+        Course course = getCourseForMigration(task.getMigrationId());
 
         List<CourseMember> members = courseMemberService.getAllStudentsInCourse(course);
 
@@ -315,12 +315,12 @@ public class MigrationService {
         return dto;
     }
 
-    public List<ScheduledTaskDef> startProcessScoresAndExtensions(User actingUser, String masterMigrationId ){
+    public List<ScheduledTaskDef> startProcessScoresAndExtensions(User actingUser, UUID masterMigrationId ){
         if(!validateApplyMasterMigration(masterMigrationId)) {
             return List.of();
         }
 
-        Optional<MasterMigration> master = masterMigrationRepo.getMasterMigrationById(UUID.fromString(masterMigrationId));
+        Optional<MasterMigration> master = masterMigrationRepo.getMasterMigrationById(masterMigrationId);
 
         if(master.isEmpty()){
             return List.of();
@@ -331,7 +331,7 @@ public class MigrationService {
             return List.of();
         }
 
-        List<Migration> migrations = migrationRepo.getMigrationListByMasterMigrationId(UUID.fromString(masterMigrationId));
+        List<Migration> migrations = migrationRepo.getMigrationListByMasterMigrationId(masterMigrationId);
 
         log.info("Starting migration for {} assignments", migrations.size());
 
@@ -374,11 +374,11 @@ public class MigrationService {
         return tasks;
     }
 
-    public Optional<MasterMigrationStats> getStatsForMigration(String masterMigrationId) {
-        return masterMigrationStatsRepo.findById(UUID.fromString(masterMigrationId));
+    public Optional<MasterMigrationStats> getStatsForMigration(UUID masterMigrationId) {
+        return masterMigrationStatsRepo.findById(masterMigrationId);
     }
 
-    public boolean attemptToStartRawScoreImport(String migrationId, String message, ExternalAssignmentType type){
+    public boolean attemptToStartRawScoreImport(UUID migrationId, String message, ExternalAssignmentType type){
         Migration migration = getMigration(migrationId);
 
         if (migration.getRawScoreStatus() != RawScoreStatus.EMPTY){
@@ -394,7 +394,7 @@ public class MigrationService {
         return true;
     }
 
-    public boolean finishRawScoreImport(String migrationId, String message){
+    public boolean finishRawScoreImport(UUID migrationId, String message){
         Migration migration = getMigration(migrationId);
 
         if (migration.getRawScoreStatus() != RawScoreStatus.IMPORTING){
@@ -410,7 +410,7 @@ public class MigrationService {
     }
 
 
-    public boolean validateLoadMasterMigration(String masterMigrationId){
+    public boolean validateLoadMasterMigration(UUID masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
 
@@ -425,7 +425,7 @@ public class MigrationService {
 
         for (Migration m : migrations){
             if (m.getRawScoreStatus() != RawScoreStatus.PRESENT){
-                Assignment assignmentName = getAssignmentForMigration(m.getId().toString());
+                Assignment assignmentName = getAssignmentForMigration(m.getId());
                 log.error("Migration for assignment '{}' is missing raw scores!", assignmentName.getName());
                 errors.add(String.format("Migration for assignment '%s' is missing raw scores!", assignmentName.getName()));
             }
@@ -441,7 +441,7 @@ public class MigrationService {
         return true;
     }
 
-    public boolean finalizeLoadMasterMigration(String masterMigrationId){
+    public boolean finalizeLoadMasterMigration(UUID masterMigrationId){
         if (!validateLoadMasterMigration(masterMigrationId)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to validate load phase");
         }
@@ -454,7 +454,7 @@ public class MigrationService {
         return true;
     }
 
-    public boolean validateApplyMasterMigration(String masterMigrationId){
+    public boolean validateApplyMasterMigration(UUID masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
         List<String> errors = new LinkedList<>();
@@ -478,7 +478,7 @@ public class MigrationService {
         return true;
     }
 
-    public List<MigrationWithScoresDTO> getMasterMigrationToReview(String masterMigrationId){
+    public List<MigrationWithScoresDTO> getMasterMigrationToReview(UUID masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
         masterMigration.setStatus(MigrationStatus.AWAITING_REVIEW);
@@ -526,7 +526,7 @@ public class MigrationService {
 
             log.info("'{}' students were scored", scores.size());
 
-            migrationWithScoresDTO.setMigrationId(migration.getId().toString());
+            migrationWithScoresDTO.setMigrationId(migration.getId());
             migrationWithScoresDTO.setAssignment(assignmentSlimDTO);
             migrationWithScoresDTO.setScores(scores.values().stream().toList());
 
@@ -536,7 +536,7 @@ public class MigrationService {
         return migrationWithScoresDTOs;
     }
 
-    public boolean updateStudentScore(User asUser, String migrationId, MigrationScoreChangeDTO dto){
+    public boolean updateStudentScore(User asUser, UUID migrationId, MigrationScoreChangeDTO dto){
         ScoredDTO scored = new ScoredDTO();
         scored.setCwid(dto.getCwid());
         scored.setExtensionStatus(LateRequestStatus.NO_EXTENSION);
@@ -546,12 +546,12 @@ public class MigrationService {
         scored.setSubmissionStatus(SubmissionStatus.fromString(dto.getSubmissionStatus().getValue()));
         scored.setSubmissionMessage(dto.getJustification());
 
-        handleScoreReceived(asUser, UUID.fromString(migrationId), scored);
+        handleScoreReceived(asUser, migrationId, scored);
 
         return true;
     }
 
-    public boolean finalizeReviewMasterMigration(String masterMigrationId){
+    public boolean finalizeReviewMasterMigration(UUID masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
         if (!masterMigration.getStatus().equals(MigrationStatus.AWAITING_REVIEW)){
@@ -587,7 +587,7 @@ public class MigrationService {
         // We will probably want to periodically check in on this and then only flag this as completed once this is done
     }
 
-    public List<ScheduledTaskDef> processMigrationLog(User actingUser, String masterMigrationId){
+    public List<ScheduledTaskDef> processMigrationLog(User actingUser, UUID masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
         if (masterMigration.getStatus() != MigrationStatus.READY_TO_POST){
@@ -602,7 +602,7 @@ public class MigrationService {
         List<ScheduledTaskDef> tasks = new LinkedList<>();
 
         for (Migration migration : masterMigration.getMigrations()) {
-            Assignment assignment = getAssignmentForMigration(migration.getId().toString());
+            Assignment assignment = getAssignmentForMigration(migration.getId());
 
             PostToCanvasTaskDef task = new PostToCanvasTaskDef();
             task.setCreatedByUser(actingUser);
@@ -622,7 +622,7 @@ public class MigrationService {
         return tasks;
     }
 
-    public boolean finalizePostToCanvas(String masterMigrationId){
+    public boolean finalizePostToCanvas(UUID masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
 
