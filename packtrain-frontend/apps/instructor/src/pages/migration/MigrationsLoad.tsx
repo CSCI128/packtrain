@@ -181,7 +181,6 @@ export function MigrationsLoadPage() {
   };
 
   const uploadForAssignment = (file: File, selectedAssignmentId: string) => {
-    console.log(selectedAssignmentId);
     createMigration.mutate(
       {
         master_migration_id: masterMigrationId,
@@ -189,8 +188,6 @@ export function MigrationsLoadPage() {
       },
       {
         onSuccess: async (data: MasterMigration | void) => {
-          console.log(data);
-
           uploadScores.mutate({
             master_migration_id: masterMigrationId,
             migration_id: data?.migrations
@@ -204,10 +201,8 @@ export function MigrationsLoadPage() {
     );
   };
 
+  // set master migration id for queries
   useEffect(() => {
-    console.log(
-      `Setting master migration id ${store$.master_migration_id.get()}..`
-    );
     setMasterMigrationId(store$.master_migration_id.get() as string);
   }, [store$]);
 
