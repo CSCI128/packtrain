@@ -269,12 +269,10 @@ public class MigrationService {
             Optional<LateRequest> extension = Optional.ofNullable(lateRequests.getOrDefault(score.getCwid(), null));
             RawGradeDTO dto = createRawGradeDTO(score, extension);
 
-            if(courseMemberService.isUserEnrolledInCourse(score.getCwid(), assignment.getCourse())){
+            if(!courseMemberService.isUserEnrolledInCourse(score.getCwid(), assignment.getCourse())){
                 log.warn("User '{}' is not enrolled in course '{}'", score, assignment.getCourse());
                 continue;
-
             }
-
 
             rabbitMqService.sendScore(config.getRawGradePublishChannel(), config.getGradingStartDTO().getRawGradeRoutingKey(), dto);
         }
