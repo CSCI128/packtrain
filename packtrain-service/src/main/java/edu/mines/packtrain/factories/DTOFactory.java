@@ -62,15 +62,6 @@ public class DTOFactory {
             .sections(courseMember.getSections().stream().map(Section::getName).toList());
     }
 
-    public static CourseSlimDTO toSlimDto(Course course) {
-        return new CourseSlimDTO()
-            .id(course.getId().toString())
-            .term(course.getTerm())
-            .name(course.getName())
-            .code(course.getCode())
-            .enabled(course.isEnabled());
-    }
-
     public static CourseDTO toDto(Course course) {
         CourseDTO courseDto = new CourseDTO()
             .id(course.getId().toString())

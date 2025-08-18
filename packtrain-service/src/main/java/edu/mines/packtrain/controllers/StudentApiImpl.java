@@ -22,29 +22,18 @@ import java.util.*;
 @Controller
 @Slf4j
 public class StudentApiImpl implements StudentApiDelegate {
-    private final UserService userService;
     private final CourseService courseService;
-    private final SectionService sectionService;
     private final ExtensionService extensionService;
     private final CourseMemberService courseMemberService;
     private final AssignmentService assignmentService;
     private final SecurityManager securityManager;
 
-    public StudentApiImpl(UserService userService, CourseService courseService, SectionService sectionService, ExtensionService extensionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager) {
-        this.userService = userService;
+    public StudentApiImpl(CourseService courseService, ExtensionService extensionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager) {
         this.courseService = courseService;
-        this.sectionService = sectionService;
         this.extensionService = extensionService;
         this.courseMemberService = courseMemberService;
         this.assignmentService = assignmentService;
         this.securityManager = securityManager;
-    }
-
-    @Override
-    public ResponseEntity<List<CourseSlimDTO>> getCoursesStudent() {
-        User user = securityManager.getUser();
-        List<Course> courses = courseService.getCoursesStudent(user);
-        return ResponseEntity.ok(courses.stream().map(DTOFactory::toSlimDto).toList());
     }
 
     @Override

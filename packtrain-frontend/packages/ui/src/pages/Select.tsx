@@ -8,7 +8,7 @@ import {
   Text,
 } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
-import { Course, CourseSlim, Enrollment } from "@repo/api/openapi";
+import { Enrollment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -19,31 +19,10 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
   const [checked, setChecked] = useState(true);
 
   const { data, error, isLoading, refetch } = useQuery<
-    Course[] | CourseSlim[],
+    Enrollment[],
     Error,
-    Course[] | CourseSlim[],
-    [string, { onlyActive: boolean }]
+    Enrollment[]
   >({
-    queryKey: ["getCourses", { onlyActive: checked }],
-    queryFn: async ({
-      queryKey,
-    }: {
-      queryKey: [string, { onlyActive: boolean }];
-    }) => {
-      const [, { onlyActive }] = queryKey;
-      const client = await getApiClient();
-
-      const res =
-        auth.isAuthenticated && auth.user?.profile.is_admin
-          ? await client.owner_get_courses({ onlyActive })
-          : await client.get_courses_student();
-
-      return res.data;
-    },
-    enabled: auth.isAuthenticated,
-  });
-
-  const { data: enrollmentInfo } = useQuery<Enrollment[]>({
     queryKey: ["getEnrollments"],
     queryFn: () =>
       getApiClient()
@@ -63,10 +42,8 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
       close();
     }
 
-    if (enrollmentInfo) {
-      const enrollment = enrollmentInfo
-        .filter((c) => c.id === store$.id.get())
-        .at(0);
+    if (data) {
+      const enrollment = data.filter((c) => c.id === store$.id.get()).at(0);
       if (enrollment !== undefined) {
         if (enrollment.course_role === "owner") {
           window.location.href = "/admin/";
@@ -86,7 +63,19 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     close?.();
   };
 
-  if (isLoading || !data) return "Loading...";
+  function ClassButton(enrollment: Enrollment) {
+    return (
+      <Button
+        key={enrollment.id}
+        onClick={() => switchCourse(enrollment.id as string, enrollment.name)}
+      >
+        {enrollment.name} ({enrollment.term}){" "}
+        {store$.id.get() == enrollment.id && <>(selected)</>}
+      </Button>
+    );
+  }
+
+  if (!data || isLoading) return "Loading...";
 
   if (error) return `An error occured: ${error}`;
 
@@ -97,14 +86,8 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
           {/* students can only see enabled courses, admin sees all */}
           {auth.user?.profile.is_admin ? (
             <>
-              {data.map((course: Course | CourseSlim) => (
-                <Button
-                  key={course.id}
-                  onClick={() => switchCourse(course.id as string, course.name)}
-                >
-                  {course.name} ({course.term}){" "}
-                  {store$.id.get() == course.id && <>(selected)</>}
-                </Button>
+              {data.map((enrollment: Enrollment) => (
+                <ClassButton {...enrollment} />
               ))}
               <Button color="green" onClick={handleCreateClass}>
                 Create Class
@@ -125,17 +108,9 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
           ) : (
             <>
               {data
-                .filter((course: Course | CourseSlim) => course.enabled)
-                .map((course: Course | CourseSlim) => (
-                  <Button
-                    key={course.id}
-                    onClick={() =>
-                      switchCourse(course.id as string, course.name)
-                    }
-                  >
-                    {course.name} ({course.term}){" "}
-                    {store$.id.get() == course.id && <>(selected)</>}
-                  </Button>
+                .filter((enrollment: Enrollment) => enrollment.enabled)
+                .map((enrollment: Enrollment) => (
+                  <ClassButton {...enrollment} />
                 ))}
             </>
           )}

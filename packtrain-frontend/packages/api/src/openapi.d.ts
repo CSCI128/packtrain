@@ -223,36 +223,6 @@ declare namespace Components {
             late_passes_used?: number; // double
         }
         /**
-         * A slim course
-         */
-        export interface CourseSlim {
-            /**
-             * example:
-             * 999-9999-9999-99
-             */
-            id?: string;
-            /**
-             * example:
-             * Fall 2020
-             */
-            term: string;
-            /**
-             * example:
-             * EXCL101
-             */
-            name: string;
-            /**
-             * example:
-             * Fall.2020.EXCL.101
-             */
-            code: string;
-            /**
-             * example:
-             * true
-             */
-            enabled?: boolean;
-        }
-        /**
          * Import a new course from canvas
          */
         export interface CourseSyncTask {
@@ -351,6 +321,11 @@ declare namespace Components {
              * owner
              */
             course_role: "student" | "instructor" | "ta" | "owner";
+            /**
+             * example:
+             * true
+             */
+            enabled?: boolean;
         }
         /**
          * An error occurred while processing that query
@@ -1573,11 +1548,6 @@ declare namespace Paths {
             export type $200 = /* Information relevant to a student */ Components.Schemas.StudentInformation;
         }
     }
-    namespace GetCoursesStudent {
-        namespace Responses {
-            export type $200 = /* A slim course */ Components.Schemas.CourseSlim[];
-        }
-    }
     namespace GetCredentials {
         namespace Responses {
             export type $200 = /* A list of credentials */ Components.Schemas.Credentials;
@@ -2000,25 +1970,6 @@ declare namespace Paths {
             export type $200 = /* A grading policy */ Components.Schemas.Policy[];
         }
     }
-    namespace OwnerGetCourses {
-        namespace Parameters {
-            /**
-             * example:
-             * true
-             */
-            export type OnlyActive = boolean;
-        }
-        export interface QueryParameters {
-            onlyActive?: /**
-             * example:
-             * true
-             */
-            Parameters.OnlyActive;
-        }
-        namespace Responses {
-            export type $200 = /* A complete course */ Components.Schemas.Course[];
-        }
-    }
     namespace PostMasterMigration {
         namespace Parameters {
             /**
@@ -2410,21 +2361,6 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.DisableUser.Responses.$201>
-  /**
-   * owner_get_courses - Get all courses
-   * 
-   * Get all courses, returning
-   * only active courses by default, and
-   * inactive courses if specified. Will
-   * return an empty list if there are no
-   * courses.
-   * 
-   */
-  'owner_get_courses'(
-    parameters?: Parameters<Paths.OwnerGetCourses.QueryParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.OwnerGetCourses.Responses.$200>
   /**
    * get_course - Get existing course
    * 
@@ -2956,17 +2892,6 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetCourseInformationStudent.Responses.$200>
   /**
-   * get_courses_student - Get all courses
-   * 
-   * Get all active courses for a student
-   * 
-   */
-  'get_courses_student'(
-    parameters?: Parameters<UnknownParamsObject> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetCoursesStudent.Responses.$200>
-  /**
    * get_course_assignments_student - Get assignments for course
    * 
    * Get currently released assignments for course
@@ -3111,23 +3036,6 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.DisableUser.Responses.$201>
-  }
-  ['/owner/courses']: {
-    /**
-     * owner_get_courses - Get all courses
-     * 
-     * Get all courses, returning
-     * only active courses by default, and
-     * inactive courses if specified. Will
-     * return an empty list if there are no
-     * courses.
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.OwnerGetCourses.QueryParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.OwnerGetCourses.Responses.$200>
   }
   ['/owner/courses/{course_id}']: {
     /**
@@ -3739,19 +3647,6 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetCourseInformationStudent.Responses.$200>
   }
-  ['/student/courses']: {
-    /**
-     * get_courses_student - Get all courses
-     * 
-     * Get all active courses for a student
-     * 
-     */
-    'get'(
-      parameters?: Parameters<UnknownParamsObject> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetCoursesStudent.Responses.$200>
-  }
   ['/student/courses/{course_id}/assignments']: {
     /**
      * get_course_assignments_student - Get assignments for course
@@ -3815,7 +3710,6 @@ export type AssignmentSlim = Components.Schemas.AssignmentSlim;
 export type Course = Components.Schemas.Course;
 export type CourseLateRequestConfig = Components.Schemas.CourseLateRequestConfig;
 export type CourseMember = Components.Schemas.CourseMember;
-export type CourseSlim = Components.Schemas.CourseSlim;
 export type CourseSyncTask = Components.Schemas.CourseSyncTask;
 export type Credential = Components.Schemas.Credential;
 export type Credentials = Components.Schemas.Credentials;

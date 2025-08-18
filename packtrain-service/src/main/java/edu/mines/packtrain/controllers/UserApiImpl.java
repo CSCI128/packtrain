@@ -92,6 +92,7 @@ public class UserApiImpl implements UserApiDelegate {
                 .name(course.getName())
                 .code(course.getCode())
                 .cwid(user.getCwid())
+                .enabled(course.isEnabled())
                 .courseRole(
                         EnrollmentDTO.CourseRoleEnum.fromValue(
                                 courseMemberService.findCourseMemberGivenCourseAndCwid(course, user.getCwid())
