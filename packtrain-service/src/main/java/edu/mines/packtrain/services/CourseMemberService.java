@@ -47,6 +47,7 @@ public class CourseMemberService {
     }
 
     public Optional<CourseMember> findCourseMemberGivenCourseAndCwid(Course course, String cwid) {
+        // TODO CODE SMELLS - need to add unique constant
         Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, cwid).stream().findFirst();
         if (courseMember.isEmpty()){
             return Optional.empty();
@@ -381,5 +382,9 @@ public class CourseMemberService {
         }
 
         return member.get().getCanvasId();
+    }
+
+    public boolean isUserEnrolledInCourse(String cwid, Course course) {
+        return courseMemberRepo.existsByCourseAndId(course, cwid);
     }
 }

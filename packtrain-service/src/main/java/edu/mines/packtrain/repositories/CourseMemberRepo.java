@@ -44,4 +44,7 @@ public interface CourseMemberRepo extends CrudRepository<CourseMember, UUID> {
 
     @Query("select cm.course from course_member cm where cm.user.cwid = ?1")
     List<Course> getEnabledCoursesByUserId(String id);
+
+    @Query("select count(*) > 0 from course_member cm where cm.user.cwid = ?2 and cm.course = ?1")
+    boolean existsByCourseAndId(Course course, String cwid);
 }

@@ -286,6 +286,11 @@ public class RawScoreService {
 
         String cwid = line[CWID_IDX].trim();
 
+        if (rawScoreRepo.existsByCwidAndMigrationId(cwid, migrationId)){
+            log.warn("Duplicate score for '{}'", cwid);
+            return Optional.empty();
+        }
+
         String status = line[STATUS_IDX].trim();
 
         RawScore newScore = new RawScore();
@@ -301,7 +306,6 @@ public class RawScoreService {
             newScore.setSubmissionStatus(SubmissionStatus.MISSING);
             return Optional.of(rawScoreRepo.save(newScore));
         }
-
 
         double score = Double.parseDouble(line[SCORE_IDX]);
 
@@ -325,6 +329,7 @@ public class RawScoreService {
         newScore.setSubmissionTime(submissionTime);
         newScore.setHoursLate(hoursLate);
         newScore.setSubmissionStatus(submissionStatus);
+
 
         return Optional.of(rawScoreRepo.save(newScore));
     }
