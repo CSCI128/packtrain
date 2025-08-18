@@ -155,7 +155,8 @@ export function EditCourse() {
           data.late_request_config.enabled_extension_reasons,
       });
     }
-  }, [data, form]);
+    // eslint-disable-next-line
+  }, [data]);
 
   const pollTaskUntilComplete = useCallback(
     async (taskId: number, delay = 5000) => {

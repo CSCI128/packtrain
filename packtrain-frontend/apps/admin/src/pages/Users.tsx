@@ -30,7 +30,7 @@ export function UsersPage() {
     data: courseData,
     error: courseError,
     isLoading: courseIsLoading,
-  } = useQuery<Course>({
+  } = useQuery<Course | null>({
     queryKey: ["getCourse"],
     queryFn: () =>
       getApiClient()
@@ -195,9 +195,9 @@ export function UsersPage() {
     }
   }, [data]);
 
-  if (isLoading || !data) return "Loading...";
+  if (isLoading || !data || !courseData || courseIsLoading) return "Loading...";
 
-  if (error) return `An error occured: ${error}`;
+  if (error || courseError) return `An error occured: ${error}`;
 
   const setSorting = (field: keyof User) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
