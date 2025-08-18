@@ -9,6 +9,7 @@ import {
 import { getApiClient } from "@repo/api/index";
 import { CourseMember } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { Loading } from "@repo/ui/Loading";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
@@ -88,7 +89,7 @@ export function MembersPage() {
   }, [instructorData, sortBy, reverseSortDirection, search]);
 
   if (isLoading || !data || instructorIsLoading || !instructorData)
-    return "Loading...";
+    return <Loading />;
 
   if (error || instructorError) return `An error occured: ${error}`;
 

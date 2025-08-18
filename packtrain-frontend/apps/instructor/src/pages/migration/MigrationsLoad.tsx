@@ -16,6 +16,7 @@ import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
 import { Course, MasterMigration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { Loading } from "@repo/ui/Loading";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -225,7 +226,7 @@ export function MigrationsLoadPage() {
     );
   };
 
-  if (isLoading || !data) return "Loading...";
+  if (isLoading || !data) return <Loading />;
 
   if (error) return `An error occured: ${error}`;
 

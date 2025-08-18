@@ -3,6 +3,7 @@ import { getApiClient } from "@repo/api/index";
 import { MasterMigration, Migration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
+import { Loading } from "@repo/ui/Loading";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -51,7 +52,7 @@ export function MigrationsPage() {
         .catch((err) => console.log(err)),
   });
 
-  if (isLoading || !data) return "Loading...";
+  if (isLoading || !data) return <Loading />;
 
   if (error) return `An error occured: ${error}`;
 

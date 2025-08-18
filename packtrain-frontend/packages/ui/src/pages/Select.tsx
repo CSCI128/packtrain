@@ -10,6 +10,7 @@ import {
 import { getApiClient } from "@repo/api/index";
 import { Enrollment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { Loading } from "@repo/ui/Loading";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
@@ -72,7 +73,7 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     );
   }
 
-  if (!data || isLoading) return "Loading...";
+  if (!data || isLoading) return <Loading />;
 
   if (error) return `An error occured: ${error}`;
 

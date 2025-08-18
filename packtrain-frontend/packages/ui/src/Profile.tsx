@@ -16,6 +16,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
 import { Credential, Enrollment, User } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { Loading } from "@repo/ui/Loading";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { useAuth } from "react-oidc-context";
@@ -136,7 +137,7 @@ export function ProfilePage() {
         .catch((err) => console.log(err)),
   });
 
-  if (isLoading || !data) return "Loading...";
+  if (isLoading || !data) return <Loading />;
 
   if (credentialIsLoading || !credentialData) return "Credentials loading..";
 

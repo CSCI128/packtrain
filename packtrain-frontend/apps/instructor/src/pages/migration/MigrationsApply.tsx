@@ -21,6 +21,7 @@ import {
   Task,
 } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { Loading } from "@repo/ui/Loading";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -237,7 +238,7 @@ export function MigrationsApplyPage() {
     !policyData ||
     policyIsLoading
   )
-    return "Loading...";
+    return <Loading />;
 
   if (migrationError || courseError || policyError)
     return `An error occured: ${migrationError}`;

@@ -21,6 +21,7 @@ import { getApiClient } from "@repo/api/index";
 import { Assignment, Course } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
+import { Loading } from "@repo/ui/Loading";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -205,7 +206,7 @@ export function AssignmentsPage() {
     }
   }, [data?.assignments, sortBy, reverseSortDirection, search]);
 
-  if (isLoading || !data) return "Loading...";
+  if (isLoading || !data) return <Loading />;
 
   if (error) return `An error occurred: ${error}`;
 

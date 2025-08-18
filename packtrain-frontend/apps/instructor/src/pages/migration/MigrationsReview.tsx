@@ -24,6 +24,7 @@ import {
   Score,
 } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { Loading } from "@repo/ui/Loading";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -194,7 +195,7 @@ export function MigrationsReviewPage() {
     !migrationData ||
     migrationIsLoading
   )
-    return "Loading...";
+    return <Loading />;
 
   if (masterMigrationError || courseError || migrationError)
     return `An error occured: ${masterMigrationError}`;

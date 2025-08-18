@@ -16,6 +16,7 @@ import { getApiClient } from "@repo/api/index";
 import { Course, LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
+import { Loading } from "@repo/ui/Loading";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -133,7 +134,7 @@ export function ApprovalPage() {
     }
   }, [data]);
 
-  if (isLoading || !data || courseIsLoading || !courseData) return "Loading...";
+  if (isLoading || !data || courseIsLoading || !courseData) return <Loading />;
 
   if (error || courseError) return `An error occured: ${error} ${courseError}`;
 
