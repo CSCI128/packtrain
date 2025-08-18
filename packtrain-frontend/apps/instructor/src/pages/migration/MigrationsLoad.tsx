@@ -1,10 +1,12 @@
 import {
   Box,
   Button,
+  Center,
   Container,
   Divider,
   FileInput,
   Group,
+  Loader,
   MultiSelect,
   Stack,
   Stepper,
@@ -24,6 +26,8 @@ export function MigrationsLoadPage() {
   const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
     []
   );
+  const [uploading, setUploading] = useState(false);
+  const [canValidate, setCanValidate] = useState(false); // canValidate if files finished uploading
   const [validated, setValidated] = useState(false);
   const [masterMigrationId, setMasterMigrationId] = useState<string>("");
 
@@ -196,6 +200,8 @@ export function MigrationsLoadPage() {
             // @ts-ignore
             file,
           });
+          setUploading(false);
+          setCanValidate(true);
         },
       }
     );
@@ -212,7 +218,7 @@ export function MigrationsLoadPage() {
         master_migration_id: masterMigrationId,
       },
       {
-        onSuccess: (data) => {
+        onSuccess: () => {
           navigate("/instructor/migrate/apply");
         },
       }
@@ -284,9 +290,11 @@ export function MigrationsLoadPage() {
                   {/*<Text>View Data</Text>*/}
                   <FileInput
                     placeholder="Upload a file.."
-                    onChange={(file) =>
-                      uploadForAssignment(file as File, selectedAssignment)
-                    }
+                    onChange={(file) => {
+                      uploadForAssignment(file as File, selectedAssignment);
+                      setUploading(true);
+                      setCanValidate(false);
+                    }}
                   />
                 </Group>
               </Group>
@@ -294,6 +302,13 @@ export function MigrationsLoadPage() {
           </React.Fragment>
         ))}
       </Stack>
+
+      {uploading && (
+        <Center mt={20}>
+          <Loader color="blue" mr={10} />
+          <Text>Uploading file..</Text>
+        </Center>
+      )}
 
       <Group justify="space-between" mt="xl">
         <Button
@@ -321,9 +336,11 @@ export function MigrationsLoadPage() {
             Cancel
           </Button>
 
-          <Button color="green" onClick={validateAssignments}>
-            Validate
-          </Button>
+          {!uploading && canValidate && (
+            <Button color="green" onClick={validateAssignments}>
+              Validate
+            </Button>
+          )}
 
           {validated ? (
             <Button color="blue" onClick={loadAssignments}>
