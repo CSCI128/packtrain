@@ -83,9 +83,13 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
           {/* students can only see enabled courses, admin sees all */}
           {auth.user?.profile.is_admin ? (
             <>
-              {data.map((enrollment: Enrollment) => (
-                <ClassButton key={enrollment.id} {...enrollment} />
-              ))}
+              {data.length === 0 ? (
+                <Text>No enrollments found!</Text>
+              ) : (
+                data.map((enrollment: Enrollment) => (
+                  <ClassButton key={enrollment.id} {...enrollment} />
+                ))
+              )}
               <Button color="green" onClick={handleCreateClass}>
                 Create Class
               </Button>
@@ -104,11 +108,15 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
             </>
           ) : (
             <>
-              {data
-                .filter((enrollment: Enrollment) => enrollment.enabled)
-                .map((enrollment: Enrollment) => (
-                  <ClassButton key={enrollment.id} {...enrollment} />
-                ))}
+              {data.length === 0 ? (
+                <Text>No enrollments found!</Text>
+              ) : (
+                data
+                  .filter((enrollment: Enrollment) => enrollment.enabled)
+                  .map((enrollment: Enrollment) => (
+                    <ClassButton key={enrollment.id} {...enrollment} />
+                  ))
+              )}
             </>
           )}
         </Stack>
