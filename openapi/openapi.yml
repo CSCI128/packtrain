@@ -1863,7 +1863,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "2281A8B8-5EF3-449B-A587-CC7326EC8D41"
         name:
           type: string
           example: "Default Policy"
@@ -2044,7 +2045,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: UUID
+          example: "3B7060CE-2C39-4171-8A5D-BF4FE023B475"
         name:
           type: string
           example: "Assessment 1"
@@ -2100,7 +2102,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: UUID
+          example: "3B7060CE-2C39-4171-8A5D-BF4FE023B475"
         name:
           type: string
           example: "Assessment 1"
@@ -2132,7 +2135,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "66FEF953-85F9-448E-B36A-B632754A867E"
         term:
           type: string
           example: "Fall 2020"
@@ -2206,7 +2210,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "66FEF953-85F9-448E-B36A-B632754A867E"
         term:
           type: string
           example: "Fall 2020"
@@ -2268,13 +2273,15 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "F23666B6-A34A-421A-8764-BC72EB7B0E20"
         assignment_id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "5DF9E336-8E79-4E19-9C3E-C071DBB25A26"
         assignment_name:
           type: string
-          example: "999-9999-9999-99"
+          example: "Assessment 11"
         date_submitted:
           type: string
           format: date-time
@@ -2287,7 +2294,7 @@ components:
           $ref: "#/components/schemas/Extension"
         user_requester_id:
           type: string
-          example: "999-9999-9999-99"
+          example: "9999999"
         status:
           type: string
           enum:
@@ -2311,7 +2318,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "26704EEE-7182-45F1-B8FE-27ACCCEC833E"
         reason:
           type: string
           example: "Tech Issues"
@@ -2336,7 +2344,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "1183B0E0-5E39-429F-810E-2D64243C074E"
         migrator:
           $ref: "#/components/schemas/User"
         date_started:
@@ -2395,7 +2404,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "1183B0E0-5E39-429F-810E-2D64243C074E"
         assignment:
           $ref: "#/components/schemas/Assignment"
         policy:
@@ -2468,7 +2478,8 @@ components:
       properties:
         migration_id:
           type: string
-          example: 99-9999-9999-999
+          format: uuid
+          example: "1183B0E0-5E39-429F-810E-2D64243C074E"
         assignment:
           $ref: "#/components/schemas/AssignmentSlim"
         scores:
