@@ -43,19 +43,6 @@ export function MigrationsLoadPage() {
         }),
   });
 
-  const createMasterMigration = useMutation({
-    mutationKey: ["createMasterMigration"],
-    mutationFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.create_master_migration({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
-  });
-
   const createMigration = useMutation({
     mutationKey: ["createMigration"],
     mutationFn: ({
@@ -218,14 +205,6 @@ export function MigrationsLoadPage() {
   };
 
   useEffect(() => {
-    if (!store$.master_migration_id.get()) {
-      createMasterMigration.mutate(undefined, {
-        onSuccess: (data) => {
-          store$.master_migration_id.set(data?.id);
-          setMasterMigrationId(store$.master_migration_id.get() as string);
-        },
-      });
-    }
     console.log(
       `Setting master migration id ${store$.master_migration_id.get()}..`
     );
