@@ -232,12 +232,6 @@ export function MigrationsLoadPage() {
     setMasterMigrationId(store$.master_migration_id.get() as string);
   }, [store$]);
 
-  useEffect(() => {
-    if (selectedAssignmentIds && selectedAssignmentIds.length > 0) {
-      console.log("CHANGED:", selectedAssignmentIds);
-    }
-  }, [selectedAssignmentIds]);
-
   const loadAssignments = () => {
     loadMasterMigration.mutate(
       {

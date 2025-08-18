@@ -5,6 +5,7 @@ import {
   Divider,
   Group,
   Modal,
+  NumberInput,
   ScrollArea,
   Stack,
   Stepper,
@@ -142,6 +143,12 @@ export function MigrationsReviewPage() {
   const [editScoreOpened, { open: openEditScore, close: closeEditScore }] =
     useDisclosure(false);
   const [selectedScore, setSelectedScore] = useState<Score | null>(null);
+  const [statistics, setStatistics] = useState<{
+    extensionsApplied: 0;
+    zeroCredit: 0;
+    missingAssignments: 0;
+    latePenalties: 0;
+  }>();
 
   useEffect(() => {
     if (migrationData && migrationData.migrations) {
@@ -220,6 +227,15 @@ export function MigrationsReviewPage() {
     openEditScore();
   };
 
+  const handleEditClose = (row: Score) => {
+    // updateStudentScore.mutate({
+    //   master_migration_id: store$.master_migration_id.get() as string,
+    //   migration_id: selectedMigration?.id as string,
+    // });
+
+    closeEditScore();
+  };
+
   const rows = sortedData.map((row: Score) => (
     // student name, days late, score to apply, raw score, status
     <Table.Tr key={row.student?.cwid}>
@@ -227,12 +243,15 @@ export function MigrationsReviewPage() {
       <Table.Td>{row.submission_date}</Table.Td>
       <Table.Td>
         <Center>
-          {/* TODO add margin here */}
-          {row.score}
+          <Text size="sm" mr={5}>
+            {row.score}
+          </Text>
           <BsPencilSquare onClick={() => handleEditOpen(row)} />
         </Center>
       </Table.Td>
-      <Table.Td>{row.score}</Table.Td>
+      <Table.Td>
+        <Center>{row.score}</Center>
+      </Table.Td>
       <Table.Td>{row.status}</Table.Td>
     </Table.Tr>
   ));
@@ -262,8 +281,7 @@ export function MigrationsReviewPage() {
                       store$.master_migration_id.get() as string,
                   },
                   {
-                    onSuccess: (data) => {
-                      console.log("COMPLETED POST WITH:", data);
+                    onSuccess: () => {
                       navigate("/instructor/migrate/post");
                     },
                   }
@@ -279,20 +297,23 @@ export function MigrationsReviewPage() {
       <Modal
         opened={editScoreOpened}
         onClose={closeEditScore}
-        title="Edit Score to Apply"
+        title={"Edit Score for " + selectedScore?.student?.name}
       >
-        <>
-          <Text>Bruh</Text>
+        <Stack mb={20}>
+          <NumberInput
+            label="Score:"
+            value={String(selectedScore?.raw_score)}
+          />
+        </Stack>
 
-          <Group gap="xs" justify="flex-end">
-            <Button color="gray" variant="light" onClick={closeEditScore}>
-              Cancel
-            </Button>
-            <Button color="green" type="submit">
-              Add
-            </Button>
-          </Group>
-        </>
+        <Group gap="xs" justify="flex-end">
+          <Button color="gray" variant="light" onClick={closeEditScore}>
+            Cancel
+          </Button>
+          <Button color="green" type="submit">
+            Add
+          </Button>
+        </Group>
       </Modal>
 
       <Container size="md">
@@ -418,16 +439,17 @@ export function MigrationsReviewPage() {
 
                   <Group>
                     <Text>
-                      <b>X</b> extensions applied
+                      <b>{statistics?.extensionsApplied}</b> extensions applied
                     </Text>
                     <Text>
-                      <b>X</b> zero credit
+                      <b>{statistics?.zeroCredit}</b> zero credit
                     </Text>
                     <Text>
-                      <b>X</b> missing assignments
+                      <b>{statistics?.missingAssignments}</b> missing
+                      assignments
                     </Text>
                     <Text>
-                      <b>X</b> late penalties
+                      <b>{statistics?.latePenalties}</b> late penalties
                     </Text>
                   </Group>
                 </Tabs.Panel>
@@ -438,7 +460,7 @@ export function MigrationsReviewPage() {
           <Text>No migrations were found!</Text>
         )}
 
-        <Group justify="space-between" mt="xl">
+        <Group justify="space-between" mt="l">
           <Button color="gray">Export</Button>
 
           <Group>

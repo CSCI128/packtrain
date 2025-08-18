@@ -257,9 +257,8 @@ export function MigrationsApplyPage() {
                   value: policy.id as string,
                 }))
               }
-              // TODO set default value
               onChange={(value) => {
-                setSelectedPolicyId(value ?? "");
+                setSelectedPolicyId(value ?? "1");
               }}
             />
             <Group justify="flex-end">
@@ -373,7 +372,7 @@ export function MigrationsApplyPage() {
           <strong>0</strong> unapproved extensions
         </Text>
 
-        {!posting && <>Applying grades..</>}
+        {!posting && <Text mt={20}>Applying grades..</Text>}
 
         <Group justify="flex-end" mt="md">
           <Button
