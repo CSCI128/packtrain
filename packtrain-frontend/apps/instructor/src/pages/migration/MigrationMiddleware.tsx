@@ -55,6 +55,13 @@ export const MigrationMiddleware = ({
       status === "started"
     ) {
       navigate("/instructor/migrate/review");
+    } else if (
+      currentPage !== "/instructor/migrate/post" &&
+      status !== "created" &&
+      status !== "loaded" &&
+      status !== "started"
+    ) {
+      navigate("/instructor/migrate/post");
     }
   }
 
