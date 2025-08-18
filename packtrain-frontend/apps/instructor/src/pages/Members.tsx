@@ -239,18 +239,18 @@ export function MembersPage() {
               <Table.Tbody>
                 <Table.Tr>
                   <TableHeader
-                    sorted={sortBy === "cwid"}
-                    reversed={reverseSortDirection}
-                    onSort={() => setInstructorSorting("cwid")}
-                  >
-                    CWID
-                  </TableHeader>
-                  <TableHeader
                     sorted={sortBy === "name"}
                     reversed={reverseSortDirection}
                     onSort={() => setSorting("name")}
                   >
                     Name
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "cwid"}
+                    reversed={reverseSortDirection}
+                    onSort={() => setInstructorSorting("cwid")}
+                  >
+                    CWID
                   </TableHeader>
                   <TableHeader
                     sorted={sortBy === "course_role"}
