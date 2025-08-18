@@ -19,6 +19,7 @@ import { getApiClient } from "@repo/api/index";
 import {
   Course,
   MasterMigration,
+  MigrationScoreChange,
   MigrationWithScores,
   Score,
 } from "@repo/api/openapi";
@@ -53,9 +54,9 @@ export function MigrationsReviewPage() {
   });
 
   const {
-    data: migrationData,
-    error: migrationError,
-    isLoading: migrationIsLoading,
+    data: masterMigrationData,
+    error: masterMigrationError,
+    isLoading: masterMigrationIsLoading,
   } = useQuery<MasterMigration | null>({
     queryKey: ["getMasterMigrations"],
     queryFn: () =>
@@ -73,11 +74,10 @@ export function MigrationsReviewPage() {
         }),
   });
 
-  // rename to migrationData, rename above to mastermigrationdata
   const {
-    data: migrationData2,
-    error: migrationError2,
-    isLoading: migrationIsLoading2,
+    data: migrationData,
+    error: migrationError,
+    isLoading: migrationIsLoading,
   } = useQuery<MigrationWithScores[] | null>({
     queryKey: ["getMigrationsWithScores"],
     queryFn: () =>
@@ -114,17 +114,29 @@ export function MigrationsReviewPage() {
     mutationFn: ({
       master_migration_id,
       migration_id,
+      migration_score_change,
     }: {
       master_migration_id: string;
       migration_id: string;
+      migration_score_change: MigrationScoreChange;
     }) =>
       getApiClient()
         .then((client) =>
-          client.update_student_score({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-            migration_id: migration_id,
-          })
+          client.update_student_score(
+            {
+              course_id: store$.id.get() as string,
+              master_migration_id: master_migration_id,
+              migration_id: migration_id,
+            },
+            {
+              cwid: migration_score_change.cwid,
+              new_score: migration_score_change.new_score,
+              justification: migration_score_change.justification,
+              submission_status: migration_score_change.submission_status,
+              adjusted_submission_date:
+                migration_score_change.adjusted_submission_date,
+            }
+          )
         )
         .then((res) => res.data)
         .catch((err) => console.log(err)),
@@ -151,41 +163,41 @@ export function MigrationsReviewPage() {
   }>();
 
   useEffect(() => {
-    if (migrationData && migrationData.migrations) {
+    if (masterMigrationData && masterMigrationData.migrations) {
       setSelectedAssignmentIds(
-        migrationData.migrations.map(
+        masterMigrationData.migrations.map(
           ({ assignment }) => assignment.id as string
         )
       );
     }
-  }, [migrationData]);
+  }, [masterMigrationData]);
 
   useEffect(() => {
-    if (migrationData2) {
-      if (selectedAssignmentIds.length > 0 && migrationData2) {
+    if (migrationData) {
+      if (selectedAssignmentIds.length > 0 && migrationData) {
         setSelectedAssignment(selectedAssignmentIds[0]);
       }
 
-      const matchingMigration = migrationData2.find(
+      const matchingMigration = migrationData.find(
         (m) => m.assignment?.id === selectedAssignmentIds[0]
       );
 
       setSortedData(matchingMigration?.scores ?? []);
     }
-  }, [selectedAssignmentIds, migrationData2]);
+  }, [selectedAssignmentIds, migrationData]);
 
   if (
-    migrationIsLoading ||
-    !migrationData ||
+    masterMigrationIsLoading ||
+    !masterMigrationData ||
     courseIsLoading ||
     !courseData ||
-    !migrationData2 ||
-    migrationIsLoading2
+    !migrationData ||
+    migrationIsLoading
   )
     return "Loading...";
 
-  if (migrationError || courseError || migrationError2)
-    return `An error occured: ${migrationError}`;
+  if (masterMigrationError || courseError || migrationError)
+    return `An error occured: ${masterMigrationError}`;
 
   const setSorting = (field: keyof Score) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
@@ -193,7 +205,7 @@ export function MigrationsReviewPage() {
     setSortBy(field);
     setSortedData(
       sortData<Score>(
-        migrationData2
+        migrationData
           ?.filter((x) => x.assignment?.id === selectedAssignment)
           .at(0)?.scores as Score[],
         {
@@ -210,7 +222,7 @@ export function MigrationsReviewPage() {
     setSearch(value);
     setSortedData(
       sortData<Score>(
-        migrationData2
+        migrationData
           ?.filter((x) => x.assignment?.id === selectedAssignment)
           .at(0)?.scores as Score[],
         {
@@ -227,11 +239,22 @@ export function MigrationsReviewPage() {
     openEditScore();
   };
 
-  const handleEditClose = (row: Score) => {
-    // updateStudentScore.mutate({
-    //   master_migration_id: store$.master_migration_id.get() as string,
-    //   migration_id: selectedMigration?.id as string,
-    // });
+  const handleEditSubmit = () => {
+    updateStudentScore.mutate({
+      master_migration_id: store$.master_migration_id.get() as string,
+      migration_id: migrationData
+        ?.filter((x) => x.assignment?.id === selectedAssignment)
+        .at(0)?.migration_id as string,
+      migration_score_change: {
+        // TODO see if any of the selectedScore fields can actually be changed
+        cwid: selectedScore?.student?.cwid as string,
+        justification: "",
+        new_score: 10,
+        submission_status:
+          selectedScore?.status as MigrationScoreChange["submission_status"],
+        adjusted_submission_date: selectedScore?.submission_date,
+      },
+    });
 
     closeEditScore();
   };
@@ -310,7 +333,7 @@ export function MigrationsReviewPage() {
           <Button color="gray" variant="light" onClick={closeEditScore}>
             Cancel
           </Button>
-          <Button color="green" type="submit">
+          <Button color="green" type="submit" onClick={handleEditSubmit}>
             Add
           </Button>
         </Group>
@@ -423,8 +446,8 @@ export function MigrationsReviewPage() {
                           <Table.Tr>
                             <Table.Td
                               colSpan={
-                                migrationData2[0] &&
-                                Object.keys(migrationData2[0].scores).length
+                                migrationData[0] &&
+                                Object.keys(migrationData[0].scores).length
                               }
                             >
                               <Text fw={500} ta="center">

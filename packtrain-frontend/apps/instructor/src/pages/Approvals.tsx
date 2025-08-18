@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   Center,
   Container,
@@ -231,30 +230,30 @@ export function ApprovalPage() {
             {courseData && courseData.enabled && (
               <Center>
                 {row.status !== "approved" && (
-                  <Box
+                  <Button
                     size="sm"
                     py={5}
                     px={10}
                     mr={5}
-                    bd="1px solid green"
-                    c="green"
+                    radius={10}
+                    bg="green"
                     onClick={() => handleApproveExtension(row)}
                   >
                     Approve
-                  </Box>
+                  </Button>
                 )}
                 {row.status !== "rejected" && (
-                  <Box
+                  <Button
                     size="sm"
                     py={5}
                     px={10}
                     mr={5}
-                    bd="1px solid red"
-                    c="red"
+                    radius={10}
+                    bg="red"
                     onClick={() => handleDenyExtension(row)}
                   >
                     Deny
-                  </Box>
+                  </Button>
                 )}
               </Center>
             )}
