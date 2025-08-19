@@ -31,6 +31,8 @@ export const MigrationMiddleware = ({
     isLoading: migrationIsLoading,
   } = useGetMasterMigration();
 
+  // stored for debouncing - middleware queries will run too quickly
+  // and move the user back upon clicking "next" if this doesn't exist
   const [lastState, setLastState] = useState<string>();
 
   // Disallow moving forward in migration flow if state is not ready
