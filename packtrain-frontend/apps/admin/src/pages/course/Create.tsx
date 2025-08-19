@@ -16,13 +16,15 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
-import { Course, CourseSyncTask, Credential, Task } from "@repo/api/openapi";
+import { Course, CourseSyncTask, Task } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useGetCredentials } from "../../hooks";
 
 export function CreatePage() {
+  const { data: credentialData, error: credentialError } = useGetCredentials();
   const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
   const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
@@ -80,20 +82,6 @@ export function CreatePage() {
         .then((client) => client.delete_course(course_id))
         .then((res) => res.data)
         .catch((err) => console.log(err)),
-  });
-
-  const { data: credentialData, error: credentialError } = useQuery<
-    Credential[]
-  >({
-    queryKey: ["getCredentials"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_credentials())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
   });
 
   const importCourse = (canvasId: string) => {

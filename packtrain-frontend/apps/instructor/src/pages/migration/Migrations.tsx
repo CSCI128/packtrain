@@ -4,26 +4,13 @@ import { MasterMigration, Migration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
 import { Loading } from "@repo/ui/Loading";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
+import { useGetMasterMigrations } from "../../hooks";
 
 export function MigrationsPage() {
   const navigate = useNavigate();
-  const { data, error, isLoading } = useQuery<MasterMigration[] | null>({
-    queryKey: ["getMigrations"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_all_migrations({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  const { data, error, isLoading } = useGetMasterMigrations();
 
   const createMasterMigration = useMutation({
     mutationKey: ["createMasterMigration"],

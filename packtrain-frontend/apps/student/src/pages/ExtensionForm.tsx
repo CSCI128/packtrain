@@ -13,18 +13,26 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
-import { Assignment, LateRequest, StudentInformation } from "@repo/api/openapi";
+import { Assignment, LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store.js";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
+import { useMutation } from "@tanstack/react-query";
 import { Loading } from "@repo/ui/Loading";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
 import { Link, useNavigate } from "react-router-dom";
+import { useGetCourseStudent, useGetExtensions } from "../hooks";
 
 export function ExtensionForm() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const { data, error, isLoading } = useGetExtensions();
+  const {
+    data: courseData,
+    error: courseError,
+    isLoading: courseIsLoading,
+  } = useGetCourseStudent();
   const [searchValue, setSearchValue] = useState("");
   const [latePassView, setLatePassView] = useState<boolean>(true);
   const [numDaysRequested, setNumDaysRequested] = useState<number>(1);
@@ -64,47 +72,11 @@ export function ExtensionForm() {
     },
   });
 
-  const {
-    data: courseData,
-    error: courseError,
-    isLoading: courseIsLoading,
-  } = useQuery<StudentInformation | null>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course_information_student({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
-
   const getAssignmentDueDate = (assignmentId: string) => {
     return courseData?.course.assignments
       ?.filter((x: Assignment) => x.id === assignmentId)
       .at(0)?.due_date;
   };
-
-  const { data, error, isLoading } = useQuery<LateRequest[] | null>({
-    queryKey: ["getExtensions"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_all_extensions({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
 
   const postForm = useMutation({
     mutationKey: ["createExtensionRequest"],

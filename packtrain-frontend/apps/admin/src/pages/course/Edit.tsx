@@ -17,28 +17,19 @@ import { getApiClient } from "@repo/api/index";
 import { Course, CourseSyncTask, Task } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { Loading } from "@repo/ui/Loading";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useGetCourse } from "../../hooks";
 
 export function EditCourse() {
   const navigate = useNavigate();
-  const { data, error, isLoading } = useQuery<Course>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course({
-            course_id: store$.id.get() as string,
-            include: ["members", "assignments", "sections"],
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  const { data, error, isLoading } = useGetCourse([
+    "members",
+    "assignments",
+    "sections",
+  ]);
 
   const mutation = useMutation({
     mutationKey: ["updateCourse"],

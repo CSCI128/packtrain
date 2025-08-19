@@ -13,18 +13,17 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import {
-  Course,
-  MasterMigration,
-  Migration,
-  Policy,
-  Task,
-} from "@repo/api/openapi";
+import { Migration, Policy, Task } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { Loading } from "@repo/ui/Loading";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  useGetCourseInstructor,
+  useGetMasterMigration,
+  useGetPolicies,
+} from "../../hooks";
 
 export function MigrationsApplyPage() {
   const navigate = useNavigate();
@@ -41,63 +40,20 @@ export function MigrationsApplyPage() {
     data: policyData,
     error: policyError,
     isLoading: policyIsLoading,
-  } = useQuery<Policy[] | null>({
-    queryKey: ["getAllPolicies"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_all_policies({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  } = useGetPolicies();
 
   const {
     data: courseData,
     error: courseError,
     isLoading: courseIsLoading,
-  } = useQuery<Course | null>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course_information_instructor({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  } = useGetCourseInstructor();
 
   const {
     data: migrationData,
     error: migrationError,
     isLoading: migrationIsLoading,
     refetch,
-  } = useQuery<MasterMigration | null>({
-    queryKey: ["getMasterMigrations"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_master_migrations({
-            course_id: store$.id.get() as string,
-            master_migration_id: store$.master_migration_id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  } = useGetMasterMigration();
 
   const setPolicyMigration = useMutation({
     mutationKey: ["setPolicy"],

@@ -16,21 +16,20 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import {
-  Course,
-  MasterMigration,
-  MigrationScoreChange,
-  MigrationWithScores,
-  Score,
-} from "@repo/api/openapi";
+import { MigrationScoreChange, Score } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { Loading } from "@repo/ui/Loading";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
+import {
+  useGetCourseInstructor,
+  useGetMasterMigration,
+  useGetMigrationWithScores,
+} from "../../hooks";
 
 export function MigrationsReviewPage() {
   const navigate = useNavigate();
@@ -38,63 +37,20 @@ export function MigrationsReviewPage() {
     data: courseData,
     error: courseError,
     isLoading: courseIsLoading,
-  } = useQuery<Course | null>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course_information_instructor({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  } = useGetCourseInstructor();
 
   const {
     data: masterMigrationData,
     error: masterMigrationError,
     isLoading: masterMigrationIsLoading,
-  } = useQuery<MasterMigration | null>({
-    queryKey: ["getMasterMigrations"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_master_migrations({
-            course_id: store$.id.get() as string,
-            master_migration_id: store$.master_migration_id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  } = useGetMasterMigration();
 
   const {
     data: migrationData,
     error: migrationError,
     isLoading: migrationIsLoading,
-  } = useQuery<MigrationWithScores[] | null>({
-    queryKey: ["getMigrationsWithScores"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_master_migration_to_review({
-            course_id: store$.id.get() as string,
-            master_migration_id: store$.master_migration_id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+    refetch,
+  } = useGetMigrationWithScores();
 
   const reviewMasterMigration = useMutation({
     mutationKey: ["reviewMasterMigration"],
@@ -156,6 +112,7 @@ export function MigrationsReviewPage() {
   const [editScoreOpened, { open: openEditScore, close: closeEditScore }] =
     useDisclosure(false);
   const [selectedScore, setSelectedScore] = useState<Score | null>(null);
+  const [updatedScore, setUpdatedScore] = useState<number>(0);
   const [statistics, setStatistics] = useState<{
     extensionsApplied: 0;
     zeroCredit: 0;
@@ -174,7 +131,9 @@ export function MigrationsReviewPage() {
   }, [masterMigrationData]);
 
   useEffect(() => {
+    console.log("called useffect");
     if (migrationData) {
+      console.log("updating migration data..");
       if (selectedAssignmentIds.length > 0 && migrationData) {
         setSelectedAssignment(selectedAssignmentIds[0]);
       }
@@ -185,7 +144,7 @@ export function MigrationsReviewPage() {
 
       setSortedData(matchingMigration?.scores ?? []);
     }
-  }, [selectedAssignmentIds, migrationData]);
+  }, [selectedAssignmentIds, migrationData, selectedAssignment]);
 
   if (
     masterMigrationIsLoading ||
@@ -241,30 +200,35 @@ export function MigrationsReviewPage() {
   };
 
   const handleEditSubmit = () => {
-    updateStudentScore.mutate({
-      master_migration_id: store$.master_migration_id.get() as string,
-      migration_id: migrationData
-        ?.filter((x) => x.assignment?.id === selectedAssignment)
-        .at(0)?.migration_id as string,
-      migration_score_change: {
-        // TODO see if any of the selectedScore fields can actually be changed
-        cwid: selectedScore?.student?.cwid as string,
-        justification: "",
-        new_score: 10,
-        submission_status:
-          selectedScore?.status as MigrationScoreChange["submission_status"],
-        adjusted_submission_date: selectedScore?.submission_date,
+    updateStudentScore.mutate(
+      {
+        master_migration_id: store$.master_migration_id.get() as string,
+        migration_id: migrationData
+          ?.filter((x) => x.assignment?.id === selectedAssignment)
+          .at(0)?.migration_id as string,
+        migration_score_change: {
+          // TODO see if any of the selectedScore fields need to be changed or removed
+          cwid: selectedScore?.student?.cwid as string,
+          justification: "",
+          new_score: updatedScore,
+          submission_status:
+            selectedScore?.status as MigrationScoreChange["submission_status"],
+          adjusted_submission_date: selectedScore?.submission_date,
+        },
       },
-    });
-
-    closeEditScore();
+      {
+        onSuccess: () => {
+          closeEditScore();
+          refetch();
+        },
+      }
+    );
   };
 
   const rows = sortedData.map((row: Score) => (
     // student name, days late, score to apply, raw score, status
     <Table.Tr key={row.student?.cwid}>
       <Table.Td>{row.student?.name}</Table.Td>
-      <Table.Td>{row.submission_date}</Table.Td>
       <Table.Td>
         <Center>
           <Text size="sm" mr={5}>
@@ -274,7 +238,10 @@ export function MigrationsReviewPage() {
         </Center>
       </Table.Td>
       <Table.Td>
-        <Center>{row.score}</Center>
+        <Center>{row.raw_score} </Center>
+      </Table.Td>
+      <Table.Td>
+        <Center>{row.days_late} </Center>
       </Table.Td>
       <Table.Td>{row.status}</Table.Td>
     </Table.Tr>
@@ -327,6 +294,7 @@ export function MigrationsReviewPage() {
           <NumberInput
             label="Score:"
             value={String(selectedScore?.raw_score)}
+            onChange={(value) => setUpdatedScore(Number(value))}
           />
         </Stack>
 
@@ -409,14 +377,6 @@ export function MigrationsReviewPage() {
                             Student
                           </TableHeader>
                           <TableHeader
-                            sorted={sortBy === "student"}
-                            reversed={reverseSortDirection}
-                            onSort={() => setSorting("student")}
-                          >
-                            {/* TODO need this */}
-                            Days Late
-                          </TableHeader>
-                          <TableHeader
                             sorted={sortBy === "score"}
                             reversed={reverseSortDirection}
                             onSort={() => setSorting("score")}
@@ -424,12 +384,18 @@ export function MigrationsReviewPage() {
                             Score to Apply
                           </TableHeader>
                           <TableHeader
-                            sorted={sortBy === "score"}
+                            sorted={sortBy === "raw_score"}
                             reversed={reverseSortDirection}
-                            onSort={() => setSorting("score")}
+                            onSort={() => setSorting("raw_score")}
                           >
-                            {/* TODO need this */}
                             Raw Score
+                          </TableHeader>
+                          <TableHeader
+                            sorted={sortBy === "days_late"}
+                            reversed={reverseSortDirection}
+                            onSort={() => setSorting("days_late")}
+                          >
+                            Days Late
                           </TableHeader>
                           <TableHeader
                             sorted={sortBy === "status"}

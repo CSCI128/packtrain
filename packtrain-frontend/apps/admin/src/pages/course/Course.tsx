@@ -8,56 +8,29 @@ import {
   Text,
 } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
-import { Course, Policy } from "@repo/api/openapi";
+import { Policy } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { TableHeader } from "@repo/ui/table/Table";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { BsTrash } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
+import { useGetCourse, useGetPolicies } from "../../hooks";
 
 export function CoursePage() {
+  const navigate = useNavigate();
   const {
     data: courseData,
     error: courseError,
     isLoading: courseIsLoading,
-  } = useQuery<Course>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course({
-            course_id: store$.id.get() as string,
-            include: ["members", "assignments", "sections"],
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
-
+  } = useGetCourse(["members", "assignments", "sections"]);
   const {
     data: policyData,
     error: policyError,
     isLoading: policyIsLoading,
     refetch: refetchPolicies,
-  } = useQuery<Policy[]>({
-    queryKey: ["getPolicies"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.owner_get_all_policies({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  } = useGetPolicies();
+  const [policyDataState, setPolicyData] = useState<Policy[]>(policyData || []);
 
   const deletePolicy = useMutation({
     mutationKey: ["deletePolicy"],
@@ -72,9 +45,6 @@ export function CoursePage() {
         .then((res) => res.data)
         .catch((err) => console.log(err)),
   });
-
-  const navigate = useNavigate();
-  const [policyDataState, setPolicyData] = useState<Policy[]>(policyData || []);
 
   useEffect(() => {
     if (policyData) {

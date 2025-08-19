@@ -16,48 +16,23 @@ import {
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { Course, User } from "@repo/api/openapi";
-import { store$ } from "@repo/api/store";
+import { User } from "@repo/api/openapi";
 import { Loading } from "@repo/ui/Loading";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { useAuth } from "react-oidc-context";
+import { useGetCourse, useGetUsers } from "../hooks";
 
 export function UsersPage() {
   const {
     data: courseData,
     error: courseError,
     isLoading: courseIsLoading,
-  } = useQuery<Course | null>({
-    queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course_information_instructor({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
-
-  const { data, error, isLoading, refetch } = useQuery<User[]>({
-    queryKey: ["getUsers"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_all_users())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  } = useGetCourse([]);
+  const { data, error, isLoading, refetch } = useGetUsers();
 
   const auth = useAuth();
   const [opened, { open, close }] = useDisclosure(false);

@@ -7,6 +7,112 @@ import type {
 } from 'openapi-client-axios';
 
 declare namespace Components {
+    namespace Parameters {
+        /**
+         * example:
+         * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
+         */
+        export type AssignmentPathParameters = string; // uuid
+        /**
+         * example:
+         * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
+         */
+        export type AssignmentQueryParameters = string; // uuid
+        /**
+         * example:
+         * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+         */
+        export type CoursePathParameters = string; // uuid
+        /**
+         * example:
+         * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+         */
+        export type CourseQueryParameters = string; // uuid
+        /**
+         * example:
+         * 99999999
+         */
+        export type CwidPathParameters = string;
+        /**
+         * example:
+         * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+         */
+        export type ExtensionPathParameters = string; // uuid
+        /**
+         * example:
+         * 49D2FB6A-598A-4618-A467-C71D6542D14F
+         */
+        export type MasterMigrationPathParameters = string; // uuid
+        /**
+         * example:
+         * A9DC1F84-C6A7-4201-86CF-116DFE4E59EC
+         */
+        export type MigrationPathParameters = string; // uuid
+        /**
+         * example:
+         * 55AAD0CC-9C92-47E9-9293-05CBED73A4AB
+         */
+        export type PolicyPathParameters = string; // uuid
+        /**
+         * example:
+         * 55AAD0CC-9C92-47E9-9293-05CBED73A4AB
+         */
+        export type PolicyQueryParameters = string; // uuid
+    }
+    export interface PathParameters {
+        CoursePathParameters?: /**
+         * example:
+         * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+         */
+        Parameters.CoursePathParameters /* uuid */;
+        AssignmentPathParameters?: /**
+         * example:
+         * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
+         */
+        Parameters.AssignmentPathParameters /* uuid */;
+        PolicyPathParameters?: /**
+         * example:
+         * 55AAD0CC-9C92-47E9-9293-05CBED73A4AB
+         */
+        Parameters.PolicyPathParameters /* uuid */;
+        CwidPathParameters?: /**
+         * example:
+         * 99999999
+         */
+        Parameters.CwidPathParameters;
+        ExtensionPathParameters?: /**
+         * example:
+         * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+         */
+        Parameters.ExtensionPathParameters /* uuid */;
+        MasterMigrationPathParameters?: /**
+         * example:
+         * 49D2FB6A-598A-4618-A467-C71D6542D14F
+         */
+        Parameters.MasterMigrationPathParameters /* uuid */;
+        MigrationPathParameters?: /**
+         * example:
+         * A9DC1F84-C6A7-4201-86CF-116DFE4E59EC
+         */
+        Parameters.MigrationPathParameters /* uuid */;
+    }
+    export interface QueryParameters {
+        CourseQueryParameters?: /**
+         * example:
+         * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+         */
+        Parameters.CourseQueryParameters /* uuid */;
+        AssignmentQueryParameters?: /**
+         * example:
+         * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
+         */
+        Parameters.AssignmentQueryParameters /* uuid */;
+        PolicyQueryParameters?: /**
+         * example:
+         * 55AAD0CC-9C92-47E9-9293-05CBED73A4AB
+         */
+        Parameters.PolicyQueryParameters /* uuid */;
+    }
     namespace Schemas {
         /**
          * An assignment in a course
@@ -14,9 +120,9 @@ declare namespace Components {
         export interface Assignment {
             /**
              * example:
-             * 999-9999-9999-99
+             * 3B7060CE-2C39-4171-8A5D-BF4FE023B475
              */
-            id?: string;
+            id?: string; // UUID
             /**
              * example:
              * Assessment 1
@@ -84,9 +190,9 @@ declare namespace Components {
         export interface AssignmentSlim {
             /**
              * example:
-             * 999-9999-9999-99
+             * 3B7060CE-2C39-4171-8A5D-BF4FE023B475
              */
-            id: string;
+            id: string; // UUID
             /**
              * example:
              * Assessment 1
@@ -119,9 +225,9 @@ declare namespace Components {
         export interface Course {
             /**
              * example:
-             * 999-9999-9999-99
+             * 66FEF953-85F9-448E-B36A-B632754A867E
              */
-            id?: string;
+            id?: string; // uuid
             /**
              * example:
              * Fall 2020
@@ -293,9 +399,9 @@ declare namespace Components {
         export interface Enrollment {
             /**
              * example:
-             * 999-9999-9999-99
+             * 66FEF953-85F9-448E-B36A-B632754A867E
              */
-            id?: string;
+            id?: string; // uuid
             /**
              * example:
              * Fall 2020
@@ -340,9 +446,9 @@ declare namespace Components {
         export interface Extension {
             /**
              * example:
-             * 999-9999-9999-99
+             * 26704EEE-7182-45F1-B8FE-27ACCCEC833E
              */
-            id?: string;
+            id?: string; // uuid
             /**
              * example:
              * Tech Issues
@@ -371,17 +477,17 @@ declare namespace Components {
         export interface LateRequest {
             /**
              * example:
-             * 999-9999-9999-99
+             * F23666B6-A34A-421A-8764-BC72EB7B0E20
              */
-            id?: string;
+            id?: string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 5DF9E336-8E79-4E19-9C3E-C071DBB25A26
              */
-            assignment_id?: string;
+            assignment_id?: string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * Assessment 11
              */
             assignment_name?: string;
             /**
@@ -397,7 +503,7 @@ declare namespace Components {
             extension?: /* An extension for an assignment */ Extension;
             /**
              * example:
-             * 999-9999-9999-99
+             * 9999999
              */
             user_requester_id?: string;
             /**
@@ -417,9 +523,9 @@ declare namespace Components {
         export interface MasterMigration {
             /**
              * example:
-             * 999-9999-9999-99
+             * 1183B0E0-5E39-429F-810E-2D64243C074E
              */
-            id?: string;
+            id?: string; // uuid
             migrator?: /* A server user */ User;
             /**
              * example:
@@ -466,9 +572,9 @@ declare namespace Components {
         export interface Migration {
             /**
              * example:
-             * 999-9999-9999-99
+             * 1183B0E0-5E39-429F-810E-2D64243C074E
              */
-            id?: string;
+            id?: string; // uuid
             assignment: /* An assignment in a course */ Assignment;
             policy: /* A grading policy */ Policy;
         }
@@ -504,9 +610,9 @@ declare namespace Components {
         export interface MigrationWithScores {
             /**
              * example:
-             * 99-9999-9999-999
+             * 1183B0E0-5E39-429F-810E-2D64243C074E
              */
-            migration_id?: string;
+            migration_id?: string; // uuid
             assignment?: /* An slim assignment in a course */ AssignmentSlim;
             scores: /* A score for a student */ Score[];
         }
@@ -543,9 +649,9 @@ declare namespace Components {
         export interface Policy {
             /**
              * example:
-             * 999-9999-9999-99
+             * 2281A8B8-5EF3-449B-A587-CC7326EC8D41
              */
-            id?: string;
+            id?: string; // uuid
             /**
              * example:
              * Default Policy
@@ -693,16 +799,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         export type RequestBody = /* An assignment in a course */ Components.Schemas.Assignment;
         namespace Responses {
@@ -720,26 +826,26 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
         }
         namespace Responses {
             export type $202 = /* An async task on the server */ Components.Schemas.Task[];
@@ -751,26 +857,26 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
         }
         namespace Responses {
             export interface $200 {
@@ -783,51 +889,51 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 99-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            export type AssignmentId = string;
+            export type AssignmentId = string; // uuid
             /**
              * example:
-             * 99-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 99-9999-9999-99
+             * 99999999
              */
-            export type ExtensionId = string;
+            export type Cwid = string;
+            /**
+             * example:
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+             */
+            export type ExtensionId = string; // uuid
             /**
              * example:
              * Good extension
              */
             export type Reason = string;
-            /**
-             * example:
-             * 11111111
-             */
-            export type UserId = string;
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 99-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             assignment_id: /**
              * example:
-             * 99-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            Parameters.AssignmentId;
-            user_id: /**
+            Parameters.AssignmentId /* uuid */;
+            cwid: /**
              * example:
-             * 11111111
+             * 99999999
              */
-            Parameters.UserId;
+            Parameters.Cwid;
             extension_id: /**
              * example:
-             * 99-9999-9999-99
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
              */
-            Parameters.ExtensionId;
+            Parameters.ExtensionId /* uuid */;
         }
         export interface QueryParameters {
             reason: /**
@@ -854,16 +960,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         export type RequestBody = /* A generic request for extending work deadlines */ Components.Schemas.LateRequest;
         namespace Responses {
@@ -875,16 +981,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 99-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 99-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         namespace Responses {
             export type $201 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
@@ -893,41 +999,39 @@ declare namespace Paths {
     namespace CreateMigrationForMasterMigration {
         namespace Parameters {
             /**
-             * The assignment to add to this migration
              * example:
-             * 999-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            export type Assignment = string;
+            export type AssignmentId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
         }
         export interface QueryParameters {
-            assignment: /**
-             * The assignment to add to this migration
+            assignment_id: /**
              * example:
-             * 999-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            Parameters.Assignment;
+            Parameters.AssignmentId /* uuid */;
         }
         namespace Responses {
             export type $202 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
@@ -946,16 +1050,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface QueryParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         namespace Responses {
             export type $400 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
@@ -988,26 +1092,26 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 99-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 99-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
         }
         namespace Responses {
             export interface $204 {
@@ -1018,26 +1122,26 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 55AAD0CC-9C92-47E9-9293-05CBED73A4AB
              */
-            export type PolicyId = string;
+            export type PolicyId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             policy_id: /**
              * example:
-             * 999-9999-9999-99
+             * 55AAD0CC-9C92-47E9-9293-05CBED73A4AB
              */
-            Parameters.PolicyId;
+            Parameters.PolicyId /* uuid */;
         }
         namespace Responses {
             export interface $204 {
@@ -1048,51 +1152,51 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 99-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            export type AssignmentId = string;
+            export type AssignmentId = string; // uuid
             /**
              * example:
-             * 99-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 99-9999-9999-99
+             * 99999999
              */
-            export type ExtensionId = string;
+            export type Cwid = string;
+            /**
+             * example:
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+             */
+            export type ExtensionId = string; // uuid
             /**
              * example:
              * Bad extension
              */
             export type Reason = string;
-            /**
-             * example:
-             * 11111111
-             */
-            export type UserId = string;
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 99-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             assignment_id: /**
              * example:
-             * 99-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            Parameters.AssignmentId;
-            user_id: /**
+            Parameters.AssignmentId /* uuid */;
+            cwid: /**
              * example:
-             * 11111111
+             * 99999999
              */
-            Parameters.UserId;
+            Parameters.Cwid;
             extension_id: /**
              * example:
-             * 99-9999-9999-99
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
              */
-            Parameters.ExtensionId;
+            Parameters.ExtensionId /* uuid */;
         }
         export interface QueryParameters {
             reason: /**
@@ -1111,26 +1215,26 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            export type AssignmentId = string;
+            export type AssignmentId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             assignment_id: /**
              * example:
-             * 999-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            Parameters.AssignmentId;
+            Parameters.AssignmentId /* uuid */;
         }
         namespace Responses {
             export interface $200 {
@@ -1163,26 +1267,26 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            export type AssignmentId = string;
+            export type AssignmentId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             assignment_id: /**
              * example:
-             * 999-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            Parameters.AssignmentId;
+            Parameters.AssignmentId /* uuid */;
         }
         namespace Responses {
             export interface $200 {
@@ -1215,26 +1319,26 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
         }
         namespace Responses {
             export interface $202 {
@@ -1247,37 +1351,37 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            export type AssignmentId = string;
+            export type AssignmentId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
              */
-            export type ExtensionId = string;
+            export type ExtensionId = string; // uuid
             export type Status = "approved" | "denied" | "pending" | "all";
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             assignment_id: /**
              * example:
-             * 999-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            Parameters.AssignmentId;
+            Parameters.AssignmentId /* uuid */;
             extension_id: /**
              * example:
-             * 999-9999-9999-99
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
              */
-            Parameters.ExtensionId;
+            Parameters.ExtensionId /* uuid */;
         }
         export interface QueryParameters {
             status?: Parameters.Status;
@@ -1291,37 +1395,37 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 99999999
              */
-            export type ExtensionId = string;
+            export type Cwid = string;
+            /**
+             * example:
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+             */
+            export type ExtensionId = string; // uuid
             export type Status = "approved" | "denied" | "pending";
-            /**
-             * example:
-             * 11111111
-             */
-            export type UserId = string;
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
-            user_id: /**
+            Parameters.CourseId /* uuid */;
+            cwid: /**
              * example:
-             * 11111111
+             * 99999999
              */
-            Parameters.UserId;
+            Parameters.Cwid;
             extension_id: /**
              * example:
-             * 999-9999-9999-99
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
              */
-            Parameters.ExtensionId;
+            Parameters.ExtensionId /* uuid */;
         }
         export interface QueryParameters {
             status?: Parameters.Status;
@@ -1335,16 +1439,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         namespace Responses {
             export type $200 = /* A generic request for extending work deadlines */ Components.Schemas.LateRequest[];
@@ -1355,17 +1459,17 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             export type Status = "approved" | "denied" | "pending";
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         export interface QueryParameters {
             status?: Parameters.Status;
@@ -1379,14 +1483,14 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
              */
-            export type ExtensionId = string;
+            export type ExtensionId = string; // uuid
             /**
              * example:
              * Section F
@@ -1397,9 +1501,9 @@ declare namespace Paths {
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             section_id: /**
              * example:
              * Section F
@@ -1407,9 +1511,9 @@ declare namespace Paths {
             Parameters.SectionId;
             extension_id: /**
              * example:
-             * 999-9999-9999-99
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
              */
-            Parameters.ExtensionId;
+            Parameters.ExtensionId /* uuid */;
         }
         export interface QueryParameters {
             status?: Parameters.Status;
@@ -1423,16 +1527,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 99-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 99-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         namespace Responses {
             export type $200 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration[];
@@ -1442,16 +1546,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         namespace Responses {
             export type $200 = /* A grading policy */ Components.Schemas.Policy[];
@@ -1471,17 +1575,17 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             export type Include = ("members" | "assignments" | "sections")[];
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         export interface QueryParameters {
             include?: Parameters.Include;
@@ -1495,16 +1599,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         namespace Responses {
             export type $200 = /* An slim assignment in a course */ Components.Schemas.AssignmentSlim[];
@@ -1514,16 +1618,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         namespace Responses {
             export type $200 = /* A complete course */ Components.Schemas.Course;
@@ -1533,16 +1637,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         namespace Responses {
             export type $200 = /* Information relevant to a student */ Components.Schemas.StudentInformation;
@@ -1564,9 +1668,9 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * Part of (or full) cwid to search for
              * example:
@@ -1583,9 +1687,9 @@ declare namespace Paths {
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         export interface QueryParameters {
             name?: /**
@@ -1606,71 +1710,71 @@ declare namespace Paths {
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
+    namespace GetMasterMigration {
+        namespace Parameters {
+            /**
+             * example:
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+             */
+            export type CourseId = string; // uuid
+            /**
+             * example:
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
+             */
+            export type MasterMigrationId = string; // uuid
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+             */
+            Parameters.CourseId /* uuid */;
+            master_migration_id: /**
+             * example:
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
+             */
+            Parameters.MasterMigrationId /* uuid */;
+        }
+        namespace Responses {
+            export type $200 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
+        }
+    }
     namespace GetMasterMigrationToReview {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
         }
         namespace Responses {
             export type $200 = /* A migration for an assignment that contains scores for each student */ Components.Schemas.MigrationWithScores[];
-        }
-    }
-    namespace GetMasterMigrations {
-        namespace Parameters {
-            /**
-             * example:
-             * 99-9999-9999-99
-             */
-            export type CourseId = string;
-            /**
-             * example:
-             * 999-9999-9999-99
-             */
-            export type MasterMigrationId = string;
-        }
-        export interface PathParameters {
-            course_id: /**
-             * example:
-             * 99-9999-9999-99
-             */
-            Parameters.CourseId;
-            master_migration_id: /**
-             * example:
-             * 999-9999-9999-99
-             */
-            Parameters.MasterMigrationId;
-        }
-        namespace Responses {
-            export type $200 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
         }
     }
     namespace GetMembers {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * Part of (or full) cwid to search for
              * example:
@@ -1688,9 +1792,57 @@ declare namespace Paths {
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
+        }
+        export interface QueryParameters {
+            enrollments?: Parameters.Enrollments;
+            name?: /**
+             * Part of (or full) name to search for
+             * example:
+             * Alex
+             */
+            Parameters.Name;
+            cwid?: /**
+             * Part of (or full) cwid to search for
+             * example:
+             * 9999999
+             */
+            Parameters.Cwid;
+        }
+        namespace Responses {
+            export type $200 = /* A user in a course */ Components.Schemas.CourseMember[];
+            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
+        }
+    }
+    namespace GetMembersInstructor {
+        namespace Parameters {
+            /**
+             * example:
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+             */
+            export type CourseId = string; // uuid
+            /**
+             * Part of (or full) cwid to search for
+             * example:
+             * 9999999
+             */
+            export type Cwid = string;
+            export type Enrollments = ("tas" | "instructors" | "students")[];
+            /**
+             * Part of (or full) name to search for
+             * example:
+             * Alex
+             */
+            export type Name = string;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+             */
+            Parameters.CourseId /* uuid */;
         }
         export interface QueryParameters {
             enrollments?: Parameters.Enrollments;
@@ -1741,16 +1893,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         export type RequestBody = /* Import a new course from canvas */ Components.Schemas.CourseSyncTask;
         namespace Responses {
@@ -1763,26 +1915,26 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
         }
         namespace Responses {
             export interface $200 {
@@ -1795,26 +1947,26 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
         }
         namespace Responses {
             export interface $200 {
@@ -1885,46 +2037,36 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            export type AssignmentId = string;
+            export type AssignmentId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 99999999
              */
-            export type ExtensionId = string;
-            /**
-             * example:
-             * 11111111
-             */
-            export type UserId = string;
+            export type Cwid = string;
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             assignment_id: /**
              * example:
-             * 999-9999-9999-99
+             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
              */
-            Parameters.AssignmentId;
-            user_id: /**
+            Parameters.AssignmentId /* uuid */;
+            cwid: /**
              * example:
-             * 11111111
+             * 99999999
              */
-            Parameters.UserId;
-            extension_id: /**
-             * example:
-             * 999-9999-9999-99
-             */
-            Parameters.ExtensionId;
+            Parameters.Cwid;
         }
         namespace Responses {
             export type $201 = /* An extension for an assignment */ Components.Schemas.Extension;
@@ -1935,16 +2077,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         export type RequestBody = /* Create a new policy file */ Components.Schemas.NewPolicy;
         namespace Responses {
@@ -1955,16 +2097,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         namespace Responses {
             export type $200 = /* A grading policy */ Components.Schemas.Policy[];
@@ -1974,26 +2116,26 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
         }
         namespace Responses {
             export type $202 = /* An async task on the server */ Components.Schemas.Task[];
@@ -2005,26 +2147,26 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
         }
         namespace Responses {
             export interface $200 {
@@ -2037,48 +2179,48 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 99-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 99-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
             /**
              * example:
-             * 99-9999-9999-99
+             * A9DC1F84-C6A7-4201-86CF-116DFE4E59EC
              */
-            export type MigrationId = string;
+            export type MigrationId = string; // uuid
             /**
              * example:
-             * 99-9999-9999-99
+             * 55AAD0CC-9C92-47E9-9293-05CBED73A4AB
              */
-            export type PolicyId = string;
+            export type PolicyId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 99-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 99-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
             migration_id: /**
              * example:
-             * 99-9999-9999-99
+             * A9DC1F84-C6A7-4201-86CF-116DFE4E59EC
              */
-            Parameters.MigrationId;
+            Parameters.MigrationId /* uuid */;
         }
         export interface QueryParameters {
             policy_id: /**
              * example:
-             * 99-9999-9999-99
+             * 55AAD0CC-9C92-47E9-9293-05CBED73A4AB
              */
-            Parameters.PolicyId;
+            Parameters.PolicyId /* uuid */;
         }
         namespace Responses {
             export type $202 = /* The master migration that contains to the list of migration objects */ Components.Schemas.MasterMigration;
@@ -2090,16 +2232,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         export type RequestBody = /* Import a new course from canvas */ Components.Schemas.CourseSyncTask;
         namespace Responses {
@@ -2112,16 +2254,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         export type RequestBody = /* An assignment in a course */ Components.Schemas.Assignment;
         namespace Responses {
@@ -2134,16 +2276,16 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
         }
         export type RequestBody = /* A complete course */ Components.Schemas.Course;
         namespace Responses {
@@ -2156,36 +2298,36 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * A9DC1F84-C6A7-4201-86CF-116DFE4E59EC
              */
-            export type MigrationId = string;
+            export type MigrationId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
             migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * A9DC1F84-C6A7-4201-86CF-116DFE4E59EC
              */
-            Parameters.MigrationId;
+            Parameters.MigrationId /* uuid */;
         }
         export type RequestBody = /* Change a students score during the review phase of a migration */ Components.Schemas.MigrationScoreChange;
         namespace Responses {
@@ -2205,36 +2347,36 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            export type MasterMigrationId = string;
+            export type MasterMigrationId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * A9DC1F84-C6A7-4201-86CF-116DFE4E59EC
              */
-            export type MigrationId = string;
+            export type MigrationId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             master_migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * 49D2FB6A-598A-4618-A467-C71D6542D14F
              */
-            Parameters.MasterMigrationId;
+            Parameters.MasterMigrationId /* uuid */;
             migration_id: /**
              * example:
-             * 999-9999-9999-99
+             * A9DC1F84-C6A7-4201-86CF-116DFE4E59EC
              */
-            Parameters.MigrationId;
+            Parameters.MigrationId /* uuid */;
         }
         export type RequestBody = string; // binary
         namespace Responses {
@@ -2246,26 +2388,26 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type CourseId = string;
+            export type CourseId = string; // uuid
             /**
              * example:
-             * 999-9999-9999-99
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
              */
-            export type ExtensionId = string;
+            export type ExtensionId = string; // uuid
         }
         export interface PathParameters {
             course_id: /**
              * example:
-             * 999-9999-9999-99
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.CourseId;
+            Parameters.CourseId /* uuid */;
             extension_id: /**
              * example:
-             * 999-9999-9999-99
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
              */
-            Parameters.ExtensionId;
+            Parameters.ExtensionId /* uuid */;
         }
         namespace Responses {
             export interface $204 {
@@ -2638,6 +2780,19 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetCourseInformationInstructor.Responses.$200>
   /**
+   * get_members_instructor - Get all members for a course
+   * 
+   * Gets all members for a course.
+   * Optional query params can be used to filter by TAs, Instructors, or Students.
+   * Can also be used to search by CWID or by name
+   * 
+   */
+  'get_members_instructor'(
+    parameters?: Parameters<Paths.GetMembersInstructor.QueryParameters & Paths.GetMembersInstructor.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetMembersInstructor.Responses.$200>
+  /**
    * get_instructor_enrollments - Get all enrollments for all sections
    * 
    * Gets user enrollments for all sections 
@@ -2725,13 +2880,13 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.CreateMasterMigration.Responses.$201>
   /**
-   * get_master_migrations - Get master migrations
+   * get_master_migration - Get master migration
    */
-  'get_master_migrations'(
-    parameters?: Parameters<Paths.GetMasterMigrations.PathParameters> | null,
+  'get_master_migration'(
+    parameters?: Parameters<Paths.GetMasterMigration.PathParameters> | null,
     data?: any,
     config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetMasterMigrations.Responses.$200>
+  ): OperationResponse<Paths.GetMasterMigration.Responses.$200>
   /**
    * create_migration_for_master_migration - Create migration for a master migration
    * 
@@ -3309,7 +3464,7 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetAllExtensionsForCourse.Responses.$200>
   }
-  ['/instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/approve']: {
+  ['/instructor/courses/{course_id}/assignment/{assignment_id}/user/{cwid}/extensions/{extension_id}/approve']: {
     /**
      * approve_extension - Approves an extension for an assignment for the user.
      * 
@@ -3322,7 +3477,7 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.ApproveExtension.Responses.$202>
   }
-  ['/instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/deny']: {
+  ['/instructor/courses/{course_id}/assignment/{assignment_id}/user/{cwid}/extensions/{extension_id}/deny']: {
     /**
      * deny_extension - Denies an extension for an assignment for the user.
      * 
@@ -3351,6 +3506,21 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetCourseInformationInstructor.Responses.$200>
   }
+  ['/instructor/courses/{course_id}/members']: {
+    /**
+     * get_members_instructor - Get all members for a course
+     * 
+     * Gets all members for a course.
+     * Optional query params can be used to filter by TAs, Instructors, or Students.
+     * Can also be used to search by CWID or by name
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetMembersInstructor.QueryParameters & Paths.GetMembersInstructor.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetMembersInstructor.Responses.$200>
+  }
   ['/instructor/courses/{course_id}/enrollments']: {
     /**
      * get_instructor_enrollments - Get all enrollments for all sections
@@ -3378,7 +3548,7 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetAllPolicies.Responses.$200>
   }
-  ['/instructor/courses/{course_id}/assignments/{assignment_id}/user/{user_id}/extensions']: {
+  ['/instructor/courses/{course_id}/assignments/{assignment_id}/user/{cwid}/extensions']: {
     /**
      * new_extension - Create Extension request
      * 
@@ -3405,7 +3575,7 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetAllApprovedExtensionsForAssignment.Responses.$200>
   }
-  ['/instructor/courses/{course_id}/users/{user_id}/extensions/{extension_id}']: {
+  ['/instructor/courses/{course_id}/users/{cwid}/extensions/{extension_id}']: {
     /**
      * get_all_approved_extensions_for_member - Get all the approved extensions for the provided member
      * 
@@ -3454,13 +3624,13 @@ export interface PathsDictionary {
   }
   ['/instructor/courses/{course_id}/migrations/{master_migration_id}']: {
     /**
-     * get_master_migrations - Get master migrations
+     * get_master_migration - Get master migration
      */
     'get'(
-      parameters?: Parameters<Paths.GetMasterMigrations.PathParameters> | null,
+      parameters?: Parameters<Paths.GetMasterMigration.PathParameters> | null,
       data?: any,
       config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetMasterMigrations.Responses.$200>
+    ): OperationResponse<Paths.GetMasterMigration.Responses.$200>
     /**
      * create_migration_for_master_migration - Create migration for a master migration
      * 
