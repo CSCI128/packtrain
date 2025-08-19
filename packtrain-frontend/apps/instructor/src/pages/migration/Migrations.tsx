@@ -3,9 +3,8 @@ import { getApiClient } from "@repo/api/index";
 import { MasterMigration, Migration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
-import { useMutation } from "@tanstack/react-query";
 import { Loading } from "@repo/ui/Loading";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { useGetMasterMigrations } from "../../hooks";
 

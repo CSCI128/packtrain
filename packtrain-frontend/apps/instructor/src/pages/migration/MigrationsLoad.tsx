@@ -16,9 +16,8 @@ import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
 import { MasterMigration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { useMutation } from "@tanstack/react-query";
 import { Loading } from "@repo/ui/Loading";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGetCourseInstructor } from "../../hooks";
@@ -49,7 +48,7 @@ export function MigrationsLoadPage() {
           client.create_migration_for_master_migration({
             course_id: store$.id.get() as string,
             master_migration_id: master_migration_id,
-            assignment: assignment_id,
+            assignment_id: assignment_id,
           })
         )
         .then((res) => res.data)

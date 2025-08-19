@@ -1,9 +1,4 @@
 import "@mantine/core/styles.css";
-import { JSX } from "react";
-import { getApiClient } from "@repo/api/index.ts";
-import { MasterMigration } from "@repo/api/openapi";
-import { store$ } from "@repo/api/store";
-import { useQuery } from "@tanstack/react-query";
 import { JSX, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGetMasterMigration } from "../../hooks";

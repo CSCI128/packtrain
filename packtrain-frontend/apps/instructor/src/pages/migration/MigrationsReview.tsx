@@ -16,14 +16,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { Score } from "@repo/api/openapi";
-import {
-  Course,
-  MasterMigration,
-  MigrationScoreChange,
-  MigrationWithScores,
-  Score,
-} from "@repo/api/openapi";
+import { MigrationScoreChange, Score } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { Loading } from "@repo/ui/Loading";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
@@ -51,7 +44,7 @@ export function MigrationsReviewPage() {
     error: masterMigrationError,
     isLoading: masterMigrationIsLoading,
   } = useGetMasterMigration();
-        
+
   const {
     data: migrationData,
     error: migrationError,
