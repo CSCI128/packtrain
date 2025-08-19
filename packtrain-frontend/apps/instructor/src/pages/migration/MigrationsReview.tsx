@@ -144,7 +144,7 @@ export function MigrationsReviewPage() {
 
       setSortedData(matchingMigration?.scores ?? []);
     }
-  }, [selectedAssignmentIds, migrationData]);
+  }, [selectedAssignmentIds, migrationData, selectedAssignment]);
 
   if (
     masterMigrationIsLoading ||
@@ -229,7 +229,6 @@ export function MigrationsReviewPage() {
     // student name, days late, score to apply, raw score, status
     <Table.Tr key={row.student?.cwid}>
       <Table.Td>{row.student?.name}</Table.Td>
-      <Table.Td>{row.submission_date}</Table.Td>
       <Table.Td>
         <Center>
           <Text size="sm" mr={5}>
@@ -239,7 +238,10 @@ export function MigrationsReviewPage() {
         </Center>
       </Table.Td>
       <Table.Td>
-        <Center>{row.score}</Center>
+        <Center>{row.raw_score} </Center>
+      </Table.Td>
+      <Table.Td>
+        <Center>{row.days_late} </Center>
       </Table.Td>
       <Table.Td>{row.status}</Table.Td>
     </Table.Tr>
@@ -375,14 +377,6 @@ export function MigrationsReviewPage() {
                             Student
                           </TableHeader>
                           <TableHeader
-                            sorted={sortBy === "student"}
-                            reversed={reverseSortDirection}
-                            onSort={() => setSorting("student")}
-                          >
-                            {/* TODO need this */}
-                            Days Late
-                          </TableHeader>
-                          <TableHeader
                             sorted={sortBy === "score"}
                             reversed={reverseSortDirection}
                             onSort={() => setSorting("score")}
@@ -390,12 +384,18 @@ export function MigrationsReviewPage() {
                             Score to Apply
                           </TableHeader>
                           <TableHeader
-                            sorted={sortBy === "score"}
+                            sorted={sortBy === "raw_score"}
                             reversed={reverseSortDirection}
-                            onSort={() => setSorting("score")}
+                            onSort={() => setSorting("raw_score")}
                           >
-                            {/* TODO need this */}
                             Raw Score
+                          </TableHeader>
+                          <TableHeader
+                            sorted={sortBy === "days_late"}
+                            reversed={reverseSortDirection}
+                            onSort={() => setSorting("days_late")}
+                          >
+                            Days Late
                           </TableHeader>
                           <TableHeader
                             sorted={sortBy === "status"}
