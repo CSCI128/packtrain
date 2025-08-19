@@ -1,5 +1,5 @@
 import "@mantine/core/styles.css";
-import { JSX, useEffect } from "react";
+import { JSX, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGetMasterMigration } from "../../hooks";
 
@@ -31,6 +31,8 @@ export const MigrationMiddleware = ({
     isLoading: migrationIsLoading,
   } = useGetMasterMigration();
 
+  const [lastState, setLastState] = useState<string>();
+
   // Disallow moving forward in migration flow if state is not ready
   useEffect(() => {
     if (migrationError) {
@@ -38,7 +40,11 @@ export const MigrationMiddleware = ({
       return;
     }
 
-    if (!migrationIsLoading && migrationData) {
+    if (
+      !migrationIsLoading &&
+      migrationData &&
+      lastState !== migrationData.status
+    ) {
       const status = migrationData.status;
 
       // see if user tries to access the page on the next step or greater and has invalid status
@@ -49,6 +55,7 @@ export const MigrationMiddleware = ({
       } else if (getStep(currentPage) === 4 && status === "started") {
         navigate("/instructor/migrate/review");
       }
+      setLastState(status);
     }
   }, [
     migrationError,

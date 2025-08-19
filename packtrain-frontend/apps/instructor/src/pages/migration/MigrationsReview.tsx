@@ -49,6 +49,7 @@ export function MigrationsReviewPage() {
     data: migrationData,
     error: migrationError,
     isLoading: migrationIsLoading,
+    refetch,
   } = useGetMigrationWithScores();
 
   const reviewMasterMigration = useMutation({
@@ -111,6 +112,7 @@ export function MigrationsReviewPage() {
   const [editScoreOpened, { open: openEditScore, close: closeEditScore }] =
     useDisclosure(false);
   const [selectedScore, setSelectedScore] = useState<Score | null>(null);
+  const [updatedScore, setUpdatedScore] = useState<number>(0);
   const [statistics, setStatistics] = useState<{
     extensionsApplied: 0;
     zeroCredit: 0;
@@ -129,7 +131,9 @@ export function MigrationsReviewPage() {
   }, [masterMigrationData]);
 
   useEffect(() => {
+    console.log("called useffect");
     if (migrationData) {
+      console.log("updating migration data..");
       if (selectedAssignmentIds.length > 0 && migrationData) {
         setSelectedAssignment(selectedAssignmentIds[0]);
       }
@@ -196,23 +200,29 @@ export function MigrationsReviewPage() {
   };
 
   const handleEditSubmit = () => {
-    updateStudentScore.mutate({
-      master_migration_id: store$.master_migration_id.get() as string,
-      migration_id: migrationData
-        ?.filter((x) => x.assignment?.id === selectedAssignment)
-        .at(0)?.migration_id as string,
-      migration_score_change: {
-        // TODO see if any of the selectedScore fields can actually be changed
-        cwid: selectedScore?.student?.cwid as string,
-        justification: "",
-        new_score: 10,
-        submission_status:
-          selectedScore?.status as MigrationScoreChange["submission_status"],
-        adjusted_submission_date: selectedScore?.submission_date,
+    updateStudentScore.mutate(
+      {
+        master_migration_id: store$.master_migration_id.get() as string,
+        migration_id: migrationData
+          ?.filter((x) => x.assignment?.id === selectedAssignment)
+          .at(0)?.migration_id as string,
+        migration_score_change: {
+          // TODO see if any of the selectedScore fields need to be changed or removed
+          cwid: selectedScore?.student?.cwid as string,
+          justification: "",
+          new_score: updatedScore,
+          submission_status:
+            selectedScore?.status as MigrationScoreChange["submission_status"],
+          adjusted_submission_date: selectedScore?.submission_date,
+        },
       },
-    });
-
-    closeEditScore();
+      {
+        onSuccess: () => {
+          closeEditScore();
+          refetch();
+        },
+      }
+    );
   };
 
   const rows = sortedData.map((row: Score) => (
@@ -282,6 +292,7 @@ export function MigrationsReviewPage() {
           <NumberInput
             label="Score:"
             value={String(selectedScore?.raw_score)}
+            onChange={(value) => setUpdatedScore(Number(value))}
           />
         </Stack>
 
