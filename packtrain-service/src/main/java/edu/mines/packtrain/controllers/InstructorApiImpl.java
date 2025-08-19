@@ -119,7 +119,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
-    public ResponseEntity<MasterMigrationDTO> getMasterMigration(String courseId, String masterMigrationId) {
+    public ResponseEntity<MasterMigrationDTO> getMasterMigration(UUID courseId, UUID masterMigrationId) {
         MasterMigration masterMigration = migrationService.getMasterMigration(masterMigrationId);
 
         return ResponseEntity.ok(DTOFactory.toDto(masterMigration));
@@ -220,8 +220,8 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<CourseMemberDTO>> getMembersInstructor(String courseId, List<String> enrollments, String name, String cwid) {
-        Course course = courseService.getCourse(UUID.fromString(courseId));
+    public ResponseEntity<List<CourseMemberDTO>> getMembersInstructor(UUID courseId, List<String> enrollments, String name, String cwid) {
+        Course course = courseService.getCourse(courseId);
 
         if (name != null && cwid != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must define one of 'name' or 'cwid'");

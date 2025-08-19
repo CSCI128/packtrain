@@ -1048,12 +1048,7 @@ paths:
         Optional query params can be used to filter by TAs, Instructors, or Students.
         Can also be used to search by CWID or by name
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
         - name: "enrollments"
           in: query
           required: false
