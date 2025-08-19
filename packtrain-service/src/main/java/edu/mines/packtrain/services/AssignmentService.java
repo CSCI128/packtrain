@@ -1,16 +1,11 @@
 package edu.mines.packtrain.services;
 
 import edu.mines.packtrain.data.AssignmentDTO;
-import edu.mines.packtrain.managers.ImpersonationManager;
 import edu.mines.packtrain.models.*;
 import edu.mines.packtrain.models.enums.ExternalAssignmentType;
-import edu.mines.packtrain.models.tasks.AssignmentsSyncTaskDef;
 import edu.mines.packtrain.repositories.AssignmentRepo;
 import edu.mines.packtrain.repositories.ExternalAssignmentRepo;
-import edu.mines.packtrain.repositories.ScheduledTaskRepo;
-import edu.mines.packtrain.services.external.CanvasService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -30,8 +25,8 @@ public class AssignmentService {
         this.externalAssignmentRepo = externalAssignmentRepo;
     }
 
-    public Assignment getAssignmentById(String id) {
-        Optional<Assignment> assignment = assignmentRepo.getAssignmentById(UUID.fromString(id));
+    public Assignment getAssignmentById(UUID id) {
+        Optional<Assignment> assignment = assignmentRepo.getAssignmentById(id);
         if (assignment.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Assignment '%s' does not exist!", id));
         }
@@ -196,7 +191,7 @@ public class AssignmentService {
     }
 
 
-    public Assignment enableAssignment(String assignmentId){
+    public Assignment enableAssignment(UUID assignmentId){
         Assignment assignment = getAssignmentById(assignmentId);
 
         assignment.setEnabled(true);
@@ -204,7 +199,7 @@ public class AssignmentService {
         return assignmentRepo.save(assignment);
     }
 
-    public Assignment disableAssignment(String assignmentId){
+    public Assignment disableAssignment(UUID assignmentId){
         Assignment assignment = getAssignmentById(assignmentId);
 
         assignment.setEnabled(false);

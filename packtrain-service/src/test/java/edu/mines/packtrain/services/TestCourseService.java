@@ -236,7 +236,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         User user = userSeeders.user1();
 
         // Create master migration from seeder
-        MasterMigration masterMigration = migrationService.createMasterMigration(coursePopulated.getId().toString(), user);
+        MasterMigration masterMigration = migrationService.createMasterMigration(coursePopulated.getId(), user);
 
         Assignment assignment = assignmentSeeder.worksheet1(coursePopulated);
 
@@ -250,7 +250,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
         policyRepo.save(policy);
 
         // Add migration to master migration for coursePopulated
-        migrationService.addMigration(masterMigration.getId().toString(), assignment.getId().toString());
+        migrationService.addMigration(masterMigration.getId(), assignment.getId());
 
         // Check that it doesn't delete because it has a migration
         Assertions.assertFalse(courseService.deleteCourse(coursePopulated.getId()));

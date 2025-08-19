@@ -77,12 +77,7 @@ paths:
       security:
         - openIDC: [admin:write]
       parameters:
-        - name: "course_id"
-          in: query
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CourseQueryParameters"
       responses:
         404:
           description: "Course does not exist"
@@ -122,7 +117,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/User"
-
     post:
       tags:
         - admin
@@ -185,12 +179,7 @@ paths:
       security:
         - openIDC: [admin:write]
       parameters:
-        - name: cwid
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99999999"
+        - $ref: "#/components/parameters/CwidPathParameters"
       responses:
         201:
           description: "Created"
@@ -215,12 +204,7 @@ paths:
       security:
         - openIDC: [admin:write]
       parameters:
-        - name: cwid
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99999999"
+        - $ref: "#/components/parameters/CwidPathParameters"
       responses:
         201:
           description: "Created"
@@ -245,12 +229,7 @@ paths:
       security:
         - openIDC: [admin:write]
       parameters:
-        - name: "course_id"
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
         content:
           application/json:
@@ -278,12 +257,7 @@ paths:
       security:
         - openIDC: [admin:read]
       parameters:
-        - name: "course_id"
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
         - name: "include"
           in: query
           required: false
@@ -323,13 +297,7 @@ paths:
       security:
         - openIDC: [admin:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course id"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
         required: true
         content:
@@ -375,12 +343,7 @@ paths:
       security:
         - openIDC: [admin:write]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
         content:
           application/json:
@@ -425,12 +388,7 @@ paths:
       security:
         - openIDC: [admin:write]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
         required: true
         content:
@@ -461,12 +419,7 @@ paths:
       security:
         - openIDC: [admin:write]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
         required: true
         content:
@@ -501,18 +454,8 @@ paths:
       security:
         - openIDC: [admin:write]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: assignment_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/AssignmentPathParameters"
       responses:
         200:
           description: "OK"
@@ -537,18 +480,8 @@ paths:
       security:
         - openIDC: [admin:write]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: assignment_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/AssignmentPathParameters"
       responses:
         200:
           description: "OK"
@@ -574,12 +507,7 @@ paths:
         Optional query params can be used to filter by TAs, Instructors, or Students.
         Can also be used to search by CWID or by name
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
         - name: "enrollments"
           in: query
           required: false
@@ -635,12 +563,7 @@ paths:
       security:
         - openIDC: [admin:write]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
         required: true
         content:
@@ -667,12 +590,7 @@ paths:
       security:
         - openIDC: [admin:read]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       responses:
         200:
           description: "OK"
@@ -694,18 +612,8 @@ paths:
       security:
         - openIDC: [admin:write]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: policy_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/PolicyPathParameters"
       responses:
         204:
           description: "No Content"
@@ -981,13 +889,7 @@ paths:
       security:
         - openIDC: [admin:read]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
         - name: status
           in: query
           required: false
@@ -1016,7 +918,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/approve:
+  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{cwid}/extensions/{extension_id}/approve:
     put:
       tags:
         - instructor
@@ -1027,37 +929,16 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-        - name: assignment_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "11111111"
-        - name: extension_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/AssignmentPathParameters"
+        - $ref: "#/components/parameters/CwidPathParameters"
+        - $ref: "#/components/parameters/ExtensionPathParameters"
         - name: reason
           in: query
           required: true
           schema:
             type: string
             example: "Good extension"
-
       responses:
         202:
           description: "Accepted"
@@ -1084,7 +965,7 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to approve extensions for user"
 
-  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{user_id}/extensions/{extension_id}/deny:
+  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{cwid}/extensions/{extension_id}/deny:
     put:
       tags:
         - instructor
@@ -1095,30 +976,10 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-        - name: assignment_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-        - name: user_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "11111111"
-        - name: extension_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/AssignmentPathParameters"
+        - $ref: "#/components/parameters/CwidPathParameters"
+        - $ref: "#/components/parameters/ExtensionPathParameters"
         - name: reason
           in: query
           required: true
@@ -1165,12 +1026,7 @@ paths:
       security:
         - openIDC: [instructor:read]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       responses:
         200:
           description: "OK"
@@ -1254,12 +1110,7 @@ paths:
         Gets user enrollments for all sections 
         an instructor is apart of.
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
         - name: "name"
           in: query
           required: false
@@ -1304,12 +1155,7 @@ paths:
       security:
         - openIDC: [instructor:read]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       responses:
         200:
           description: "OK"
@@ -1320,7 +1166,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/Policy"
 
-  /instructor/courses/{course_id}/assignments/{assignment_id}/user/{user_id}/extensions:
+  /instructor/courses/{course_id}/assignments/{assignment_id}/user/{cwid}/extensions:
     post:
       tags:
         - instructor
@@ -1332,34 +1178,9 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: assignment_id
-          required: true
-          description: "The assignment ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: user_id
-          required: true
-          description: "The user's CWID"
-          in: path
-          schema:
-            type: string
-            example: "11111111"
-        - name: extension_id
-          required: true
-          description: "The extension ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/AssignmentPathParameters"
+        - $ref: "#/components/parameters/CwidPathParameters"
       responses:
         201:
           description: "An extension request has been created"
@@ -1388,27 +1209,9 @@ paths:
       security:
         - openIDC: [instructor:read]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: assignment_id
-          required: true
-          description: "The assignment ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: extension_id
-          required: true
-          description: "The extension ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/AssignmentPathParameters"
+        - $ref: "#/components/parameters/ExtensionPathParameters"
         - name: status
           in: query
           required: false
@@ -1438,7 +1241,7 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructor/courses/{course_id}/users/{user_id}/extensions/{extension_id}:
+  /instructor/courses/{course_id}/users/{cwid}/extensions/{extension_id}:
     get:
       tags:
         - instructor
@@ -1449,27 +1252,9 @@ paths:
       security:
         - openIDC: [instructor:read]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: user_id
-          required: true
-          description: "The user's CWID"
-          in: path
-          schema:
-            type: string
-            example: "11111111"
-        - name: extension_id
-          required: true
-          description: "The extension ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/CwidPathParameters"
+        - $ref: "#/components/parameters/ExtensionPathParameters"
         - name: status
           in: query
           required: false
@@ -1509,13 +1294,7 @@ paths:
       security:
         - openIDC: [instructor:read]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
         - name: section_id
           required: true
           description: "The course section"
@@ -1523,13 +1302,7 @@ paths:
           schema:
             type: string
             example: "Section F"
-        - name: extension_id
-          required: true
-          description: "The extension ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/ExtensionPathParameters"
         - name: status
           in: query
           required: false
@@ -1569,12 +1342,7 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       responses:
         201:
           description: "Created"
@@ -1590,12 +1358,7 @@ paths:
       security:
         - openIDC: [instructor:read]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       responses:
         200:
           description: "OK"
@@ -1615,19 +1378,8 @@ paths:
       security:
         - openIDC: [instructor:read]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
       responses:
         200:
           description: "OK"
@@ -1646,27 +1398,9 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: assignment
-          required: true
-          in: query
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-            description: The assignment to add to this migration
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
+        - $ref: "#/components/parameters/AssignmentQueryParameters"
       responses:
         202:
           description: "Accepted"
@@ -1693,19 +1427,8 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
       responses:
         204:
           description: "No Content"
@@ -1721,26 +1444,9 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: migration_id
-          required: true
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
+        - $ref: "#/components/parameters/MigrationPathParameters"
       requestBody:
         required: true
         content:
@@ -1774,20 +1480,8 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
       responses:
         200:
           description: "OK"
@@ -1806,20 +1500,8 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
       responses:
         200:
           description: "OK"
@@ -1835,30 +1517,10 @@ paths:
         - openIDC: [instructor:write]
       summary: sets the policy for a migration
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-        - name: master_migration_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-        - name: migration_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
-        - name: policy_id
-          in: query
-          required: true
-          schema:
-            type: string
-            example: "99-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
+        - $ref: "#/components/parameters/MigrationPathParameters"
+        - $ref: "#/components/parameters/PolicyQueryParameters"
       responses:
         202:
           description: "Policy set for assignment"
@@ -1894,20 +1556,8 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
       responses:
         200:
           description: "OK"
@@ -1927,20 +1577,8 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
       responses:
         202:
           description: "Accepted"
@@ -1962,20 +1600,8 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
       responses:
         200:
           description: "OK"
@@ -1993,20 +1619,8 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
       responses:
         200:
           description: "OK"
@@ -2022,27 +1636,9 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: migration_id
-          required: true
-          description: "The migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
+        - $ref: "#/components/parameters/MigrationPathParameters"
       requestBody:
         content:
           application/json:
@@ -2063,20 +1659,8 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
       responses:
         202:
           description: "OK"
@@ -2098,20 +1682,8 @@ paths:
       security:
         - openIDC: [instructor:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: master_migration_id
-          required: true
-          description: "The master migration ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/MasterMigrationPathParameters"
       responses:
         202:
           description: "OK"
@@ -2185,12 +1757,7 @@ paths:
       security:
         - openIDC: [user:read]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       responses:
         200:
           description: "OK"
@@ -2210,12 +1777,7 @@ paths:
       security:
         - openIDC: [user:read]
       parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       responses:
         200:
           description: "OK"
@@ -2237,13 +1799,7 @@ paths:
       security:
         - openIDC: [student:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       responses:
         200:
           description: "OK"
@@ -2274,13 +1830,7 @@ paths:
       security:
         - openIDC: [student:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
         required: true
         content:
@@ -2316,20 +1866,8 @@ paths:
       security:
         - openIDC: [student:write]
       parameters:
-        - name: course_id
-          required: true
-          description: "The course ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
-        - name: extension_id
-          required: true
-          description: "The extension ID"
-          in: path
-          schema:
-            type: string
-            example: "999-9999-9999-99"
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - $ref: "#/components/parameters/ExtensionPathParameters"
       responses:
         204:
           description: "No Content"
@@ -2388,7 +1926,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "2281A8B8-5EF3-449B-A587-CC7326EC8D41"
         name:
           type: string
           example: "Default Policy"
@@ -2569,7 +2108,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: UUID
+          example: "3B7060CE-2C39-4171-8A5D-BF4FE023B475"
         name:
           type: string
           example: "Assessment 1"
@@ -2625,7 +2165,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: UUID
+          example: "3B7060CE-2C39-4171-8A5D-BF4FE023B475"
         name:
           type: string
           example: "Assessment 1"
@@ -2657,7 +2198,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "66FEF953-85F9-448E-B36A-B632754A867E"
         term:
           type: string
           example: "Fall 2020"
@@ -2731,7 +2273,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "66FEF953-85F9-448E-B36A-B632754A867E"
         term:
           type: string
           example: "Fall 2020"
@@ -2793,13 +2336,15 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "F23666B6-A34A-421A-8764-BC72EB7B0E20"
         assignment_id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "5DF9E336-8E79-4E19-9C3E-C071DBB25A26"
         assignment_name:
           type: string
-          example: "999-9999-9999-99"
+          example: "Assessment 11"
         date_submitted:
           type: string
           format: date-time
@@ -2812,7 +2357,7 @@ components:
           $ref: "#/components/schemas/Extension"
         user_requester_id:
           type: string
-          example: "999-9999-9999-99"
+          example: "9999999"
         status:
           type: string
           enum:
@@ -2836,7 +2381,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "26704EEE-7182-45F1-B8FE-27ACCCEC833E"
         reason:
           type: string
           example: "Tech Issues"
@@ -2861,7 +2407,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "1183B0E0-5E39-429F-810E-2D64243C074E"
         migrator:
           $ref: "#/components/schemas/User"
         date_started:
@@ -2920,7 +2467,8 @@ components:
       properties:
         id:
           type: string
-          example: "999-9999-9999-99"
+          format: uuid
+          example: "1183B0E0-5E39-429F-810E-2D64243C074E"
         assignment:
           $ref: "#/components/schemas/Assignment"
         policy:
@@ -2993,10 +2541,92 @@ components:
       properties:
         migration_id:
           type: string
-          example: 99-9999-9999-999
+          format: uuid
+          example: "1183B0E0-5E39-429F-810E-2D64243C074E"
         assignment:
           $ref: "#/components/schemas/AssignmentSlim"
         scores:
           type: array
           items:
             $ref: "#/components/schemas/Score"
+
+  parameters:
+    CourseQueryParameters:
+      name: "course_id"
+      in: query
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "9DEB34FC-C15A-4B31-8374-91EC1C8E9E66"
+    CoursePathParameters:
+      name: "course_id"
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "9DEB34FC-C15A-4B31-8374-91EC1C8E9E66"
+    AssignmentQueryParameters:
+      name: "assignment_id"
+      in: query
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "3697C75D-8DB6-447F-AAA0-0DB129EFEC45"
+    AssignmentPathParameters:
+      name: "assignment_id"
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "3697C75D-8DB6-447F-AAA0-0DB129EFEC45"
+    PolicyPathParameters:
+      name: policy_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "55AAD0CC-9C92-47E9-9293-05CBED73A4AB"
+    PolicyQueryParameters:
+      name: policy_id
+      in: query
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "55AAD0CC-9C92-47E9-9293-05CBED73A4AB"
+    CwidPathParameters:
+      name: "cwid"
+      in: path
+      required: true
+      schema:
+        type: string
+        example: "99999999"
+    ExtensionPathParameters:
+      name: extension_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "452E7EC3-29BD-4B3B-94FD-5AE9901257AA"
+    MasterMigrationPathParameters:
+      name: master_migration_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "49D2FB6A-598A-4618-A467-C71D6542D14F"
+    MigrationPathParameters:
+      name: migration_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "A9DC1F84-C6A7-4201-86CF-116DFE4E59EC"

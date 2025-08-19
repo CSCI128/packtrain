@@ -1,11 +1,16 @@
 package edu.mines.packtrain.controllers;
 
 import edu.mines.packtrain.api.AdminApiDelegate;
-import edu.mines.packtrain.data.*;
+import edu.mines.packtrain.data.CourseDTO;
+import edu.mines.packtrain.data.CourseMemberDTO;
+import edu.mines.packtrain.data.UserDTO;
 import edu.mines.packtrain.factories.DTOFactory;
 import edu.mines.packtrain.managers.SecurityManager;
-import edu.mines.packtrain.models.*;
-import edu.mines.packtrain.services.*;
+import edu.mines.packtrain.models.Course;
+import edu.mines.packtrain.models.User;
+import edu.mines.packtrain.services.CourseMemberService;
+import edu.mines.packtrain.services.CourseService;
+import edu.mines.packtrain.services.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,8 +52,8 @@ public class AdminApiImpl implements AdminApiDelegate {
     }
 
     @Override
-    public ResponseEntity<Void> deleteCourse(String courseId) {
-        if (!courseService.deleteCourse(UUID.fromString(courseId))) {
+    public ResponseEntity<Void> deleteCourse(UUID courseId) {
+        if (!courseService.deleteCourse(courseId)) {
             return ResponseEntity.badRequest().build();
         }
 

@@ -1,10 +1,12 @@
 import {
   Box,
   Button,
+  Center,
   Container,
   Divider,
   FileInput,
   Group,
+  Loader,
   MultiSelect,
   Stack,
   Stepper,
@@ -15,6 +17,8 @@ import { getApiClient } from "@repo/api/index";
 import { MasterMigration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useMutation } from "@tanstack/react-query";
+import { Loading } from "@repo/ui/Loading";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGetCourseInstructor } from "../../hooks";
@@ -25,6 +29,8 @@ export function MigrationsLoadPage() {
   const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
     []
   );
+  const [uploading, setUploading] = useState(false);
+  const [canValidate, setCanValidate] = useState(false); // can validate if files finished uploading
   const [validated, setValidated] = useState(false);
   const [masterMigrationId, setMasterMigrationId] = useState<string>("");
   const { data, error, isLoading } = useGetCourseInstructor();
@@ -182,6 +188,8 @@ export function MigrationsLoadPage() {
             // @ts-ignore
             file,
           });
+          setUploading(false);
+          setCanValidate(true);
         },
       }
     );
@@ -198,14 +206,14 @@ export function MigrationsLoadPage() {
         master_migration_id: masterMigrationId,
       },
       {
-        onSuccess: (data) => {
+        onSuccess: () => {
           navigate("/instructor/migrate/apply");
         },
       }
     );
   };
 
-  if (isLoading || !data) return "Loading...";
+  if (isLoading || !data) return <Loading />;
 
   if (error) return `An error occured: ${error}`;
 
@@ -270,9 +278,11 @@ export function MigrationsLoadPage() {
                   {/*<Text>View Data</Text>*/}
                   <FileInput
                     placeholder="Upload a file.."
-                    onChange={(file) =>
-                      uploadForAssignment(file as File, selectedAssignment)
-                    }
+                    onChange={(file) => {
+                      uploadForAssignment(file as File, selectedAssignment);
+                      setUploading(true);
+                      setCanValidate(false);
+                    }}
                   />
                 </Group>
               </Group>
@@ -280,6 +290,13 @@ export function MigrationsLoadPage() {
           </React.Fragment>
         ))}
       </Stack>
+
+      {uploading && (
+        <Center mt={20}>
+          <Loader color="blue" mr={10} />
+          <Text>Uploading file..</Text>
+        </Center>
+      )}
 
       <Group justify="space-between" mt="xl">
         <Button
@@ -307,9 +324,11 @@ export function MigrationsLoadPage() {
             Cancel
           </Button>
 
-          <Button color="green" onClick={validateAssignments}>
-            Validate
-          </Button>
+          {!uploading && canValidate && (
+            <Button color="green" onClick={validateAssignments}>
+              Validate
+            </Button>
+          )}
 
           {validated ? (
             <Button color="blue" onClick={loadAssignments}>

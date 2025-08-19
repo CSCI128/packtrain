@@ -7,6 +7,8 @@ import {
   TextInput,
 } from "@mantine/core";
 import { CourseMember } from "@repo/api/openapi";
+import { store$ } from "@repo/api/store";
+import { Loading } from "@repo/ui/Loading";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
@@ -55,7 +57,7 @@ export function MembersPage() {
   }, [instructorData, sortBy, reverseSortDirection, search]);
 
   if (isLoading || !data || instructorIsLoading || !instructorData)
-    return "Loading...";
+    return <Loading />;
 
   if (error || instructorError) return `An error occured: ${error}`;
 
@@ -205,18 +207,18 @@ export function MembersPage() {
               <Table.Tbody>
                 <Table.Tr>
                   <TableHeader
-                    sorted={sortBy === "cwid"}
-                    reversed={reverseSortDirection}
-                    onSort={() => setInstructorSorting("cwid")}
-                  >
-                    CWID
-                  </TableHeader>
-                  <TableHeader
                     sorted={sortBy === "name"}
                     reversed={reverseSortDirection}
                     onSort={() => setSorting("name")}
                   >
                     Name
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "cwid"}
+                    reversed={reverseSortDirection}
+                    onSort={() => setInstructorSorting("cwid")}
+                  >
+                    CWID
                   </TableHeader>
                   <TableHeader
                     sorted={sortBy === "course_role"}

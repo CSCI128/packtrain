@@ -16,13 +16,11 @@ import {
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-<<<<<<< HEAD
 import { Course, User } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-=======
 import { User } from "@repo/api/openapi";
 import { Loading } from "@repo/ui/Loading";
->>>>>>> 4171caef (use better hooks system)
+import { Loading } from "@repo/ui/Loading";
 import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
@@ -38,6 +36,34 @@ export function UsersPage() {
     isLoading: courseIsLoading,
   } = useGetCourse([]);
   const { data, error, isLoading, refetch } = useGetUsers();
+
+  } = useQuery<Course | null>({
+    queryKey: ["getCourse"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) =>
+          client.get_course_information_instructor({
+            course_id: store$.id.get() as string,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const { data, error, isLoading, refetch } = useQuery<User[]>({
+    queryKey: ["getUsers"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) => client.get_all_users())
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   const auth = useAuth();
   const [opened, { open, close }] = useDisclosure(false);
@@ -176,9 +202,9 @@ export function UsersPage() {
     }
   }, [data]);
 
-  if (isLoading || !data) return "Loading...";
+  if (isLoading || !data || !courseData || courseIsLoading) return <Loading />;
 
-  if (error) return `An error occured: ${error}`;
+  if (error || courseError) return `An error occured: ${error}`;
 
   const setSorting = (field: keyof User) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;

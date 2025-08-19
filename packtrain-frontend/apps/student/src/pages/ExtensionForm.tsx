@@ -17,6 +17,8 @@ import { Assignment, LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store.js";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { useMutation } from "@tanstack/react-query";
+import { Loading } from "@repo/ui/Loading";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
 import { Link, useNavigate } from "react-router-dom";
@@ -136,7 +138,7 @@ export function ExtensionForm() {
     );
   };
 
-  if (isLoading || !courseData || courseIsLoading || !data) return "Loading...";
+  if (isLoading || !courseData || courseIsLoading || !data) return <Loading />;
 
   if (error || courseError) return `An error occured: ${error}`;
 

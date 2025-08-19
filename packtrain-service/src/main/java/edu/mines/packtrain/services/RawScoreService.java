@@ -42,7 +42,7 @@ public class RawScoreService {
     public void uploadGradescopeCSV(InputStream file, UUID migrationId) {
         List<RawScore> scores = List.of();
 
-        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of Gradescope scores started.", ExternalAssignmentType.GRADESCOPE)){
+        if (!migrationService.attemptToStartRawScoreImport(migrationId, "Import of Gradescope scores started.", ExternalAssignmentType.GRADESCOPE)){
             log.error("Failed to start raw score import for GS!");
             return;
         }
@@ -58,7 +58,7 @@ public class RawScoreService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
-        if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
+        if (!migrationService.finishRawScoreImport(migrationId, String.format("%s raw scores were imported!", scores.size()))){
             log.error("Failed to complete raw score import for GS!");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to complete raw score import for GS!");
         }
@@ -67,15 +67,15 @@ public class RawScoreService {
     public void uploadPrairieLearnCSV(InputStream file, UUID migrationId){
         List<RawScore> scores = List.of();
 
-        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of PrairieLearn scores started.", ExternalAssignmentType.PRAIRIELEARN)){
+        if (!migrationService.attemptToStartRawScoreImport(migrationId, "Import of PrairieLearn scores started.", ExternalAssignmentType.PRAIRIELEARN)){
             log.error("Failed to start raw score import for PL!");
             return;
         }
 
         boolean groupMode = false;
 
-        Course course = migrationService.getCourseForMigration(migrationId.toString());
-        Assignment assignment = migrationService.getAssignmentForMigration(migrationId.toString());
+        Course course = migrationService.getCourseForMigration(migrationId);
+        Assignment assignment = migrationService.getAssignmentForMigration(migrationId);
 
         try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
                 .build()
@@ -105,7 +105,7 @@ public class RawScoreService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
-        if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
+        if (!migrationService.finishRawScoreImport(migrationId, String.format("%s raw scores were imported!", scores.size()))){
             log.error("Failed to complete raw score import for PL!");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to complete raw score import for GS!");
         }
@@ -114,13 +114,13 @@ public class RawScoreService {
     public void uploadRunestoneCSV(InputStream file, UUID migrationId) {
         List<RawScore> scores = List.of();
 
-        if (!migrationService.attemptToStartRawScoreImport(migrationId.toString(), "Import of Runestone scores started.", ExternalAssignmentType.RUNESTONE)){
+        if (!migrationService.attemptToStartRawScoreImport(migrationId, "Import of Runestone scores started.", ExternalAssignmentType.RUNESTONE)){
             log.error("Failed to start raw score import for Runestone!");
             return;
         }
 
-        Course course = migrationService.getCourseForMigration(migrationId.toString());
-        Assignment assignment = migrationService.getAssignmentForMigration(migrationId.toString());
+        Course course = migrationService.getCourseForMigration(migrationId);
+        Assignment assignment = migrationService.getAssignmentForMigration(migrationId);
 
         try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
                 .build()) {
@@ -147,7 +147,7 @@ public class RawScoreService {
 
         }
 
-        if (!migrationService.finishRawScoreImport(migrationId.toString(), String.format("%s raw scores were imported!", scores.size()))){
+        if (!migrationService.finishRawScoreImport(migrationId, String.format("%s raw scores were imported!", scores.size()))){
             log.error("Failed to complete raw score import for Runestone!");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to complete raw score import for GS!");
         }

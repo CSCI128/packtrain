@@ -101,15 +101,15 @@ public class TestMigrationService implements PostgresTestContainer {
 
     @Test
     void verifyCreateMasterMigration(){
-        MasterMigration masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
-        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.getId().toString());
+        MasterMigration masterMigration = migrationService.createMasterMigration(course.getId(), user);
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.getId());
         Assertions.assertEquals(0, migrationList.size());
 
     }
 
     @Test
     void verifyUpdatePolicy(){
-        MasterMigration masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
+        MasterMigration masterMigration = migrationService.createMasterMigration(course.getId(), user);
         Optional<Assignment> assignment = course.getAssignments().stream().findFirst();
         Assertions.assertTrue(assignment.isPresent());
 
@@ -121,16 +121,16 @@ public class TestMigrationService implements PostgresTestContainer {
         User user = userSeeders.user1();
         policy.setCreatedByUser(user);
         policy = policyRepo.save(policy);
-        migrationService.addMigration(masterMigration.getId().toString(), assignment.get().getId().toString());
+        migrationService.addMigration(masterMigration.getId(), assignment.get().getId());
 
-        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.getId().toString());
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.getId());
         Assertions.assertEquals(1, migrationList.size());
 
-        migrationService.setPolicyForMigration(migrationList.get(0).getId().toString(), policy.getId().toString());
+        migrationService.setPolicyForMigration(migrationList.get(0).getId(), policy.getId());
 
         policy = policyRepo.getPolicyById(policy.getId()).orElseThrow(AssertionError::new);
 
-        migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.getId().toString());
+        migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.getId());
         Assertions.assertEquals(1, migrationList.size());
         Assertions.assertEquals(policy.getPolicyURI(), migrationList.getFirst().getPolicy().getPolicyURI());
         Assertions.assertEquals(1, policy.getNumberOfMigrations());
@@ -138,15 +138,15 @@ public class TestMigrationService implements PostgresTestContainer {
 
     @Test
     void verifyMigrationsCreated() {
-        MasterMigration masterMigration = migrationService.createMasterMigration(course.getId().toString(), user);
+        MasterMigration masterMigration = migrationService.createMasterMigration(course.getId(), user);
         Optional<Assignment> assignment = course.getAssignments().stream().findFirst();
         Assertions.assertTrue(assignment.isPresent());
 
-        migrationService.addMigration(masterMigration.getId().toString(), assignment.get().getId().toString());
+        migrationService.addMigration(masterMigration.getId(), assignment.get().getId());
 
-        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.getId().toString());
+        List<Migration> migrationList = migrationService.getMigrationsByMasterMigration(masterMigration.getId());
         Assertions.assertEquals(1, migrationList.size());
-        Assertions.assertEquals(assignment.get().getId().toString(), migrationList.getFirst().getAssignment().getId().toString());
+        Assertions.assertEquals(assignment.get().getId(), migrationList.getFirst().getAssignment().getId());
     }
 
     @Test
