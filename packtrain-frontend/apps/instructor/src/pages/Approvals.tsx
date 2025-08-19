@@ -58,7 +58,7 @@ export function ApprovalPage() {
           client.approve_extension({
             course_id: store$.id.get() as string,
             assignment_id: assignment_id,
-            user_id: user_id,
+            cwid: user_id,
             extension_id: extension_id,
             reason: reason,
           })
@@ -85,7 +85,7 @@ export function ApprovalPage() {
           client.deny_extension({
             course_id: store$.id.get() as string,
             assignment_id: assignment_id,
-            user_id: user_id,
+            cwid: user_id,
             extension_id: extension_id,
             reason: reason,
           })
