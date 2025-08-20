@@ -1,16 +1,5 @@
 package edu.mines.packtrain.services.external;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rabbitmq.client.*;
-import edu.mines.packtrain.containers.PostgresTestContainer;
-import edu.mines.packtrain.containers.RabbitMqTestContainer;
-import edu.mines.packtrain.data.policyServer.RawGradeDTO;
-import edu.mines.packtrain.data.policyServer.ScoredDTO;
-import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
@@ -19,6 +8,27 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
+
+import edu.mines.packtrain.containers.PostgresTestContainer;
+import edu.mines.packtrain.containers.RabbitMqTestContainer;
+import edu.mines.packtrain.data.PolicyRawScoreDTO;
+import edu.mines.packtrain.data.policyServer.ScoredDTO;
 
 
 @SpringBootTest
@@ -93,7 +103,7 @@ public class TestRabbitMqService implements PostgresTestContainer, RabbitMqTestC
         scoreReceiver.queueBind(queue, rabbitMqExchange.get().toString(), routingKey);
 
         class Wrapper {
-            RawGradeDTO data;
+            PolicyRawScoreDTO data;
         }
 
         Wrapper wrapper = new Wrapper();
@@ -101,11 +111,11 @@ public class TestRabbitMqService implements PostgresTestContainer, RabbitMqTestC
         scoreReceiver.basicConsume(queue, new DefaultConsumer(scoreReceiver) {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-                wrapper.data = mapper.readValue(body, RawGradeDTO.class);
+                wrapper.data = mapper.readValue(body, PolicyRawScoreDTO.class);
             }
         });
 
-        RawGradeDTO score = new RawGradeDTO();
+        PolicyRawScoreDTO score = new PolicyRawScoreDTO();
         score.setCwid("99");
 
         Assertions.assertTrue(rabbitMqService.sendScore(publisher, routingKey, score));

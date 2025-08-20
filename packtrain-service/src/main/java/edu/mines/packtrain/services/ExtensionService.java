@@ -110,7 +110,7 @@ public class ExtensionService {
     public LateRequest createLateRequest(UUID courseId,
                                          User actingUser,
                                          LateRequestDTO.RequestTypeEnum requestType,
-                                         double daysRequested,
+                                         int daysRequested,
                                          Instant submissionDate,
                                          UUID assignmentId,
                                          @Nullable ExtensionDTO extension) {

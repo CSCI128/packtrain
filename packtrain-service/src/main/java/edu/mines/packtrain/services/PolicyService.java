@@ -1,5 +1,7 @@
 package edu.mines.packtrain.services;
 
+import edu.mines.packtrain.data.PolicyDryRunResultsDTO;
+import edu.mines.packtrain.data.PolicyRawScoreDTO;
 import edu.mines.packtrain.models.Course;
 import edu.mines.packtrain.models.Policy;
 import edu.mines.packtrain.models.User;
@@ -75,6 +77,10 @@ public class PolicyService {
         log.info("Created new policy '{}' for course '{}' at '{}'", policyName, course.get().getCode(), policyUrl.get());
 
         return policy;
+    }
+
+    public Optional<PolicyDryRunResultsDTO> dryRunPolicy(MultipartFile file, PolicyRawScoreDTO dto){
+        return policyServerService.dryRunPolicy(file, dto);
     }
 
 
