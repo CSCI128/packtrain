@@ -4,7 +4,7 @@
     "description": "Grading Policy Microservice",
     "main": "src/main.ts",
     "scripts": {
-        "test": "node --import tsx --test --test-force-exit",
+        "test": "node --import=tsx  --test \"tests/**/*.test.ts\" --force-test-exit",
         "bundle": "npx ncc build src/main.ts -o dist --source-map",
         "lint": "prettier '**/*.ts' --write",
         "start": "node ./dist/index.js"
@@ -16,6 +16,7 @@
         "axios": "^1.8.2",
         "express": "^4.21.2",
         "minio": "^8.0.4",
+        "multer": "^2.0.2",
         "systemjs": "^6.15.1",
         "uuid": "^11.1.0",
         "yaml": "^2.7.0"
@@ -26,6 +27,7 @@
         "@testcontainers/rabbitmq": "^10.18.0",
         "@types/amqplib": "^0.10.6",
         "@types/express": "^5.0.0",
+        "@types/multer": "^2.0.0",
         "@types/node": "^22.13.4",
         "@vercel/ncc": "^0.38.3",
         "eslint": "^9.21.0",
