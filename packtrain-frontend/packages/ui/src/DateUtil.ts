@@ -12,5 +12,7 @@ export const formattedDate = (date: Date) => {
 };
 
 export const calculateNewDueDate = (date: Date, days: number) => {
-  return new Date(date).setDate(date.getDate() + days);
+  const newDate = new Date(date);
+  newDate.setDate(newDate.getDate() + days);
+  return newDate;
 };
