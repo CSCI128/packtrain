@@ -122,9 +122,11 @@ export function MembersPage() {
                   rows
                 ) : (
                   <Table.Tr>
-                    <Table.Td colSpan={Object.keys(data[0]).length}>
+                    <Table.Td
+                      colSpan={data?.[0] ? Object.keys(data[0]).length : 1}
+                    >
                       <Text fw={500} ta="center">
-                        No users found
+                        No course members found
                       </Text>
                     </Table.Td>
                   </Table.Tr>
@@ -181,9 +183,11 @@ export function MembersPage() {
                   instructorRows
                 ) : (
                   <Table.Tr>
-                    <Table.Td colSpan={Object.keys(data[0]).length}>
+                    <Table.Td
+                      colSpan={data?.[0] ? Object.keys(data[0]).length : 1}
+                    >
                       <Text fw={500} ta="center">
-                        No users found
+                        No course members found
                       </Text>
                     </Table.Td>
                   </Table.Tr>
