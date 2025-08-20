@@ -136,6 +136,7 @@ export function policyDryRun(policyText: string, rawScore: RawScoreDTO): DryRunR
         }
 
         const res = policy(rawScore);
+        console.log(res);
 
         const errors = validateScoredDTO(res);
 

@@ -1,13 +1,17 @@
 import express from "express";
 import multer from "multer";
+import morgan from "morgan";
 import GradingStartDTO from "../data/GradingStartDTO";
 import ValidateDTO from "../data/ValidateDTO";
 import { GradingPolicyConfig } from "../config/config";
 import { ready, startMigration } from "../services/rabbitMqService";
 import { downloadAndVerifyPolicy, policyDryRun } from "../services/policyService";
 import RawScoreDTO from "../data/RawScoreDTO";
+import fs from "node:fs";
 
 export function setup(config: GradingPolicyConfig, app: express.Application) {
+    app.use(morgan('combined'))
+
     app.use(express.json());
     // keep this at base so health check works
     app.get(`/-/ready`, (req, res) => {
@@ -69,7 +73,7 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
 
     const upload = multer({dest: "/dry-run"})
 
-    app.post(`${config.serverConfig!.basePath}/dry-run`, upload.single("javascript"), (req, res) => {
+    app.post(`${config.serverConfig!.basePath}/dry-run`, upload.single("file"), (req, res) => {
         if (!req.body || !req.body.raw_score){
             res.sendStatus(400);
             return;
@@ -83,11 +87,12 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
         const body = JSON.parse(req.body.raw_score) as RawScoreDTO;
         const javascriptFile = req.file;
 
-        const dry_run_res = policyDryRun(javascriptFile, body);
+        const policyContent = fs.readFileSync(javascriptFile.path, 'utf8');
 
+        const dry_run_res = policyDryRun(policyContent, body);
 
-
-
+        res.status(200);
+        res.send(dry_run_res);
     })
 
     return app;

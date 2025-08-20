@@ -12,8 +12,7 @@ info:
   license:
     name: MIT
 
-security:
-  - openIDC: [user:read] # at a base level, all users must at least be a user to access anything
+
 
 tags:
   - name: health
@@ -52,8 +51,7 @@ paths:
       summary: "Create a new course"
       description: |
         Create a new course.
-      security:
-        - openIDC: [admin:write]
+      
       requestBody:
         required: true
         content:
@@ -74,8 +72,7 @@ paths:
       summary: delete existing course
       description: |
         Deletes a course
-      security:
-        - openIDC: [admin:write]
+      
       parameters:
         - $ref: "#/components/parameters/CourseQueryParameters"
       responses:
@@ -106,8 +103,7 @@ paths:
       summary: "Get all users"
       description: |
         Gets all the users in the system
-      security:
-        - openIDC: [admin:read]
+      
       responses:
         200:
           description: "OK"
@@ -124,8 +120,7 @@ paths:
       summary: "Create a new user"
       description: |
         Creates a new user.
-      security:
-        - openIDC: [admin:write]
+      
       requestBody:
         required: true
         content:
@@ -149,8 +144,7 @@ paths:
       tags:
         - admin
       operationId: admin_update_user
-      security:
-        - openIDC: [admin:write]
+      
       summary: Updates a user's information, including admin and disabled/enabled status
       description: |
         Updates a user's information based on the User provided in body and provided JWT.
@@ -176,8 +170,7 @@ paths:
       summary: "enable a user"
       description: |
         Enables a user
-      security:
-        - openIDC: [admin:write]
+      
       parameters:
         - $ref: "#/components/parameters/CwidPathParameters"
       responses:
@@ -201,8 +194,7 @@ paths:
       summary: "disable a user"
       description: |
         Disables a user
-      security:
-        - openIDC: [admin:write]
+      
       parameters:
         - $ref: "#/components/parameters/CwidPathParameters"
       responses:
@@ -226,8 +218,7 @@ paths:
       summary: Update existing course
       description: |
         Update an existing course.
-      security:
-        - openIDC: [admin:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -254,8 +245,7 @@ paths:
       summary: Get existing course
       description: |
         Gets a course
-      security:
-        - openIDC: [admin:read]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - name: "include"
@@ -294,8 +284,7 @@ paths:
       summary: "Import course from Canvas"
       description: |
         Imports data from Canvas into an existing course
-      security:
-        - openIDC: [admin:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -340,8 +329,7 @@ paths:
       summary: "Sync with established course controller"
       description: |
         Syncs with a course in the controller.
-      security:
-        - openIDC: [admin:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -385,8 +373,7 @@ paths:
       summary: "Update an assignment in a course"
       description: |
         Update an assignment in a course
-      security:
-        - openIDC: [admin:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -416,8 +403,7 @@ paths:
         Add assignments to a course.
         If any assignment already exists in the class,
         its information will be updated.
-      security:
-        - openIDC: [admin:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -451,8 +437,7 @@ paths:
       summary: "Disable the specified assignment."
       description: |
         Disable the specified assignment.
-      security:
-        - openIDC: [admin:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/AssignmentPathParameters"
@@ -477,8 +462,7 @@ paths:
       summary: "Enable the specified assignment."
       description: |
         Enable the specified assignment.
-      security:
-        - openIDC: [admin:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/AssignmentPathParameters"
@@ -499,8 +483,7 @@ paths:
       tags:
         - owner
       operationId: get_members
-      security:
-        - openIDC: [admin:read]
+      
       summary: "Get all members for a course"
       description: |
         Gets all members for a course.
@@ -560,8 +543,7 @@ paths:
       summary: Create a new policy
       description: |
         Create a new policy for the course
-      security:
-        - openIDC: [admin:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -587,8 +569,7 @@ paths:
       summary: Get all policies
       description: |
         Get all policies for a course
-      security:
-        - openIDC: [admin:read]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -601,6 +582,32 @@ paths:
                 items:
                   $ref: "#/components/schemas/Policy"
 
+  /owner/course/{course_id}/policies/dry-run:
+    post:
+      tags:
+        - owner
+      operationId: dry_run_policy
+      summary: Dry run a policy
+      parameters:
+        - $ref: "#/components/parameters/CoursePathParameters"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PolicyDryRun"
+            encoding:
+              file_data:
+                contentType: "text/javascript"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyDryRunResults"
+
+
   /owner/course/{course_id}/policies/{policy_id}:
     delete:
       tags:
@@ -609,8 +616,6 @@ paths:
       summary: Delete a policy
       description: |
         Delete policy for the course
-      security:
-        - openIDC: [admin:write]
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/PolicyPathParameters"
@@ -623,8 +628,7 @@ paths:
       tags:
         - user
       operationId: get_user
-      security:
-        - openIDC: [user:read]
+      
       summary: Gets a user's information
       description: |
         Gets a user's information based on the provided JWT.
@@ -640,8 +644,7 @@ paths:
       tags:
         - user
       operationId: update_user
-      security:
-        - openIDC: [user:write]
+      
       summary: Updates a user's information
       description: |
         Updates a user's information based on the User provided in body and provided JWT.
@@ -664,8 +667,7 @@ paths:
       tags:
         - user
       operationId: get_enrollments
-      security:
-        - openIDC: [user:read]
+      
       summary: "Get all enrollments for a user"
       description: |
         Gets all enrollments (classes) that a
@@ -700,8 +702,7 @@ paths:
 
         The credential must have a unique name for the user.
         It must also be the only credential for a service.
-      security:
-        - openIDC: [user:write]
+      
       requestBody:
         required: true
         content:
@@ -742,8 +743,7 @@ paths:
       description: |
         Gets all credentials for the signed in user.
         A user can only view their own credentials (including admins)
-      security:
-        - openIDC: [user:read]
+      
       responses:
         200:
           description: "OK"
@@ -769,8 +769,7 @@ paths:
       summary: Deletes a credential for the user.
       description: |
         Deletes a selected credential for the user.
-      security:
-        - openIDC: [user:write]
+      
       parameters:
         - name: credential_id
           in: path
@@ -808,8 +807,7 @@ paths:
       summary: Changes the visibility of the credential to public for the user.
       description: |
         Sets a credential's status to public for the user.
-      security:
-        - openIDC: [user:write]
+      
       parameters:
         - name: credential_id
           in: path
@@ -847,8 +845,7 @@ paths:
       summary: Changes the visibility of the credential to private for the user.
       description: |
         Sets a credential's status to private for the user.
-      security:
-        - openIDC: [user:write]
+      
       parameters:
         - name: credential_id
           in: path
@@ -886,8 +883,7 @@ paths:
       summary: Get all the extensions for the course
       description: |
         This endpoint gets all extensions for a given course
-      security:
-        - openIDC: [admin:read]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - name: status
@@ -926,8 +922,7 @@ paths:
       summary: Approves an extension for an assignment for the user.
       description: |
         Approves an extension for an assignment for the user.
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/AssignmentPathParameters"
@@ -973,8 +968,7 @@ paths:
       summary: Denies an extension for an assignment for the user.
       description: |
         Denies an extension for an assignment for the user.
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/AssignmentPathParameters"
@@ -1023,8 +1017,7 @@ paths:
         the instructor's perspective; returns
         members as an aggregate of all members
         in their sections.
-      security:
-        - openIDC: [instructor:read]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1040,8 +1033,7 @@ paths:
       tags:
         - instructor
       operationId: get_members_instructor
-      security:
-        - openIDC: [instructor:read]
+      
       summary: "Get all members for a course"
       description: |
         Gets all members for a course.
@@ -1098,8 +1090,7 @@ paths:
       tags:
         - instructor
       operationId: get_instructor_enrollments
-      security:
-        - openIDC: [instructor:read]
+      
       summary: "Get all enrollments for all sections"
       description: |
         Gets user enrollments for all sections 
@@ -1147,8 +1138,7 @@ paths:
       summary: Get all policies
       description: |
         Get all policies for a course
-      security:
-        - openIDC: [instructor:read]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1170,8 +1160,7 @@ paths:
       description: |
         Create a new extension request for an assignment.
         Replies with an extension request for a user and assignment.
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/AssignmentPathParameters"
@@ -1201,8 +1190,7 @@ paths:
       summary: Get all the approved extensions for the provided course and assignment
       description: |
         This endpoint gets all approved extensions for a given instructor
-      security:
-        - openIDC: [instructor:read]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/AssignmentPathParameters"
@@ -1244,8 +1232,7 @@ paths:
       summary: Get all the approved extensions for the provided member
       description: |
         This endpoint gets all approved extensions for a given member
-      security:
-        - openIDC: [instructor:read]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/CwidPathParameters"
@@ -1286,8 +1273,7 @@ paths:
       summary: Get all the extensions for the provided section
       description: |
         This endpoint gets all extensions for a given section
-      security:
-        - openIDC: [instructor:read]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - name: section_id
@@ -1334,8 +1320,7 @@ paths:
       summary: Create a new master migration
       description: |
         Create a master migration - these can be thought as a set of assignments that will be migrated as a set.
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1350,8 +1335,7 @@ paths:
         - instructor
       operationId: get_all_migrations
       summary: Gets all master migrations
-      security:
-        - openIDC: [instructor:read]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1370,8 +1354,7 @@ paths:
         - instructor
       operationId: get_master_migration
       summary: Get master migration
-      security:
-        - openIDC: [instructor:read]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1390,8 +1373,7 @@ paths:
       description: |
         Create a new migration for a master migration.
         Replies with an master migration including the list of migrations, one for each assignment
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1419,8 +1401,7 @@ paths:
       summary: Delete a master migration
       description: |
         Deletes the specified master migration
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1436,8 +1417,7 @@ paths:
       summary: "Upload the scores for a migration"
       description: |
         Upload the raw scores for a student from an external service.
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1472,8 +1452,7 @@ paths:
         - instructor
       operationId: load_validate_master_migration
       summary: "Verify that all information provided in master migration is valid"
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1492,8 +1471,7 @@ paths:
       description: |
         This function loads all relevant data about the master migration and then locks it for edits
         It additionally moves the migration to next step in the pipeline and prevents it from being moved back.
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1508,8 +1486,7 @@ paths:
       tags:
         - instructor
       operationId: set_policy
-      security:
-        - openIDC: [instructor:write]
+      
       summary: sets the policy for a migration
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
@@ -1548,8 +1525,7 @@ paths:
         - instructor
       operationId: apply_validate_master_migration
       summary: "Verify that all information provided in master migration is valid"
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1569,8 +1545,7 @@ paths:
         This function applies the policies to the raw scores that exist
         As this is a long running task, it returns a list of tasks that the server is working through
         The migration will be locked until all of the tasks have been completed.
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1592,8 +1567,7 @@ paths:
         - instructor
       operationId: get_master_migration_to_review
       summary: "Get all current information about a master migration"
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1611,8 +1585,7 @@ paths:
         - instructor
       operationId: review_master_migration
       summary: "Finalize review step for master migration"
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1628,8 +1601,7 @@ paths:
         - instructor
       operationId: update_student_score
       summary: "Update a student's score"
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1651,8 +1623,7 @@ paths:
         - instructor
       operationId: post_master_migration
       summary: "post a master migration to canvas"
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1674,8 +1645,7 @@ paths:
         - instructor
       operationId: finalize_master_migration
       summary: "finalize a master migration after its been posted"
-      security:
-        - openIDC: [instructor:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1692,8 +1662,7 @@ paths:
       summary: Get all tasks for current user
       description: |
         This endpoint gets all the tasks for the currently signed in user
-      security:
-        - openIDC: [user:read]
+      
       responses:
         200:
           description: "OK"
@@ -1711,8 +1680,7 @@ paths:
       summary: Get task by id
       description: |
         This endpoint returns the requested task if the user has access to it.
-      security:
-        - openIDC: [user:read]
+      
       parameters:
         - name: task_id
           required: true
@@ -1749,8 +1717,7 @@ paths:
         the student's perspective; members and
         assignments are not returned but the
         section the student is in is returned.
-      security:
-        - openIDC: [user:read]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1769,8 +1736,7 @@ paths:
       summary: Get assignments for course
       description: |
         Get currently released assignments for course
-      security:
-        - openIDC: [user:read]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1791,8 +1757,7 @@ paths:
       description: |
         Gets all extensions a student has submitted, regardless
         of status.
-      security:
-        - openIDC: [student:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1822,8 +1787,7 @@ paths:
         Create a new extension request for a student.
         Replies with an extension request including the request date, assignment impacted, new due date,
         status, and reason for extension.
-      security:
-        - openIDC: [student:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -1858,8 +1822,7 @@ paths:
       description: |
         Deletes (withdraws) a submitted extension
         by id for the given student.
-      security:
-        - openIDC: [student:write]
+      
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/ExtensionPathParameters"
@@ -1877,11 +1840,6 @@ paths:
                 error_message: "Error: extension request not found"
 
 components:
-  securitySchemes:
-    OpenIDC:
-      type: openIdConnect
-      openIdConnectUrl: https://localhost.dev/auth/application/o/gradingadmin/.well_known
-
   schemas:
     ErrorResponse:
       description: "An error occurred while processing that query"
@@ -1914,6 +1872,114 @@ components:
           format: binary
           example: |
             // valid javascript code
+
+    PolicyDryRun:
+      description: "A policy dry run request"
+      required:
+        - file_data
+        - raw_score
+      properties:
+        file_data:
+          type: string
+          format: binary
+          example: |
+            // valid javascript code
+        raw_score:
+          $ref: "#/components/schemas/PolicyRawScore"
+        
+
+    PolicyRawScore:
+      description: "A raw score for testing a policy"
+      type: object
+      required:
+        - cwid
+        - raw_score
+        - submission_status
+        - extension_status
+      properties:
+        cwid:
+          type: string
+          example: "99999999"
+        rawScore:
+          type: number
+          format: double
+          example: 19
+        submissionDate:
+          type: string
+          format: date-time
+        submissionStatus:
+          type: string
+          enum:
+            - "missing"
+            - "excused"
+            - "late"
+            - "extended"
+            - "on_time"
+        extensionId:
+          type: string
+          format: uuid
+        extensionDate:
+          type: string
+          format: date-time
+        extensionDays:
+          type: integer
+          format: int32
+        extensionType:
+          type: string
+        extensionStatus:
+          type: string
+          enum:
+            - ignored
+            - approved
+            - rejected
+            - pending
+            - no_extension
+            - applied
+    PolicyScored:
+      required:
+        - final_score
+        - adjusted_submission_date
+        - submission_status
+        - extension_status
+      properties:
+        finalScore:
+          type: number 
+          format: double
+        adjustedSubmissionDate:
+          type: string
+          format: date-time
+        submissionStatus:
+          type: string
+          enum:
+            - "missing"
+            - "excused"
+            - "late"
+            - "extended"
+            - "on_time"
+        extensionStatus:
+          type: string
+          enum:
+            - ignored
+            - approved
+            - rejected
+            - pending
+            - no_extension
+            - applied
+        extensionMessage:
+          type: string
+        submissionMessage:
+          type: string
+
+    PolicyDryRunResults:
+      properties:
+        policyResults:
+          $ref: "#/components/schemas/PolicyScored"
+        errors:
+         type: array
+         items:
+           type: string
+        overallStatus:
+          type: boolean
 
     Policy:
       description: "A grading policy"
@@ -2345,8 +2411,8 @@ components:
           format: date-time
           example: "2020-01-01T12:00:00.000Z"
         num_days_requested:
-          type: number
-          format: double
+          type: integer
+          format: int32
           example: 2
         extension:
           $ref: "#/components/schemas/Extension"
