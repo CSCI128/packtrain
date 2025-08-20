@@ -289,11 +289,9 @@ export function Requests() {
                   Request Date
                 </TableHeader>
                 <TableHeader
-                  sorted={false}
-                  // sorted={sortBy === "new_due_date"}
+                  sorted={sortBy === "new_due_date"}
                   reversed={reverseSortDirection}
-                  // onSort={() => handleSort("new_due_date")}
-                  onSort={() => {}}
+                  onSort={() => handleSort("new_due_date")}
                 >
                   New Due Date
                 </TableHeader>
