@@ -163,6 +163,39 @@ export function ApprovalPage() {
     setSelectedExtension(request);
   };
 
+  const ApproveRejectButtons = (row: LateRequestWithDueDate) => {
+    return (
+      <Center>
+        {row.status !== "approved" && (
+          <Button
+            size="sm"
+            py={5}
+            px={10}
+            mr={5}
+            radius={10}
+            bg="green"
+            onClick={() => handleApproveExtension(row)}
+          >
+            Approve
+          </Button>
+        )}
+        {row.status !== "rejected" && (
+          <Button
+            size="sm"
+            py={5}
+            px={10}
+            mr={5}
+            radius={10}
+            bg="red"
+            onClick={() => handleDenyExtension(row)}
+          >
+            Deny
+          </Button>
+        )}
+      </Center>
+    );
+  };
+
   const rows = sortedData.map((row: LateRequestWithDueDate) => (
     <Table.Tr key={row.id}>
       <Table.Td>{formattedDate(new Date(row.date_submitted))}</Table.Td>
@@ -176,34 +209,7 @@ export function ApprovalPage() {
       <Table.Td>{row.status}</Table.Td>
       <Table.Td>
         {row.request_type !== "late_pass" && courseData?.enabled && (
-          <Center>
-            {row.status !== "approved" && (
-              <Button
-                size="sm"
-                py={5}
-                px={10}
-                mr={5}
-                radius={10}
-                bg="green"
-                onClick={() => handleApproveExtension(row)}
-              >
-                Approve
-              </Button>
-            )}
-            {row.status !== "rejected" && (
-              <Button
-                size="sm"
-                py={5}
-                px={10}
-                mr={5}
-                radius={10}
-                bg="red"
-                onClick={() => handleDenyExtension(row)}
-              >
-                Deny
-              </Button>
-            )}
-          </Center>
+          <ApproveRejectButtons {...row} />
         )}
       </Table.Td>
     </Table.Tr>
