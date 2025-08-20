@@ -11,7 +11,7 @@ import {
   Stepper,
   Table,
   Tabs,
-  Text,
+  Text, Textarea,
   TextInput,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -23,6 +23,7 @@ import { sortData, TableHeader } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
+import {useForm} from "@mantine/form";
 import { BsPencilSquare } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
 import {
@@ -199,6 +200,7 @@ export function MigrationsReviewPage() {
     openEditScore();
   };
 
+
   const handleEditSubmit = () => {
     updateStudentScore.mutate(
       {
@@ -293,8 +295,9 @@ export function MigrationsReviewPage() {
         <Stack mb={20}>
           <NumberInput
             label="Score:"
-            value={String(selectedScore?.raw_score)}
-            onChange={(value) => setUpdatedScore(Number(value))}
+            value={selectedScore?.score}
+            onChange={setUpdatedScore}
+            required
           />
         </Stack>
 
