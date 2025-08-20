@@ -107,19 +107,28 @@ export function sortData<T extends Record<string, any>>(
 
   return filterData(
     [...data].sort((a, b) => {
-      const aValue = getValue(a, sortBy);
-      const bValue = getValue(b, sortBy);
-
-      const aNum = parseFloat(aValue);
-      const bNum = parseFloat(bValue);
-      const bothAreNumbers = !isNaN(aNum) && !isNaN(bNum);
+      let aValue = getValue(a, sortBy);
+      let bValue = getValue(b, sortBy);
 
       let comparison = 0;
 
-      if (bothAreNumbers) {
-        comparison = aNum - bNum;
+      // Check if both values are parseable as dates
+      const aDate = new Date(aValue);
+      const bDate = new Date(bValue);
+      const bothAreDates = !isNaN(aDate.getTime()) && !isNaN(bDate.getTime());
+
+      if (bothAreDates) {
+        comparison = aDate.getTime() - bDate.getTime();
       } else {
-        comparison = String(aValue).localeCompare(String(bValue));
+        const aNum = parseFloat(aValue);
+        const bNum = parseFloat(bValue);
+        const bothAreNumbers = !isNaN(aNum) && !isNaN(bNum);
+
+        if (bothAreNumbers) {
+          comparison = aNum - bNum;
+        } else {
+          comparison = String(aValue).localeCompare(String(bValue));
+        }
       }
 
       return reversed ? -comparison : comparison;

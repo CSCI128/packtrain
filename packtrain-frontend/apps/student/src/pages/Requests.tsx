@@ -25,6 +25,10 @@ import { BsPencilSquare } from "react-icons/bs";
 import { Link } from "react-router-dom";
 import { useGetCourseStudent, useGetExtensions } from "../hooks";
 
+type LateRequestWithDueDate = LateRequest & {
+  new_due_date: Date;
+};
+
 export function Requests() {
   const {
     data: studentData,
@@ -56,6 +60,14 @@ export function Requests() {
     { open: openWithdrawConfirm, close: closeWithdrawConfirm },
   ] = useDisclosure(false);
 
+  const preprocessedData = (data ?? []).map((row) => ({
+    ...row,
+    new_due_date: calculateNewDueDate(
+      new Date(row.date_submitted),
+      row.num_days_requested
+    ),
+  }));
+
   const {
     search,
     sortedData,
@@ -63,7 +75,7 @@ export function Requests() {
     reverseSortDirection,
     handleSearchChange,
     handleSort,
-  } = useTableData<LateRequest>(data ?? []);
+  } = useTableData<LateRequestWithDueDate>(preprocessedData);
 
   if (isLoading || !data) return <Loading />;
 
@@ -96,19 +108,10 @@ export function Requests() {
     close();
   };
 
-  const rows = sortedData.map((row: LateRequest) => (
+  const rows = sortedData.map((row: LateRequestWithDueDate) => (
     <Table.Tr key={row.id}>
       <Table.Td>{formattedDate(new Date(row.date_submitted))}</Table.Td>
-      <Table.Td>
-        {formattedDate(
-          new Date(
-            calculateNewDueDate(
-              new Date(Date.parse(row.date_submitted)),
-              row.num_days_requested
-            )
-          )
-        )}
-      </Table.Td>
+      <Table.Td>{formattedDate(row.new_due_date)}</Table.Td>
       <Table.Td>
         {row.request_type === "late_pass" ? "Late Pass" : "Extension"}
       </Table.Td>

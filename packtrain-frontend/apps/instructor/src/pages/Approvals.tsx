@@ -23,6 +23,10 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useGetCourseInstructor, useGetExtensions } from "../hooks";
 
+type LateRequestWithDueDate = LateRequest & {
+  new_due_date: Date;
+};
+
 export function ApprovalPage() {
   const {
     data: courseData,
@@ -94,6 +98,14 @@ export function ApprovalPage() {
         .catch((err) => console.log(err)),
   });
 
+  const preprocessedData = (data ?? []).map((row) => ({
+    ...row,
+    new_due_date: calculateNewDueDate(
+      new Date(row.date_submitted),
+      row.num_days_requested
+    ),
+  }));
+
   const {
     search,
     sortedData,
@@ -101,7 +113,7 @@ export function ApprovalPage() {
     reverseSortDirection,
     handleSearchChange,
     handleSort,
-  } = useTableData<LateRequest>(data ?? []);
+  } = useTableData<LateRequestWithDueDate>(preprocessedData);
 
   if (isLoading || !data || courseIsLoading || !courseData) return <Loading />;
 
@@ -151,19 +163,10 @@ export function ApprovalPage() {
     setSelectedExtension(request);
   };
 
-  const rows = sortedData.map((row) => (
+  const rows = sortedData.map((row: LateRequestWithDueDate) => (
     <Table.Tr key={row.id}>
       <Table.Td>{formattedDate(new Date(row.date_submitted))}</Table.Td>
-      <Table.Td>
-        {formattedDate(
-          new Date(
-            calculateNewDueDate(
-              new Date(Date.parse(row.date_submitted)),
-              row.num_days_requested
-            )
-          )
-        )}
-      </Table.Td>
+      <Table.Td>{formattedDate(row.new_due_date)}</Table.Td>
       <Table.Td>
         {row.request_type === "late_pass" ? "Late Pass" : "Extension"}
       </Table.Td>
@@ -300,11 +303,11 @@ export function ApprovalPage() {
                   Request Date
                 </TableHeader>
                 <TableHeader
-                  sorted={false}
-                  // sorted={sortBy === "new_due_date"}
+                  // sorted={false}
+                  sorted={sortBy === "new_due_date"}
                   reversed={reverseSortDirection}
-                  // onSort={() => handleSort("new_due_date")}
-                  onSort={() => {}}
+                  onSort={() => handleSort("new_due_date")}
+                  // onSort={() => {}}
                 >
                   New Due Date
                 </TableHeader>
