@@ -175,41 +175,35 @@ export function ApprovalPage() {
       <Table.Td>{row.extension?.reason}</Table.Td>
       <Table.Td>{row.status}</Table.Td>
       <Table.Td>
-        {row.request_type === "late_pass" ? (
-          <></>
-        ) : (
-          <>
-            {courseData && courseData.enabled && (
-              <Center>
-                {row.status !== "approved" && (
-                  <Button
-                    size="sm"
-                    py={5}
-                    px={10}
-                    mr={5}
-                    radius={10}
-                    bg="green"
-                    onClick={() => handleApproveExtension(row)}
-                  >
-                    Approve
-                  </Button>
-                )}
-                {row.status !== "rejected" && (
-                  <Button
-                    size="sm"
-                    py={5}
-                    px={10}
-                    mr={5}
-                    radius={10}
-                    bg="red"
-                    onClick={() => handleDenyExtension(row)}
-                  >
-                    Deny
-                  </Button>
-                )}
-              </Center>
+        {row.request_type !== "late_pass" && courseData?.enabled && (
+          <Center>
+            {row.status !== "approved" && (
+              <Button
+                size="sm"
+                py={5}
+                px={10}
+                mr={5}
+                radius={10}
+                bg="green"
+                onClick={() => handleApproveExtension(row)}
+              >
+                Approve
+              </Button>
             )}
-          </>
+            {row.status !== "rejected" && (
+              <Button
+                size="sm"
+                py={5}
+                px={10}
+                mr={5}
+                radius={10}
+                bg="red"
+                onClick={() => handleDenyExtension(row)}
+              >
+                Deny
+              </Button>
+            )}
+          </Center>
         )}
       </Table.Td>
     </Table.Tr>
