@@ -66,10 +66,11 @@ export function useGetCourseInstructor() {
 }
 
 export function useGetMembersInstructor(
-  enrollments: ("tas" | "instructors" | "students")[]
+  enrollments: ("tas" | "instructors" | "students")[],
+  queryKey: string
 ) {
   return useQuery<CourseMember[]>({
-    queryKey: ["getMembers"],
+    queryKey: [queryKey],
     queryFn: () =>
       getApiClient()
         .then((client) =>

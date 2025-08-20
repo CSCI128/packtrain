@@ -18,10 +18,10 @@ import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
 import { User } from "@repo/api/openapi";
 import { Loading } from "@repo/ui/Loading";
-import { sortData, TableHeader } from "@repo/ui/table/Table";
+import { TableHeader, useTableData } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { useAuth } from "react-oidc-context";
 import { useGetCourse, useGetUsers } from "../hooks";
@@ -159,40 +159,18 @@ export function UsersPage() {
     close();
   };
 
-  const [search, setSearch] = useState("");
-  const [sortedData, setSortedData] = useState(data || []);
-  const [sortBy, setSortBy] = useState<keyof User | null>(null);
-  const [reverseSortDirection, setReverseSortDirection] = useState(false);
-
-  // sync sortedData with data
-  useEffect(() => {
-    if (data) {
-      setSortedData(data);
-    }
-  }, [data]);
+  const {
+    search,
+    sortedData,
+    sortBy,
+    reverseSortDirection,
+    handleSearchChange,
+    handleSort,
+  } = useTableData<User>(data);
 
   if (isLoading || !data || !courseData || courseIsLoading) return <Loading />;
 
   if (error || courseError) return `An error occured: ${error}`;
-
-  const setSorting = (field: keyof User) => {
-    const reversed = field === sortBy ? !reverseSortDirection : false;
-    setReverseSortDirection(reversed);
-    setSortBy(field);
-    setSortedData(sortData<User>(data, { sortBy: field, reversed, search }));
-  };
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.currentTarget;
-    setSearch(value);
-    setSortedData(
-      sortData<User>(data, {
-        sortBy,
-        reversed: reverseSortDirection,
-        search: value,
-      })
-    );
-  };
 
   const rows = sortedData.map((row) => (
     <Table.Tr key={row.cwid}>
@@ -349,21 +327,21 @@ export function UsersPage() {
                 <TableHeader
                   sorted={sortBy === "name"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("name")}
+                  onSort={() => handleSort("name")}
                 >
                   Name
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "email"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("email")}
+                  onSort={() => handleSort("email")}
                 >
                   Email
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "cwid"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("cwid")}
+                  onSort={() => handleSort("cwid")}
                 >
                   CWID
                 </TableHeader>

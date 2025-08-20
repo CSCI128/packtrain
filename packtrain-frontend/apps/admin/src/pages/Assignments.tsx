@@ -22,10 +22,10 @@ import { Assignment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
 import { Loading } from "@repo/ui/Loading";
-import { sortData, TableHeader } from "@repo/ui/table/Table";
+import { TableHeader, useTableData } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { BsPencilSquare } from "react-icons/bs";
 import { useGetCourse } from "../hooks";
 
@@ -101,36 +101,6 @@ export function AssignmentsPage() {
     open();
   };
 
-  const [search, setSearch] = useState("");
-  const [sortedData, setSortedData] = useState(data?.assignments || []);
-  const [sortBy, setSortBy] = useState<keyof AssignmentRowData>("name");
-  const [reverseSortDirection, setReverseSortDirection] = useState(false);
-
-  const setSorting = (field: keyof AssignmentRowData) => {
-    const reversed = field === sortBy ? !reverseSortDirection : false;
-    setReverseSortDirection(reversed);
-    setSortBy(field);
-    setSortedData(
-      sortData<AssignmentRowData>(data?.assignments as AssignmentRowData[], {
-        sortBy: field,
-        reversed,
-        search,
-      })
-    );
-  };
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.currentTarget;
-    setSearch(value);
-    setSortedData(
-      sortData<AssignmentRowData>(data?.assignments as AssignmentRowData[], {
-        sortBy,
-        reversed: reverseSortDirection,
-        search: value,
-      })
-    );
-  };
-
   const updateAssignment = useMutation({
     mutationKey: ["updateAssignment"],
     mutationFn: ({ body }: { body: Assignment }) =>
@@ -170,7 +140,7 @@ export function AssignmentsPage() {
         onSuccess: () => {
           close();
           refetch();
-          setSearch("");
+          resetTable();
           setValue(new Date());
           setUnlockDateValue(new Date());
         },
@@ -178,18 +148,17 @@ export function AssignmentsPage() {
     );
   };
 
-  // sync sortedData with data
-  useEffect(() => {
-    if (data?.assignments) {
-      setSortedData(
-        sortData<AssignmentRowData>(data.assignments as AssignmentRowData[], {
-          sortBy: sortBy ?? "name",
-          reversed: reverseSortDirection,
-          search,
-        })
-      );
-    }
-  }, [data?.assignments, sortBy, reverseSortDirection, search]);
+  const {
+    search,
+    sortedData,
+    sortBy,
+    reverseSortDirection,
+    handleSearchChange,
+    handleSort,
+    resetTable,
+  } = useTableData<Assignment>(
+    (data?.assignments as AssignmentRowData[]) ?? []
+  );
 
   if (isLoading || !data) return <Loading />;
 
@@ -351,49 +320,49 @@ export function AssignmentsPage() {
                 <TableHeader
                   sorted={sortBy === "name"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("name")}
+                  onSort={() => handleSort("name")}
                 >
                   Name
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "category"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("category")}
+                  onSort={() => handleSort("category")}
                 >
                   Category
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "points"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("points")}
+                  onSort={() => handleSort("points")}
                 >
                   Points
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "external_service"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("external_service")}
+                  onSort={() => handleSort("external_service")}
                 >
                   External Service
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "external_points"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("external_points")}
+                  onSort={() => handleSort("external_points")}
                 >
                   External Points
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "due_date"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("due_date")}
+                  onSort={() => handleSort("due_date")}
                 >
                   Due Date
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "enabled"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("enabled")}
+                  onSort={() => handleSort("enabled")}
                 >
                   Enabled
                 </TableHeader>

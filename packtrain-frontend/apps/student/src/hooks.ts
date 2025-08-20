@@ -4,7 +4,7 @@ import { store$ } from "@repo/api/store";
 import { useQuery } from "@tanstack/react-query";
 
 export function useGetExtensions() {
-  return useQuery<LateRequest[] | null>({
+  return useQuery<LateRequest[]>({
     queryKey: ["getExtensions"],
     queryFn: () =>
       getApiClient()
@@ -16,7 +16,7 @@ export function useGetExtensions() {
         .then((res) => res.data)
         .catch((err) => {
           console.log(err);
-          return null;
+          return [];
         }),
   });
 }

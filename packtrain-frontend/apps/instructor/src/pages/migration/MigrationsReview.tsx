@@ -11,7 +11,7 @@ import {
   Stepper,
   Table,
   Tabs,
-  Text, Textarea,
+  Text,
   TextInput,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -19,11 +19,10 @@ import { getApiClient } from "@repo/api/index";
 import { MigrationScoreChange, Score } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { Loading } from "@repo/ui/Loading";
-import { sortData, TableHeader } from "@repo/ui/table/Table";
+import { TableHeader, useTableData } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
-import {useForm} from "@mantine/form";
 import { BsPencilSquare } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
 import {
@@ -106,10 +105,20 @@ export function MigrationsReviewPage() {
     []
   );
   const [selectedAssignment, setSelectedAssignment] = useState<string>("");
-  const [search, setSearch] = useState("");
-  const [sortedData, setSortedData] = useState<Score[]>([]);
-  const [sortBy, setSortBy] = useState<keyof Score | null>(null);
-  const [reverseSortDirection, setReverseSortDirection] = useState(false);
+
+  const {
+    search,
+    sortedData,
+    sortBy,
+    reverseSortDirection,
+    handleSearchChange,
+    handleSort,
+    resetTable,
+  } = useTableData<Score>(
+    migrationData?.find((x) => x.assignment?.id === selectedAssignment)
+      ?.scores ?? []
+  );
+
   const [editScoreOpened, { open: openEditScore, close: closeEditScore }] =
     useDisclosure(false);
   const [selectedScore, setSelectedScore] = useState<Score | null>(null);
@@ -132,20 +141,10 @@ export function MigrationsReviewPage() {
   }, [masterMigrationData]);
 
   useEffect(() => {
-    console.log("called useffect");
-    if (migrationData) {
-      console.log("updating migration data..");
-      if (selectedAssignmentIds.length > 0 && migrationData) {
-        setSelectedAssignment(selectedAssignmentIds[0]);
-      }
-
-      const matchingMigration = migrationData.find(
-        (m) => m.assignment?.id === selectedAssignmentIds[0]
-      );
-
-      setSortedData(matchingMigration?.scores ?? []);
+    if (selectedAssignmentIds.length > 0 && migrationData) {
+      setSelectedAssignment(selectedAssignmentIds[0]);
     }
-  }, [selectedAssignmentIds, migrationData, selectedAssignment]);
+  }, [selectedAssignmentIds, migrationData]);
 
   if (
     masterMigrationIsLoading ||
@@ -160,46 +159,10 @@ export function MigrationsReviewPage() {
   if (masterMigrationError || courseError || migrationError)
     return `An error occured: ${masterMigrationError}`;
 
-  const setSorting = (field: keyof Score) => {
-    const reversed = field === sortBy ? !reverseSortDirection : false;
-    setReverseSortDirection(reversed);
-    setSortBy(field);
-    setSortedData(
-      sortData<Score>(
-        migrationData
-          ?.filter((x) => x.assignment?.id === selectedAssignment)
-          .at(0)?.scores as Score[],
-        {
-          sortBy: field,
-          reversed,
-          search,
-        }
-      )
-    );
-  };
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.currentTarget;
-    setSearch(value);
-    setSortedData(
-      sortData<Score>(
-        migrationData
-          ?.filter((x) => x.assignment?.id === selectedAssignment)
-          .at(0)?.scores as Score[],
-        {
-          sortBy,
-          reversed: reverseSortDirection,
-          search: value,
-        }
-      )
-    );
-  };
-
   const handleEditOpen = (row: Score) => {
     setSelectedScore(row);
     openEditScore();
   };
-
 
   const handleEditSubmit = () => {
     updateStudentScore.mutate(
@@ -209,7 +172,7 @@ export function MigrationsReviewPage() {
           ?.filter((x) => x.assignment?.id === selectedAssignment)
           .at(0)?.migration_id as string,
         migration_score_change: {
-          // TODO see if any of the selectedScore fields need to be changed or removed
+          // TODO finish these fields
           cwid: selectedScore?.student?.cwid as string,
           justification: "",
           new_score: updatedScore,
@@ -296,7 +259,7 @@ export function MigrationsReviewPage() {
           <NumberInput
             label="Score:"
             value={selectedScore?.score}
-            onChange={setUpdatedScore}
+            onChange={(value) => setUpdatedScore(Number(value))}
             required
           />
         </Stack>
@@ -338,7 +301,7 @@ export function MigrationsReviewPage() {
           <Tabs
             defaultValue={selectedAssignmentIds.at(0)}
             onChange={(value) => {
-              setSearch("");
+              resetTable();
               setSelectedAssignment(value as string);
             }}
           >
@@ -373,37 +336,37 @@ export function MigrationsReviewPage() {
                       <Table.Tbody>
                         <Table.Tr>
                           <TableHeader
-                            sorted={sortBy === "student"}
+                            sorted={sortBy === "student.name"}
                             reversed={reverseSortDirection}
-                            onSort={() => setSorting("student")}
+                            onSort={() => handleSort("student.name")}
                           >
                             Student
                           </TableHeader>
                           <TableHeader
                             sorted={sortBy === "score"}
                             reversed={reverseSortDirection}
-                            onSort={() => setSorting("score")}
+                            onSort={() => handleSort("score")}
                           >
                             Score to Apply
                           </TableHeader>
                           <TableHeader
                             sorted={sortBy === "raw_score"}
                             reversed={reverseSortDirection}
-                            onSort={() => setSorting("raw_score")}
+                            onSort={() => handleSort("raw_score")}
                           >
                             Raw Score
                           </TableHeader>
                           <TableHeader
                             sorted={sortBy === "days_late"}
                             reversed={reverseSortDirection}
-                            onSort={() => setSorting("days_late")}
+                            onSort={() => handleSort("days_late")}
                           >
                             Days Late
                           </TableHeader>
                           <TableHeader
                             sorted={sortBy === "status"}
                             reversed={reverseSortDirection}
-                            onSort={() => setSorting("status")}
+                            onSort={() => handleSort("status")}
                           >
                             Status
                           </TableHeader>

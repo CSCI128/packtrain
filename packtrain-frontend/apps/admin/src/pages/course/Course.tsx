@@ -10,9 +10,9 @@ import {
 import { getApiClient } from "@repo/api/index";
 import { Policy } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { TableHeader } from "@repo/ui/table/Table";
+import { Loading } from "@repo/ui/Loading";
+import { TableHeader, useTableData } from "@repo/ui/table/Table";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 import { BsTrash } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { useGetCourse, useGetPolicies } from "../../hooks";
@@ -30,7 +30,6 @@ export function CoursePage() {
     isLoading: policyIsLoading,
     refetch: refetchPolicies,
   } = useGetPolicies();
-  const [policyDataState, setPolicyData] = useState<Policy[]>(policyData || []);
 
   const deletePolicy = useMutation({
     mutationKey: ["deletePolicy"],
@@ -46,13 +45,16 @@ export function CoursePage() {
         .catch((err) => console.log(err)),
   });
 
-  useEffect(() => {
-    if (policyData) {
-      setPolicyData(policyData);
-    }
-  }, [policyData]);
+  const { sortedData, sortBy, reverseSortDirection, handleSort } =
+    useTableData<Policy>(policyData);
 
-  const rows = policyDataState.map((element) => (
+  if (policyIsLoading || !policyData || !courseData || courseIsLoading)
+    return <Loading />;
+
+  if (policyError || courseError)
+    return `An error occured: ${courseError} ${policyError}`;
+
+  const rows = sortedData.map((element: Policy) => (
     <Table.Tr key={element.name}>
       <Table.Td>{element.name}</Table.Td>
       <Table.Td>{element.description}</Table.Td>
@@ -146,30 +148,30 @@ export function CoursePage() {
               <Table.Tbody>
                 <Table.Tr>
                   <TableHeader
-                    reversed={false}
-                    sorted={false}
-                    onSort={undefined}
+                    sorted={sortBy === "name"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("name")}
                   >
                     Name
                   </TableHeader>
                   <TableHeader
-                    reversed={false}
                     sorted={false}
+                    reversed={reverseSortDirection}
                     onSort={undefined}
                   >
                     Description
                   </TableHeader>
                   <TableHeader
-                    reversed={false}
                     sorted={false}
+                    reversed={reverseSortDirection}
                     onSort={undefined}
                   >
                     URI
                   </TableHeader>
                   <TableHeader
-                    reversed={false}
-                    sorted={false}
-                    onSort={undefined}
+                    sorted={sortBy === "number_of_migrations"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("number_of_migrations")}
                   >
                     Number of Migrations
                   </TableHeader>

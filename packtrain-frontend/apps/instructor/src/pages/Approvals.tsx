@@ -17,10 +17,10 @@ import { LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { Loading } from "@repo/ui/Loading";
-import { sortData, TableHeader } from "@repo/ui/table/Table";
+import { TableHeader, useTableData } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useGetCourseInstructor, useGetExtensions } from "../hooks";
 
 export function ApprovalPage() {
@@ -94,42 +94,18 @@ export function ApprovalPage() {
         .catch((err) => console.log(err)),
   });
 
-  const [search, setSearch] = useState("");
-  const [sortedData, setSortedData] = useState(data || []);
-  const [sortBy, setSortBy] = useState<keyof LateRequest | null>(null);
-  const [reverseSortDirection, setReverseSortDirection] = useState(false);
-
-  // sync sortedData with data
-  useEffect(() => {
-    if (data) {
-      setSortedData(data);
-    }
-  }, [data]);
+  const {
+    search,
+    sortedData,
+    sortBy,
+    reverseSortDirection,
+    handleSearchChange,
+    handleSort,
+  } = useTableData<LateRequest>(data ?? []);
 
   if (isLoading || !data || courseIsLoading || !courseData) return <Loading />;
 
   if (error || courseError) return `An error occured: ${error} ${courseError}`;
-
-  const setSorting = (field: keyof LateRequest) => {
-    const reversed = field === sortBy ? !reverseSortDirection : false;
-    setReverseSortDirection(reversed);
-    setSortBy(field);
-    setSortedData(
-      sortData<LateRequest>(data, { sortBy: field, reversed, search })
-    );
-  };
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.currentTarget;
-    setSearch(value);
-    setSortedData(
-      sortData<LateRequest>(data, {
-        sortBy,
-        reversed: reverseSortDirection,
-        search: value,
-      })
-    );
-  };
 
   const approveExtension = (request: LateRequest, reason: string) => {
     approveExtensionMutation.mutate(
@@ -319,7 +295,7 @@ export function ApprovalPage() {
                 <TableHeader
                   sorted={sortBy === "date_submitted"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("date_submitted")}
+                  onSort={() => handleSort("date_submitted")}
                 >
                   Request Date
                 </TableHeader>
@@ -327,7 +303,7 @@ export function ApprovalPage() {
                   sorted={false}
                   // sorted={sortBy === "new_due_date"}
                   reversed={reverseSortDirection}
-                  // onSort={() => setSorting("new_due_date")}
+                  // onSort={() => handleSort("new_due_date")}
                   onSort={() => {}}
                 >
                   New Due Date
@@ -335,35 +311,35 @@ export function ApprovalPage() {
                 <TableHeader
                   sorted={sortBy === "request_type"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("request_type")}
+                  onSort={() => handleSort("request_type")}
                 >
                   Type
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "assignment_name"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("assignment_name")}
+                  onSort={() => handleSort("assignment_name")}
                 >
                   Assignment(s)
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "user_requester_id"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("user_requester_id")}
+                  onSort={() => handleSort("user_requester_id")}
                 >
                   Requester
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "extension"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("extension")}
+                  onSort={() => handleSort("extension")}
                 >
                   Reason
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "status"}
                   reversed={reverseSortDirection}
-                  onSort={() => setSorting("status")}
+                  onSort={() => handleSort("status")}
                 >
                   Status
                 </TableHeader>
