@@ -1,39 +1,68 @@
 package edu.mines.packtrain.services;
 
-import edu.ksu.canvas.model.Progress;
-import edu.mines.packtrain.data.AssignmentSlimDTO;
-import edu.mines.packtrain.data.MigrationScoreChangeDTO;
-import edu.mines.packtrain.data.MigrationWithScoresDTO;
-import edu.mines.packtrain.data.ScoreDTO;
-import edu.mines.packtrain.data.policyServer.RawGradeDTO;
-import edu.mines.packtrain.data.policyServer.ScoredDTO;
-import edu.mines.packtrain.events.NewTaskEvent;
-import edu.mines.packtrain.factories.DTOFactory;
-import edu.mines.packtrain.factories.MigrationFactory;
-import edu.mines.packtrain.managers.IdentityProvider;
-import edu.mines.packtrain.managers.ImpersonationManager;
-import edu.mines.packtrain.models.*;
-import edu.mines.packtrain.models.enums.*;
-import edu.mines.packtrain.models.tasks.PostToCanvasTaskDef;
-import edu.mines.packtrain.models.tasks.ProcessScoresAndExtensionsTaskDef;
-import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
-import edu.mines.packtrain.models.tasks.ZeroOutSubmissionsTaskDef;
-import edu.mines.packtrain.repositories.*;
-import edu.mines.packtrain.services.external.CanvasService;
-import edu.mines.packtrain.services.external.PolicyServerService;
-import edu.mines.packtrain.services.external.RabbitMqService;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.net.URI;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.TimeoutException;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.net.URI;
-import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.TimeoutException;
+import edu.ksu.canvas.model.Progress;
+import edu.mines.packtrain.data.AssignmentSlimDTO;
+import edu.mines.packtrain.data.MigrationScoreChangeDTO;
+import edu.mines.packtrain.data.MigrationWithScoresDTO;
+import edu.mines.packtrain.data.PolicyRawScoreDTO;
+import edu.mines.packtrain.data.ScoreDTO;
+import edu.mines.packtrain.data.PolicyRawScoreDTO.ExtensionStatusEnum;
+import edu.mines.packtrain.data.PolicyRawScoreDTO.SubmissionStatusEnum;
+import edu.mines.packtrain.data.policyServer.ScoredDTO;
+import edu.mines.packtrain.events.NewTaskEvent;
+import edu.mines.packtrain.factories.DTOFactory;
+import edu.mines.packtrain.factories.MigrationFactory;
+import edu.mines.packtrain.managers.IdentityProvider;
+import edu.mines.packtrain.managers.ImpersonationManager;
+import edu.mines.packtrain.models.Assignment;
+import edu.mines.packtrain.models.Course;
+import edu.mines.packtrain.models.CourseMember;
+import edu.mines.packtrain.models.LateRequest;
+import edu.mines.packtrain.models.MasterMigration;
+import edu.mines.packtrain.models.MasterMigrationStats;
+import edu.mines.packtrain.models.Migration;
+import edu.mines.packtrain.models.MigrationTransactionLog;
+import edu.mines.packtrain.models.Policy;
+import edu.mines.packtrain.models.RawScore;
+import edu.mines.packtrain.models.User;
+import edu.mines.packtrain.models.enums.ExternalAssignmentType;
+import edu.mines.packtrain.models.enums.LateRequestStatus;
+import edu.mines.packtrain.models.enums.MigrationStatus;
+import edu.mines.packtrain.models.enums.RawScoreStatus;
+import edu.mines.packtrain.models.enums.SubmissionStatus;
+import edu.mines.packtrain.models.tasks.PostToCanvasTaskDef;
+import edu.mines.packtrain.models.tasks.ProcessScoresAndExtensionsTaskDef;
+import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
+import edu.mines.packtrain.models.tasks.ZeroOutSubmissionsTaskDef;
+import edu.mines.packtrain.repositories.MasterMigrationRepo;
+import edu.mines.packtrain.repositories.MasterMigrationStatsRepo;
+import edu.mines.packtrain.repositories.MigrationRepo;
+import edu.mines.packtrain.repositories.MigrationTransactionLogRepo;
+import edu.mines.packtrain.repositories.RawScoreRepo;
+import edu.mines.packtrain.repositories.ScheduledTaskRepo;
+import edu.mines.packtrain.services.external.CanvasService;
+import edu.mines.packtrain.services.external.PolicyServerService;
+import edu.mines.packtrain.services.external.RabbitMqService;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -267,7 +296,7 @@ public class MigrationService {
 
         for (RawScore score : scores){
             Optional<LateRequest> extension = Optional.ofNullable(lateRequests.getOrDefault(score.getCwid(), null));
-            RawGradeDTO dto = createRawGradeDTO(score, extension);
+            PolicyRawScoreDTO dto = createRawGradeDTO(score, extension);
 
             if(!courseMemberService.isUserEnrolledInCourse(score.getCwid(), assignment.getCourse())){
                 log.warn("User '{}' is not enrolled in course '{}'", score, assignment.getCourse());
@@ -298,19 +327,19 @@ public class MigrationService {
 
     }
 
-    private static @NotNull RawGradeDTO createRawGradeDTO(RawScore score, Optional<LateRequest> extension) {
-        RawGradeDTO dto = new RawGradeDTO();
+    private static @NotNull PolicyRawScoreDTO createRawGradeDTO(RawScore score, Optional<LateRequest> extension) {
+        PolicyRawScoreDTO dto = new PolicyRawScoreDTO();
         dto.setCwid(score.getCwid());
         dto.setRawScore(score.getScore() == null ? 0 : score.getScore());
         dto.setSubmissionDate(score.getSubmissionTime());
-        dto.setSubmissionStatus(score.getSubmissionStatus());
+        dto.setSubmissionStatus(SubmissionStatusEnum.fromValue(score.getSubmissionStatus().getStatus()));
 
         if (extension.isPresent()){
-            dto.setExtensionId(extension.get().getId().toString());
+            dto.setExtensionId(extension.get().getId());
             dto.setExtensionDate(extension.get().getExtensionDate());
             dto.setExtensionDays(extension.get().getDaysRequested());
             dto.setExtensionType(extension.get().getLateRequestType().name());
-            dto.setExtensionStatus(extension.get().getStatus());
+            dto.setExtensionStatus(ExtensionStatusEnum.fromValue(extension.get().getStatus().getStatus()));
         }
         return dto;
     }

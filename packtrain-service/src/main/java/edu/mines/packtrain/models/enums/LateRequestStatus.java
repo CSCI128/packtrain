@@ -2,6 +2,9 @@ package edu.mines.packtrain.models.enums;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.Getter;
+
+@Getter
 public enum LateRequestStatus {
     @JsonProperty("ignored")
     IGNORED("ignored"),

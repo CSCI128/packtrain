@@ -20,7 +20,7 @@ public class LateRequest {
     private UUID id;
 
     @Column(name = "days_requested")
-    private double daysRequested;
+    private int daysRequested;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "request_type")

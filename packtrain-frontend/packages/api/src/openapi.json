@@ -14,13 +14,6 @@
       "name": "MIT"
     }
   },
-  "security": [
-    {
-      "openIDC": [
-        "user:read"
-      ]
-    }
-  ],
   "tags": [
     {
       "name": "health",
@@ -77,13 +70,6 @@
         "operationId": "new_course",
         "summary": "Create a new course",
         "description": "Create a new course.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -114,13 +100,6 @@
         "operationId": "delete_course",
         "summary": "delete existing course",
         "description": "Deletes a course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CourseQueryParameters"
@@ -166,13 +145,6 @@
         "operationId": "get_all_users",
         "summary": "Get all users",
         "description": "Gets all the users in the system\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:read"
-            ]
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -196,13 +168,6 @@
         "operationId": "create_user",
         "summary": "Create a new user",
         "description": "Creates a new user.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -238,13 +203,6 @@
           "admin"
         ],
         "operationId": "admin_update_user",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "summary": "Updates a user's information, including admin and disabled/enabled status",
         "description": "Updates a user's information based on the User provided in body and provided JWT.\n",
         "requestBody": {
@@ -279,13 +237,6 @@
         "operationId": "enable_user",
         "summary": "enable a user",
         "description": "Enables a user\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CwidPathParameters"
@@ -320,13 +271,6 @@
         "operationId": "disable_user",
         "summary": "disable a user",
         "description": "Disables a user\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CwidPathParameters"
@@ -361,13 +305,6 @@
         "operationId": "update_course",
         "summary": "Update existing course",
         "description": "Update an existing course.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -409,13 +346,6 @@
         "operationId": "get_course",
         "summary": "Get existing course",
         "description": "Gets a course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -473,13 +403,6 @@
         "operationId": "import_course",
         "summary": "Import course from Canvas",
         "description": "Imports data from Canvas into an existing course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -548,13 +471,6 @@
         "operationId": "sync_course",
         "summary": "Sync with established course controller",
         "description": "Syncs with a course in the controller.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -622,13 +538,6 @@
         "operationId": "update_assignment",
         "summary": "Update an assignment in a course",
         "description": "Update an assignment in a course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -671,13 +580,6 @@
         "operationId": "add_assignment",
         "summary": "Add assignment to a course",
         "description": "Add assignments to a course.\nIf any assignment already exists in the class,\nits information will be updated.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -729,13 +631,6 @@
         "operationId": "disable_assignment",
         "summary": "Disable the specified assignment.",
         "description": "Disable the specified assignment.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -773,13 +668,6 @@
         "operationId": "enable_assignment",
         "summary": "Enable the specified assignment.",
         "description": "Enable the specified assignment.\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -815,13 +703,6 @@
           "owner"
         ],
         "operationId": "get_members",
-        "security": [
-          {
-            "openIDC": [
-              "admin:read"
-            ]
-          }
-        ],
         "summary": "Get all members for a course",
         "description": "Gets all members for a course.\nOptional query params can be used to filter by TAs, Instructors, or Students.\nCan also be used to search by CWID or by name\n",
         "parameters": [
@@ -904,13 +785,6 @@
         "operationId": "new_policy",
         "summary": "Create a new policy",
         "description": "Create a new policy for the course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -951,13 +825,6 @@
         "operationId": "owner_get_all_policies",
         "summary": "Get all policies",
         "description": "Get all policies for a course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -980,6 +847,47 @@
         }
       }
     },
+    "/owner/course/{course_id}/policies/dry-run": {
+      "post": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "dry_run_policy",
+        "summary": "Dry run a policy",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CoursePathParameters"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PolicyDryRun"
+              },
+              "encoding": {
+                "file_data": {
+                  "contentType": "text/javascript"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyDryRunResults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/owner/course/{course_id}/policies/{policy_id}": {
       "delete": {
         "tags": [
@@ -988,13 +896,6 @@
         "operationId": "delete_policy",
         "summary": "Delete a policy",
         "description": "Delete policy for the course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -1016,13 +917,6 @@
           "user"
         ],
         "operationId": "get_user",
-        "security": [
-          {
-            "openIDC": [
-              "user:read"
-            ]
-          }
-        ],
         "summary": "Gets a user's information",
         "description": "Gets a user's information based on the provided JWT.\n",
         "responses": {
@@ -1043,13 +937,6 @@
           "user"
         ],
         "operationId": "update_user",
-        "security": [
-          {
-            "openIDC": [
-              "user:write"
-            ]
-          }
-        ],
         "summary": "Updates a user's information",
         "description": "Updates a user's information based on the User provided in body and provided JWT.\n",
         "requestBody": {
@@ -1082,13 +969,6 @@
           "user"
         ],
         "operationId": "get_enrollments",
-        "security": [
-          {
-            "openIDC": [
-              "user:read"
-            ]
-          }
-        ],
         "summary": "Get all enrollments for a user",
         "description": "Gets all enrollments (classes) that a\nuser is apart of.\n",
         "responses": {
@@ -1130,13 +1010,6 @@
         "operationId": "new_credential",
         "summary": "Create a new credential for the user",
         "description": "Create a new credential for a user.\n\nThe credential must have a unique name for the user.\nIt must also be the only credential for a service.\n",
-        "security": [
-          {
-            "openIDC": [
-              "user:write"
-            ]
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1195,13 +1068,6 @@
         "operationId": "get_credentials",
         "summary": "Get all credentials for a user",
         "description": "Gets all credentials for the signed in user.\nA user can only view their own credentials (including admins)\n",
-        "security": [
-          {
-            "openIDC": [
-              "user:read"
-            ]
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1238,13 +1104,6 @@
         "operationId": "delete_credential",
         "summary": "Deletes a credential for the user.",
         "description": "Deletes a selected credential for the user.\n",
-        "security": [
-          {
-            "openIDC": [
-              "user:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "name": "credential_id",
@@ -1299,13 +1158,6 @@
         "operationId": "mark_credential_as_public",
         "summary": "Changes the visibility of the credential to public for the user.",
         "description": "Sets a credential's status to public for the user.\n",
-        "security": [
-          {
-            "openIDC": [
-              "user:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "name": "credential_id",
@@ -1360,13 +1212,6 @@
         "operationId": "mark_credential_as_private",
         "summary": "Changes the visibility of the credential to private for the user.",
         "description": "Sets a credential's status to private for the user.\n",
-        "security": [
-          {
-            "openIDC": [
-              "user:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "name": "credential_id",
@@ -1421,13 +1266,6 @@
         "operationId": "get_all_extensions_for_course",
         "summary": "Get all the extensions for the course",
         "description": "This endpoint gets all extensions for a given course\n",
-        "security": [
-          {
-            "openIDC": [
-              "admin:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -1485,13 +1323,6 @@
         "operationId": "approve_extension",
         "summary": "Approves an extension for an assignment for the user.",
         "description": "Approves an extension for an assignment for the user.\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -1565,13 +1396,6 @@
         "operationId": "deny_extension",
         "summary": "Denies an extension for an assignment for the user.",
         "description": "Denies an extension for an assignment for the user.\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -1645,13 +1469,6 @@
         "operationId": "get_course_information_instructor",
         "summary": "Get information for a course",
         "description": "Get information from a course from\nthe instructor's perspective; returns\nmembers as an aggregate of all members\nin their sections.\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -1677,13 +1494,6 @@
           "instructor"
         ],
         "operationId": "get_members_instructor",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:read"
-            ]
-          }
-        ],
         "summary": "Get all members for a course",
         "description": "Gets all members for a course.\nOptional query params can be used to filter by TAs, Instructors, or Students.\nCan also be used to search by CWID or by name\n",
         "parameters": [
@@ -1764,13 +1574,6 @@
           "instructor"
         ],
         "operationId": "get_instructor_enrollments",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:read"
-            ]
-          }
-        ],
         "summary": "Get all enrollments for all sections",
         "description": "Gets user enrollments for all sections \nan instructor is apart of.\n",
         "parameters": [
@@ -1837,13 +1640,6 @@
         "operationId": "get_all_policies",
         "summary": "Get all policies",
         "description": "Get all policies for a course\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -1874,13 +1670,6 @@
         "operationId": "new_extension",
         "summary": "Create Extension request",
         "description": "Create a new extension request for an assignment.\nReplies with an extension request for a user and assignment.\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -1928,13 +1717,6 @@
         "operationId": "get_all_approved_extensions_for_assignment",
         "summary": "Get all the approved extensions for the provided course and assignment",
         "description": "This endpoint gets all approved extensions for a given instructor\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -1999,13 +1781,6 @@
         "operationId": "get_all_approved_extensions_for_member",
         "summary": "Get all the approved extensions for the provided member",
         "description": "This endpoint gets all approved extensions for a given member\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2069,13 +1844,6 @@
         "operationId": "get_all_extensions_for_section",
         "summary": "Get all the extensions for the provided section",
         "description": "This endpoint gets all extensions for a given section\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2146,13 +1914,6 @@
         "operationId": "create_master_migration",
         "summary": "Create a new master migration",
         "description": "Create a master migration - these can be thought as a set of assignments that will be migrated as a set.\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2177,13 +1938,6 @@
         ],
         "operationId": "get_all_migrations",
         "summary": "Gets all master migrations",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2213,13 +1967,6 @@
         ],
         "operationId": "get_master_migration",
         "summary": "Get master migration",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2248,13 +1995,6 @@
         "operationId": "create_migration_for_master_migration",
         "summary": "Create migration for a master migration",
         "description": "Create a new migration for a master migration.\nReplies with an master migration including the list of migrations, one for each assignment\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2300,13 +2040,6 @@
         "operationId": "delete_master_migration",
         "summary": "Delete a master migration",
         "description": "Deletes the specified master migration\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2330,13 +2063,6 @@
         "operationId": "upload_raw_scores",
         "summary": "Upload the scores for a migration",
         "description": "Upload the raw scores for a student from an external service.\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2394,13 +2120,6 @@
         ],
         "operationId": "load_validate_master_migration",
         "summary": "Verify that all information provided in master migration is valid",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2427,13 +2146,6 @@
         "operationId": "load_master_migration",
         "summary": "Load data for master migration and then lock the migration from further edits",
         "description": "This function loads all relevant data about the master migration and then locks it for edits\nIt additionally moves the migration to next step in the pipeline and prevents it from being moved back.\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2458,13 +2170,6 @@
           "instructor"
         ],
         "operationId": "set_policy",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "summary": "sets the policy for a migration",
         "parameters": [
           {
@@ -2529,13 +2234,6 @@
         ],
         "operationId": "apply_validate_master_migration",
         "summary": "Verify that all information provided in master migration is valid",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2562,13 +2260,6 @@
         "operationId": "apply_master_migration",
         "summary": "Apply policies to raw score",
         "description": "This function applies the policies to the raw scores that exist\nAs this is a long running task, it returns a list of tasks that the server is working through\nThe migration will be locked until all of the tasks have been completed.\n",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2604,13 +2295,6 @@
         ],
         "operationId": "get_master_migration_to_review",
         "summary": "Get all current information about a master migration",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2641,13 +2325,6 @@
         ],
         "operationId": "review_master_migration",
         "summary": "Finalize review step for master migration",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2673,13 +2350,6 @@
         ],
         "operationId": "update_student_score",
         "summary": "Update a student's score",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2717,13 +2387,6 @@
         ],
         "operationId": "post_master_migration",
         "summary": "post a master migration to canvas",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2759,13 +2422,6 @@
         ],
         "operationId": "finalize_master_migration",
         "summary": "finalize a master migration after its been posted",
-        "security": [
-          {
-            "openIDC": [
-              "instructor:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2792,13 +2448,6 @@
         "operationId": "get_all_tasks_for_user",
         "summary": "Get all tasks for current user",
         "description": "This endpoint gets all the tasks for the currently signed in user\n",
-        "security": [
-          {
-            "openIDC": [
-              "user:read"
-            ]
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -2824,13 +2473,6 @@
         "operationId": "get_task",
         "summary": "Get task by id",
         "description": "This endpoint returns the requested task if the user has access to it.\n",
-        "security": [
-          {
-            "openIDC": [
-              "user:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "name": "task_id",
@@ -2879,13 +2521,6 @@
         "operationId": "get_course_information_student",
         "summary": "Get information for a course",
         "description": "Get information from a course from\nthe student's perspective; members and\nassignments are not returned but the\nsection the student is in is returned.\n",
-        "security": [
-          {
-            "openIDC": [
-              "user:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2913,13 +2548,6 @@
         "operationId": "get_course_assignments_student",
         "summary": "Get assignments for course",
         "description": "Get currently released assignments for course\n",
-        "security": [
-          {
-            "openIDC": [
-              "user:read"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2950,13 +2578,6 @@
         "operationId": "get_all_extensions",
         "summary": "Get all extensions for a student",
         "description": "Gets all extensions a student has submitted, regardless\nof status.\n",
-        "security": [
-          {
-            "openIDC": [
-              "student:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -2999,13 +2620,6 @@
         "operationId": "create_extension_request",
         "summary": "Student Extension request",
         "description": "Create a new extension request for a student.\nReplies with an extension request including the request date, assignment impacted, new due date,\nstatus, and reason for extension.\n",
-        "security": [
-          {
-            "openIDC": [
-              "student:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -3057,13 +2671,6 @@
         "operationId": "withdraw_extension",
         "summary": "Withdraw a submitted extension",
         "description": "Deletes (withdraws) a submitted extension\nby id for the given student.\n",
-        "security": [
-          {
-            "openIDC": [
-              "student:write"
-            ]
-          }
-        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
@@ -3095,12 +2702,6 @@
     }
   },
   "components": {
-    "securitySchemes": {
-      "OpenIDC": {
-        "type": "openIdConnect",
-        "openIdConnectUrl": "https://localhost.dev/auth/application/o/gradingadmin/.well_known"
-      }
-    },
     "schemas": {
       "ErrorResponse": {
         "description": "An error occurred while processing that query",
@@ -3139,6 +2740,163 @@
             "type": "string",
             "format": "binary",
             "example": "// valid javascript code\n"
+          }
+        }
+      },
+      "PolicyDryRun": {
+        "description": "A policy dry run request",
+        "required": [
+          "file_data",
+          "raw_score"
+        ],
+        "properties": {
+          "file_data": {
+            "type": "string",
+            "format": "binary",
+            "example": "// valid javascript code\n"
+          },
+          "raw_score": {
+            "$ref": "#/components/schemas/PolicyRawScore"
+          }
+        }
+      },
+      "PolicyRawScore": {
+        "description": "A raw score for testing a policy",
+        "type": "object",
+        "required": [
+          "cwid",
+          "raw_score",
+          "submission_status",
+          "extension_status"
+        ],
+        "properties": {
+          "cwid": {
+            "type": "string",
+            "example": "99999999"
+          },
+          "rawScore": {
+            "type": "number",
+            "format": "double",
+            "example": 19
+          },
+          "minScore": {
+            "type": "number",
+            "format": "double",
+            "example": 0
+          },
+          "maxScore": {
+            "type": "number",
+            "format": "double",
+            "example": 10
+          },
+          "initialDueDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submissionDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submissionStatus": {
+            "type": "string",
+            "enum": [
+              "missing",
+              "excused",
+              "late",
+              "extended",
+              "on_time"
+            ]
+          },
+          "extensionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "extensionDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "extensionDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "extensionType": {
+            "type": "string"
+          },
+          "extensionStatus": {
+            "type": "string",
+            "enum": [
+              "ignored",
+              "approved",
+              "rejected",
+              "pending",
+              "no_extension",
+              "applied"
+            ]
+          }
+        }
+      },
+      "PolicyScored": {
+        "required": [
+          "final_score",
+          "adjusted_submission_date",
+          "submission_status",
+          "extension_status"
+        ],
+        "properties": {
+          "finalScore": {
+            "type": "number",
+            "format": "double"
+          },
+          "adjustedDaysLate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "adjustedSubmissionDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submissionStatus": {
+            "type": "string",
+            "enum": [
+              "missing",
+              "excused",
+              "late",
+              "extended",
+              "on_time"
+            ]
+          },
+          "extensionStatus": {
+            "type": "string",
+            "enum": [
+              "ignored",
+              "approved",
+              "rejected",
+              "pending",
+              "no_extension",
+              "applied"
+            ]
+          },
+          "extensionMessage": {
+            "type": "string"
+          },
+          "submissionMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "PolicyDryRunResults": {
+        "properties": {
+          "policyResults": {
+            "$ref": "#/components/schemas/PolicyScored"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "overallStatus": {
+            "type": "boolean"
           }
         }
       },
@@ -3692,8 +3450,8 @@
             "example": "2020-01-01T12:00:00.000Z"
           },
           "num_days_requested": {
-            "type": "number",
-            "format": "double",
+            "type": "integer",
+            "format": "int32",
             "example": 2
           },
           "extension": {

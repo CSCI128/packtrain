@@ -3,7 +3,7 @@ package edu.mines.packtrain.services.external;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 import edu.mines.packtrain.config.ExternalServiceConfig;
-import edu.mines.packtrain.data.policyServer.RawGradeDTO;
+import edu.mines.packtrain.data.PolicyRawScoreDTO;
 import edu.mines.packtrain.data.policyServer.ScoredDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -105,8 +105,8 @@ public class RabbitMqService {
         return Optional.empty();
     }
 
-    public boolean sendScore(Channel channel, String routingKey, RawGradeDTO rawGrade){
-        log.debug("Sending raw score for '{}' on '{}'", rawGrade.getCwid(), routingKey);
+    public boolean sendScore(Channel channel, String routingKey, PolicyRawScoreDTO rawScore){
+        log.debug("Sending raw score for '{}' on '{}'", rawScore.getCwid(), routingKey);
 
         if (!channel.isOpen()){
             log.warn("Raw grade publish channel is closed! Attempting to recover");
@@ -128,7 +128,7 @@ public class RabbitMqService {
                             .deliveryMode(2)
                             .type("grading.raw_score")
                             .build(),
-                    mapper.writeValueAsBytes(rawGrade)
+                    mapper.writeValueAsBytes(rawScore)
             );
         } catch (IOException e) {
             log.error("Failed to send raw score!", e);

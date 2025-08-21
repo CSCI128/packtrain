@@ -1,21 +1,42 @@
 package edu.mines.packtrain.controllers;
 
-import edu.mines.packtrain.api.OwnerApiDelegate;
-import edu.mines.packtrain.data.*;
-import edu.mines.packtrain.factories.DTOFactory;
-import edu.mines.packtrain.managers.SecurityManager;
-import edu.mines.packtrain.models.*;
-import edu.mines.packtrain.models.enums.CourseRole;
-import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
-import edu.mines.packtrain.services.*;
-import edu.mines.packtrain.services.tasks.AssignmentTaskService;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.*;
+import edu.mines.packtrain.api.OwnerApiDelegate;
+import edu.mines.packtrain.data.AssignmentDTO;
+import edu.mines.packtrain.data.CourseDTO;
+import edu.mines.packtrain.data.CourseMemberDTO;
+import edu.mines.packtrain.data.CourseSyncTaskDTO;
+import edu.mines.packtrain.data.PolicyDTO;
+import edu.mines.packtrain.data.PolicyDryRunResultsDTO;
+import edu.mines.packtrain.data.PolicyRawScoreDTO;
+import edu.mines.packtrain.data.TaskDTO;
+import edu.mines.packtrain.factories.DTOFactory;
+import edu.mines.packtrain.managers.SecurityManager;
+import edu.mines.packtrain.models.Assignment;
+import edu.mines.packtrain.models.Course;
+import edu.mines.packtrain.models.CourseMember;
+import edu.mines.packtrain.models.Policy;
+import edu.mines.packtrain.models.Section;
+import edu.mines.packtrain.models.enums.CourseRole;
+import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
+import edu.mines.packtrain.services.AssignmentService;
+import edu.mines.packtrain.services.CourseMemberService;
+import edu.mines.packtrain.services.CourseService;
+import edu.mines.packtrain.services.PolicyService;
+import edu.mines.packtrain.services.SectionService;
+import edu.mines.packtrain.services.tasks.AssignmentTaskService;
 
 @Controller
 public class OwnerApiImpl implements OwnerApiDelegate {
@@ -215,5 +236,19 @@ public class OwnerApiImpl implements OwnerApiDelegate {
         Assignment assignment = assignmentService.disableAssignment(assignmentId);
 
         return ResponseEntity.accepted().build();
+    }
+
+    @Override
+    public ResponseEntity<PolicyDryRunResultsDTO> dryRunPolicy(UUID courseId, MultipartFile fileData,
+            PolicyRawScoreDTO rawScore) {
+
+        Optional<PolicyDryRunResultsDTO> res = policyService.dryRunPolicy(fileData, rawScore);
+
+        if (res.isEmpty()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+
+        return ResponseEntity.ok(res.get());
     }
 }

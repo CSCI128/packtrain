@@ -11,6 +11,12 @@ export interface ValidationResults {
     overallStatus: boolean;
 }
 
+export interface DryRunResults {
+    policyResults: PolicyScoredDTO | null;
+    errors: string[];
+    overallStatus: boolean;
+}
+
 function validateScoredDTO(scored: PolicyScoredDTO): string[] {
     const errors: string[] = [];
 
@@ -117,6 +123,38 @@ export function verifyPolicy(fun: ApplyPolicyFunctionSig): ValidationResults {
     }
 }
 
+export function policyDryRun(policyText: string, rawScore: RawScoreDTO): DryRunResults {
+    try {
+        const policy = compilePolicy(policyText);
+
+        if (typeof policy === "string"){
+            return {
+                policyResults: null,
+                errors: [policy],
+                overallStatus: false,
+            }
+        }
+
+        const res = policy(rawScore);
+        console.log(res);
+
+        const errors = validateScoredDTO(res);
+
+        return {
+            policyResults: res,
+            errors: errors,
+            overallStatus: errors.length === 0,
+        }
+
+    } catch (e) {
+        return {
+            policyResults: null,
+            errors: [String(e)],
+            overallStatus: false,
+        }
+    }
+}
+
 function compilePolicy(policyText: string): ApplyPolicyFunctionSig | string {
     try {
         return Function("rawScore", policyText) as ApplyPolicyFunctionSig;
@@ -144,3 +182,5 @@ export async function downloadAndVerifyPolicy(
 
     return functionOrError;
 }
+
+
