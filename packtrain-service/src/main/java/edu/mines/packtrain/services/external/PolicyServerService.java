@@ -113,13 +113,6 @@ public class PolicyServerService {
 
         MultiValueMap<String, HttpEntity<?>> parts = bodyBuilder.build();
 
-        // try {
-        //     parts.add("file", javascriptFile.getBytes());
-        // } catch (IOException e) {
-        //     return Optional.empty();
-        // }
-        // parts.add("raw_score", dto);
-
         try {
             ResponseEntity<PolicyDryRunResultsDTO> res = client.post().uri("/dry-run")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
