@@ -1,5 +1,6 @@
 package edu.mines.packtrain.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.mines.packtrain.containers.MinioTestContainer;
 import edu.mines.packtrain.containers.PostgresTestContainer;
 import edu.mines.packtrain.managers.ImpersonationManager;
@@ -71,6 +72,8 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     private MigrationService migrationService;
     @Autowired
     private CourseMemberRepo courseMemberRepo;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @BeforeAll
     static void setupClass() {
@@ -84,7 +87,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
                 courseRepo, lateRequestConfigRepo, gradescopeConfigRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
-                s3Service, userService, masterMigrationRepo, migrationRepo, courseMemberRepo
+                s3Service, userService, masterMigrationRepo, migrationRepo, courseMemberRepo, objectMapper
         );
 
         applyMocks(canvasService);

@@ -12,8 +12,6 @@ info:
   license:
     name: MIT
 
-
-
 tags:
   - name: health
     description: Health checks for grading server
@@ -51,7 +49,7 @@ paths:
       summary: "Create a new course"
       description: |
         Create a new course.
-      
+
       requestBody:
         required: true
         content:
@@ -72,7 +70,7 @@ paths:
       summary: delete existing course
       description: |
         Deletes a course
-      
+
       parameters:
         - $ref: "#/components/parameters/CourseQueryParameters"
       responses:
@@ -103,7 +101,7 @@ paths:
       summary: "Get all users"
       description: |
         Gets all the users in the system
-      
+
       responses:
         200:
           description: "OK"
@@ -120,7 +118,7 @@ paths:
       summary: "Create a new user"
       description: |
         Creates a new user.
-      
+
       requestBody:
         required: true
         content:
@@ -144,7 +142,7 @@ paths:
       tags:
         - admin
       operationId: admin_update_user
-      
+
       summary: Updates a user's information, including admin and disabled/enabled status
       description: |
         Updates a user's information based on the User provided in body and provided JWT.
@@ -170,7 +168,7 @@ paths:
       summary: "enable a user"
       description: |
         Enables a user
-      
+
       parameters:
         - $ref: "#/components/parameters/CwidPathParameters"
       responses:
@@ -194,7 +192,7 @@ paths:
       summary: "disable a user"
       description: |
         Disables a user
-      
+
       parameters:
         - $ref: "#/components/parameters/CwidPathParameters"
       responses:
@@ -218,7 +216,7 @@ paths:
       summary: Update existing course
       description: |
         Update an existing course.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -245,7 +243,7 @@ paths:
       summary: Get existing course
       description: |
         Gets a course
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - name: "include"
@@ -276,50 +274,56 @@ paths:
                 error_source: "course_creation"
                 error_message: "Course '999-9999-9999-99' does not exist"
 
-  /owner/courses/{course_id}/import:
-    post:
-      tags:
-        - owner
-      operationId: import_course
-      summary: "Import course from Canvas"
-      description: |
-        Imports data from Canvas into an existing course
-      
-      parameters:
-        - $ref: "#/components/parameters/CoursePathParameters"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CourseSyncTask"
-      responses:
-        202:
-          description: "Task Queued"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Task"
-        404:
-          description: "Course not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "Course Service"
-                error_message: "Error: course id not found"
-        403:
-          description: "An authentication error occurred"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error_source: "Canvas Service"
-                error_message: "Error: invalid token"
+  # /owner/courses/{course_id}/import:
+  #   get:
+  #     tags:
+  #       - owner
+  #     operationId: import_course
+
+  #     summary: "Import course from Canvas"
+  #     description: |
+  #       Imports data from Canvas into an existing course
+  #     security:
+  #       - openIDC: [admin:write]
+  #     parameters:
+  #       - $ref: "#/components/parameters/CoursePathParameters"
+  #     # requestBody:
+  #     #   required: true
+  #     #   content:
+  #     #     application/json:
+  #     #       schema:
+  #     #         $ref: "#/components/schemas/CourseSyncTask"
+  #     responses:
+  #       200:
+  #         description: "Task which will finish in the future"
+  #         content:
+  #           text/event-stream: {}
+  #       # 202:
+  #       #   description: "Task Queued"
+  #       #   content:
+  #       #     application/json:
+  #       #       schema:
+  #       #         type: array
+  #       #         items:
+  #       #           $ref: "#/components/schemas/Task"
+  #       404:
+  #         description: "Course not found"
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/ErrorResponse"
+  #             example:
+  #               error_source: "Course Service"
+  #               error_message: "Error: course id not found"
+  #       403:
+  #         description: "An authentication error occurred"
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/ErrorResponse"
+  #             example:
+  #               error_source: "Canvas Service"
+  #               error_message: "Error: invalid token"
 
   /owner/courses/{course_id}/sync:
     post:
@@ -329,7 +333,7 @@ paths:
       summary: "Sync with established course controller"
       description: |
         Syncs with a course in the controller.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -373,7 +377,7 @@ paths:
       summary: "Update an assignment in a course"
       description: |
         Update an assignment in a course
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -403,7 +407,7 @@ paths:
         Add assignments to a course.
         If any assignment already exists in the class,
         its information will be updated.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -437,7 +441,7 @@ paths:
       summary: "Disable the specified assignment."
       description: |
         Disable the specified assignment.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/AssignmentPathParameters"
@@ -462,7 +466,7 @@ paths:
       summary: "Enable the specified assignment."
       description: |
         Enable the specified assignment.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/AssignmentPathParameters"
@@ -483,7 +487,7 @@ paths:
       tags:
         - owner
       operationId: get_members
-      
+
       summary: "Get all members for a course"
       description: |
         Gets all members for a course.
@@ -543,7 +547,7 @@ paths:
       summary: Create a new policy
       description: |
         Create a new policy for the course
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -569,7 +573,7 @@ paths:
       summary: Get all policies
       description: |
         Get all policies for a course
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -607,7 +611,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/PolicyDryRunResults"
 
-
   /owner/course/{course_id}/policies/{policy_id}:
     delete:
       tags:
@@ -628,7 +631,7 @@ paths:
       tags:
         - user
       operationId: get_user
-      
+
       summary: Gets a user's information
       description: |
         Gets a user's information based on the provided JWT.
@@ -644,7 +647,7 @@ paths:
       tags:
         - user
       operationId: update_user
-      
+
       summary: Updates a user's information
       description: |
         Updates a user's information based on the User provided in body and provided JWT.
@@ -667,7 +670,7 @@ paths:
       tags:
         - user
       operationId: get_enrollments
-      
+
       summary: "Get all enrollments for a user"
       description: |
         Gets all enrollments (classes) that a
@@ -702,7 +705,7 @@ paths:
 
         The credential must have a unique name for the user.
         It must also be the only credential for a service.
-      
+
       requestBody:
         required: true
         content:
@@ -743,7 +746,7 @@ paths:
       description: |
         Gets all credentials for the signed in user.
         A user can only view their own credentials (including admins)
-      
+
       responses:
         200:
           description: "OK"
@@ -769,7 +772,7 @@ paths:
       summary: Deletes a credential for the user.
       description: |
         Deletes a selected credential for the user.
-      
+
       parameters:
         - name: credential_id
           in: path
@@ -807,7 +810,7 @@ paths:
       summary: Changes the visibility of the credential to public for the user.
       description: |
         Sets a credential's status to public for the user.
-      
+
       parameters:
         - name: credential_id
           in: path
@@ -845,7 +848,7 @@ paths:
       summary: Changes the visibility of the credential to private for the user.
       description: |
         Sets a credential's status to private for the user.
-      
+
       parameters:
         - name: credential_id
           in: path
@@ -883,7 +886,7 @@ paths:
       summary: Get all the extensions for the course
       description: |
         This endpoint gets all extensions for a given course
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - name: status
@@ -922,7 +925,7 @@ paths:
       summary: Approves an extension for an assignment for the user.
       description: |
         Approves an extension for an assignment for the user.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/AssignmentPathParameters"
@@ -968,7 +971,7 @@ paths:
       summary: Denies an extension for an assignment for the user.
       description: |
         Denies an extension for an assignment for the user.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/AssignmentPathParameters"
@@ -1017,7 +1020,7 @@ paths:
         the instructor's perspective; returns
         members as an aggregate of all members
         in their sections.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1033,7 +1036,7 @@ paths:
       tags:
         - instructor
       operationId: get_members_instructor
-      
+
       summary: "Get all members for a course"
       description: |
         Gets all members for a course.
@@ -1090,7 +1093,7 @@ paths:
       tags:
         - instructor
       operationId: get_instructor_enrollments
-      
+
       summary: "Get all enrollments for all sections"
       description: |
         Gets user enrollments for all sections 
@@ -1138,7 +1141,7 @@ paths:
       summary: Get all policies
       description: |
         Get all policies for a course
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1160,7 +1163,7 @@ paths:
       description: |
         Create a new extension request for an assignment.
         Replies with an extension request for a user and assignment.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/AssignmentPathParameters"
@@ -1190,7 +1193,7 @@ paths:
       summary: Get all the approved extensions for the provided course and assignment
       description: |
         This endpoint gets all approved extensions for a given instructor
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/AssignmentPathParameters"
@@ -1232,7 +1235,7 @@ paths:
       summary: Get all the approved extensions for the provided member
       description: |
         This endpoint gets all approved extensions for a given member
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/CwidPathParameters"
@@ -1273,7 +1276,7 @@ paths:
       summary: Get all the extensions for the provided section
       description: |
         This endpoint gets all extensions for a given section
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - name: section_id
@@ -1320,7 +1323,7 @@ paths:
       summary: Create a new master migration
       description: |
         Create a master migration - these can be thought as a set of assignments that will be migrated as a set.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1335,7 +1338,7 @@ paths:
         - instructor
       operationId: get_all_migrations
       summary: Gets all master migrations
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1354,7 +1357,7 @@ paths:
         - instructor
       operationId: get_master_migration
       summary: Get master migration
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1373,7 +1376,7 @@ paths:
       description: |
         Create a new migration for a master migration.
         Replies with an master migration including the list of migrations, one for each assignment
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1401,7 +1404,7 @@ paths:
       summary: Delete a master migration
       description: |
         Deletes the specified master migration
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1417,7 +1420,7 @@ paths:
       summary: "Upload the scores for a migration"
       description: |
         Upload the raw scores for a student from an external service.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1452,7 +1455,7 @@ paths:
         - instructor
       operationId: load_validate_master_migration
       summary: "Verify that all information provided in master migration is valid"
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1471,7 +1474,7 @@ paths:
       description: |
         This function loads all relevant data about the master migration and then locks it for edits
         It additionally moves the migration to next step in the pipeline and prevents it from being moved back.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1486,7 +1489,7 @@ paths:
       tags:
         - instructor
       operationId: set_policy
-      
+
       summary: sets the policy for a migration
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
@@ -1525,7 +1528,7 @@ paths:
         - instructor
       operationId: apply_validate_master_migration
       summary: "Verify that all information provided in master migration is valid"
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1545,7 +1548,7 @@ paths:
         This function applies the policies to the raw scores that exist
         As this is a long running task, it returns a list of tasks that the server is working through
         The migration will be locked until all of the tasks have been completed.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1567,7 +1570,7 @@ paths:
         - instructor
       operationId: get_master_migration_to_review
       summary: "Get all current information about a master migration"
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1585,7 +1588,7 @@ paths:
         - instructor
       operationId: review_master_migration
       summary: "Finalize review step for master migration"
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1601,7 +1604,7 @@ paths:
         - instructor
       operationId: update_student_score
       summary: "Update a student's score"
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1623,7 +1626,7 @@ paths:
         - instructor
       operationId: post_master_migration
       summary: "post a master migration to canvas"
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1645,7 +1648,7 @@ paths:
         - instructor
       operationId: finalize_master_migration
       summary: "finalize a master migration after its been posted"
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/MasterMigrationPathParameters"
@@ -1662,7 +1665,7 @@ paths:
       summary: Get all tasks for current user
       description: |
         This endpoint gets all the tasks for the currently signed in user
-      
+
       responses:
         200:
           description: "OK"
@@ -1680,7 +1683,7 @@ paths:
       summary: Get task by id
       description: |
         This endpoint returns the requested task if the user has access to it.
-      
+
       parameters:
         - name: task_id
           required: true
@@ -1717,7 +1720,7 @@ paths:
         the student's perspective; members and
         assignments are not returned but the
         section the student is in is returned.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1736,7 +1739,7 @@ paths:
       summary: Get assignments for course
       description: |
         Get currently released assignments for course
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1757,7 +1760,7 @@ paths:
       description: |
         Gets all extensions a student has submitted, regardless
         of status.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       responses:
@@ -1787,7 +1790,7 @@ paths:
         Create a new extension request for a student.
         Replies with an extension request including the request date, assignment impacted, new due date,
         status, and reason for extension.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
       requestBody:
@@ -1822,7 +1825,7 @@ paths:
       description: |
         Deletes (withdraws) a submitted extension
         by id for the given student.
-      
+
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
         - $ref: "#/components/parameters/ExtensionPathParameters"
@@ -1886,7 +1889,6 @@ components:
             // valid javascript code
         raw_score:
           $ref: "#/components/schemas/PolicyRawScore"
-        
 
     PolicyRawScore:
       description: "A raw score for testing a policy"
@@ -1954,7 +1956,7 @@ components:
         - extension_status
       properties:
         finalScore:
-          type: number 
+          type: number
           format: double
         adjustedDaysLate:
           type: integer
@@ -1989,9 +1991,9 @@ components:
         policyResults:
           $ref: "#/components/schemas/PolicyScored"
         errors:
-         type: array
-         items:
-           type: string
+          type: array
+          items:
+            type: string
         overallStatus:
           type: boolean
 
@@ -2047,31 +2049,32 @@ components:
           type: string
           example: "A message about the status of the task"
 
-    CourseSyncTask:
-      description: "Import a new course from canvas"
-      required:
-        - canvas_id
-      properties:
-        canvas_id:
-          type: integer
-          format: int64
-          example: 999999
-        overwrite_name:
-          type: boolean
-          example: false
-          default: false
-        overwrite_code:
-          type: boolean
-          example: false
-          default: false
-        import_users:
-          type: boolean
-          example: false
-          default: false
-        import_assignments:
-          type: boolean
-          example: false
-          default: false
+    # TODO remove this
+    # CourseSyncTask:
+    #   description: "Import a new course from canvas"
+    #   required:
+    #     - canvas_id
+    #   properties:
+    #     canvas_id:
+    #       type: integer
+    #       format: int64
+    #       example: 999999
+    #     overwrite_name:
+    #       type: boolean
+    #       example: false
+    #       default: false
+    #     overwrite_code:
+    #       type: boolean
+    #       example: false
+    #       default: false
+    #     import_users:
+    #       type: boolean
+    #       example: false
+    #       default: false
+    #     import_assignments:
+    #       type: boolean
+    #       example: false
+    #       default: false
 
     Credential:
       description: "A credential for external service"

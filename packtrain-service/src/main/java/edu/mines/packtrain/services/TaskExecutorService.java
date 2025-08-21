@@ -1,15 +1,19 @@
 package edu.mines.packtrain.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.mines.packtrain.events.NewTaskEvent;
+import edu.mines.packtrain.factories.DTOFactory;
 import edu.mines.packtrain.models.tasks.ScheduleStatus;
 import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
 import edu.mines.packtrain.models.User;
 import edu.mines.packtrain.repositories.ScheduledTaskRepo;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.Instant;
 import java.util.List;
@@ -25,9 +29,12 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
     private final ExecutorService executorService;
     private final ScheduledTaskRepo<? extends ScheduledTaskDef> scheduledTaskRepo;
 
-    public TaskExecutorService(ScheduledTaskRepo<? extends ScheduledTaskDef> scheduledTaskRepo) {
+    private static ObjectMapper objectMapper;
+
+    public TaskExecutorService(ScheduledTaskRepo<? extends ScheduledTaskDef> scheduledTaskRepo, ObjectMapper objectMapper) {
         this.scheduledTaskRepo = scheduledTaskRepo;
         this.executorService = Executors.newFixedThreadPool(10);
+        this.objectMapper = objectMapper;
     }
 
     public static <T extends ScheduledTaskDef> void runTask(NewTaskEvent.TaskData<T> taskData) {
@@ -84,9 +91,12 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
         return true;
     }
 
+    @SneakyThrows
     public static <T extends ScheduledTaskDef> boolean runJobs(NewTaskEvent.TaskData<T> taskData, ScheduledTaskRepo<T> taskRepo) {
 
         T data = taskRepo.getById(taskData.getTaskId()).orElseThrow(RuntimeException::new);
+
+        log.warn("DATA:", data);
 
         try{
             taskData.getOnJobStart().ifPresent(start -> start.accept(data));

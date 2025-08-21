@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Optional;
 import java.util.Set;
@@ -26,6 +27,8 @@ public class NewTaskEvent extends ApplicationEvent {
         private Optional<Consumer<T>> onJobStart = Optional.empty();
         private final Consumer<T> job;
         private Optional<Consumer<T>> onJobComplete = Optional.empty();
+
+        private final SseEmitter emitter;
     }
 
     final private TaskData<?> data;

@@ -377,7 +377,7 @@ public class MigrationService {
 
             tasks.add(zeroOutSubmissionsTask);
 
-            NewTaskEvent.TaskData<ZeroOutSubmissionsTaskDef> zeroTaskDef = new NewTaskEvent.TaskData<>(zeroOutSubmissionsTaskRepo, zeroOutSubmissionsTask.getId(), this::zeroOutSubmissions);
+            NewTaskEvent.TaskData<ZeroOutSubmissionsTaskDef> zeroTaskDef = new NewTaskEvent.TaskData<>(zeroOutSubmissionsTaskRepo, zeroOutSubmissionsTask.getId(), this::zeroOutSubmissions, null);
 
             ProcessScoresAndExtensionsTaskDef task = new ProcessScoresAndExtensionsTaskDef();
             task.setCreatedByUser(actingUser);
@@ -389,7 +389,7 @@ public class MigrationService {
 
             tasks.add(task);
 
-            NewTaskEvent.TaskData<ProcessScoresAndExtensionsTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(processScoresTaskRepo, task.getId(), this::processScoresAndExtensionsTask);
+            NewTaskEvent.TaskData<ProcessScoresAndExtensionsTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(processScoresTaskRepo, task.getId(), this::processScoresAndExtensionsTask, null);
             taskDefinition.setDependsOn(Set.of(zeroOutSubmissionsTask.getId()));
 
             eventPublisher.publishEvent(new NewTaskEvent(this, zeroTaskDef));
@@ -643,7 +643,7 @@ public class MigrationService {
 
             tasks.add(task);
 
-            NewTaskEvent.TaskData<PostToCanvasTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(postToCanvasTaskRepo, task.getId(), this::postGradesToCanvasTask);
+            NewTaskEvent.TaskData<PostToCanvasTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(postToCanvasTaskRepo, task.getId(), this::postGradesToCanvasTask, null);
 
             eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
         }

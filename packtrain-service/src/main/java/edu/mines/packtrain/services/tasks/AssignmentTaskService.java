@@ -2,11 +2,13 @@ package edu.mines.packtrain.services.tasks;
 
 import edu.ksu.canvas.model.assignment.Assignment;
 import edu.mines.packtrain.events.NewTaskEvent;
+import edu.mines.packtrain.factories.DTOFactory;
 import edu.mines.packtrain.managers.IdentityProvider;
 import edu.mines.packtrain.managers.ImpersonationManager;
 import edu.mines.packtrain.models.Course;
 import edu.mines.packtrain.models.User;
 import edu.mines.packtrain.models.tasks.AssignmentsSyncTaskDef;
+import edu.mines.packtrain.models.tasks.CourseSyncTaskDef;
 import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
 import edu.mines.packtrain.repositories.ScheduledTaskRepo;
 import edu.mines.packtrain.services.AssignmentService;
@@ -15,11 +17,9 @@ import edu.mines.packtrain.services.external.CanvasService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -41,7 +41,7 @@ public class AssignmentTaskService {
         this.assignmentService = assignmentService;
     }
 
-    public ScheduledTaskDef syncAssignmentsFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean addNew, boolean deleteOld, boolean updateExisting){
+    public ScheduledTaskDef syncAssignmentsFromCanvas(SseEmitter emitter, User actingUser, Set<Long> dependencies, UUID courseId, boolean addNew, boolean deleteOld, boolean updateExisting){
         AssignmentsSyncTaskDef task = new AssignmentsSyncTaskDef();
         task.setCourseToSync(courseId);
         task.setTaskName(String.format("Sync Course '%s': Course Assignments", courseId));
@@ -51,8 +51,27 @@ public class AssignmentTaskService {
         task.shouldUpdateAssignments(updateExisting);
         task = taskRepo.save(task);
 
-        NewTaskEvent.TaskData<AssignmentsSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncAssignmentTask);
+        NewTaskEvent.TaskData<AssignmentsSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncAssignmentTask, emitter);
         taskDefinition.setDependsOn(dependencies);
+
+
+        taskDefinition.setOnJobComplete(Optional.of(data -> {
+            try {
+                log.warn("recieved data: {}", data);
+                emitter.send(SseEmitter.event()
+                        .name("result")
+                        .data("import assignments done"));
+                emitter.send(SseEmitter.event()
+                        .name("end")
+                        .data("successful end of stream"));
+
+                emitter.complete();
+            }
+            catch(Exception ex) {
+                throw new RuntimeException("Course DTO could not be parsed as JSON!" + ex);
+            }
+        }));
+
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 

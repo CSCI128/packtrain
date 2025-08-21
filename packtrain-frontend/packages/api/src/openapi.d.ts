@@ -1968,28 +1968,6 @@ declare namespace Paths {
             export type $200 = /* A server user */ Components.Schemas.User;
         }
     }
-    namespace ImportCourse {
-        namespace Parameters {
-            /**
-             * example:
-             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
-             */
-            export type CourseId = string; // uuid
-        }
-        export interface PathParameters {
-            course_id: /**
-             * example:
-             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
-             */
-            Parameters.CourseId /* uuid */;
-        }
-        export type RequestBody = /* Import a new course from canvas */ Components.Schemas.CourseSyncTask;
-        namespace Responses {
-            export type $202 = /* An async task on the server */ Components.Schemas.Task[];
-            export type $403 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
-            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
-        }
-    }
     namespace LoadMasterMigration {
         namespace Parameters {
             /**
@@ -2605,17 +2583,6 @@ export interface OperationMethods {
     data?: Paths.UpdateCourse.RequestBody,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.UpdateCourse.Responses.$204>
-  /**
-   * import_course - Import course from Canvas
-   * 
-   * Imports data from Canvas into an existing course
-   * 
-   */
-  'import_course'(
-    parameters?: Parameters<Paths.ImportCourse.PathParameters> | null,
-    data?: Paths.ImportCourse.RequestBody,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.ImportCourse.Responses.$202>
   /**
    * sync_course - Sync with established course controller
    * 
@@ -3303,19 +3270,6 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetCourse.Responses.$200>
-  }
-  ['/owner/courses/{course_id}/import']: {
-    /**
-     * import_course - Import course from Canvas
-     * 
-     * Imports data from Canvas into an existing course
-     * 
-     */
-    'post'(
-      parameters?: Parameters<Paths.ImportCourse.PathParameters> | null,
-      data?: Paths.ImportCourse.RequestBody,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.ImportCourse.Responses.$202>
   }
   ['/owner/courses/{course_id}/sync']: {
     /**

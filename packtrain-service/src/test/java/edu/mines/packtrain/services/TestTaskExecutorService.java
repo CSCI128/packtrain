@@ -85,7 +85,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
 
         Assertions.assertEquals(ScheduleStatus.CREATED, task.getStatus());
 
-        var data = new NewTaskEvent.TaskData<>(testTaskRepo, task.getId(), _ -> {});
+        var data = new NewTaskEvent.TaskData<>(testTaskRepo, task.getId(), _ -> {}, null);
 
         TaskExecutorService.runTask(data);
 
@@ -113,7 +113,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
 
         task = testTaskRepo.save(task);
 
-        var data = new NewTaskEvent.TaskData<>(testTaskRepo, task.getId(), _ -> {});
+        var data = new NewTaskEvent.TaskData<>(testTaskRepo, task.getId(), _ -> {}, null);
         data.setDependsOn(Set.of(depTask.getId()));
 
         TaskExecutorService.runTask(data);
@@ -141,7 +141,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
 
         task = testTaskRepo.save(task);
 
-        var data = new NewTaskEvent.TaskData<>(testTaskRepo, task.getId(), _ -> {});
+        var data = new NewTaskEvent.TaskData<>(testTaskRepo, task.getId(), _ -> {}, null);
         data.setDependsOn(Set.of(failedTask.getId()));
 
         TaskExecutorService.runTask(data);
@@ -169,7 +169,7 @@ public class TestTaskExecutorService implements PostgresTestContainer {
 
         var data = new NewTaskEvent.TaskData<>(testTaskRepo, task.getId(), _ -> {
             throw new RuntimeException(expected);
-        });
+        }, null);
 
         TaskExecutorService.runTask(data);
 

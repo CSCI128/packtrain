@@ -7,36 +7,38 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import edu.mines.packtrain.api.OwnerApiDelegate;
+import edu.mines.packtrain.data.*;
+import edu.mines.packtrain.factories.DTOFactory;
+import edu.mines.packtrain.managers.SecurityManager;
+import edu.mines.packtrain.models.*;
+import edu.mines.packtrain.models.enums.CourseRole;
+import edu.mines.packtrain.services.*;
+import edu.mines.packtrain.services.tasks.AssignmentTaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import edu.mines.packtrain.api.OwnerApiDelegate;
 import edu.mines.packtrain.data.AssignmentDTO;
 import edu.mines.packtrain.data.CourseDTO;
 import edu.mines.packtrain.data.CourseMemberDTO;
 import edu.mines.packtrain.data.CourseSyncTaskDTO;
 import edu.mines.packtrain.data.PolicyDTO;
-import edu.mines.packtrain.data.PolicyDryRunResultsDTO;
-import edu.mines.packtrain.data.PolicyRawScoreDTO;
 import edu.mines.packtrain.data.TaskDTO;
-import edu.mines.packtrain.factories.DTOFactory;
-import edu.mines.packtrain.managers.SecurityManager;
 import edu.mines.packtrain.models.Assignment;
 import edu.mines.packtrain.models.Course;
 import edu.mines.packtrain.models.CourseMember;
 import edu.mines.packtrain.models.Policy;
 import edu.mines.packtrain.models.Section;
-import edu.mines.packtrain.models.enums.CourseRole;
-import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
 import edu.mines.packtrain.services.AssignmentService;
 import edu.mines.packtrain.services.CourseMemberService;
 import edu.mines.packtrain.services.CourseService;
 import edu.mines.packtrain.services.PolicyService;
 import edu.mines.packtrain.services.SectionService;
-import edu.mines.packtrain.services.tasks.AssignmentTaskService;
+import java.util.*;
 
 @Controller
 public class OwnerApiImpl implements OwnerApiDelegate {
@@ -79,63 +81,157 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     public ResponseEntity<List<TaskDTO>> syncCourse(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
         List<TaskDTO> tasks = new LinkedList<>();
 
-        ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
-                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId(),
-                courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
-
-
-        tasks.add(DTOFactory.toDto(courseTask));
-
-        ScheduledTaskDef sectionTask = sectionService.createSectionsFromCanvas(
-                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId());
-
-        tasks.add(DTOFactory.toDto(sectionTask));
-
-        if (courseSyncTaskDTO.getImportUsers()) {
-            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()), courseId, true, true, true);
-
-            tasks.add(DTOFactory.toDto(importUsersTask));
-        }
-
-        if (courseSyncTaskDTO.getImportAssignments()) {
-            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseId, true, true, true);
-
-            tasks.add(DTOFactory.toDto(importAssignmentsTask));
-        }
-
-        return ResponseEntity.accepted().body(tasks);
-    }
-
-    @Override
-    public ResponseEntity<List<TaskDTO>> importCourse(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
-        List<TaskDTO> tasks = new LinkedList<>();
-
-        ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
-                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId(),
-                courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
-
-        tasks.add(DTOFactory.toDto(courseTask));
-
-        ScheduledTaskDef sectionTask = sectionService.createSectionsFromCanvas(
-                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId());
-
-
-        tasks.add(DTOFactory.toDto(sectionTask));
-
-        if (courseSyncTaskDTO.getImportUsers()) {
-            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()), courseId, true, true, true);
-
-            tasks.add(DTOFactory.toDto(importUsersTask));
-        }
-
-        if (courseSyncTaskDTO.getImportAssignments()) {
-            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseId, true, true, true);
-
-            tasks.add(DTOFactory.toDto(importAssignmentsTask));
-        }
+//        ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
+//                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId(),
+//                courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
+//
+//
+//        tasks.add(DTOFactory.toDto(courseTask));
+//
+//        ScheduledTaskDef sectionTask = sectionService.createSectionsFromCanvas(
+//                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId());
+//
+//        tasks.add(DTOFactory.toDto(sectionTask));
+//
+//        if (courseSyncTaskDTO.getImportUsers()) {
+//            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()), courseId, true, true, true);
+//
+//            tasks.add(DTOFactory.toDto(importUsersTask));
+//        }
+//
+//        if (courseSyncTaskDTO.getImportAssignments()) {
+//            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseId, true, true, true);
+//
+//            tasks.add(DTOFactory.toDto(importAssignmentsTask));
+//        }
 
         return ResponseEntity.accepted().body(tasks);
     }
+
+//    SseEmitter createConnection() {
+//        emitter = new SseEmitter();
+//        return emitter;
+//    }
+//    @Override
+//@GetMapping(path = "/{courseId}/import", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+//public SseEmitter importCourse(@PathVariable("courseId") UUID courseId) {
+//    SseEmitter emitter = new SseEmitter();
+//    CompletableFuture.runAsync(() -> {
+//        try {
+//            emitter.send(SseEmitter.event().name("status").data("Task started for course " + courseId));
+//            Thread.sleep(5000);
+//            emitter.send(SseEmitter.event().name("result").data("Task finished for course " + courseId));
+//            emitter.complete();
+//        } catch (Exception e) {
+//            emitter.completeWithError(e);
+//        }
+//    });
+//    return emitter;
+//
+////        return ResponseEntity.ok()
+////                .header("Content-Type", "text/event-stream")
+////                .body("fake"); // <- body must be non-null but doesn't stream
+//
+////        StreamingResponseBody stream = outputStream -> {
+////            try {
+////                // First event
+////                outputStream.write("event: status\ndata: Task started\n\n".getBytes());
+////                outputStream.flush();
+////
+////                // Simulate long-running task
+////                Thread.sleep(5000);
+////
+////                // Another event
+////                outputStream.write("data: this is a test thing\n\n".getBytes());
+////                outputStream.flush();
+////
+////                // Final event
+////                outputStream.write("event: result\ndata: Task finished with result: 42\n\n".getBytes());
+////                outputStream.flush();
+////            } catch (Exception e) {
+////                // Optional: send an error event
+////                try {
+////                    outputStream.write(("event: error\ndata: " + e.getMessage() + "\n\n").getBytes());
+////                    outputStream.flush();
+////                } catch (IOException ioException) {
+////                    ioException.printStackTrace();
+////                }
+////            }
+////        };
+////
+////        return ResponseEntity.ok()
+////                .header(HttpHeaders.CONTENT_TYPE, "text/event-stream")
+////                .header(HttpHeaders.CACHE_CONTROL, "no-cache")
+////                .body(stream.toString()); // trick: body must be String, see note below
+//    }
+//
+////    @Override
+////    public ResponseEntity<String> importCourse(UUID courseId) {//, CourseSyncTaskDTO courseSyncTaskDTO) {
+//////    public ResponseEntity<List<TaskDTO>> importCourse(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+////        List<TaskDTO> tasks = new LinkedList<>();
+////
+////        SseEmitter emitter = new SseEmitter();
+////
+////        // Notify client that the task has started
+////        try {
+////            emitter.send(SseEmitter.event()
+////                    .name("status")
+////                    .data("Task started"));
+////        } catch (IOException e) {
+////            System.out.println("EXCEPTION IN SSE START");
+////            emitter.completeWithError(e);
+////        }
+////
+////        // Run the actual task asynchronously
+////        CompletableFuture.runAsync(() -> {
+////            try {
+////                // Simulate a long-running task
+////                Thread.sleep(5000);
+////                String result = "Task finished with result: 42";
+////
+////                emitter.send("this is a test thing");
+////
+////                // Send final data
+////                emitter.send(SseEmitter.event()
+////                        .name("result")
+////                        .data(result));
+////                emitter.complete();
+////            } catch (Exception e) {
+////                System.out.println("EXCEPTION IN SSE END");
+////                emitter.completeWithError(e);
+////            }
+////        });
+////
+//////
+//////        ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
+//////                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId(),
+//////                courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
+//////
+//////        tasks.add(DTOFactory.toDto(courseTask));
+//////
+//////        ScheduledTaskDef sectionTask = sectionService.createSectionsFromCanvas(
+//////                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId());
+//////
+//////
+//////        tasks.add(DTOFactory.toDto(sectionTask));
+//////
+//////        if (courseSyncTaskDTO.getImportUsers()) {
+//////            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()), courseId, true, true, true);
+//////
+//////            tasks.add(DTOFactory.toDto(importUsersTask));
+//////        }
+//////
+//////        if (courseSyncTaskDTO.getImportAssignments()) {
+//////            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseId, true, true, true);
+//////
+//////            tasks.add(DTOFactory.toDto(importAssignmentsTask));
+//////        }
+////
+//////        return ResponseEntity.accepted().body(emitter);
+////        return ResponseEntity.ok()
+////                .header("Content-Type", "text/event-stream")
+////                .body("");
+////    }
 
     @Override
     public ResponseEntity<Void> updateCourse(UUID courseId, CourseDTO courseDTO) {

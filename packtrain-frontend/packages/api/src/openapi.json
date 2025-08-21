@@ -395,6 +395,7 @@
         }
       }
     },
+<<<<<<< Updated upstream
     "/owner/courses/{course_id}/import": {
       "post": {
         "tags": [
@@ -463,6 +464,8 @@
         }
       }
     },
+=======
+>>>>>>> Stashed changes
     "/owner/courses/{course_id}/sync": {
       "post": {
         "tags": [

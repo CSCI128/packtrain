@@ -17,6 +17,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Optional;
@@ -85,7 +86,7 @@ public class SectionService {
         return section.get();
     }
 
-    public ScheduledTaskDef createSectionsFromCanvas(User actingUser, UUID courseId, long canvasId){
+    public ScheduledTaskDef createSectionsFromCanvas(SseEmitter emitter, User actingUser, UUID courseId, long canvasId){
         SectionSyncTaskDef task = new SectionSyncTaskDef();
         task.setCreatedByUser(actingUser);
         task.setTaskName(String.format("Sync Course '%s': Course Sections", courseId));
@@ -94,7 +95,7 @@ public class SectionService {
 
         task = taskRepo.save(task);
 
-        NewTaskEvent.TaskData<SectionSyncTaskDef> taskDef = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncSectionTask);
+        NewTaskEvent.TaskData<SectionSyncTaskDef> taskDef = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncSectionTask, emitter);
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDef));
 

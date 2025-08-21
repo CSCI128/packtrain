@@ -1,8 +1,11 @@
 package edu.mines.packtrain.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.mines.packtrain.data.CourseDTO;
 import edu.mines.packtrain.data.CourseLateRequestConfigDTO;
 import edu.mines.packtrain.events.NewTaskEvent;
+import edu.mines.packtrain.factories.DTOFactory;
 import edu.mines.packtrain.managers.IdentityProvider;
 import edu.mines.packtrain.managers.ImpersonationManager;
 import edu.mines.packtrain.models.Course;
@@ -21,11 +24,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Service
@@ -42,11 +50,12 @@ public class CourseService {
     private final MasterMigrationRepo masterMigrationRepo;
     private final MigrationRepo migrationRepo;
     private final CourseMemberRepo courseMemberRepo;
+    private final ObjectMapper objectMapper;
 
     public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, GradescopeConfigRepo gradescopeConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
                          CanvasService canvasService, S3Service s3Service, UserService userService,
-                         MasterMigrationRepo masterMigrationRepo, MigrationRepo migrationRepo, CourseMemberRepo courseMemberRepo) {
+                         MasterMigrationRepo masterMigrationRepo, MigrationRepo migrationRepo, CourseMemberRepo courseMemberRepo, ObjectMapper objectMapper) {
         this.courseRepo = courseRepo;
         this.lateRequestConfigRepo = lateRequestConfigRepo;
         this.gradescopeConfigRepo = gradescopeConfigRepo;
@@ -59,6 +68,7 @@ public class CourseService {
         this.masterMigrationRepo = masterMigrationRepo;
         this.migrationRepo = migrationRepo;
         this.courseMemberRepo = courseMemberRepo;
+        this.objectMapper = objectMapper;
     }
 
     public List<Course> getAllCourses(boolean enabled) {
@@ -182,8 +192,8 @@ public class CourseService {
         courseRepo.save(toUpdate.get());
     }
 
-    public ScheduledTaskDef syncCourseWithCanvas(User actingUser, UUID courseId, long canvasId,
-                                                           boolean overwriteName, boolean overwriteCode) {
+    public ScheduledTaskDef syncCourseWithCanvas(SseEmitter emitter, User actingUser, UUID courseId, long canvasId,
+                                                                    boolean overwriteName, boolean overwriteCode) {
         if (!courseRepo.existsById(courseId)) {
             log.warn("Course '{}' has not been created!", courseId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
@@ -199,7 +209,18 @@ public class CourseService {
 
         task = taskRepo.save(task);
 
-        NewTaskEvent.TaskData<CourseSyncTaskDef> taskDef = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseTask);
+        NewTaskEvent.TaskData<CourseSyncTaskDef> taskDef = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseTask, emitter);
+        taskDef.setOnJobComplete(Optional.of(data -> {
+            try {
+                log.warn("recieved data: {}", data);
+                emitter.send(SseEmitter.event()
+                        .name("result")
+                        .data(data.getCourseToSync()));
+            }
+            catch(Exception ex) {
+                throw new RuntimeException("Course DTO could not be parsed as JSON!" + ex);
+            }
+        }));
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDef));
 
