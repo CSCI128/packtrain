@@ -1,23 +1,38 @@
 import { javascript } from "@codemirror/lang-javascript";
 import {
+  Accordion,
   Button,
+  Center,
   Container,
+  Group,
   Input,
+  Modal,
+  NativeSelect,
+  NumberInput,
   Paper,
   Space,
+  Stack,
+  Tabs,
+  Text,
   Textarea,
   TextInput,
 } from "@mantine/core";
+import { DateTimePicker } from "@mantine/dates";
 import { useForm } from "@mantine/form";
+import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
+import { PolicyDryRunResults, PolicyRawScore } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useMutation } from "@tanstack/react-query";
 import CodeMirror, { EditorState, Extension } from "@uiw/react-codemirror";
 import { useNavigate } from "react-router-dom";
+import { v4 as uuid } from 'uuid';
+import { useState } from "react";
 
 export function CreatePolicy() {
   const navigate = useNavigate();
-  let errors = "";
+  const [errors, setErrors] = useState<string[]>([]);
+  const [dryRunRes, setDryRunRes] = useState<PolicyDryRunResults | null>(null);
 
   const newPolicy = useMutation({
     mutationKey: ["newPolicy"],
@@ -44,10 +59,63 @@ export function CreatePolicy() {
         })
         .then((res) => res.data)
         .catch((err) => {
-          console.log(err);
-          errors = err;
+          setErrors([String(err)])
           throw err;
         }),
+  });
+
+  const dryRun = useMutation({
+    mutationKey: ["dryRunPolicy"],
+    mutationFn: ({ file_data, raw_score }: { file_data: File, raw_score: PolicyRawScore }) => {
+      getApiClient()
+        .then((client) => {
+          return client.dry_run_policy(
+            {
+              course_id: store$.id.get() as string,
+            },
+            {
+              // @ts-expect-error OpenAPI expects a string, should be file
+              file_data: file_data,
+              // @ts-expect-error OpenAPI expects a json, but react is a hate crime so you have to do this slop
+              raw_score: new Blob([JSON.stringify(raw_score)], { type: "application/json" }),
+            },
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+        })
+        .then((res) => { setDryRunRes(res.data) })
+        .catch((err) => {
+          setDryRunRes({ errors: [String(err)] })
+        });
+
+    }
+  });
+
+  const [testPolicyOpened, { open: openTestPolicy, close: closeTestPolicy }] = useDisclosure(false);
+
+
+  const rawScoreForm = useForm({
+    mode: "uncontrolled",
+    initialValues: {
+      raw_score: {
+        cwid: "10000000",
+        rawScore: 10,
+        maxScore: 10,
+        minScore: 0,
+        submissionDate: new Date(),
+        initialDueDate: new Date(),
+        submissionStatus: "on_time",
+        extensionStatus: "no_extension",
+        extensionId: null,
+        extensionDate: null,
+        extensionDays: null,
+        extensionType: null,
+      },
+      policyContent: "",
+    }
   });
 
   const form = useForm({
@@ -96,6 +164,260 @@ export function CreatePolicy() {
       }
     );
   };
+
+  const handleDryRun = (values: typeof rawScoreForm.values) => {
+    setDryRunRes(null);
+    const file = new File([values.policyContent], `${uuid()}.js`, { type: "application/javascript" });
+
+    dryRun.mutate({ file_data: file, raw_score: values.raw_score as unknown as PolicyRawScore });
+  }
+
+  const handleDryRunOpen = () => {
+    setDryRunRes(null);
+    rawScoreForm.setFieldValue("policyContent", form.getValues().content);
+    openTestPolicy()
+  }
+
+  const dryRunComponents = () => (
+    <>
+      <Stack>
+        <form onSubmit={rawScoreForm.onSubmit(handleDryRun)}>
+
+          <Tabs defaultValue="raw_score">
+            <Tabs.List>
+              <Tabs.Tab value="policy">
+                Policy
+              </Tabs.Tab>
+              <Tabs.Tab value="raw_score">
+                Raw Score
+              </Tabs.Tab>
+
+              <Tabs.Tab value="extension_information">
+                Extension Information
+              </Tabs.Tab>
+
+              <Tabs.Tab value="results">
+                Results
+              </Tabs.Tab>
+            </Tabs.List>
+
+            <Tabs.Panel value="policy">
+              <Input.Wrapper label="Policy Contents" required>
+                <Paper
+                  withBorder
+                  radius="md"
+                  p={0}
+                  style={{
+                    borderColor: "#ced4da",
+                    overflow: "hidden",
+                  }}
+                >
+                  <CodeMirror
+                    value={rawScoreForm.getValues().policyContent}
+                    extensions={[javascript()]}
+                    readOnly
+                  />
+                </Paper>
+              </Input.Wrapper>
+            </Tabs.Panel>
+            <Tabs.Panel value="raw_score">
+              <Group grow>
+                <TextInput
+                  pb={8}
+                  label="CWID"
+                  placeholder="User CWID"
+                  key={rawScoreForm.key("raw_score.cwid")}
+                  {...rawScoreForm.getInputProps("raw_score.cwid")}
+                  required
+                  disabled
+                />
+                <DateTimePicker
+                  label="Submission Date"
+                  valueFormat="MM/DD/YYYY hh:mm A"
+                  placeholder="Submission Date"
+                  key={rawScoreForm.key("raw_score.submissionDate")}
+                  {...rawScoreForm.getInputProps("raw_score.submissionDate")}
+                  required
+                  firstDayOfWeek={0}
+                />
+              </Group>
+              <Group grow>
+                <NumberInput
+                  pb={8}
+                  label="Raw Score"
+                  placeholder="Score"
+                  key={rawScoreForm.key("raw_score.rawScore")}
+                  {...rawScoreForm.getInputProps("raw_score.rawScore")}
+                  required
+                />
+                <NativeSelect
+                  label="Submission Status"
+                  key={rawScoreForm.key("raw_score.submissionStatus")}
+                  {...rawScoreForm.getInputProps("raw_score.submissionStatus")}
+                  data={["missing", "late", "on_time"]}
+                  required
+                />
+              </Group>
+              <Group grow>
+                <DateTimePicker
+                  label="Initial Due Date"
+                  placeholder="Initial Due Date"
+                  valueFormat="MM/DD/YYYY hh:mm A"
+                  key={rawScoreForm.key("raw_score.initialDueDate")}
+                  {...rawScoreForm.getInputProps("raw_score.initialDueDate")}
+                  required
+                  firstDayOfWeek={0}
+                />
+                <NumberInput
+                  pb={8}
+                  label="Max Score"
+                  placeholder="Score"
+                  key={rawScoreForm.key("raw_score.maxScore")}
+                  {...rawScoreForm.getInputProps("raw_score.maxScore")}
+                  required
+                />
+                <NumberInput
+                  pb={8}
+                  label="Min Score"
+                  placeholder="Score"
+                  key={rawScoreForm.key("raw_score.minScore")}
+                  {...rawScoreForm.getInputProps("raw_score.minScore")}
+                  required
+                />
+              </Group>
+              <NativeSelect
+                label="Extension Status"
+                key={rawScoreForm.key("raw_score.extensionStatus")}
+                {...rawScoreForm.getInputProps("raw_score.extensionStatus")}
+                data={["approved", "rejected", "pending", "no_extension"]}
+                required
+              />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="extension_information">
+
+              {rawScoreForm.getValues().raw_score.extensionStatus === "no_extension" ?
+                (
+                  <Text>To configure an extension, change to a status other than "no_extension"</Text>
+                ) :
+                (
+                  <div>
+                    <DateTimePicker
+                      label="Extension Date"
+                      valueFormat="MM/DD/YYYY hh:mm A"
+                      placeholder="Extension Date"
+                      key={rawScoreForm.key("raw_score.extensionDate")}
+                      {...rawScoreForm.getInputProps("raw_score.extensionDate")}
+                      required
+                      firstDayOfWeek={0}
+                    />
+                    <NumberInput
+                      pb={8}
+                      label="Extension Days"
+                      placeholder="Extension Days"
+                      key={rawScoreForm.key("raw_score.extensionDays")}
+                      {...rawScoreForm.getInputProps("raw_score.extensionDays")}
+                      required
+                    />
+                    <TextInput
+                      pb={8}
+                      label="Extension Type"
+                      placeholder="Extension Type"
+                      key={rawScoreForm.key("raw_score.extensionType")}
+                      {...rawScoreForm.getInputProps("raw_score.extensionType")}
+                      required
+                    />
+                  </div>
+                )}
+            </Tabs.Panel>
+
+            <Tabs.Panel value="results">
+              <Accordion defaultValue="scored">
+                <Accordion.Item value="scored">
+                  <Accordion.Control>Scored Results</Accordion.Control>
+                  <Accordion.Panel>
+                    {dryRunRes == null ?
+                      (
+                        <Text c="indigo">Execute test to view results</Text>
+                      ) : !dryRunRes.policyResults ? (
+                        <Text c="red">No results were populated</Text>
+                      ) :
+                        (
+                          <div>
+                            <Group grow>
+                              <NumberInput
+                                pb={8}
+                                label="Final Score"
+                                value={dryRunRes.policyResults.finalScore ?? undefined}
+                                disabled
+                              />
+                              <DateTimePicker
+                                label="Adjusted Submission Date"
+                                valueFormat="MM/DD/YYYY hh:mm A"
+                                value={new Date(dryRunRes.policyResults.adjustedSubmissionDate)}
+                                disabled
+                              />
+                              <NumberInput
+                                pb={8}
+                                label="Adjusted Day Late"
+                                value={dryRunRes.policyResults.adjustedDaysLate}
+                                disabled
+                              />
+                            </Group>
+                            <Group grow>
+                              <TextInput
+                                label="Submission Status"
+                                value={dryRunRes.policyResults.submissionStatus ?? undefined}
+                                disabled
+                              />
+                              <TextInput
+                                label="Extension Status"
+                                value={dryRunRes.policyResults.extensionStatus ?? undefined}
+                                disabled
+                              />
+                            </Group>
+                            <Textarea
+                              label="Submission Message"
+                              value={dryRunRes.policyResults.submissionMessage ?? undefined}
+                              disabled
+                            />
+                            <Textarea
+                              label="Extension Message"
+                              value={dryRunRes.policyResults.extensionMessage ?? undefined}
+                              disabled
+                            />
+                          </div>
+                        )}
+                  </Accordion.Panel>
+                </Accordion.Item>
+                <Accordion.Item value="errors">
+                  <Accordion.Control>Errors</Accordion.Control>
+                  <Accordion.Panel>
+                    {dryRunRes == null ?
+                      (
+                        <Text>No errors!</Text>
+                      ) :
+                      (
+                        <div>
+                          {dryRunRes.errors.map(e => (<Text c="red">{e}</Text>))}
+                        </div>
+                      )}
+                  </Accordion.Panel>
+                </Accordion.Item>
+              </Accordion>
+
+            </Tabs.Panel>
+          </Tabs>
+
+          <Space h="md" />
+
+          <Center>
+            <Button type="submit" fullWidth>Execute Test</Button>
+          </Center>
+        </form>
+      </Stack >
+    </>
+  );
 
   // language=JavaScript
   const fullCode = `function policy(rawScore){\n${form.values.content}\n}`;
@@ -177,9 +499,18 @@ export function CreatePolicy() {
 
           <Space h="md" />
 
+          <Button variant="outline" onClick={handleDryRunOpen}>Test</Button>
+
           <Button type={"submit"}>Create</Button>
         </form>
+
+        {!errors ? (<div></div>) : (<div>{errors.map(e => <Text>{e}</Text>)}</div>)}
+
       </Container>
+
+      <Modal opened={testPolicyOpened} onClose={closeTestPolicy} size="lg" title="Test Policy">
+        {dryRunComponents()}
+      </Modal>
     </>
   );
 }

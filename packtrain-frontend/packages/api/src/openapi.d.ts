@@ -499,7 +499,7 @@ declare namespace Components {
              * example:
              * 2
              */
-            num_days_requested: number; // double
+            num_days_requested: number; // int32
             extension?: /* An extension for an assignment */ Extension;
             /**
              * example:
@@ -673,6 +673,65 @@ declare namespace Components {
              * 1
              */
             number_of_migrations?: number;
+        }
+        /**
+         * A policy dry run request
+         */
+        export interface PolicyDryRun {
+            /**
+             * example:
+             * // valid javascript code
+             *
+             */
+            file_data: string; // binary
+            raw_score: /* A raw score for testing a policy */ PolicyRawScore;
+        }
+        export interface PolicyDryRunResults {
+            policyResults?: PolicyScored;
+            errors?: string[];
+            overallStatus?: boolean;
+        }
+        /**
+         * A raw score for testing a policy
+         */
+        export interface PolicyRawScore {
+            /**
+             * example:
+             * 99999999
+             */
+            cwid: string;
+            /**
+             * example:
+             * 19
+             */
+            rawScore?: number; // double
+            /**
+             * example:
+             * 0
+             */
+            minScore?: number; // double
+            /**
+             * example:
+             * 10
+             */
+            maxScore?: number; // double
+            initialDueDate?: string; // date-time
+            submissionDate?: string; // date-time
+            submissionStatus?: "missing" | "excused" | "late" | "extended" | "on_time";
+            extensionId?: string; // uuid
+            extensionDate?: string; // date-time
+            extensionDays?: number; // int32
+            extensionType?: string;
+            extensionStatus?: "ignored" | "approved" | "rejected" | "pending" | "no_extension" | "applied";
+        }
+        export interface PolicyScored {
+            finalScore?: number; // double
+            adjustedDaysLate?: number; // int32
+            adjustedSubmissionDate?: string; // date-time
+            submissionStatus?: "missing" | "excused" | "late" | "extended" | "on_time";
+            extensionStatus?: "ignored" | "approved" | "rejected" | "pending" | "no_extension" | "applied";
+            extensionMessage?: string;
+            submissionMessage?: string;
         }
         /**
          * A score for a student
@@ -1261,6 +1320,26 @@ declare namespace Paths {
             export interface $201 {
             }
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
+        }
+    }
+    namespace DryRunPolicy {
+        namespace Parameters {
+            /**
+             * example:
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+             */
+            export type CourseId = string; // uuid
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+             */
+            Parameters.CourseId /* uuid */;
+        }
+        export type RequestBody = /* A policy dry run request */ Components.Schemas.PolicyDryRun;
+        namespace Responses {
+            export type $200 = Components.Schemas.PolicyDryRunResults;
         }
     }
     namespace EnableAssignment {
@@ -2417,6 +2496,7 @@ declare namespace Paths {
     }
 }
 
+
 export interface OperationMethods {
   /**
    * check_health - Checks the health of the server
@@ -2628,6 +2708,14 @@ export interface OperationMethods {
     data?: Paths.NewPolicy.RequestBody,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.NewPolicy.Responses.$201>
+  /**
+   * dry_run_policy - Dry run a policy
+   */
+  'dry_run_policy'(
+    parameters?: Parameters<Paths.DryRunPolicy.PathParameters> | null,
+    data?: Paths.DryRunPolicy.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.DryRunPolicy.Responses.$200>
   /**
    * delete_policy - Delete a policy
    * 
@@ -3333,6 +3421,16 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.OwnerGetAllPolicies.Responses.$200>
   }
+  ['/owner/course/{course_id}/policies/dry-run']: {
+    /**
+     * dry_run_policy - Dry run a policy
+     */
+    'post'(
+      parameters?: Parameters<Paths.DryRunPolicy.PathParameters> | null,
+      data?: Paths.DryRunPolicy.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.DryRunPolicy.Responses.$200>
+  }
   ['/owner/course/{course_id}/policies/{policy_id}']: {
     /**
      * delete_policy - Delete a policy
@@ -3875,6 +3973,7 @@ export interface PathsDictionary {
 
 export type Client = OpenAPIClient<OperationMethods, PathsDictionary>
 
+
 export type Assignment = Components.Schemas.Assignment;
 export type AssignmentSlim = Components.Schemas.AssignmentSlim;
 export type Course = Components.Schemas.Course;
@@ -3894,6 +3993,10 @@ export type MigrationScoreChange = Components.Schemas.MigrationScoreChange;
 export type MigrationWithScores = Components.Schemas.MigrationWithScores;
 export type NewPolicy = Components.Schemas.NewPolicy;
 export type Policy = Components.Schemas.Policy;
+export type PolicyDryRun = Components.Schemas.PolicyDryRun;
+export type PolicyDryRunResults = Components.Schemas.PolicyDryRunResults;
+export type PolicyRawScore = Components.Schemas.PolicyRawScore;
+export type PolicyScored = Components.Schemas.PolicyScored;
 export type Score = Components.Schemas.Score;
 export type StudentInformation = Components.Schemas.StudentInformation;
 export type Task = Components.Schemas.Task;

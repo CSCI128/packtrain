@@ -1904,6 +1904,17 @@ components:
           type: number
           format: double
           example: 19
+        minScore:
+          type: number
+          format: double
+          example: 0
+        maxScore:
+          type: number
+          format: double
+          example: 10
+        initialDueDate:
+          type: string
+          format: date-time
         submissionDate:
           type: string
           format: date-time
@@ -1945,6 +1956,9 @@ components:
         finalScore:
           type: number 
           format: double
+        adjustedDaysLate:
+          type: integer
+          format: int32
         adjustedSubmissionDate:
           type: string
           format: date-time
