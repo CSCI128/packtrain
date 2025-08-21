@@ -1,27 +1,47 @@
 package edu.mines.packtrain.services.external;
 
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
 import edu.ksu.canvas.CanvasApiFactory;
-import edu.ksu.canvas.interfaces.*;
-import edu.ksu.canvas.model.*;
+import edu.ksu.canvas.interfaces.AssignmentGroupReader;
+import edu.ksu.canvas.interfaces.AssignmentReader;
+import edu.ksu.canvas.interfaces.CourseReader;
+import edu.ksu.canvas.interfaces.ProgressReader;
+import edu.ksu.canvas.interfaces.SectionReader;
+import edu.ksu.canvas.interfaces.SubmissionWriter;
+import edu.ksu.canvas.interfaces.UserReader;
+import edu.ksu.canvas.model.Course;
+import edu.ksu.canvas.model.Enrollment;
+import edu.ksu.canvas.model.Progress;
+import edu.ksu.canvas.model.Section;
+import edu.ksu.canvas.model.User;
 import edu.ksu.canvas.model.assignment.Assignment;
 import edu.ksu.canvas.model.assignment.AssignmentGroup;
 import edu.ksu.canvas.oauth.NonRefreshableOauthToken;
 import edu.ksu.canvas.oauth.OauthToken;
-import edu.ksu.canvas.requestOptions.*;
+import edu.ksu.canvas.requestOptions.GetSingleCourseOptions;
+import edu.ksu.canvas.requestOptions.GetUsersInCourseOptions;
+import edu.ksu.canvas.requestOptions.ListAssignmentGroupOptions;
+import edu.ksu.canvas.requestOptions.ListCourseAssignmentsOptions;
+import edu.ksu.canvas.requestOptions.ListCurrentUserCoursesOptions;
+import edu.ksu.canvas.requestOptions.MultipleSubmissionsOptions;
 import edu.mines.packtrain.config.ExternalServiceConfig;
 import edu.mines.packtrain.managers.IdentityProvider;
 import edu.mines.packtrain.managers.SecurityManager;
 import edu.mines.packtrain.models.enums.CourseRole;
 import edu.mines.packtrain.models.enums.CredentialType;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -57,10 +77,12 @@ public class CanvasService {
     }
 
     public static class CanvasServiceWithAuth {
+        private final boolean writeDisabled;
         private final CanvasApiFactory canvasApiFactory;
         private final IdentityProvider identityProvider;
 
-        protected CanvasServiceWithAuth(CanvasApiFactory canvasApiFactory, IdentityProvider identityProvider) {
+        protected CanvasServiceWithAuth(boolean writeDisabled, CanvasApiFactory canvasApiFactory, IdentityProvider identityProvider) {
+            this.writeDisabled = writeDisabled;
             this.canvasApiFactory = canvasApiFactory;
             this.identityProvider = identityProvider;
         }
@@ -197,6 +219,12 @@ public class CanvasService {
 
 
         public Optional<Progress> publishCanvasScores(BuiltAssignmentSubmissions submissions){
+            if (writeDisabled){
+                log.warn("Canvas write has been disabled. No action will be taken!");
+
+                return Optional.of(new Progress());
+            }
+
             OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
 
             MultipleSubmissionsOptions builtSubmissions = submissions.build();
@@ -269,14 +297,14 @@ public class CanvasService {
         if (manager == null){
             throw new RuntimeException("No request in scope");
         }
-        return new CanvasServiceWithAuth(canvasApiFactory, manager);
+        return new CanvasServiceWithAuth(config.isWriteDisabled(), canvasApiFactory, manager);
     }
 
     public CanvasServiceWithAuth asUser(IdentityProvider identityProvider){
         if (!config.isEnabled()){
             throw new ExternalServiceDisabledException("Canvas service is disabled!");
         }
-        return new CanvasServiceWithAuth(canvasApiFactory, identityProvider);
+        return new CanvasServiceWithAuth(config.isWriteDisabled(), canvasApiFactory, identityProvider);
     }
 
     public BuiltAssignmentSubmissions prepCanvasSubmissionsForPublish(String canvasCourseId, long canvasAssignmentId){

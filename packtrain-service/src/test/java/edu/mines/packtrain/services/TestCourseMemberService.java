@@ -71,7 +71,7 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
         // the sin of partial mocking
         canvasService = Mockito.spy(
                 new CanvasService(null,
-                new ExternalServiceConfig.CanvasConfig(true, URI.create("https://test.com"), "TeacherEnrollment", "StudentEnrollment", "TaEnrollmentEnrollment"))
+                new ExternalServiceConfig.CanvasConfig(true, false, URI.create("https://test.com"), "TeacherEnrollment", "StudentEnrollment", "TaEnrollmentEnrollment"))
         );
 
         courseMemberService = new CourseMemberService(

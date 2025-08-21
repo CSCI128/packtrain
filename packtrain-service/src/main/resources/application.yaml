@@ -34,6 +34,7 @@ grading-admin:
   external-services:
     canvas:
       enabled: true
+      disable-write: ${CANVAS_DISABLE_WRITE:false}
       endpoint: https://elearning.mines.edu/
       teacher-enrollment-name: "TeacherEnrollment"
       student-enrollment-name: "StudentEnrollment"
