@@ -39,6 +39,7 @@ export function CreatePolicy() {
     mutationFn: ({ formData }: { formData: FormData }) =>
       getApiClient()
         .then((client) => {
+          setErrors([]);
           return client.new_policy(
             {
               course_id: store$.id.get() as string,
@@ -59,7 +60,7 @@ export function CreatePolicy() {
         })
         .then((res) => res.data)
         .catch((err) => {
-          setErrors([String(err)])
+          setErrors([String(err?.response?.data?.error_message)])
           throw err;
         }),
   });
@@ -446,8 +447,6 @@ export function CreatePolicy() {
   return (
     <>
       <Container size="md">
-        {errors != null && errors}
-
         <form onSubmit={form.onSubmit(handleNewPolicy)}>
           <TextInput
             pb={8}
