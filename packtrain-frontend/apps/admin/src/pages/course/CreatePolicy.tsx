@@ -447,6 +447,8 @@ export function CreatePolicy() {
   return (
     <>
       <Container size="md">
+        <Text size="xl" fw={700}>Create a new Policy</Text>
+
         <form onSubmit={form.onSubmit(handleNewPolicy)}>
           <TextInput
             pb={8}
@@ -498,9 +500,11 @@ export function CreatePolicy() {
 
           <Space h="md" />
 
-          <Button variant="outline" onClick={handleDryRunOpen}>Test</Button>
+          <Group grow flex="flex-end">
+            <Button variant="outline" onClick={handleDryRunOpen}>Test</Button>
 
-          <Button type={"submit"}>Create</Button>
+            <Button type={"submit"}>Create</Button>
+          </Group>
         </form>
 
         {!errors ? (<div></div>) : (<div>{errors.map(e => <Text>{e}</Text>)}</div>)}
