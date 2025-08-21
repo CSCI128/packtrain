@@ -16,6 +16,7 @@ public class ExternalServiceConfig {
     @Getter
     public static class CanvasConfig{
         private final boolean enabled;
+        private boolean writeDisabled;
         private URI endpoint;
         private String teacherEnrollment;
         private String studentEnrollment;
@@ -64,6 +65,7 @@ public class ExternalServiceConfig {
     @Bean
     public CanvasConfig configureCanvas(
             @Value("${grading-admin.external-services.canvas.enabled}") boolean enabled,
+            @Value("${grading-admin.external-services.canvas.write-disabled}") boolean writeDisabled,
             @Value("${grading-admin.external-services.canvas.endpoint}") URI endpoint,
             @Value("${grading-admin.external-services.canvas.teacher-enrollment-name}") String teacherEnrollment,
             @Value("${grading-admin.external-services.canvas.student-enrollment-name}") String studentEnrollment,
@@ -72,7 +74,7 @@ public class ExternalServiceConfig {
         if (!enabled){
             return new CanvasConfig(false);
         }
-        return new CanvasConfig(true, endpoint, teacherEnrollment, studentEnrollment, taEnrollment);
+        return new CanvasConfig(true, writeDisabled, endpoint, teacherEnrollment, studentEnrollment, taEnrollment);
     }
 
     @Bean
