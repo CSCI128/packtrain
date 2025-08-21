@@ -2050,31 +2050,31 @@ components:
           example: "A message about the status of the task"
 
     # TODO remove this
-    # CourseSyncTask:
-    #   description: "Import a new course from canvas"
-    #   required:
-    #     - canvas_id
-    #   properties:
-    #     canvas_id:
-    #       type: integer
-    #       format: int64
-    #       example: 999999
-    #     overwrite_name:
-    #       type: boolean
-    #       example: false
-    #       default: false
-    #     overwrite_code:
-    #       type: boolean
-    #       example: false
-    #       default: false
-    #     import_users:
-    #       type: boolean
-    #       example: false
-    #       default: false
-    #     import_assignments:
-    #       type: boolean
-    #       example: false
-    #       default: false
+    CourseSyncTask:
+      description: "Import a new course from canvas"
+      required:
+        - canvas_id
+      properties:
+        canvas_id:
+          type: integer
+          format: int64
+          example: 999999
+        overwrite_name:
+          type: boolean
+          example: false
+          default: false
+        overwrite_code:
+          type: boolean
+          example: false
+          default: false
+        import_users:
+          type: boolean
+          example: false
+          default: false
+        import_assignments:
+          type: boolean
+          example: false
+          default: false
 
     Credential:
       description: "A credential for external service"
