@@ -65,7 +65,7 @@ public class ExternalServiceConfig {
     @Bean
     public CanvasConfig configureCanvas(
             @Value("${grading-admin.external-services.canvas.enabled}") boolean enabled,
-            @Value("${grading-admin.external-services.canvas.write-disabled}") boolean writeDisabled,
+            @Value("${grading-admin.external-services.canvas.write-disabled:false}") boolean writeDisabled,
             @Value("${grading-admin.external-services.canvas.endpoint}") URI endpoint,
             @Value("${grading-admin.external-services.canvas.teacher-enrollment-name}") String teacherEnrollment,
             @Value("${grading-admin.external-services.canvas.student-enrollment-name}") String studentEnrollment,
