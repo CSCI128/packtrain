@@ -16,7 +16,6 @@ import { useMutation } from "@tanstack/react-query";
 import { BsTrash } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { useGetCourse, useGetPolicies } from "../../hooks";
-import { Loading } from "@repo/ui/Loading";
 
 export function CoursePage() {
   const navigate = useNavigate();
