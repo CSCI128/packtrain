@@ -14,23 +14,24 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @Slf4j
-@Profile(value = {"development", "production"})
+@Profile({"development", "production"})
 public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(authorize -> authorize
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/ws/**").permitAll()
                     .requestMatchers("/api/-/health").permitAll()
                     .anyRequest().authenticated()
             )
-            .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults()))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
         return http.build();
     }
 
     @Bean
-    public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties){
+    public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties properties) {
         return JwtDecoders.fromOidcIssuerLocation(properties.getJwt().getIssuerUri());
     }
 }

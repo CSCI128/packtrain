@@ -11,6 +11,7 @@ const staticLinks = [
 
 const links = [
   { href: "/admin/", label: "Course" },
+  { href: "/admin/test", label: "Test" },
   { href: "/admin/assignments", label: "Assignments" },
   { href: "/admin/members", label: "Members" },
   { href: "/admin/users", label: "Users" },
