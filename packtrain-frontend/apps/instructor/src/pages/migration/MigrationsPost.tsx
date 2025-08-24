@@ -36,6 +36,40 @@ export function MigrationsPostPage() {
         }),
   });
 
+  const postMasterMigration = useMutation({
+    mutationKey: ["postMasterMigration"],
+    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
+      getApiClient()
+        .then((client) =>
+          client.post_master_migration({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return [];
+        }),
+  });
+
+  const finalizeMasterMigration = useMutation({
+    mutationKey: ["finalizeMasterMigration"],
+    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
+      getApiClient()
+        .then((client) =>
+          client.finalize_master_migration({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
   const pollTaskUntilComplete = useCallback(
     async (taskId: number, delay = 5000) => {
       let tries = 0;
@@ -93,55 +127,21 @@ export function MigrationsPostPage() {
     pollTasks();
   }, [outstandingTasks, pollTaskUntilComplete]);
 
-  const postMasterMigration = useMutation({
-    mutationKey: ["postMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.post_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return [];
-        }),
-  });
-
-  const finalizeMasterMigration = useMutation({
-    mutationKey: ["finalizeMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.finalize_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
-  });
-
-  const handlePostMasterMigration = () => {
-    console.log("HERE");
-    postMasterMigration.mutate(
-      {
-        master_migration_id: store$.master_migration_id.get() as string,
-      },
-      {
-        onSuccess: (response) => {
-          console.log("RESP:", response);
-          setPosting(true);
-          setOutstandingTasks(response);
-        },
-      }
-    );
-  };
-
   useEffect(() => {
-    handlePostMasterMigration();
+    if (!posting) {
+      postMasterMigration.mutate(
+        {
+          master_migration_id: store$.master_migration_id.get() as string,
+        },
+        {
+          onSuccess: (response) => {
+            console.log("RESP:", response);
+            setPosting(true);
+            setOutstandingTasks(response);
+          },
+        }
+      );
+    }
   }, [posting]);
 
   return (
@@ -158,9 +158,6 @@ export function MigrationsPostPage() {
           <Stepper.Step label="Apply"></Stepper.Step>
           <Stepper.Step label="Review"></Stepper.Step>
           <Stepper.Step label="Post"></Stepper.Step>
-          <Stepper.Completed>
-            Completed, click back button to get to previous step
-          </Stepper.Completed>
         </Stepper>
 
         <Text size="xl" fw={700}>
@@ -189,16 +186,6 @@ export function MigrationsPostPage() {
 
         {postingFinished && (
           <Group justify="flex-end" mt="md">
-            <Button
-              color="blue"
-              onClick={() => {
-                store$.master_migration_id.delete();
-                navigate("/instructor/migrate/load");
-              }}
-            >
-              Again
-            </Button>
-
             <Button
               color="blue"
               onClick={() => {
