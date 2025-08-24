@@ -1,5 +1,6 @@
 import {
   Button,
+  Center,
   Container,
   Divider,
   Group,
@@ -128,7 +129,7 @@ export function MigrationsPostPage() {
   }, [outstandingTasks, pollTaskUntilComplete]);
 
   useEffect(() => {
-    if (!posting) {
+    if (!posting && !postingFinished) {
       postMasterMigration.mutate(
         {
           master_migration_id: store$.master_migration_id.get() as string,
@@ -142,7 +143,7 @@ export function MigrationsPostPage() {
         }
       );
     }
-  }, [posting]);
+  }, [posting, postingFinished]);
 
   return (
     <>
@@ -174,9 +175,11 @@ export function MigrationsPostPage() {
             <Progress my="md" radius="xl" size="lg" value={50} animated />
           </>
         ) : (
-          <Text size="lg" fw={700}>
-            Done posting!
-          </Text>
+          <Center mt={20}>
+            <Text size="lg" fw={500}>
+              Done posting!
+            </Text>
+          </Center>
         )}
 
         <Text size="md" c="gray.6" ta="center">

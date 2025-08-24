@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import edu.ksu.canvas.model.Progress;
@@ -580,6 +581,7 @@ public class MigrationService {
         return true;
     }
 
+    @Transactional
     public boolean finalizeReviewMasterMigration(UUID masterMigrationId){
         MasterMigration masterMigration = getMasterMigration(masterMigrationId);
 
