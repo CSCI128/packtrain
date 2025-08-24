@@ -11,11 +11,7 @@ import { useGetMasterMigration, useGetMasterMigrations } from "../../hooks";
 export function MigrationsPage() {
   const navigate = useNavigate();
   const { data, error, isLoading } = useGetMasterMigrations();
-  const {
-    data: migrationData,
-    error: migrationError,
-    isLoading: migrationIsLoading,
-  } = useGetMasterMigration();
+  const { data: migrationData } = useGetMasterMigration();
 
   const createMasterMigration = useMutation({
     mutationKey: ["createMasterMigration"],
@@ -44,10 +40,9 @@ export function MigrationsPage() {
         .catch((err) => console.log(err)),
   });
 
-  if (isLoading || !data || migrationIsLoading || !migrationData)
-    return <Loading />;
+  if (isLoading || !data) return <Loading />;
 
-  if (error || migrationError) return `An error occured: ${error}`;
+  if (error) return `An error occured: ${error}`;
 
   return (
     <>
@@ -100,7 +95,7 @@ export function MigrationsPage() {
             </Button>
             <Button
               onClick={() => {
-                const status = migrationData.status;
+                const status = migrationData?.status;
 
                 if (status === "created") {
                   navigate("/instructor/migrate/load");
