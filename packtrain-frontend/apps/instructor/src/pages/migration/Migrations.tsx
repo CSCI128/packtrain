@@ -1,4 +1,4 @@
-import { Box, Button, Container, Divider, Text } from "@mantine/core";
+import { Box, Button, Container, Divider, Group, Text } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
 import { MasterMigration, Migration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
@@ -56,11 +56,16 @@ export function MigrationsPage() {
         {data.length > 0 ? (
           data.map((migration: MasterMigration) => (
             <Box pb={20} key={migration.id}>
-              <Text>
-                <strong>
-                  {formattedDate(new Date(migration.date_started as string))}
-                </strong>
-              </Text>
+              <Group grow>
+                <Text>
+                  <strong>
+                    {formattedDate(new Date(migration.date_started as string))}
+                  </strong>
+                </Text>
+                <Text>
+                  <strong>Status</strong>: {migration.status ?? "unknown"}
+                </Text>
+              </Group>
               <Text>
                 <strong>By</strong>: {migration.migrator?.name}
               </Text>
@@ -69,9 +74,6 @@ export function MigrationsPage() {
                 {migration.migrations
                   ?.map((migration: Migration) => migration.assignment.name)
                   .join(", ")}
-              </Text>
-              <Text>
-                <strong>Status:</strong> {migration.status}
               </Text>
             </Box>
           ))

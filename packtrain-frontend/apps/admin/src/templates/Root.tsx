@@ -10,11 +10,11 @@ const staticLinks = [
 ];
 
 const links = [
+  { href: "/instructor/", label: "Instructor Page" },
   { href: "/admin/", label: "Course" },
   { href: "/admin/assignments", label: "Assignments" },
   { href: "/admin/members", label: "Members" },
   { href: "/admin/users", label: "Users" },
-  { href: "/instructor", label: "instructor" },
 ];
 
 export default function Root() {
