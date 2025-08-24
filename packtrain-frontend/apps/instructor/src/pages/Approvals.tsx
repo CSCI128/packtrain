@@ -205,7 +205,7 @@ export function ApprovalPage() {
         {row.request_type === "late_pass" ? "Late Pass" : "Extension"}
       </Table.Td>
       <Table.Td>{row.assignment_name}</Table.Td>
-      <Table.Td>{row.user_requester_id}</Table.Td>
+      <Table.Td>{row.requestor}</Table.Td>
       <Table.Td>{row.user_reviewer}</Table.Td>
       <Table.Td>{row.instructor}</Table.Td>
       <Table.Td>{row.extension?.reason}</Table.Td>
@@ -327,11 +327,11 @@ export function ApprovalPage() {
                   Assignment(s)
                 </TableHeader>
                 <TableHeader
-                  sorted={sortBy === "user_requester_id"}
+                  sorted={sortBy === "requestor"}
                   reversed={reverseSortDirection}
-                  onSort={() => handleSort("user_requester_id")}
+                  onSort={() => handleSort("requestor")}
                 >
-                  Requester
+                  Requestor
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "reviewer"}

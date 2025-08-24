@@ -507,14 +507,19 @@ declare namespace Components {
             extension?: /* An extension for an assignment */ Extension;
             /**
              * example:
-             * A Professor
+             * Jim Professor
              */
             user_reviewer?: string;
             /**
              * example:
-             * A Professor
+             * Tim Professor
              */
             instructor?: string;
+            /**
+             * example:
+             * Jane Doe
+             */
+            requestor?: string;
             /**
              * example:
              * 9999999
