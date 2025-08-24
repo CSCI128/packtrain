@@ -44,6 +44,7 @@ export function useGetMasterMigration() {
           console.log(err);
           return null;
         }),
+    enabled: store$.master_migration_id.get() !== undefined,
   });
 }
 

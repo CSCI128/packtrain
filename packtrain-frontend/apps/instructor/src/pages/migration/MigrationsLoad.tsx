@@ -223,9 +223,6 @@ export function MigrationsLoadPage() {
         <Stepper.Step label="Apply"></Stepper.Step>
         <Stepper.Step label="Review"></Stepper.Step>
         <Stepper.Step label="Post"></Stepper.Step>
-        <Stepper.Completed>
-          Completed, click back button to get to previous step
-        </Stepper.Completed>
       </Stepper>
 
       <Text size="xl" fw={700}>

@@ -1,5 +1,6 @@
 import {
   Button,
+  Center,
   Container,
   Divider,
   Group,
@@ -27,6 +28,40 @@ export function MigrationsPostPage() {
         .then((client) =>
           client.get_task({
             task_id: task_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
+
+  const postMasterMigration = useMutation({
+    mutationKey: ["postMasterMigration"],
+    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
+      getApiClient()
+        .then((client) =>
+          client.post_master_migration({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
+          })
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return [];
+        }),
+  });
+
+  const finalizeMasterMigration = useMutation({
+    mutationKey: ["finalizeMasterMigration"],
+    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
+      getApiClient()
+        .then((client) =>
+          client.finalize_master_migration({
+            course_id: store$.id.get() as string,
+            master_migration_id: master_migration_id,
           })
         )
         .then((res) => res.data)
@@ -93,56 +128,22 @@ export function MigrationsPostPage() {
     pollTasks();
   }, [outstandingTasks, pollTaskUntilComplete]);
 
-  const postMasterMigration = useMutation({
-    mutationKey: ["postMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.post_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return [];
-        }),
-  });
-
-  const finalizeMasterMigration = useMutation({
-    mutationKey: ["finalizeMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.finalize_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
-  });
-
-  const handlePostMasterMigration = () => {
-    console.log("HERE");
-    postMasterMigration.mutate(
-      {
-        master_migration_id: store$.master_migration_id.get() as string,
-      },
-      {
-        onSuccess: (response) => {
-          console.log("RESP:", response);
-          setPosting(true);
-          setOutstandingTasks(response);
-        },
-      }
-    );
-  };
-
   useEffect(() => {
-    handlePostMasterMigration();
-  }, [posting]);
+    if (!posting && !postingFinished) {
+      postMasterMigration.mutate(
+        {
+          master_migration_id: store$.master_migration_id.get() as string,
+        },
+        {
+          onSuccess: (response) => {
+            console.log("RESP:", response);
+            setPosting(true);
+            setOutstandingTasks(response);
+          },
+        }
+      );
+    }
+  }, [posting, postingFinished]);
 
   return (
     <>
@@ -158,9 +159,6 @@ export function MigrationsPostPage() {
           <Stepper.Step label="Apply"></Stepper.Step>
           <Stepper.Step label="Review"></Stepper.Step>
           <Stepper.Step label="Post"></Stepper.Step>
-          <Stepper.Completed>
-            Completed, click back button to get to previous step
-          </Stepper.Completed>
         </Stepper>
 
         <Text size="xl" fw={700}>
@@ -177,9 +175,11 @@ export function MigrationsPostPage() {
             <Progress my="md" radius="xl" size="lg" value={50} animated />
           </>
         ) : (
-          <Text size="lg" fw={700}>
-            Done posting!
-          </Text>
+          <Center mt={20}>
+            <Text size="lg" fw={500}>
+              Done posting!
+            </Text>
+          </Center>
         )}
 
         <Text size="md" c="gray.6" ta="center">
@@ -189,16 +189,6 @@ export function MigrationsPostPage() {
 
         {postingFinished && (
           <Group justify="flex-end" mt="md">
-            <Button
-              color="blue"
-              onClick={() => {
-                store$.master_migration_id.delete();
-                navigate("/instructor/migrate/load");
-              }}
-            >
-              Again
-            </Button>
-
             <Button
               color="blue"
               onClick={() => {

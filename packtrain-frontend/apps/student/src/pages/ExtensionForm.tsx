@@ -259,7 +259,11 @@ export function ExtensionForm() {
                     courseData.course.assignments
                       .filter(
                         (assignment) =>
-                          !data.some((d) => d.assignment_id === assignment.id)
+                          !data.some(
+                            (d) => d.assignment_id === assignment.id
+                          ) &&
+                          // due now or in the future
+                          new Date(assignment.due_date) >= new Date()
                       )
                       .map((assignment) => ({
                         label: assignment.name,
@@ -361,7 +365,15 @@ export function ExtensionForm() {
                 courseData.course.assignments
                   .filter(
                     (assignment) =>
-                      !data.some((d) => d.assignment_id === assignment.id)
+                      !data.some((d) => d.assignment_id === assignment.id) &&
+                      // due within the last 3 days (and in the future)
+                      (() => {
+                        const due = new Date(assignment.due_date);
+                        const now = new Date();
+                        const threeDaysAgo = new Date();
+                        threeDaysAgo.setDate(now.getDate() - 3);
+                        return due >= threeDaysAgo || due >= now;
+                      })()
                   )
                   .map((assignment) => ({
                     label: assignment.name,
