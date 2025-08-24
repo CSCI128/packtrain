@@ -1674,6 +1674,29 @@ declare namespace Paths {
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
+    namespace GetCourseAssignmentsInstuctor {
+        namespace Parameters {
+            /**
+             * example:
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+             */
+            export type CourseId = string; // uuid
+            export type OnlyMigratable = boolean;
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+             */
+            Parameters.CourseId /* uuid */;
+        }
+        export interface QueryParameters {
+            only_migratable: Parameters.OnlyMigratable;
+        }
+        namespace Responses {
+            export type $200 = /* An assignment in a course */ Components.Schemas.Assignment[];
+        }
+    }
     namespace GetCourseAssignmentsStudent {
         namespace Parameters {
             /**
@@ -2867,6 +2890,17 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetCourseInformationInstructor.Responses.$200>
   /**
+   * get_course_assignments_instuctor - Get assignments for a course
+   * 
+   * Get the course's assignments
+   * 
+   */
+  'get_course_assignments_instuctor'(
+    parameters?: Parameters<Paths.GetCourseAssignmentsInstuctor.QueryParameters & Paths.GetCourseAssignmentsInstuctor.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetCourseAssignmentsInstuctor.Responses.$200>
+  /**
    * get_members_instructor - Get all members for a course
    * 
    * Gets all members for a course.
@@ -3602,6 +3636,19 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetCourseInformationInstructor.Responses.$200>
+  }
+  ['/instructor/courses/{course_id}/assignments']: {
+    /**
+     * get_course_assignments_instuctor - Get assignments for a course
+     * 
+     * Get the course's assignments
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetCourseAssignmentsInstuctor.QueryParameters & Paths.GetCourseAssignmentsInstuctor.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetCourseAssignmentsInstuctor.Responses.$200>
   }
   ['/instructor/courses/{course_id}/members']: {
     /**

@@ -1,5 +1,6 @@
 import { getApiClient } from "@repo/api/index";
 import {
+    Assignment,
   Course,
   CourseMember,
   LateRequest,
@@ -64,6 +65,23 @@ export function useGetCourseInstructor() {
           return null;
         }),
   });
+}
+
+export function useGetMigratableAssignmentsInstructor() {
+  return useQuery<Assignment[]>({
+    queryKey: ["getCourseAssignmentsInstuctor"],
+    queryFn: () => 
+      getApiClient()
+        .then(client => client.get_course_assignments_instuctor({
+          course_id: store$.id.get() as string,
+          only_migratable: true,
+        }))
+        .then(res => res.data)
+        .catch(err => {
+          console.log(err);
+          return []
+        })
+  })
 }
 
 export function useGetMembersInstructor(

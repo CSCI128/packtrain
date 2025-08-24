@@ -1,18 +1,27 @@
 package edu.mines.packtrain.services;
 
-import edu.mines.packtrain.data.AssignmentDTO;
-import edu.mines.packtrain.models.*;
-import edu.mines.packtrain.models.enums.ExternalAssignmentType;
-import edu.mines.packtrain.repositories.AssignmentRepo;
-import edu.mines.packtrain.repositories.ExternalAssignmentRepo;
-import lombok.extern.slf4j.Slf4j;
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
+import edu.mines.packtrain.data.AssignmentDTO;
+import edu.mines.packtrain.models.Assignment;
+import edu.mines.packtrain.models.Course;
+import edu.mines.packtrain.models.ExternalAssignment;
+import edu.mines.packtrain.models.Migration;
+import edu.mines.packtrain.models.enums.ExternalAssignmentType;
+import edu.mines.packtrain.repositories.AssignmentRepo;
+import edu.mines.packtrain.repositories.ExternalAssignmentRepo;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -35,6 +44,14 @@ public class AssignmentService {
     }
 
     public List<Assignment> getAllAssignmentsGivenCourse(Course course){
+        return getAllAssignmentsGivenCourse(course, false);
+    }
+
+    public List<Assignment> getAllAssignmentsGivenCourse(Course course, boolean onlyMigratable){
+        if (onlyMigratable){
+            return assignmentRepo.getAllMigratableAssignmentsByCourse(course);
+        }
+
         return assignmentRepo.getAssignmentByCourse(course);
     }
 

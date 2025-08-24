@@ -44,4 +44,7 @@ public interface AssignmentRepo extends CrudRepository<Assignment, UUID> {
 
     @Query("select a from migration m join assignment a on a.id = m.assignment.id where m = ?1")
     Optional<Assignment> getAssignmentByMigration(Migration migration);
+
+    @Query("select a from assignment a where a.course = ?1 and a.attentionRequired = false")
+    List<Assignment> getAllMigratableAssignmentsByCourse(Course course);
 }
