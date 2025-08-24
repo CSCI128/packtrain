@@ -5,12 +5,17 @@ import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
 import { Loading } from "@repo/ui/Loading";
 import { useMutation } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
-import { useGetMasterMigrations } from "../../hooks";
+import { useNavigate } from "react-router-dom";
+import { useGetMasterMigration, useGetMasterMigrations } from "../../hooks";
 
 export function MigrationsPage() {
   const navigate = useNavigate();
   const { data, error, isLoading } = useGetMasterMigrations();
+  const {
+    data: migrationData,
+    error: migrationError,
+    isLoading: migrationIsLoading,
+  } = useGetMasterMigration();
 
   const createMasterMigration = useMutation({
     mutationKey: ["createMasterMigration"],
@@ -39,9 +44,10 @@ export function MigrationsPage() {
         .catch((err) => console.log(err)),
   });
 
-  if (isLoading || !data) return <Loading />;
+  if (isLoading || !data || migrationIsLoading || !migrationData)
+    return <Loading />;
 
-  if (error) return `An error occured: ${error}`;
+  if (error || migrationError) return `An error occured: ${error}`;
 
   return (
     <>
@@ -93,8 +99,28 @@ export function MigrationsPage() {
               Delete active migration
             </Button>
             <Button
-              component={Link}
-              to="/instructor/migrate/load"
+              onClick={() => {
+                const status = migrationData.status;
+
+                if (status === "created") {
+                  navigate("/instructor/migrate/load");
+                } else if (status === "loaded") {
+                  navigate("/instructor/migrate/apply");
+                } else if (
+                  status === "started" ||
+                  status === "awaiting_review"
+                ) {
+                  navigate("/instructor/migrate/review");
+                } else if (
+                  status === "ready_to_post" ||
+                  status === "posting" ||
+                  status === "completed"
+                ) {
+                  navigate("/instructor/migrate/post");
+                } else {
+                  navigate("/instructor/migrate/load");
+                }
+              }}
               variant="filled"
             >
               Continue active migration
