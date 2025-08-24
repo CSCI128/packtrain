@@ -1,26 +1,55 @@
 package edu.mines.packtrain.controllers;
 
-import edu.mines.packtrain.api.InstructorApiDelegate;
-import edu.mines.packtrain.data.*;
-import edu.mines.packtrain.factories.DTOFactory;
-import edu.mines.packtrain.managers.SecurityManager;
-import edu.mines.packtrain.models.*;
-import edu.mines.packtrain.models.enums.CourseRole;
-import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
-import edu.mines.packtrain.services.*;
-import jakarta.transaction.Transactional;
+import static java.util.stream.Collectors.toList;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import org.aspectj.lang.annotation.RequiredTypes;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.util.*;
-
-import static java.util.stream.Collectors.toList;
+import edu.mines.packtrain.api.InstructorApiDelegate;
+import edu.mines.packtrain.data.AssignmentDTO;
+import edu.mines.packtrain.data.CourseDTO;
+import edu.mines.packtrain.data.CourseMemberDTO;
+import edu.mines.packtrain.data.ErrorResponseDTO;
+import edu.mines.packtrain.data.LateRequestDTO;
+import edu.mines.packtrain.data.MasterMigrationDTO;
+import edu.mines.packtrain.data.MigrationScoreChangeDTO;
+import edu.mines.packtrain.data.MigrationWithScoresDTO;
+import edu.mines.packtrain.data.PolicyDTO;
+import edu.mines.packtrain.data.TaskDTO;
+import edu.mines.packtrain.factories.DTOFactory;
+import edu.mines.packtrain.managers.SecurityManager;
+import edu.mines.packtrain.models.Course;
+import edu.mines.packtrain.models.CourseMember;
+import edu.mines.packtrain.models.LateRequest;
+import edu.mines.packtrain.models.MasterMigration;
+import edu.mines.packtrain.models.Migration;
+import edu.mines.packtrain.models.Policy;
+import edu.mines.packtrain.models.Section;
+import edu.mines.packtrain.models.enums.CourseRole;
+import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
+import edu.mines.packtrain.services.AssignmentService;
+import edu.mines.packtrain.services.CourseMemberService;
+import edu.mines.packtrain.services.CourseService;
+import edu.mines.packtrain.services.ExtensionService;
+import edu.mines.packtrain.services.MigrationService;
+import edu.mines.packtrain.services.PolicyService;
+import edu.mines.packtrain.services.RawScoreService;
+import edu.mines.packtrain.services.SectionService;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Controller
+@RequiredArgsConstructor
 public class InstructorApiImpl implements InstructorApiDelegate {
     private final CourseService courseService;
     private final SectionService sectionService;
@@ -30,17 +59,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     private final MigrationService migrationService;
     private final PolicyService policyService;
     private final RawScoreService rawScoreService;
-
-    public InstructorApiImpl(CourseService courseService, SectionService sectionService, ExtensionService extensionService, CourseMemberService courseMemberService, SecurityManager securityManager, MigrationService migrationService, PolicyService policyService, RawScoreService rawScoreService) {
-        this.courseService = courseService;
-        this.sectionService = sectionService;
-        this.extensionService = extensionService;
-        this.courseMemberService = courseMemberService;
-        this.securityManager = securityManager;
-        this.migrationService = migrationService;
-        this.policyService = policyService;
-        this.rawScoreService = rawScoreService;
-    }
+    private final AssignmentService assignmentService;
 
     @Override
     public ResponseEntity<List<MigrationWithScoresDTO>> getMasterMigrationToReview(UUID courseId, UUID masterMigrationId) {
@@ -293,4 +312,16 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
         return ResponseEntity.accepted().build();
     }
+
+    @Override
+    public ResponseEntity<List<AssignmentDTO>> getCourseAssignmentsInstuctor(UUID courseId, Boolean onlyMigratable) {
+        if (onlyMigratable == null){
+            onlyMigratable = false;
+        }
+
+        Course course = courseService.getCourse(courseId);
+
+        return ResponseEntity.ok(assignmentService.getAllAssignmentsGivenCourse(course, onlyMigratable).stream().map(DTOFactory::toDto).toList());
+    }
 }
+

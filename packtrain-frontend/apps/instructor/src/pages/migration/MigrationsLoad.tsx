@@ -20,7 +20,7 @@ import { Loading } from "@repo/ui/Loading";
 import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGetCourseInstructor } from "../../hooks";
+import { useGetMigratableAssignmentsInstructor } from "../../hooks";
 
 export function MigrationsLoadPage() {
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ export function MigrationsLoadPage() {
   const [canValidate, setCanValidate] = useState(false); // can validate if files finished uploading
   const [validated, setValidated] = useState(false);
   const [masterMigrationId, setMasterMigrationId] = useState<string>("");
-  const { data, error, isLoading } = useGetCourseInstructor();
+  const { data, error, isLoading } = useGetMigratableAssignmentsInstructor();
 
   const createMigration = useMutation({
     mutationKey: ["createMigration"],
@@ -184,7 +184,7 @@ export function MigrationsLoadPage() {
             migration_id: data?.migrations
               ?.filter((x) => x.assignment.id === selectedAssignmentId)
               .at(0)?.id as string,
-            // @ts-ignore
+            // @ts-ignore should be different
             file,
           });
           setUploading(false);
@@ -243,8 +243,7 @@ export function MigrationsLoadPage() {
           label="Assignment"
           placeholder="Select more.."
           data={
-            data.assignments &&
-            data.assignments
+            data
               .map((x) => ({
                 label: x.name,
                 value: x.id as string,
@@ -265,7 +264,7 @@ export function MigrationsLoadPage() {
                 <Group>
                   <Text fw={800}>
                     {
-                      data.assignments?.filter(
+                      data.filter(
                         (a) => a.id === selectedAssignment
                       )[0]?.name
                     }

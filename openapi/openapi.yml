@@ -1027,6 +1027,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Course"
+  /instructor/courses/{course_id}/assignments:
+    get:
+      tags:
+        - instructor
+      operationId: get_course_assignments_instuctor
+      summary: Get assignments for a course
+      description: |
+        Get the course's assignments
+      parameters:
+        - $ref: "#/components/parameters/CoursePathParameters"
+        - name: only_migratable
+          in: query
+          required: true
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Assignment"
 
   /instructor/courses/{course_id}/members:
     get:
