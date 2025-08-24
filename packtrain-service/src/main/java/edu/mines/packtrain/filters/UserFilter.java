@@ -14,6 +14,7 @@ import java.io.IOException;
 @WebFilter(urlPatterns = "/**")
 @Order(1)
 public class UserFilter implements Filter {
+
     private final SecurityManager securityManager;
 
     public UserFilter(SecurityManager securityManager) {
@@ -24,7 +25,7 @@ public class UserFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         String path = ((HttpServletRequest) servletRequest).getRequestURI();
 
-        if (path.contains("/api/-/health")){
+        if (path.startsWith("/ws") || path.contains("/api/-/health")) {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
