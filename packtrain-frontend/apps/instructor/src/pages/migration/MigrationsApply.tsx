@@ -316,19 +316,19 @@ export function MigrationsApplyPage() {
         <Text mt="md" fw={700}>
           Statistics
         </Text>
-        <Text>
-          <strong>{migrationData.stats?.total_submission}</strong> students
-        </Text>
-        <Text>
-          <strong>{migrationData.stats?.late_requests}</strong> late submissions
-        </Text>
-        <Text>
-          <strong>{migrationData.stats?.total_extensions}</strong> extensions
-        </Text>
-        <Text>
-          <strong>{migrationData.stats?.unapproved_requests}</strong> unapproved
-          extensions
-        </Text>
+        {/* <Text> */}
+        {/*   <strong>{migrationData.stats?.total_submission}</strong> students */}
+        {/* </Text> */}
+        {/* <Text> */}
+        {/*   <strong>{migrationData.stats?.late_requests}</strong> late submissions */}
+        {/* </Text> */}
+        {/* <Text> */}
+        {/*   <strong>{migrationData.stats?.total_extensions}</strong> extensions */}
+        {/* </Text> */}
+        {/* <Text> */}
+        {/*   <strong>{migrationData.stats?.unapproved_requests}</strong> unapproved */}
+        {/*   extensions */}
+        {/* </Text> */}
 
         {!posting && <Text mt={20}>Applying grades..</Text>}
 

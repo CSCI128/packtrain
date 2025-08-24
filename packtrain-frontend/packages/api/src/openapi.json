@@ -3552,9 +3552,6 @@
             "items": {
               "$ref": "#/components/schemas/Migration"
             }
-          },
-          "stats": {
-            "$ref": "#/components/schemas/MasterMigrationStatistics"
           }
         }
       },
@@ -3707,6 +3704,9 @@
             "items": {
               "$ref": "#/components/schemas/Score"
             }
+          },
+          "stats": {
+            "$ref": "#/components/schemas/MasterMigrationStatistics"
           }
         }
       }

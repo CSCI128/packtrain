@@ -18,6 +18,6 @@ FROM (SELECT raw_score.cwid              AS cwid,
              migration.master_migration  AS master_migration_id
       FROM raw_scores as raw_score
                JOIN migrations AS migration ON raw_score.migration_id = migration.id) AS r
-         RIGHT JOIN late_requests AS late_request ON late_request.assignment = r.assignment_id
-         RIGHT JOIN extensions AS extension ON late_request.extension = extension.id
+         LEFT JOIN late_requests AS late_request ON late_request.assignment = r.assignment_id
+         LEFT JOIN extensions AS extension ON late_request.extension = extension.id
 GROUP BY r.master_migration_id;

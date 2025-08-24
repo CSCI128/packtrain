@@ -123,12 +123,12 @@ export function MigrationsReviewPage() {
     useDisclosure(false);
   const [selectedScore, setSelectedScore] = useState<Score | null>(null);
   const [updatedScore, setUpdatedScore] = useState<number>(0);
-  const [statistics, setStatistics] = useState<{
-    extensionsApplied: 0;
-    zeroCredit: 0;
-    missingAssignments: 0;
-    latePenalties: 0;
-  }>();
+  // const [statistics, setStatistics] = useState<{
+  //   extensionsApplied: 0;
+  //   zeroCredit: 0;
+  //   missingAssignments: 0;
+  //   latePenalties: 0;
+  // }>();
 
   useEffect(() => {
     if (masterMigrationData && masterMigrationData.migrations) {
@@ -395,17 +395,16 @@ export function MigrationsReviewPage() {
 
                   <Group>
                     <Text>
-                      <b>{statistics?.extensionsApplied}</b> extensions applied
+                      <b>{migrationData[0].stats?.total_submission}</b> Total submissions
                     </Text>
                     <Text>
-                      <b>{statistics?.zeroCredit}</b> zero credit
+                      <b>{migrationData[0].stats?.late_requests}</b> Late requests
                     </Text>
                     <Text>
-                      <b>{statistics?.missingAssignments}</b> missing
-                      assignments
+                      <b>{migrationData[0].stats?.total_extensions}</b> Extensions applied
                     </Text>
                     <Text>
-                      <b>{statistics?.latePenalties}</b> late penalties
+                      <b>{migrationData[0].stats?.total_late_passes}</b> Total late passes 
                     </Text>
                   </Group>
                 </Tabs.Panel>

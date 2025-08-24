@@ -14,6 +14,7 @@ const links = [
   { href: "/admin/assignments", label: "Assignments" },
   { href: "/admin/members", label: "Members" },
   { href: "/admin/users", label: "Users" },
+  { href: "/instructor", label: "instructor" },
 ];
 
 export default function Root() {
