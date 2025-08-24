@@ -313,9 +313,9 @@ export function MigrationsApplyPage() {
           ))}
         </Stack>
 
-        <Text mt="md" fw={700}>
-          Statistics
-        </Text>
+        {/* <Text mt="md" fw={700}> */}
+        {/*   Statistics */}
+        {/* </Text> */}
         {/* <Text> */}
         {/*   <strong>{migrationData.stats?.total_submission}</strong> students */}
         {/* </Text> */}
