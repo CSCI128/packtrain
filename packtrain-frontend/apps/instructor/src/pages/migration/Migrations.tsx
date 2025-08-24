@@ -71,7 +71,7 @@ export function MigrationsPage() {
                   .join(", ")}
               </Text>
               <Text>
-                <strong>Status:</strong>{" "}
+                <strong>Status:</strong> {migration.status}
               </Text>
             </Box>
           ))
