@@ -70,6 +70,9 @@ export function MigrationsPage() {
                   ?.map((migration: Migration) => migration.assignment.name)
                   .join(", ")}
               </Text>
+              <Text>
+                <strong>Status:</strong>{" "}
+              </Text>
             </Box>
           ))
         ) : (

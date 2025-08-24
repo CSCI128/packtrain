@@ -17,12 +17,15 @@ public class DTOFactory {
             .dateSubmitted(lateRequest.getSubmissionDate())
             .assignmentId(lateRequest.getAssignment().getId())
             .assignmentName(lateRequest.getAssignment().getName())
+            .instructor(lateRequest.getInstructor())
+            .userReviewer(lateRequest.getExtension() != null ? lateRequest.getExtension().getReviewer().getName() : null)
             .extension(lateRequest.getExtension() != null ?
                 new ExtensionDTO()
                     .id(lateRequest.getExtension().getId())
                     .reason(lateRequest.getExtension().getReason())
                     .comments(lateRequest.getExtension().getComments())
                     .responseToRequester(lateRequest.getExtension().getReviewerResponse())
+                    .userReviewer(lateRequest.getExtension().getReviewer().getName())
                     .responseTimestamp(lateRequest.getExtension().getReviewerResponseTimestamp())
                 : null);
     }

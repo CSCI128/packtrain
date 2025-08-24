@@ -36,6 +36,9 @@ public class LateRequest {
     @Column(name = "extension_date")
     private Instant extensionDate;
 
+    @Column(name = "instructor")
+    private String instructor;
+
     @OneToOne()
     @JoinColumn(name = "extension", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude

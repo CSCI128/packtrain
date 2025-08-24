@@ -23,7 +23,7 @@ public class Extension {
     @Column(name = "comments")
     private String comments;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "cwid")
     @EqualsAndHashCode.Exclude
     private User reviewer;

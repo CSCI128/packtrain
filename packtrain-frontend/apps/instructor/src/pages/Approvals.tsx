@@ -21,6 +21,7 @@ import { TableHeader, useTableData } from "@repo/ui/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+import { useAuth } from "react-oidc-context";
 import { useGetCourseInstructor, useGetExtensions } from "../hooks";
 
 type LateRequestWithDueDate = LateRequest & {
@@ -28,13 +29,13 @@ type LateRequestWithDueDate = LateRequest & {
 };
 
 export function ApprovalPage() {
+  const auth = useAuth();
   const {
     data: courseData,
     error: courseError,
     isLoading: courseIsLoading,
   } = useGetCourseInstructor();
   const { data, error, isLoading, refetch } = useGetExtensions();
-
   const [denyOpened, { open: openDeny, close: closeDeny }] =
     useDisclosure(false);
   const [approveOpened, { open: openApprove, close: closeApprove }] =
@@ -123,7 +124,7 @@ export function ApprovalPage() {
     approveExtensionMutation.mutate(
       {
         assignment_id: request.assignment_id as string,
-        user_id: request.user_requester_id as string,
+        user_id: auth?.user?.profile.cwid as string,
         extension_id: request.id as string,
         reason: reason,
       },
@@ -140,7 +141,7 @@ export function ApprovalPage() {
     denyExtensionMutation.mutate(
       {
         assignment_id: request.assignment_id as string,
-        user_id: request.user_requester_id as string,
+        user_id: auth?.user?.profile.cwid as string,
         extension_id: request.id as string,
         reason: reason,
       },
@@ -205,6 +206,8 @@ export function ApprovalPage() {
       </Table.Td>
       <Table.Td>{row.assignment_name}</Table.Td>
       <Table.Td>{row.user_requester_id}</Table.Td>
+      <Table.Td>{row.user_reviewer}</Table.Td>
+      <Table.Td>{row.instructor}</Table.Td>
       <Table.Td>{row.extension?.reason}</Table.Td>
       <Table.Td>{row.status}</Table.Td>
       <Table.Td>
@@ -277,7 +280,7 @@ export function ApprovalPage() {
         </Center>
       </Modal>
 
-      <Container size="lg">
+      <Container size="xxl">
         <Text size="xl" fw={700}>
           Manage Requests
         </Text>
@@ -329,6 +332,20 @@ export function ApprovalPage() {
                   onSort={() => handleSort("user_requester_id")}
                 >
                   Requester
+                </TableHeader>
+                <TableHeader
+                  sorted={sortBy === "reviewer"}
+                  reversed={reverseSortDirection}
+                  onSort={() => handleSort("reviewer")}
+                >
+                  Reviewer
+                </TableHeader>
+                <TableHeader
+                  sorted={sortBy === "instructor"}
+                  reversed={reverseSortDirection}
+                  onSort={() => handleSort("instructor")}
+                >
+                  Section Instructor
                 </TableHeader>
                 <TableHeader
                   sorted={sortBy === "extension"}

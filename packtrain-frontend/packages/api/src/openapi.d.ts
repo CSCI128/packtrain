@@ -454,7 +454,11 @@ declare namespace Components {
              * Tech Issues
              */
             reason: string;
-            user_reviewer?: /* A user in a course */ CourseMember;
+            /**
+             * example:
+             * A Professor
+             */
+            user_reviewer?: string;
             /**
              * example:
              * 2020-01-01T12:00:00.000Z
@@ -501,6 +505,16 @@ declare namespace Components {
              */
             num_days_requested: number; // int32
             extension?: /* An extension for an assignment */ Extension;
+            /**
+             * example:
+             * A Professor
+             */
+            user_reviewer?: string;
+            /**
+             * example:
+             * A Professor
+             */
+            instructor?: string;
             /**
              * example:
              * 9999999
