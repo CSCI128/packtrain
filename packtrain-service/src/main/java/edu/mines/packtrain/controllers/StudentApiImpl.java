@@ -16,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Transactional
@@ -52,7 +53,8 @@ public class StudentApiImpl implements StudentApiDelegate {
         CourseDTO courseDTO = DTOFactory.toDto(course)
             .assignments(course.getAssignments().stream()
                     .filter(Assignment::isEnabled)
-                    .filter(assignment -> assignment.getDueDate() != null && assignment.getDueDate().isAfter(Instant.now())).map(DTOFactory::toDto).toList())
+                    .map(DTOFactory::toDto)
+                    .toList())
             .sections(sections.stream().map(Section::getName).toList())
             .lateRequestConfig(DTOFactory.toDto(course.getLateRequestConfig()));
 
