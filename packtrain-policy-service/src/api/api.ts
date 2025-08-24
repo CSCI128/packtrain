@@ -14,7 +14,7 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
 
     app.use(express.json());
     // keep this at base so health check works
-    app.get(`/-/ready`, (req, res) => {
+    app.get(`/-/ready`, (_, res) => {
         if (!ready()) {
             res.sendStatus(500);
             return;
@@ -23,7 +23,7 @@ export function setup(config: GradingPolicyConfig, app: express.Application) {
         res.sendStatus(200);
     });
 
-    app.get(`${config.serverConfig!.basePath}/-/ready`, (req, res) => {
+    app.get(`${config.serverConfig!.basePath}/-/ready`, (_, res) => {
         if (!ready()) {
             res.sendStatus(500);
             return;
