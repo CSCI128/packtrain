@@ -83,10 +83,6 @@ export async function startMigration(
         return Promise.reject("Connection has not been established!");
     }
 
-    if (activeMigrations.has(start.migrationId)) {
-        return Promise.reject("Migration is already started!");
-    }
-
     const policy = overridePolicy
         ? (Function("rawScore", overridePolicy) as ApplyPolicyFunctionSig)
         : await downloadAndVerifyPolicy(start.policyURI);
