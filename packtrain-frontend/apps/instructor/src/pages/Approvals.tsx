@@ -341,9 +341,9 @@ export function ApprovalPage() {
                   Reviewer
                 </TableHeader>
                 <TableHeader
-                  sorted={sortBy === "a"}
+                  sorted={sortBy === "instructor"}
                   reversed={reverseSortDirection}
-                  onSort={() => handleSort("a")}
+                  onSort={() => handleSort("instructor")}
                 >
                   Section Instructor
                 </TableHeader>
