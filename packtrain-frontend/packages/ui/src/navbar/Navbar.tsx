@@ -50,7 +50,7 @@ export function Navbar({ staticLinks, links }: NavbarProps) {
               className={classes.link}
               onClick={() => navigate(staticLinks[0]?.href as string)}
             >
-              packtrain
+              🐴📦 packtrain
             </Text>
 
             {links.map((link) => (
