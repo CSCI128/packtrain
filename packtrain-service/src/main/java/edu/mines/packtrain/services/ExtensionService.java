@@ -25,13 +25,15 @@ public class ExtensionService {
     private final AssignmentService assignmentService;
     private final CourseMemberService courseMemberService;
     private final CourseService courseService;
+    private final UserService userService;
 
-    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo, AssignmentService assignmentService, CourseMemberService courseMemberService, CourseService courseService) {
+    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo, AssignmentService assignmentService, CourseMemberService courseMemberService, CourseService courseService, UserService userService) {
         this.extensionRepo = extensionRepo;
         this.lateRequestRepo = lateRequestRepo;
         this.assignmentService = assignmentService;
         this.courseMemberService = courseMemberService;
         this.courseService = courseService;
+        this.userService = userService;
     }
 
     public List<Extension> getExtensionsByMigrationId(UUID migrationId) {
@@ -58,9 +60,10 @@ public class ExtensionService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request '%s' for user '%s' does not exist", extensionId, userId));
         }
 
-        lateRequest.get().setStatus(LateRequestStatus.APPROVED);
+        lateRequest.get().getExtension().setReviewer(userService.getUserByCwid(userId));
         lateRequest.get().getExtension().setReviewerResponse(reason);
         lateRequest.get().getExtension().setReviewerResponseTimestamp(Instant.now());
+        lateRequest.get().setStatus(LateRequestStatus.APPROVED);
 
         extensionRepo.save(lateRequest.get().getExtension());
 
@@ -74,7 +77,7 @@ public class ExtensionService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request '%s' for user '%s' does not exist", extensionId, userId));
         }
 
-
+        lateRequest.get().getExtension().setReviewer(userService.getUserByCwid(userId));
         lateRequest.get().getExtension().setReviewerResponse(reason);
         lateRequest.get().getExtension().setReviewerResponseTimestamp(Instant.now());
         lateRequest.get().setStatus(LateRequestStatus.REJECTED);
@@ -99,7 +102,6 @@ public class ExtensionService {
         CourseMember instructor = courseMemberService.getStudentInstructor(course, userSection);
 
         newExtension.setReviewer(instructor.getUser());
-
         newExtension.setReviewerResponse(extensionDTO.getResponseToRequester());
         newExtension.setReviewerResponseTimestamp(extensionDTO.getResponseTimestamp());
 
@@ -125,6 +127,14 @@ public class ExtensionService {
         }
 
         lateRequest.setSubmissionDate(submissionDate);
+
+        Course course = courseService.getCourse(courseId);
+
+        Optional<Section> userSection = courseMemberService.getSectionsForUserAndCourse(actingUser, course).stream().findFirst();
+
+        CourseMember instructor = courseMemberService.getStudentInstructor(course, userSection);
+
+        lateRequest.setInstructor(instructor.getUser().getName());
 
         if (extension != null) {
             Extension newExtension = createExtensionFromDTO(courseId, actingUser, extension);

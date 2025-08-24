@@ -3495,6 +3495,14 @@
           "extension": {
             "$ref": "#/components/schemas/Extension"
           },
+          "user_reviewer": {
+            "type": "string",
+            "example": "A Professor"
+          },
+          "instructor": {
+            "type": "string",
+            "example": "A Professor"
+          },
           "user_requester_id": {
             "type": "string",
             "example": "9999999"
@@ -3536,7 +3544,8 @@
             "example": "Tech Issues"
           },
           "user_reviewer": {
-            "$ref": "#/components/schemas/CourseMember"
+            "type": "string",
+            "example": "A Professor"
           },
           "response_timestamp": {
             "type": "string",
