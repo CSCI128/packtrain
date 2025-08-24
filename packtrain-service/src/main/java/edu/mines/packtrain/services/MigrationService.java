@@ -403,7 +403,7 @@ public class MigrationService {
         return tasks;
     }
 
-    public Optional<MasterMigrationStats> getStatsForMigration(UUID masterMigrationId) {
+    public Optional<MasterMigrationStats> getStatsForMasterMigration(UUID masterMigrationId) {
         return masterMigrationStatsRepo.findById(masterMigrationId);
     }
 
@@ -559,7 +559,14 @@ public class MigrationService {
             migrationWithScoresDTO.setAssignment(assignmentSlimDTO);
             migrationWithScoresDTO.setScores(scores.values().stream().toList());
 
+            Optional<MasterMigrationStats> stats = getStatsForMasterMigration(masterMigrationId);
+
+            if (stats.isPresent()){
+                migrationWithScoresDTO.setStats(stats.map(DTOFactory::toDto).get());
+            }
+
             migrationWithScoresDTOs.add(migrationWithScoresDTO);
+
         }
 
         return migrationWithScoresDTOs;
