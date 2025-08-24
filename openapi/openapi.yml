@@ -2522,8 +2522,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Migration"
-        stats:
-          $ref: "#/components/schemas/MasterMigrationStatistics"
 
     MasterMigrationStatistics:
       description: "The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit"
@@ -2642,6 +2640,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Score"
+        stats:
+          $ref: "#/components/schemas/MasterMigrationStatistics"
 
   parameters:
     CourseQueryParameters:

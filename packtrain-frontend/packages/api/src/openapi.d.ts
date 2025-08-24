@@ -534,7 +534,6 @@ declare namespace Components {
             date_started?: string; // date-time
             status?: "created" | "started" | "awaiting_review" | "ready_to_post" | "posting" | "loaded" | "completed";
             migrations?: /* Migration object that has a single assignment and a policy */ Migration[];
-            stats?: /* The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit */ MasterMigrationStatistics;
         }
         /**
          * The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit
@@ -615,6 +614,7 @@ declare namespace Components {
             migration_id?: string; // uuid
             assignment?: /* An slim assignment in a course */ AssignmentSlim;
             scores: /* A score for a student */ Score[];
+            stats?: /* The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit */ MasterMigrationStatistics;
         }
         /**
          * Create a new policy file
