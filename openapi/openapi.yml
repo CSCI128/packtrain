@@ -2450,10 +2450,13 @@ components:
           $ref: "#/components/schemas/Extension"
         user_reviewer:
           type: string
-          example: "A Professor"
+          example: "Jim Professor"
         instructor:
           type: string
-          example: "A Professor"
+          example: "Tim Professor"
+        requestor:
+          type: string
+          example: "Jane Doe"
         user_requester_id:
           type: string
           example: "9999999"

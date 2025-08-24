@@ -39,6 +39,9 @@ public class LateRequest {
     @Column(name = "instructor")
     private String instructor;
 
+    @Column(name = "requestor")
+    private String requestor;
+
     @OneToOne()
     @JoinColumn(name = "extension", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
