@@ -29,7 +29,10 @@ export function MigrationsLoadPage() {
     []
   );
   const [uploading, setUploading] = useState(false);
-  const [canValidate, setCanValidate] = useState(false); // can validate if files finished uploading
+  const [canValidate, setCanValidate] = useState(false); // can validate if files finished uploading; and each assignment has uploaded files
+  const [uploadedFilesForAssignment, setUploadedFilesForAssignment] = useState<
+    string[]
+  >([]); // if present, uploaded files for assignment id
   const [validated, setValidated] = useState(false);
   const [masterMigrationId, setMasterMigrationId] = useState<string>("");
   const { data, error, isLoading } = useGetMigratableAssignmentsInstructor();
@@ -189,6 +192,10 @@ export function MigrationsLoadPage() {
           });
           setUploading(false);
           setCanValidate(true);
+          setUploadedFilesForAssignment([
+            ...uploadedFilesForAssignment,
+            selectedAssignmentId,
+          ]);
         },
       }
     );
@@ -239,14 +246,12 @@ export function MigrationsLoadPage() {
           onSearchChange={setSearchValue}
           label="Assignment"
           placeholder="Select more.."
-          data={
-            data
-              .map((x) => ({
-                label: x.name,
-                value: x.id as string,
-              }))
-              .toSorted((x, y) => x.label.localeCompare(y.label))
-          }
+          data={data
+            .map((x) => ({
+              label: x.name,
+              value: x.id as string,
+            }))
+            .toSorted((x, y) => x.label.localeCompare(y.label))}
           key={form.key("assignmentIds")}
           {...form.getInputProps("assignmentIds")}
           onChange={(value: string[]): void => {
@@ -260,11 +265,7 @@ export function MigrationsLoadPage() {
               <Group justify="space-between">
                 <Group>
                   <Text fw={800}>
-                    {
-                      data.filter(
-                        (a) => a.id === selectedAssignment
-                      )[0]?.name
-                    }
+                    {data.filter((a) => a.id === selectedAssignment)[0]?.name}
                   </Text>
                   {/*<Text>Status</Text>*/}
                 </Group>
@@ -319,11 +320,14 @@ export function MigrationsLoadPage() {
             Cancel
           </Button>
 
-          {!uploading && canValidate && (
-            <Button color="green" onClick={validateAssignments}>
-              Validate
-            </Button>
-          )}
+          {!uploading &&
+            canValidate &&
+            uploadedFilesForAssignment.length ===
+              selectedAssignmentIds.length && (
+              <Button color="green" onClick={validateAssignments}>
+                Validate
+              </Button>
+            )}
 
           {validated ? (
             <Button color="blue" onClick={loadAssignments}>
