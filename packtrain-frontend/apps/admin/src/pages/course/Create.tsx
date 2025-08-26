@@ -347,7 +347,7 @@ export function CreatePage() {
                   disabled={courseCreated}
                   pb={8}
                   label="Canvas ID"
-                  placeholder="0000~0000000000000000000000000000000000000000000000000000000000000000"
+                  placeholder="12345"
                   key={form.key("canvasId")}
                   {...form.getInputProps("canvasId")}
                 />
