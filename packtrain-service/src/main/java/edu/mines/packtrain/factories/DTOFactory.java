@@ -8,6 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DTOFactory {
 
+    private DTOFactory() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static LateRequestDTO toDto(LateRequest lateRequest) {
         return new LateRequestDTO()
             .id(lateRequest.getId())
