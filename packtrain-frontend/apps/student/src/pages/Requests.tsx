@@ -347,6 +347,8 @@ export function Requests() {
 
                 <Text ta="center" c="gray.7">
                   Please contact your instructor if you think this is a mistake.
+                  You can still request extensions if you are out of late
+                  passes.
                 </Text>
               </>
             ) : (
