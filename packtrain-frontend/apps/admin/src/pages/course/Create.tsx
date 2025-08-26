@@ -266,17 +266,19 @@ export function CreatePage() {
     },
     validate: {
       canvasId: (value) =>
-        value.length == 5 ? null : "Canvas ID must be 5 characters",
+        Number.isInteger(value) && value.trim().length == 5
+          ? null
+          : "Canvas ID must be 5 characters and numeric",
       courseName: (value) =>
         value.length < 1 ? "Course name must have at least 1 character" : null,
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
       gradescopeId: (value) =>
-        value && value.length !== 6
-          ? "Gradescope ID must be 6 characters"
+        value.length !== 6 && value.length !== 7 && !Number.isInteger(value)
+          ? "Gradescope ID must be 6 or 7 characters and numeric"
           : null,
       totalLatePassesAllowed: (value) =>
-        value < 0 || value > 1000
+        value < 0 || value > 1000 || !Number.isInteger(value)
           ? "Total number of late passes must be greater than or equal to 0 and less than 1000"
           : null,
     },
@@ -345,7 +347,7 @@ export function CreatePage() {
                   disabled={courseCreated}
                   pb={8}
                   label="Canvas ID"
-                  placeholder="xxxxxxxx"
+                  placeholder="0000~0000000000000000000000000000000000000000000000000000000000000000"
                   key={form.key("canvasId")}
                   {...form.getInputProps("canvasId")}
                 />
@@ -407,7 +409,7 @@ export function CreatePage() {
                   disabled={courseCreated}
                   pb={8}
                   label="Gradescope Course ID"
-                  placeholder="xxxxxxxx"
+                  placeholder="1234567"
                   key={form.key("gradescopeId")}
                   {...form.getInputProps("gradescopeId")}
                 />
