@@ -258,7 +258,7 @@ export function ProfilePage() {
           <TextInput
             withAsterisk
             label="API Key"
-            placeholder="xxxx-xxxx"
+            placeholder="0000~0000000000000000000000000000000000000000000000000000000000000000"
             key={form.key("apiKey")}
             {...form.getInputProps("apiKey")}
           />

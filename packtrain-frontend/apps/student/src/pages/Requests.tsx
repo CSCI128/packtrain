@@ -194,7 +194,7 @@ export function Requests() {
           )}
 
           <Group justify="flex-end" mt={10}>
-            <Button variant="filled" color="gray" onClick={close}>
+            <Button variant="light" color="gray" onClick={close}>
               Close
             </Button>
 
@@ -347,6 +347,8 @@ export function Requests() {
 
                 <Text ta="center" c="gray.7">
                   Please contact your instructor if you think this is a mistake.
+                  You can still request extensions if you are out of late
+                  passes.
                 </Text>
               </>
             ) : (
