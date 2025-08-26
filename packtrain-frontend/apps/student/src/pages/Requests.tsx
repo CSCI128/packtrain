@@ -194,7 +194,7 @@ export function Requests() {
           )}
 
           <Group justify="flex-end" mt={10}>
-            <Button variant="filled" color="gray" onClick={close}>
+            <Button variant="light" color="gray" onClick={close}>
               Close
             </Button>
 
