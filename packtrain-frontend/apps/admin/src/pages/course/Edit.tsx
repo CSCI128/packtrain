@@ -331,6 +331,7 @@ export function EditCourse() {
               "Family",
               "Illness",
               "Personal",
+              "Quiz Makeup Request",
               "Other",
             ]}
           />
