@@ -18,6 +18,7 @@ import { CreatePage } from "./pages/course/Create.tsx";
 import { CreatePolicy } from "./pages/course/CreatePolicy.tsx";
 import { EditCourse } from "./pages/course/Edit.tsx";
 import { MembersPage } from "./pages/Members.tsx";
+import TestPage from "./pages/Test.tsx";
 import { UsersPage } from "./pages/Users.tsx";
 import Root from "./templates/Root.tsx";
 
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
       {
         element: <MiddlewareLayout />,
         children: [
+          {
+            path: "/admin/test",
+            element: <TestPage />,
+          },
           {
             path: "/admin",
             element: <CoursePage />,
