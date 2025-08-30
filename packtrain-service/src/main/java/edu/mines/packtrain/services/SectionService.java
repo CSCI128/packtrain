@@ -15,6 +15,7 @@ import edu.mines.packtrain.services.external.CanvasService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -85,7 +86,7 @@ public class SectionService {
         return section.get();
     }
 
-    public ScheduledTaskDef createSectionsFromCanvas(User actingUser, UUID courseId, long canvasId){
+    public ScheduledTaskDef createSectionsFromCanvas(User actingUser, UUID courseId, long canvasId, SimpMessagingTemplate messagingTemplate){
         SectionSyncTaskDef task = new SectionSyncTaskDef();
         task.setCreatedByUser(actingUser);
         task.setTaskName(String.format("Sync Course '%s': Course Sections", courseId));
@@ -95,6 +96,8 @@ public class SectionService {
         task = taskRepo.save(task);
 
         NewTaskEvent.TaskData<SectionSyncTaskDef> taskDef = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncSectionTask);
+        taskDef.setOnJobComplete(Optional.of(_ ->
+                messagingTemplate.convertAndSend("/courses/import", "sections complete")));
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDef));
 

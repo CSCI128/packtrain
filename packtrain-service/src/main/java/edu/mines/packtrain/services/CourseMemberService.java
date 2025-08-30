@@ -15,6 +15,7 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -261,7 +262,7 @@ public class CourseMemberService {
         return members;
     }
 
-    public ScheduledTaskDef syncMembersFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean updateExisting, boolean removeOld, boolean addNew) {
+    public ScheduledTaskDef syncMembersFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean updateExisting, boolean removeOld, boolean addNew, SimpMessagingTemplate messagingTemplate) {
         UserSyncTaskDef task = new UserSyncTaskDef();
         task.setCreatedByUser(actingUser);
         task.setTaskName(String.format("Sync Course '%s': Course Members", courseId));
@@ -273,6 +274,8 @@ public class CourseMemberService {
 
         NewTaskEvent.TaskData<UserSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseMembersTask);
         taskDefinition.setDependsOn(dependencies);
+        taskDefinition.setOnJobComplete(Optional.of(_ ->
+                messagingTemplate.convertAndSend("/courses/import", "members complete")));
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 

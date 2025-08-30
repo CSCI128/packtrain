@@ -14,12 +14,10 @@ import edu.mines.packtrain.services.CourseService;
 import edu.mines.packtrain.services.external.CanvasService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -41,7 +39,7 @@ public class AssignmentTaskService {
         this.assignmentService = assignmentService;
     }
 
-    public ScheduledTaskDef syncAssignmentsFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean addNew, boolean deleteOld, boolean updateExisting){
+    public ScheduledTaskDef syncAssignmentsFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean addNew, boolean deleteOld, boolean updateExisting, SimpMessagingTemplate messagingTemplate){
         AssignmentsSyncTaskDef task = new AssignmentsSyncTaskDef();
         task.setCourseToSync(courseId);
         task.setTaskName(String.format("Sync Course '%s': Course Assignments", courseId));
@@ -53,6 +51,8 @@ public class AssignmentTaskService {
 
         NewTaskEvent.TaskData<AssignmentsSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncAssignmentTask);
         taskDefinition.setDependsOn(dependencies);
+        taskDefinition.setOnJobComplete(Optional.of(_ ->
+                messagingTemplate.convertAndSend("/courses/import", "assignments complete")));
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 

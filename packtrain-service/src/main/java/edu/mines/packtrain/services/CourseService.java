@@ -20,6 +20,7 @@ import edu.mines.packtrain.services.external.S3Service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -183,7 +184,7 @@ public class CourseService {
     }
 
     public ScheduledTaskDef syncCourseWithCanvas(User actingUser, UUID courseId, long canvasId,
-                                                           boolean overwriteName, boolean overwriteCode) {
+                                                 boolean overwriteName, boolean overwriteCode, SimpMessagingTemplate messagingTemplate) {
         if (!courseRepo.existsById(courseId)) {
             log.warn("Course '{}' has not been created!", courseId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
@@ -200,6 +201,8 @@ public class CourseService {
         task = taskRepo.save(task);
 
         NewTaskEvent.TaskData<CourseSyncTaskDef> taskDef = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseTask);
+        taskDef.setOnJobComplete(Optional.of(_ ->
+                messagingTemplate.convertAndSend("/courses/import", "course complete")));
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDef));
 
