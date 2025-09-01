@@ -152,8 +152,7 @@ An example for format is below:
 
     let submissionComment = "Nice work!"
 
-    if (rawScore.submissionStatus == "missing"){
-
+    if (rawScore.submissionStatus === "missing"){
         submissionComment = "Nothing submitted! Contact your instructor!";
         submissionStatus = "missing";
     }
