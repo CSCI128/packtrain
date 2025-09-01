@@ -1,14 +1,9 @@
-export enum IncomingExtensionStatus {
-    APPROVED = "approved",
-    DENIED = "denied",
-    REJECTED = "rejected",
-}
-
-export enum AppliedExtensionStatus {
-    NO_EXTENSION = "no_extension",
+export enum ExtensionStatus {
     IGNORED = "ignored",
-    APPLIED = "applied",
+    APPROVED = "approved",
     REJECTED = "rejected",
+    PENDING = "pending",
+    NO_EXTENSION = "no_extension",
 }
 
 export enum SubmissionStatus {

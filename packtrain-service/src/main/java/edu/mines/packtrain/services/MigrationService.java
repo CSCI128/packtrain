@@ -342,6 +342,9 @@ public class MigrationService {
             dto.setExtensionType(extension.get().getLateRequestType().name());
             dto.setExtensionStatus(ExtensionStatusEnum.fromValue(extension.get().getStatus().getStatus()));
         }
+        else {
+            dto.setExtensionStatus(ExtensionStatusEnum.NO_EXTENSION);
+        }
         return dto;
     }
 

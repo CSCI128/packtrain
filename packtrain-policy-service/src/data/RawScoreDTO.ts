@@ -1,4 +1,4 @@
-import { IncomingExtensionStatus, SubmissionStatus } from "./common";
+import { ExtensionStatus, SubmissionStatus } from "./common";
 
 export default class RawScoreDTO {
     cwid!: string;
@@ -13,5 +13,5 @@ export default class RawScoreDTO {
     extensionDate?: Date;
     extensionDays?: number;
     extensionType?: string;
-    extensionStatus?: IncomingExtensionStatus;
+    extensionStatus!: ExtensionStatus;
 }

@@ -21,8 +21,86 @@ This visualization from the system architecture design can depict this process;
 Policy Format
 ----------------
 
-PolicyScoredDTO (Data Transfer Object)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RawScoreDTO
+^^^^^^^^^^^
+
+.. note::
+    ``maxScore`` will be renamed to ``canvasMaxScore`` to better represent what it is.
+
+    a new field called ``externalMaxScore`` will be added to allow the creation of fewer policies for external services.
+
+The following fields are aviable from the rawscore:
+    **cwid** *(string)*
+        The ID of the student who is being graded.
+
+    **assignmentId** *(string)*
+        The UUID of the currently graded assignment. Mostly aviable for information purposes. 
+        There isn't a way to get the actual assignment in the policy service with this id.
+    
+    **rawScore** *(number)*
+        The student's score before any processing has been applied.
+
+    **minScore** *(number)*
+        The minimum configured score for the assignment.
+        Generally, it is zero.
+
+    *deprecated* **maxScore** *(number)* 
+        The maximum score allowed for an assignment.
+        This score comes from canvas
+
+    **initialDueDate** *(string)*
+        The inital due date for the assignment. 
+        Can (and should) be converted to a date by passing it into a new date object.
+
+    **submissionDate** *(nullable string)*
+        The submission date for the student's submission.
+        If the student's submission is missing, then it is null.
+        Can (and should) be converted to a date by passing it into a new date object.
+
+    **submissionStatus** *(SubmissionStatus)*
+        The student's submission status.
+        Must be one of::
+
+            missing
+            excused
+            late
+            extended
+            on_time
+        
+        In general, only ``missing``, ``late``, and ``on_time`` will be set for raw scores.
+
+    **extensionStatus** *(IncomingExtensionStatus)*
+        The student's extension status.
+        Must be one of::
+
+            ignored
+            approved
+            rejected
+            pending
+            no_extension
+            applied
+
+        If the student does not have an extension applied, then they will have ``no_extension`` set.
+        In general, only ``approved``, ``rejected``, ``pending`` will be set for raw scores.
+        
+        If the extension is in the ``pending`` state, then no instructor has taken an action on the extension.
+        These can be treated as either implict approvals or implict rejections, but your policy should set it.
+
+    **extensionDate** *(nullable string)*
+        The students new due date given the extension.
+        This string is null if the student has no extension.
+        Can (and should) be converted to a date by passing it into a new date object.
+
+    **extensionDays** *(nullable number)*
+        The total number of days that the student requested.
+
+    **extensionType** *(nullable string)*
+        The type of extension that the student requested.
+        Generally only ``Late Pass`` should be explictly checked as the other options are what ever the student said.
+    
+
+PolicyScoredDTO 
+^^^^^^^^^^^^^^^
 
 Your policy must return an object with these properties set:
 
@@ -31,35 +109,68 @@ Your policy must return an object with these properties set:
 
     **adjustedSubmissionDate** *(Date)*  
         The (possibly modified) submission timestamp.
+        This MUST be a date and not a string.
 
     **adjustedDaysLate** *(number)*  
         The number of days late after policy adjustments.
 
-    **submissionStatus** *(SubmissionStatus enum)*  
-        Updated status, one of::  
+    **submissionStatus** *(SubmissionStatus)*  
+        Updated submission status, one of::  
+            
+            missing
+            excused
+            late
+            extended
+            on_time
 
-            ON_TIME
-            LATE
-            MISSING
-
-    **extensionStatus** *(AppliedExtensionStatus enum)*  
+    **extensionStatus** *(ExtensionStatus)*  
         How the extension was applied, one of::
+            
+            ignored
+            approved
+            rejected
+            pending
+            no_extension
+            applied
 
-            APPLIED
-            DENIED
-            NONE
+    **extensionMessage** *(nullable string)*
+        An optional message describing if / how extensions were applied.
+
+    **submissionMessage** *(nullable string)*
+        An optional message for the overall submission.
 
 An example for format is below:
 
 .. code-block:: js
     :linenos:
 
+    let submissionStatus = "on_time";
+
+    if (rawScore.submissionDate > rawScore.initialDueDate){
+        submissionStatus = "late";
+    }
+
+    let submissionComment = "Nice work!"
+
+    if (rawScore.submissionStatus == "missing"){
+
+        submissionComment = "Nothing submitted! Contact your instructor!";
+        submissionStatus = "missing";
+    }
+
+    let score = rawScore.rawScore;
+
+    if (submissionStatus === "late"){
+        submissionComment = "Submitted late :( -50%";
+        score *= .50;
+    }
 
     return {
-        finalScore: rawScore.rawScore,
-        adjustedSubmissionDate: new Date(),
+        finalScore: score,
+        adjustedSubmissionDate: rawScore.submissionDate,
         adjustedDaysLate: 0,
-        submissionStatus: "on_time",
-        extensionStatus: "no_extension"
+        submissionStatus: submissionStatus,
+        extensionStatus: "no_extension",
+        submissionMessage: submissionComment,
     };
 
