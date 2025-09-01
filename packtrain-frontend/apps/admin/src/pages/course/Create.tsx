@@ -64,7 +64,10 @@ export function CreatePage() {
   useEffect(() => {
     if (!userData) return;
 
-    const socket = new SockJS("https://localhost.dev/api/ws");
+    const API_URL =
+      window.__ENV__?.VITE_API_URL + "/api/ws" ||
+      "https://localhost.dev/api/ws";
+    const socket = new SockJS(API_URL);
     const client = new Client({
       webSocketFactory: () => socket,
       connectHeaders: {
@@ -151,7 +154,7 @@ export function CreatePage() {
   const importCourse = (canvasId: string) => {
     if (stompClient && stompClient.connected && canvasId.trim()) {
       stompClient.publish({
-        destination: "/app/importCourse",
+        destination: "/api/importCourse",
         body: JSON.stringify({
           courseId: store$.id.get() as string,
           canvasId: canvasId,

@@ -37,14 +37,14 @@ public class NotificationController {
     private final CourseMemberService courseMemberService;
     private final AssignmentTaskService assignmentTaskService;
 
-    @MessageMapping("/importCourse") // app/importCourse is the "endpoint"
+    @MessageMapping("/importCourse") // api/importCourse is the "endpoint"
     @SendTo("/courses/import") // response being sent; frontend "endpoint"
     public String importCourse(String message, Principal principal) {
         User user = userService.getUserByCwid(principal.getName());
 
         try {
             CourseSyncDTO courseSyncDTO = objectMapper.readValue(message, CourseSyncDTO.class);
-            UUID courseId = UUID.fromString(courseSyncDTO.getCourseId());
+            UUID courseId = courseSyncDTO.getCourseId();
             long canvasId = Long.parseLong(courseSyncDTO.getCanvasId());
 
             ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(

@@ -2,8 +2,10 @@ package edu.mines.packtrain.data;
 
 import lombok.Value;
 
+import java.util.UUID;
+
 @Value
 public class CourseSyncDTO {
-    String courseId;
+    UUID courseId;
     String canvasId;
 }
