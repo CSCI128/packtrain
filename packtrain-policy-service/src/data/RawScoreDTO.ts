@@ -6,11 +6,11 @@ export default class RawScoreDTO {
     rawScore!: number;
     minScore!: number;
     maxScore!: number;
-    initialDueDate!: Date;
-    submissionDate!: Date;
+    initialDueDate!: string;
+    submissionDate!: string;
     submissionStatus!: SubmissionStatus;
     extensionId?: string;
-    extensionDate?: Date;
+    extensionDate?: string;
     extensionDays?: number;
     extensionType?: string;
     extensionStatus!: ExtensionStatus;
