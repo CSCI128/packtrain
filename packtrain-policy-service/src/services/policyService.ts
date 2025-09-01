@@ -62,7 +62,7 @@ function validateScoredDTO(scored: PolicyScoredDTO): string[] {
         isNaN(Number(scored.adjustedDaysLate.toString()))
     ) {
         errors.push(
-            `adjustedHoursLate was not a number! Received: ${scored.adjustedDaysLate}!`,
+            `adjustedDaysLate was not a number! Received: ${scored.adjustedDaysLate}!`,
         );
     }
 
