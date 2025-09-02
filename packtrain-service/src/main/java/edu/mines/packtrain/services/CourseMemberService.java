@@ -9,7 +9,6 @@ import edu.mines.packtrain.managers.IdentityProvider;
 import edu.mines.packtrain.managers.ImpersonationManager;
 import edu.mines.packtrain.models.*;
 import edu.mines.packtrain.models.enums.CourseRole;
-import edu.mines.packtrain.models.tasks.CourseSyncTaskDef;
 import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
 import edu.mines.packtrain.models.tasks.UserSyncTaskDef;
 import edu.mines.packtrain.repositories.CourseMemberRepo;

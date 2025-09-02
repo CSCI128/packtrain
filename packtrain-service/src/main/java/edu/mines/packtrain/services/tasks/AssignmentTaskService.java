@@ -10,7 +10,6 @@ import edu.mines.packtrain.managers.ImpersonationManager;
 import edu.mines.packtrain.models.Course;
 import edu.mines.packtrain.models.User;
 import edu.mines.packtrain.models.tasks.AssignmentsSyncTaskDef;
-import edu.mines.packtrain.models.tasks.CourseSyncTaskDef;
 import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
 import edu.mines.packtrain.repositories.ScheduledTaskRepo;
 import edu.mines.packtrain.services.AssignmentService;

@@ -53,7 +53,6 @@ export function CreatePage() {
     members: false,
   });
   const [userData, setUserData] = useState(null);
-  const [stompClient, setStompClient] = useState(null);
 
   // fetch user token
   useEffect(() => {
@@ -72,12 +71,10 @@ export function CreatePage() {
   useEffect(() => {
     if (!userData) return;
 
-    // TODO window env stuff not working? check other envs
-    console.log("API URL:", window.__ENV__?.VITE_API_URL);
     const API_URL =
-      // window.__ENV__?.VITE_API_URL + "/api/ws" ||
-      "https://localhost.dev/api/ws";
-    console.log("defaulted api url:", API_URL);
+      window.__ENV__ && window.__ENV__.VITE_API_URL
+        ? window.__ENV__?.VITE_API_URL + "/api/ws"
+        : "https://localhost.dev/api/ws";
     const socket = new SockJS(API_URL);
     const client = new Client({
       webSocketFactory: () => socket,
@@ -86,39 +83,29 @@ export function CreatePage() {
       },
       reconnectDelay: 5000,
       onConnect: () => {
-        console.log("Connected to SockJS");
+        console.log("Websocket connection open..");
         client.subscribe("/courses/import", (msg) => {
           const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
-          console.log("RECEIVED PAYLOAD:", payload);
+          console.log("received payload:", payload);
           if (payload.course_complete) {
-            console.log("COURSE COMPLETE");
             setCompleted((prev) => ({
               ...prev,
               course: true,
             }));
           }
-          if (
-            payload.sections_complete ||
-            msg.body.includes("sections complete")
-          ) {
+          if (payload.sections_complete) {
             setCompleted((prev) => ({
               ...prev,
               sections: true,
             }));
           }
-          if (
-            payload.assignments_complete ||
-            msg.body.includes("assignments complete")
-          ) {
+          if (payload.assignments_complete) {
             setCompleted((prev) => ({
               ...prev,
               assignments: true,
             }));
           }
-          if (
-            payload.members_complete ||
-            msg.body.includes("members complete")
-          ) {
+          if (payload.members_complete) {
             setCompleted((prev) => ({
               ...prev,
               members: true,
@@ -127,11 +114,7 @@ export function CreatePage() {
         });
       },
     });
-
     client.activate();
-    setStompClient(client);
-
-    // return () => client.deactivate();
   }, [userData]);
 
   useEffect(() => {
@@ -203,15 +186,6 @@ export function CreatePage() {
         import_assignments: true,
       },
     });
-    // if (stompClient && stompClient.connected && canvasId.trim()) {
-    //   stompClient.publish({
-    //     destination: "/api/importCourse",
-    //     body: JSON.stringify({
-    //       courseId: store$.id.get() as string,
-    //       canvasId: canvasId,
-    //     }),
-    //   });
-    // }
   };
 
   const { data, error } = useQuery<Course>({
