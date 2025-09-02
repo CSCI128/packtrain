@@ -273,6 +273,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 23
+          cache: "maven"
+          cache-dependency-path: "packtrain-service/pom.xml"
       - name: Run Checkstyle
         run: mvn --batch-mode checkstyle:check
         working-directory: packtrain-service
