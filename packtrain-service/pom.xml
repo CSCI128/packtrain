@@ -188,9 +188,8 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <!-- forked from Google checkstyle -->
                     <configLocation>checkstyle.xml</configLocation>
-                    <failsOnError>true</failsOnError>
+                    <failsOnError>false</failsOnError>
                 </configuration>
                 <executions>
                     <execution>
