@@ -265,7 +265,7 @@ jobs:
           push-to-registry: true
 
   checkstyle:
-    name: Run CheckStyle
+    name: Run Checkstyle
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

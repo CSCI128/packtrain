@@ -39,9 +39,9 @@
   </module>
 
   <!-- https://checkstyle.org/filters/suppresswithnearbytextfilter.html -->
-  <module name="SuppressWithNearbyTextFilter">
+  <module name="com.puppycrawl.tools.checkstyle.filters.SuppressWithNearbyTextFilter">
     <property name="nearbyTextPattern"
-              value="CHECKSTYLE.SUPPRESS\: (\w+) for ([+-]\d+) lines"/>
+          value="CHECKSTYLE.SUPPRESS\: (\w+) for ([+-]\d+) lines"/>
     <property name="checkPattern" value="$1"/>
     <property name="lineRange" value="$2"/>
   </module>
