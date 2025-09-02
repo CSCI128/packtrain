@@ -1,7 +1,7 @@
 import axios from "axios";
 import RawScoreDTO from "../data/RawScoreDTO";
 import PolicyScoredDTO from "../data/PolicyScoredDTO";
-import { AppliedExtensionStatus, SubmissionStatus } from "../data/common";
+import { ExtensionStatus, SubmissionStatus } from "../data/common";
 import { agent } from "../config/https";
 
 export type ApplyPolicyFunctionSig = (x: RawScoreDTO) => PolicyScoredDTO;
@@ -85,7 +85,7 @@ function validateScoredDTO(scored: PolicyScoredDTO): string[] {
 
     if (
         scored.extensionStatus != null &&
-        !Object.values(AppliedExtensionStatus).includes(scored.extensionStatus)
+        !Object.values(ExtensionStatus).includes(scored.extensionStatus)
     ) {
         errors.push(
             `Invalid extensionStatus! Received: ${scored.extensionStatus}. Expected one of: ${Object.values(SubmissionStatus)}`,
@@ -98,14 +98,15 @@ function validateScoredDTO(scored: PolicyScoredDTO): string[] {
 export function verifyPolicy(fun: ApplyPolicyFunctionSig): ValidationResults {
     const rawScore = new RawScoreDTO();
     rawScore.cwid = "10000";
-    rawScore.extensionDate = new Date();
-    rawScore.submissionDate = new Date();
+    rawScore.extensionDate = new Date().toString();
+    rawScore.submissionDate = new Date().toString();
     rawScore.extensionId = "1";
     rawScore.assignmentId = "1";
     rawScore.rawScore = 10;
-    rawScore.extensionDays = 0;
+    rawScore.extensionDays = 3;
     rawScore.extensionType = "Late Pass";
-    rawScore.submissionStatus = SubmissionStatus.ON_TIME;
+    rawScore.submissionStatus = SubmissionStatus.LATE;
+    rawScore.extensionStatus = ExtensionStatus.APPROVED;
 
     try {
         const scoredDTO = fun(rawScore);
