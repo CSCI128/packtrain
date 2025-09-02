@@ -1,11 +1,15 @@
 package edu.mines.packtrain.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.mines.packtrain.data.CourseMemberDTO;
+import edu.mines.packtrain.data.websockets.CourseSyncNotificationDTO;
 import edu.mines.packtrain.events.NewTaskEvent;
 import edu.mines.packtrain.managers.IdentityProvider;
 import edu.mines.packtrain.managers.ImpersonationManager;
 import edu.mines.packtrain.models.*;
 import edu.mines.packtrain.models.enums.CourseRole;
+import edu.mines.packtrain.models.tasks.CourseSyncTaskDef;
 import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
 import edu.mines.packtrain.models.tasks.UserSyncTaskDef;
 import edu.mines.packtrain.repositories.CourseMemberRepo;
@@ -36,7 +40,10 @@ public class CourseMemberService {
     private final ApplicationEventPublisher eventPublisher;
     private final ImpersonationManager impersonationManager;
 
-    public CourseMemberService(CourseMemberRepo courseMemberRepo, ScheduledTaskRepo<UserSyncTaskDef> taskRepo, UserService userService, SectionService sectionService, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager) {
+    private final SimpMessagingTemplate messagingTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public CourseMemberService(CourseMemberRepo courseMemberRepo, ScheduledTaskRepo<UserSyncTaskDef> taskRepo, UserService userService, SectionService sectionService, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, SimpMessagingTemplate messagingTemplate) {
         this.courseMemberRepo = courseMemberRepo;
         this.taskRepo = taskRepo;
         this.userService = userService;
@@ -45,6 +52,7 @@ public class CourseMemberService {
         this.canvasService = canvasService;
         this.eventPublisher = eventPublisher;
         this.impersonationManager = impersonationManager;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public Optional<CourseMember> findCourseMemberGivenCourseAndCwid(Course course, String cwid) {
@@ -262,7 +270,7 @@ public class CourseMemberService {
         return members;
     }
 
-    public ScheduledTaskDef syncMembersFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean updateExisting, boolean removeOld, boolean addNew, SimpMessagingTemplate messagingTemplate) {
+    public ScheduledTaskDef syncMembersFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean updateExisting, boolean removeOld, boolean addNew) {
         UserSyncTaskDef task = new UserSyncTaskDef();
         task.setCreatedByUser(actingUser);
         task.setTaskName(String.format("Sync Course '%s': Course Members", courseId));
@@ -272,10 +280,16 @@ public class CourseMemberService {
         task.shouldRemoveOldUsers(removeOld);
         task = taskRepo.save(task);
 
+        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder().membersComplete(true).build();
         NewTaskEvent.TaskData<UserSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseMembersTask);
         taskDefinition.setDependsOn(dependencies);
-        taskDefinition.setOnJobComplete(Optional.of(_ ->
-                messagingTemplate.convertAndSend("/courses/import", "members complete")));
+        taskDefinition.setOnJobComplete(Optional.of(_ -> {
+            try {
+                messagingTemplate.convertAndSend("/courses/import", objectMapper.writeValueAsString(notificationDTO));
+            } catch (JsonProcessingException _) {
+                throw new RuntimeException("Could not process JSON for sending notification DTO!");
+            }
+        }));
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 

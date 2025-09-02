@@ -1,6 +1,8 @@
 package edu.mines.packtrain.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -24,17 +26,19 @@ import java.util.Collections;
 import java.util.Optional;
 
 @Configuration
-@EnableWebSocketMessageBroker
 @RequiredArgsConstructor
+@EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtDecoder jwtDecoder;
 
+    @Value("${grading-admin.websocket.allowed-origins}")
+    private String[] allowedOrigins;
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-//                TODO make these configurable within the spring app
-            .setAllowedOrigins("https://localhost.dev", "https://packtrain.mines.edu")
+            .setAllowedOrigins(allowedOrigins)
             .withSockJS();
     }
 
@@ -44,38 +48,38 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setApplicationDestinationPrefixes("/api");
     }
 
-    @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new ChannelInterceptor() {
-            @Override
-            public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                StompHeaderAccessor accessor =
-                        MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-
-                if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    String auth = accessor.getFirstNativeHeader("Authorization");
-                    if (auth == null || !auth.startsWith("Bearer ")) {
-                        throw new AccessDeniedException("Missing JWT");
-                    }
-
-                    Jwt jwt;
-                    try {
-                        jwt = jwtDecoder.decode(auth.substring(7));
-                    } catch (JwtException e) {
-                        throw new AccessDeniedException("Invalid JWT", e);
-                    }
-
-                    String name = Optional.ofNullable(jwt.getClaimAsString("cwid"))
-                            .orElse(jwt.getSubject());
-
-                    JwtAuthenticationToken authentication =
-                            new JwtAuthenticationToken(jwt, Collections.emptyList(), name);
-
-                    accessor.setUser(authentication);
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
-                return message;
-            }
-        });
-    }
+//    @Override
+//    public void configureClientInboundChannel(ChannelRegistration registration) {
+//        registration.interceptors(new ChannelInterceptor() {
+//            @Override
+//            public Message<?> preSend(Message<?> message, MessageChannel channel) {
+//                StompHeaderAccessor accessor =
+//                        MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+//
+//                if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
+//                    String auth = accessor.getFirstNativeHeader("Authorization");
+//                    if (auth == null || !auth.startsWith("Bearer ")) {
+//                        throw new AccessDeniedException("Missing JWT");
+//                    }
+//
+//                    Jwt jwt;
+//                    try {
+//                        jwt = jwtDecoder.decode(auth.substring(7));
+//                    } catch (JwtException e) {
+//                        throw new AccessDeniedException("Invalid JWT", e);
+//                    }
+//
+//                    String name = Optional.ofNullable(jwt.getClaimAsString("cwid"))
+//                            .orElse(jwt.getSubject());
+//
+//                    JwtAuthenticationToken authentication =
+//                            new JwtAuthenticationToken(jwt, Collections.emptyList(), name);
+//
+//                    accessor.setUser(authentication);
+//                    SecurityContextHolder.getContext().setAuthentication(authentication);
+//                }
+//                return message;
+//            }
+//        });
+//    }
 }

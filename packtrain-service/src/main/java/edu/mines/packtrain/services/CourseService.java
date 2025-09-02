@@ -1,7 +1,10 @@
 package edu.mines.packtrain.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.mines.packtrain.data.CourseDTO;
 import edu.mines.packtrain.data.CourseLateRequestConfigDTO;
+import edu.mines.packtrain.data.websockets.CourseSyncNotificationDTO;
 import edu.mines.packtrain.events.NewTaskEvent;
 import edu.mines.packtrain.managers.IdentityProvider;
 import edu.mines.packtrain.managers.ImpersonationManager;
@@ -43,11 +46,13 @@ public class CourseService {
     private final MasterMigrationRepo masterMigrationRepo;
     private final MigrationRepo migrationRepo;
     private final CourseMemberRepo courseMemberRepo;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, GradescopeConfigRepo gradescopeConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
                          ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
                          CanvasService canvasService, S3Service s3Service, UserService userService,
-                         MasterMigrationRepo masterMigrationRepo, MigrationRepo migrationRepo, CourseMemberRepo courseMemberRepo) {
+                         MasterMigrationRepo masterMigrationRepo, MigrationRepo migrationRepo, CourseMemberRepo courseMemberRepo, SimpMessagingTemplate messagingTemplate) {
         this.courseRepo = courseRepo;
         this.lateRequestConfigRepo = lateRequestConfigRepo;
         this.gradescopeConfigRepo = gradescopeConfigRepo;
@@ -60,6 +65,7 @@ public class CourseService {
         this.masterMigrationRepo = masterMigrationRepo;
         this.migrationRepo = migrationRepo;
         this.courseMemberRepo = courseMemberRepo;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public List<Course> getAllCourses(boolean enabled) {
@@ -184,7 +190,7 @@ public class CourseService {
     }
 
     public ScheduledTaskDef syncCourseWithCanvas(User actingUser, UUID courseId, long canvasId,
-                                                 boolean overwriteName, boolean overwriteCode, SimpMessagingTemplate messagingTemplate) {
+                                                 boolean overwriteName, boolean overwriteCode) {
         if (!courseRepo.existsById(courseId)) {
             log.warn("Course '{}' has not been created!", courseId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course does not exist");
@@ -200,11 +206,17 @@ public class CourseService {
 
         task = taskRepo.save(task);
 
-        NewTaskEvent.TaskData<CourseSyncTaskDef> taskDef = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseTask);
-        taskDef.setOnJobComplete(Optional.of(_ ->
-                messagingTemplate.convertAndSend("/courses/import", "course complete")));
+        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder().courseComplete(true).build();
+        NewTaskEvent.TaskData<CourseSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseTask);
+        taskDefinition.setOnJobComplete(Optional.of(_ -> {
+            try {
+                messagingTemplate.convertAndSend("/courses/import", objectMapper.writeValueAsString(notificationDTO));
+            } catch (JsonProcessingException _) {
+                throw new RuntimeException("Could not process JSON for sending notification DTO!");
+            }
+        }));
 
-        eventPublisher.publishEvent(new NewTaskEvent(this, taskDef));
+        eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 
         return task;
     }

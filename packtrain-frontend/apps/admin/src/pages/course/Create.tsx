@@ -16,7 +16,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
-import { Course } from "@repo/api/openapi";
+import { Course, CourseSyncTask } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { Client } from "@stomp/stompjs";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -25,6 +25,14 @@ import { Link } from "react-router-dom";
 import SockJS from "sockjs-client";
 import { userManager } from "../../auth";
 import { useGetCredentials } from "../../hooks";
+
+type CourseSyncNotificationDTO = {
+  error?: string;
+  course_complete?: boolean;
+  sections_complete?: boolean;
+  assignments_complete?: boolean;
+  members_complete?: boolean;
+};
 
 export function CreatePage() {
   const { data: credentialData, error: credentialError } = useGetCredentials();
@@ -64,9 +72,12 @@ export function CreatePage() {
   useEffect(() => {
     if (!userData) return;
 
+    // TODO window env stuff not working? check other envs
+    console.log("API URL:", window.__ENV__?.VITE_API_URL);
     const API_URL =
-      window.__ENV__?.VITE_API_URL + "/api/ws" ||
+      // window.__ENV__?.VITE_API_URL + "/api/ws" ||
       "https://localhost.dev/api/ws";
+    console.log("defaulted api url:", API_URL);
     const socket = new SockJS(API_URL);
     const client = new Client({
       webSocketFactory: () => socket,
@@ -77,25 +88,37 @@ export function CreatePage() {
       onConnect: () => {
         console.log("Connected to SockJS");
         client.subscribe("/courses/import", (msg) => {
-          if (msg.body.includes("course complete")) {
+          const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
+          console.log("RECEIVED PAYLOAD:", payload);
+          if (payload.course_complete) {
+            console.log("COURSE COMPLETE");
             setCompleted((prev) => ({
               ...prev,
               course: true,
             }));
           }
-          if (msg.body.includes("sections complete")) {
+          if (
+            payload.sections_complete ||
+            msg.body.includes("sections complete")
+          ) {
             setCompleted((prev) => ({
               ...prev,
               sections: true,
             }));
           }
-          if (msg.body.includes("assignments complete")) {
+          if (
+            payload.assignments_complete ||
+            msg.body.includes("assignments complete")
+          ) {
             setCompleted((prev) => ({
               ...prev,
               assignments: true,
             }));
           }
-          if (msg.body.includes("members complete")) {
+          if (
+            payload.members_complete ||
+            msg.body.includes("members complete")
+          ) {
             setCompleted((prev) => ({
               ...prev,
               members: true,
@@ -122,6 +145,25 @@ export function CreatePage() {
       setAllTasksCompleted(true);
     }
   }, [completed]);
+
+  const importMutation = useMutation({
+    mutationKey: ["importCourse"],
+    mutationFn: ({ body }: { body: CourseSyncTask }) =>
+      getApiClient()
+        .then((client) =>
+          client.import_course(
+            {
+              course_id: store$.id.get() as string,
+            },
+            body
+          )
+        )
+        .then((res) => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        }),
+  });
 
   const mutation = useMutation({
     mutationKey: ["newCourse"],
@@ -152,15 +194,24 @@ export function CreatePage() {
   });
 
   const importCourse = (canvasId: string) => {
-    if (stompClient && stompClient.connected && canvasId.trim()) {
-      stompClient.publish({
-        destination: "/api/importCourse",
-        body: JSON.stringify({
-          courseId: store$.id.get() as string,
-          canvasId: canvasId,
-        }),
-      });
-    }
+    importMutation.mutate({
+      body: {
+        canvas_id: Number(canvasId),
+        overwrite_name: false,
+        overwrite_code: true,
+        import_users: true,
+        import_assignments: true,
+      },
+    });
+    // if (stompClient && stompClient.connected && canvasId.trim()) {
+    //   stompClient.publish({
+    //     destination: "/api/importCourse",
+    //     body: JSON.stringify({
+    //       courseId: store$.id.get() as string,
+    //       canvasId: canvasId,
+    //     }),
+    //   });
+    // }
   };
 
   const { data, error } = useQuery<Course>({

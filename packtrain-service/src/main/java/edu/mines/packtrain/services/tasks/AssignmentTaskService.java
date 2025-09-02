@@ -1,12 +1,16 @@
 package edu.mines.packtrain.services.tasks;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ksu.canvas.model.assignment.Assignment;
+import edu.mines.packtrain.data.websockets.CourseSyncNotificationDTO;
 import edu.mines.packtrain.events.NewTaskEvent;
 import edu.mines.packtrain.managers.IdentityProvider;
 import edu.mines.packtrain.managers.ImpersonationManager;
 import edu.mines.packtrain.models.Course;
 import edu.mines.packtrain.models.User;
 import edu.mines.packtrain.models.tasks.AssignmentsSyncTaskDef;
+import edu.mines.packtrain.models.tasks.CourseSyncTaskDef;
 import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
 import edu.mines.packtrain.repositories.ScheduledTaskRepo;
 import edu.mines.packtrain.services.AssignmentService;
@@ -29,17 +33,20 @@ public class AssignmentTaskService {
     private final ImpersonationManager impersonationManager;
     private final CanvasService canvasService;
     private final AssignmentService assignmentService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public AssignmentTaskService(ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo, ApplicationEventPublisher eventPublisher, CourseService courseService, ImpersonationManager impersonationManager, CanvasService canvasService, AssignmentService assignmentService) {
+    public AssignmentTaskService(ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo, ApplicationEventPublisher eventPublisher, CourseService courseService, ImpersonationManager impersonationManager, CanvasService canvasService, AssignmentService assignmentService, SimpMessagingTemplate messagingTemplate) {
         this.taskRepo = taskRepo;
         this.eventPublisher = eventPublisher;
         this.courseService = courseService;
         this.impersonationManager = impersonationManager;
         this.canvasService = canvasService;
         this.assignmentService = assignmentService;
+        this.messagingTemplate = messagingTemplate;
     }
 
-    public ScheduledTaskDef syncAssignmentsFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean addNew, boolean deleteOld, boolean updateExisting, SimpMessagingTemplate messagingTemplate){
+    public ScheduledTaskDef syncAssignmentsFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean addNew, boolean deleteOld, boolean updateExisting){
         AssignmentsSyncTaskDef task = new AssignmentsSyncTaskDef();
         task.setCourseToSync(courseId);
         task.setTaskName(String.format("Sync Course '%s': Course Assignments", courseId));
@@ -49,10 +56,16 @@ public class AssignmentTaskService {
         task.shouldUpdateAssignments(updateExisting);
         task = taskRepo.save(task);
 
+        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder().assignmentsComplete(true).build();
         NewTaskEvent.TaskData<AssignmentsSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncAssignmentTask);
         taskDefinition.setDependsOn(dependencies);
-        taskDefinition.setOnJobComplete(Optional.of(_ ->
-                messagingTemplate.convertAndSend("/courses/import", "assignments complete")));
+        taskDefinition.setOnJobComplete(Optional.of(_ -> {
+            try {
+                messagingTemplate.convertAndSend("/courses/import", objectMapper.writeValueAsString(notificationDTO));
+            } catch (JsonProcessingException _) {
+                throw new RuntimeException("Could not process JSON for sending notification DTO!");
+            }
+        }));
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 
