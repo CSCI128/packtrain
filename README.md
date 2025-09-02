@@ -43,6 +43,8 @@ To run the backend tests, run: `./mvnw test "-Dspring.profiles.active=test"`
 If you run into an issue building on Windows, make sure that your user has permission to create symlinks.
 [StackOverflow thread about this issue](https://stackoverflow.com/a/65504258).
 
+We use [Checkstyle](https://checkstyle.sourceforge.io) with the [Google standard](https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml) to format our code.
+
 ## Frontend
 
 Install [Node.js](https://nodejs.org/en) and navigate to the `packtrain-frontend` directory.
