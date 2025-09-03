@@ -140,7 +140,7 @@ export function AssignmentsPage() {
         onSuccess: () => {
           close();
           refetch();
-          resetTable();
+          // TODO are these values even needed?
           setValue(new Date());
           setUnlockDateValue(new Date());
         },
@@ -155,7 +155,6 @@ export function AssignmentsPage() {
     reverseSortDirection,
     handleSearchChange,
     handleSort,
-    resetTable,
   } = useTableData<Assignment>(
     (data?.assignments as AssignmentRowData[]) ?? []
   );
