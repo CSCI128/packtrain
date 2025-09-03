@@ -83,10 +83,8 @@ export function CreatePage() {
       },
       reconnectDelay: 5000,
       onConnect: () => {
-        console.log("Websocket connection open..");
         client.subscribe("/courses/import", (msg) => {
           const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
-          console.log("received payload:", payload);
           if (payload.course_complete) {
             setCompleted((prev) => ({
               ...prev,
@@ -124,7 +122,6 @@ export function CreatePage() {
       completed.members &&
       completed.sections
     ) {
-      console.log("All tasks are completed!");
       setAllTasksCompleted(true);
     }
   }, [completed]);
@@ -213,7 +210,6 @@ export function CreatePage() {
       },
       {
         onSuccess: () => {
-          console.log("Delete course successful..");
           store$.id.delete();
           store$.name.delete();
         },
