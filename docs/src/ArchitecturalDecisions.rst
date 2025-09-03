@@ -53,6 +53,13 @@ in development mode. If it detects that certs have already been generated, then 
 Architectural Decisions
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
+Websockets
+----------
+We use websockets to return data from asynchronous tasks as notifications in order to update the frontend.
+
+.. image:: images/WebsocketFlow.png
+    :alt: This is an image showing a system diagram of our websocket architecture
+
 Grading Policy Server
 ---------------------
 The **Grading Policy Server** is a TS based server that gets the stored class policies which are coded in JS from S3 buckets (or
