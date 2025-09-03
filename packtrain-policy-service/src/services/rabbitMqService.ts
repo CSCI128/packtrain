@@ -158,7 +158,7 @@ function onRawScoreReceive(
     rawScore.assignmentId = assignmentMetadata.assignmentId;
     rawScore.minScore = assignmentMetadata.minScore;
     rawScore.maxScore = assignmentMetadata.maxScore;
-    rawScore.initialDueDate = assignmentMetadata.initialDueDate;
+    rawScore.initialDueDate = assignmentMetadata.initialDueDate.toString();
 
     try {
         const policyScored = policy(rawScore);

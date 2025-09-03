@@ -36,6 +36,9 @@ jobs:
       - name: Install dependencies
         working-directory: packtrain-policy-service
         run: npm i --include=dev
+      - name: Build
+        working-directory: packtrain-policy-service
+        run: npm run bundle
       - name: Run tests
         working-directory: packtrain-policy-service
         run: npm test
