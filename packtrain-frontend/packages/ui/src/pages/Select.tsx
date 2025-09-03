@@ -85,7 +85,9 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
           {auth.user?.profile.is_admin ? (
             <>
               {data.length === 0 ? (
-                <Text>No enrollments found!</Text>
+                <Center>
+                  <Text>No enrollments found!</Text>
+                </Center>
               ) : (
                 data.map((enrollment: Enrollment) => (
                   <ClassButton key={enrollment.id} {...enrollment} />
@@ -110,7 +112,9 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
           ) : (
             <>
               {data.length === 0 ? (
-                <Text>No enrollments found!</Text>
+                <Center>
+                  <Text>No enrollments found!</Text>
+                </Center>
               ) : (
                 data
                   .filter((enrollment: Enrollment) => enrollment.enabled)
