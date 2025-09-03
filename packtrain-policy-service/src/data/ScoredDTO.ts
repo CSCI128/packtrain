@@ -1,4 +1,4 @@
-import { AppliedExtensionStatus, SubmissionStatus } from "./common";
+import { ExtensionStatus, SubmissionStatus } from "./common";
 
 export default class ScoredDTO {
     cwid!: string;
@@ -9,7 +9,7 @@ export default class ScoredDTO {
     adjustedSubmissionTime!: Date;
     daysLate!: number;
     submissionStatus!: SubmissionStatus;
-    extensionStatus!: AppliedExtensionStatus;
+    extensionStatus!: ExtensionStatus;
     extensionMessage!: string;
     submissionMessage!: string;
 }
