@@ -1,7 +1,8 @@
 export class GlobalAssignmentMetadata {
     assignmentId!: string;
-    maxScore!: number;
-    minScore!: number;
+    canvasMaxScore!: number;
+    canvasMinScore!: number;
+    externalMaxScore!: number;
     initialDueDate!: Date;
 }
 

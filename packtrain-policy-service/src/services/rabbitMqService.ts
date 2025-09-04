@@ -156,8 +156,9 @@ function onRawScoreReceive(
     publishChannel: Channel,
 ) {
     rawScore.assignmentId = assignmentMetadata.assignmentId;
-    rawScore.minScore = assignmentMetadata.minScore;
-    rawScore.maxScore = assignmentMetadata.maxScore;
+    rawScore.canvasMinScore = assignmentMetadata.canvasMinScore;
+    rawScore.canvasMaxScore = assignmentMetadata.canvasMaxScore;
+    rawScore.externalMaxScore = assignmentMetadata.externalMaxScore;
     rawScore.initialDueDate = assignmentMetadata.initialDueDate.toString();
 
     try {

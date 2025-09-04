@@ -16,6 +16,8 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.springframework.transaction.annotation.Transactional;
+
 
 @Slf4j
 public class MigrationFactory{
@@ -49,11 +51,13 @@ public class MigrationFactory{
         }
 
 
+        @Transactional
         public StartProcessScoresAndExtensionsFactory forAssignment(Assignment assignment){
             processScoresAndExtensionsConfig.getGradingStartDTO().setGlobalMetadata(new GradingStartDTO.GlobalAssignmentMetadata(
                     assignment.getId(),
                     assignment.getPoints(),
                     0,
+                    assignment.getExternalAssignmentConfig() == null ? assignment.getPoints() : assignment.getExternalAssignmentConfig().getExternalPoints(),
                     assignment.getDueDate()
             ));
 

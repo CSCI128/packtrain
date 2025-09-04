@@ -24,11 +24,6 @@ Policy Format
 RawScoreDTO
 ^^^^^^^^^^^
 
-.. note::
-    ``maxScore`` will be renamed to ``canvasMaxScore`` to better represent what it is.
-
-    a new field called ``externalMaxScore`` will be added to allow the creation of fewer policies for external services.
-
 The following fields are aviable from the rawscore:
     **cwid** *(string)*
         The ID of the student who is being graded.
@@ -40,13 +35,18 @@ The following fields are aviable from the rawscore:
     **rawScore** *(number)*
         The student's score before any processing has been applied.
 
-    **minScore** *(number)*
+    **canvasMinScore** *(number)*
         The minimum configured score for the assignment.
         Generally, it is zero.
 
-    *deprecated* **maxScore** *(number)* 
+    **canvasMaxScore** *(number)* 
         The maximum score allowed for an assignment.
         This score comes from canvas
+
+    **externalMaxScore** *(number)* 
+        The maximum score allowed for an assignment from the external service.
+        This score comes from what ever external service has been configured.
+        If no external service exists, then the Canvas maxScore will be used.
 
     **initialDueDate** *(string)*
         The inital due date for the assignment. 
