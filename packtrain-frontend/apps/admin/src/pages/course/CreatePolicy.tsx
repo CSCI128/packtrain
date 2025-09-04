@@ -104,8 +104,9 @@ export function CreatePolicy() {
       raw_score: {
         cwid: "10000000",
         rawScore: 10,
-        maxScore: 10,
-        minScore: 0,
+        canvasMaxScore: 10,
+        canvasMinScore: 0,
+        externalMaxScore: 10,
         submissionDate: new Date(),
         initialDueDate: new Date(),
         submissionStatus: "on_time",
@@ -271,18 +272,26 @@ export function CreatePolicy() {
                 />
                 <NumberInput
                   pb={8}
-                  label="Max Score"
+                  label="Canvas Max Score"
                   placeholder="Score"
-                  key={rawScoreForm.key("raw_score.maxScore")}
-                  {...rawScoreForm.getInputProps("raw_score.maxScore")}
+                  key={rawScoreForm.key("raw_score.canvasMaxScore")}
+                  {...rawScoreForm.getInputProps("raw_score.canvasMaxScore")}
                   required
                 />
                 <NumberInput
                   pb={8}
-                  label="Min Score"
+                  label="Canvas Min Score"
                   placeholder="Score"
-                  key={rawScoreForm.key("raw_score.minScore")}
-                  {...rawScoreForm.getInputProps("raw_score.minScore")}
+                  key={rawScoreForm.key("raw_score.canvasMinScore")}
+                  {...rawScoreForm.getInputProps("raw_score.canvasMinScore")}
+                  required
+                />
+                <NumberInput
+                  pb={8}
+                  label="External Max Score"
+                  placeholder="Score"
+                  key={rawScoreForm.key("raw_score.externalMaxScore")}
+                  {...rawScoreForm.getInputProps("raw_score.externalMaxScore")}
                   required
                 />
               </Group>

@@ -728,12 +728,17 @@ declare namespace Components {
              * example:
              * 0
              */
-            minScore?: number; // double
+            canvsasMinScore?: number; // double
             /**
              * example:
              * 10
              */
-            maxScore?: number; // double
+            canvasMaxScore?: number; // double
+            /**
+             * example:
+             * 10
+             */
+            externalServiceMaxScore?: number; // double
             initialDueDate?: string; // date-time
             submissionDate?: string; // date-time
             submissionStatus?: "missing" | "excused" | "late" | "extended" | "on_time";
@@ -2538,6 +2543,7 @@ declare namespace Paths {
     }
 }
 
+
 export interface OperationMethods {
   /**
    * check_health - Checks the health of the server
@@ -4037,6 +4043,7 @@ export interface PathsDictionary {
 }
 
 export type Client = OpenAPIClient<OperationMethods, PathsDictionary>
+
 
 export type Assignment = Components.Schemas.Assignment;
 export type AssignmentSlim = Components.Schemas.AssignmentSlim;
