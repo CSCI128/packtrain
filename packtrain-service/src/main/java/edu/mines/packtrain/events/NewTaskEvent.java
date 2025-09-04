@@ -28,7 +28,7 @@ public class NewTaskEvent extends ApplicationEvent {
         private Optional<Consumer<T>> onJobComplete = Optional.empty();
     }
 
-    final private TaskData<?> data;
+    private final TaskData<?> data;
 
     public NewTaskEvent(Object source, TaskData<?> data) {
         super(source);

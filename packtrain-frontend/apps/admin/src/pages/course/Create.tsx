@@ -16,17 +16,27 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
-import { Course, CourseSyncTask, Task } from "@repo/api/openapi";
+import { Course, CourseSyncTask } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { Client } from "@stomp/stompjs";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import SockJS from "sockjs-client";
+import { userManager } from "../../auth";
 import { useGetCredentials } from "../../hooks";
+
+type CourseSyncNotificationDTO = {
+  error?: string;
+  course_complete?: boolean;
+  sections_complete?: boolean;
+  assignments_complete?: boolean;
+  members_complete?: boolean;
+};
 
 export function CreatePage() {
   const { data: credentialData, error: credentialError } = useGetCredentials();
   const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
-  const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
   const [courseCreated, setCourseCreated] = useState(false);
   const [importStatistics, setImportStatistics] = useState({
@@ -34,15 +44,94 @@ export function CreatePage() {
     assignments: 0,
     sections: 0,
   });
-  const [tasksFailed, setTasksFailed] = useState(false);
+  // const [tasksFailed, setTasksFailed] = useState(false);
   const [courseDeleted, setCourseDeleted] = useState(false);
+  const [completed, setCompleted] = useState({
+    course: false,
+    sections: false,
+    assignments: false,
+    members: false,
+  });
+  const [userData, setUserData] = useState(null);
 
-  const mutation = useMutation({
-    mutationKey: ["newCourse"],
-    mutationFn: ({ body }: { body: Course }) =>
+  // fetch user token
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const u = await userManager.getUser();
+        if (!u) throw new Error("Failed to get user");
+        setUserData(u);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    if (!userData) return;
+
+    const API_URL =
+      window.__ENV__ && window.__ENV__.VITE_API_URL
+        ? window.__ENV__?.VITE_API_URL + "/api/ws"
+        : "https://localhost.dev/api/ws";
+    const socket = new SockJS(API_URL);
+    const client = new Client({
+      webSocketFactory: () => socket,
+      connectHeaders: {
+        Authorization: `Bearer ${userData.access_token}`,
+      },
+      reconnectDelay: 5000,
+      onConnect: () => {
+        client.subscribe("/courses/import", (msg) => {
+          const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
+          if (payload.course_complete) {
+            setCompleted((prev) => ({
+              ...prev,
+              course: true,
+            }));
+          }
+          if (payload.sections_complete) {
+            setCompleted((prev) => ({
+              ...prev,
+              sections: true,
+            }));
+          }
+          if (payload.assignments_complete) {
+            setCompleted((prev) => ({
+              ...prev,
+              assignments: true,
+            }));
+          }
+          if (payload.members_complete) {
+            setCompleted((prev) => ({
+              ...prev,
+              members: true,
+            }));
+          }
+        });
+      },
+    });
+    client.activate();
+  }, [userData]);
+
+  useEffect(() => {
+    if (
+      completed.assignments &&
+      completed.course &&
+      completed.members &&
+      completed.sections
+    ) {
+      setAllTasksCompleted(true);
+    }
+  }, [completed]);
+
+  const importMutation = useMutation({
+    mutationKey: ["importCourse"],
+    mutationFn: ({ body }: { body: CourseSyncTask }) =>
       getApiClient()
         .then((client) =>
-          client.new_course(
+          client.import_course(
             {
               course_id: store$.id.get() as string,
             },
@@ -56,12 +145,12 @@ export function CreatePage() {
         }),
   });
 
-  const importMutation = useMutation({
-    mutationKey: ["importCourse"],
-    mutationFn: ({ body }: { body: CourseSyncTask }) =>
+  const mutation = useMutation({
+    mutationKey: ["newCourse"],
+    mutationFn: ({ body }: { body: Course }) =>
       getApiClient()
         .then((client) =>
-          client.import_course(
+          client.new_course(
             {
               course_id: store$.id.get() as string,
             },
@@ -85,39 +174,16 @@ export function CreatePage() {
   });
 
   const importCourse = (canvasId: string) => {
-    importMutation.mutate(
-      {
-        body: {
-          canvas_id: Number(canvasId),
-          overwrite_name: false,
-          overwrite_code: true,
-          import_users: true,
-          import_assignments: true,
-        },
+    importMutation.mutate({
+      body: {
+        canvas_id: Number(canvasId),
+        overwrite_name: false,
+        overwrite_code: true,
+        import_users: true,
+        import_assignments: true,
       },
-      {
-        onSuccess: (response) => {
-          setOutstandingTasks(response);
-        },
-      }
-    );
+    });
   };
-
-  const { mutateAsync: fetchTask } = useMutation({
-    mutationKey: ["getTask"],
-    mutationFn: ({ task_id }: { task_id: number }) =>
-      getApiClient()
-        .then((client) =>
-          client.get_task({
-            task_id: task_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
 
   const { data, error } = useQuery<Course>({
     queryKey: ["getCourse"],
@@ -137,60 +203,6 @@ export function CreatePage() {
     enabled: courseCreated && allTasksCompleted,
   });
 
-  const pollTaskUntilComplete = useCallback(
-    async (taskId: number, delay = 5000) => {
-      let tries = 0;
-      while (true) {
-        try {
-          if (tries > 20) {
-            throw new Error("Maximum attempts (20) at polling exceeded..");
-          }
-
-          const response = await fetchTask({ task_id: taskId });
-
-          if (response.status === "COMPLETED") {
-            console.log(`Task ${taskId} is completed!`);
-            return response;
-          } else if (response.status === "FAILED") {
-            console.log(`Task ${taskId} failed`);
-            setTasksFailed(true);
-            throw new Error("ERR");
-          } else {
-            console.log(
-              `Task ${taskId} is still in progress, retrying in ${delay}ms...`
-            );
-            tries++;
-            await new Promise((res) => setTimeout(res, delay));
-          }
-        } catch (error) {
-          console.error(`Error fetching task ${taskId}:`, error);
-          return;
-        }
-      }
-    },
-    [fetchTask]
-  );
-
-  useEffect(() => {
-    if (outstandingTasks.length === 0) return;
-
-    const pollTasks = async () => {
-      Promise.all(
-        outstandingTasks.map((task) => pollTaskUntilComplete(task.id))
-      )
-        .then(() => {
-          console.log("All tasks are completed!");
-          setAllTasksCompleted(true);
-          setOutstandingTasks([]);
-        })
-        .catch((error) => {
-          console.error("Some tasks failed:", error);
-        });
-    };
-
-    pollTasks();
-  }, [outstandingTasks, pollTaskUntilComplete]);
-
   const deleteCourse = (course_id: string) => {
     deleteCourseMutation.mutate(
       {
@@ -198,7 +210,6 @@ export function CreatePage() {
       },
       {
         onSuccess: () => {
-          console.log("Delete course successful..");
           store$.id.delete();
           store$.name.delete();
         },
@@ -215,14 +226,15 @@ export function CreatePage() {
       });
     }
 
-    if (tasksFailed && store$.id.get() && !courseDeleted) {
-      console.log(
-        `Tasks failed, deleting course by ID: ${store$.id.get() as string}`
-      );
-      deleteCourse(store$.id.get() as string);
-      setCourseDeleted(true);
-    }
-  }, [allTasksCompleted, data, tasksFailed, courseDeleted]);
+    // if (tasksFailed && store$.id.get() && !courseDeleted) {
+    //   console.log(
+    //     `Tasks failed, deleting course by ID: ${store$.id.get() as string}`
+    //   );
+    //   deleteCourse(store$.id.get() as string);
+    //   setCourseDeleted(true);
+    // }
+    // }, [allTasksCompleted, data, tasksFailed, courseDeleted]);
+  }, [allTasksCompleted, data]);
 
   const createCourse = (values: typeof form.values) => {
     mutation.mutate(
@@ -266,7 +278,7 @@ export function CreatePage() {
     },
     validate: {
       canvasId: (value) =>
-        Number.isInteger(value) && value.trim().length == 5
+        Number.isInteger(Number(value)) && value.trim().length === 5
           ? null
           : "Canvas ID must be 5 characters and numeric",
       courseName: (value) =>
@@ -431,7 +443,8 @@ export function CreatePage() {
                   </>
                 ) : (
                   <>
-                    {!tasksFailed ? (
+                    {/* TODO TASKS FAILED instead of true */}
+                    {true ? (
                       <>
                         <Text>Import complete!</Text>
                         <Text>
@@ -457,7 +470,8 @@ export function CreatePage() {
                 )}
 
                 <Group justify="flex-end" mt="md">
-                  {!tasksFailed ? (
+                  {/* TODO TASKS FAILED instead of true */}
+                  {!true ? (
                     <Button
                       disabled={!allTasksCompleted}
                       color={allTasksCompleted ? "blue" : "gray"}

@@ -28,6 +28,8 @@ server:
       enabled: false
 
 grading-admin:
+  websocket:
+    allowed-origins: https://localhost.dev,https://packtrain.mines.edu
   # needs to be 16, 32, or 64 bytes long - this should also be randomly generated.
   secret-key: ${SECRET_KEY:password91023451}
   time-zone: "America/Denver"

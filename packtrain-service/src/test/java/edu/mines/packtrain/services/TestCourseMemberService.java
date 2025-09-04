@@ -21,6 +21,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.net.URI;
 import java.util.Set;
@@ -60,6 +61,8 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
     @Autowired
     private UserSeeders userSeeders;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @BeforeAll
     static void setupClass(){
@@ -78,7 +81,7 @@ public class TestCourseMemberService implements PostgresTestContainer, CanvasSee
                 courseMemberRepo, scheduledTaskRepo,
                 userService, sectionService, courseService,
                 canvasService, Mockito.mock(ApplicationEventPublisher.class),
-                impersonationManager
+                impersonationManager, messagingTemplate
         );
 
         applyMocks(canvasService);

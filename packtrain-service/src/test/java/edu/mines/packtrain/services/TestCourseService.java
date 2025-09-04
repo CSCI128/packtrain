@@ -17,6 +17,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
@@ -72,6 +73,9 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
     @Autowired
     private CourseMemberRepo courseMemberRepo;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
     @BeforeAll
     static void setupClass() {
         postgres.start();
@@ -84,7 +88,7 @@ public class TestCourseService implements PostgresTestContainer, CanvasSeeder, M
                 courseRepo, lateRequestConfigRepo, gradescopeConfigRepo, scheduledTaskRepo,
                 Mockito.mock(ApplicationEventPublisher.class),
                 impersonationManager, canvasService,
-                s3Service, userService, masterMigrationRepo, migrationRepo, courseMemberRepo
+                s3Service, userService, masterMigrationRepo, migrationRepo, courseMemberRepo, messagingTemplate
         );
 
         applyMocks(canvasService);
