@@ -13,8 +13,9 @@ public class GradingStartDTO {
     @Data
     public static class GlobalAssignmentMetadata {
         private UUID assignmentId;
-        private double maxScore;
-        private double minScore;
+        private double canvasMaxScore;
+        private double canvasMinScore;
+        private double externalMaxScore;
         private Instant initialDueDate;
     }
 
