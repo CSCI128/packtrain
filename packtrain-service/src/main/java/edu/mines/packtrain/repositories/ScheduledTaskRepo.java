@@ -1,17 +1,16 @@
 package edu.mines.packtrain.repositories;
 
+import edu.mines.packtrain.models.User;
 import edu.mines.packtrain.models.tasks.ScheduleStatus;
 import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
-import edu.mines.packtrain.models.User;
 import jakarta.transaction.Transactional;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ScheduledTaskRepo<T extends ScheduledTaskDef> extends CrudRepository<T, Long> {

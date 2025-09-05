@@ -12,15 +12,14 @@ import edu.mines.packtrain.repositories.ScheduledTaskRepo;
 import edu.mines.packtrain.services.AssignmentService;
 import edu.mines.packtrain.services.CourseService;
 import edu.mines.packtrain.services.external.CanvasService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -32,7 +31,11 @@ public class AssignmentTaskService {
     private final CanvasService canvasService;
     private final AssignmentService assignmentService;
 
-    public AssignmentTaskService(ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo, ApplicationEventPublisher eventPublisher, CourseService courseService, ImpersonationManager impersonationManager, CanvasService canvasService, AssignmentService assignmentService) {
+    public AssignmentTaskService(ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo,
+                                 ApplicationEventPublisher eventPublisher,
+                                 CourseService courseService,
+                                 ImpersonationManager impersonationManager,
+                                 CanvasService canvasService, AssignmentService assignmentService) {
         this.taskRepo = taskRepo;
         this.eventPublisher = eventPublisher;
         this.courseService = courseService;
@@ -41,7 +44,9 @@ public class AssignmentTaskService {
         this.assignmentService = assignmentService;
     }
 
-    public ScheduledTaskDef syncAssignmentsFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean addNew, boolean deleteOld, boolean updateExisting){
+    public ScheduledTaskDef syncAssignmentsFromCanvas(User actingUser, Set<Long> dependencies,
+                                                      UUID courseId, boolean addNew,
+                                                      boolean deleteOld, boolean updateExisting) {
         AssignmentsSyncTaskDef task = new AssignmentsSyncTaskDef();
         task.setCourseToSync(courseId);
         task.setTaskName(String.format("Sync Course '%s': Course Assignments", courseId));
@@ -51,7 +56,8 @@ public class AssignmentTaskService {
         task.shouldUpdateAssignments(updateExisting);
         task = taskRepo.save(task);
 
-        NewTaskEvent.TaskData<AssignmentsSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncAssignmentTask);
+        NewTaskEvent.TaskData<AssignmentsSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(
+                taskRepo, task.getId(), this::syncAssignmentTask);
         taskDefinition.setDependsOn(dependencies);
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
@@ -59,47 +65,62 @@ public class AssignmentTaskService {
         return task;
     }
 
-    public void syncAssignmentTask(AssignmentsSyncTaskDef task){
-        if(!task.shouldUpdateAssignments() && !task.shouldDeleteAssignments() && !task.shouldAddNewAssignments()){
+    public void syncAssignmentTask(AssignmentsSyncTaskDef task) {
+        if (!task.shouldUpdateAssignments() && !task.shouldDeleteAssignments()
+                && !task.shouldAddNewAssignments()) {
             log.warn("No assignment sync action should be taken. Skipping task.");
             return;
         }
 
         Course course = courseService.getCourse(task.getCourseToSync());
 
-        IdentityProvider impersonatedUser = impersonationManager.impersonateUser(task.getCreatedByUser());
+        IdentityProvider impersonatedUser = impersonationManager.impersonateUser(task
+                .getCreatedByUser());
 
-        Map<Long, String> assignmentGroups = canvasService.asUser(impersonatedUser).getAssignmentGroups(course.getCanvasId());
-        List<Assignment> assignments = canvasService.asUser(impersonatedUser).getCourseAssignments(course.getCanvasId());
+        Map<Long, String> assignmentGroups = canvasService.asUser(impersonatedUser)
+                .getAssignmentGroups(course.getCanvasId());
 
-        Set<Long> incomingAssignments = assignments.stream().map(Assignment::getId).collect(Collectors.toSet());
+        List<Assignment> assignments = canvasService.asUser(impersonatedUser)
+                .getCourseAssignments(course.getCanvasId());
+
+        Set<Long> incomingAssignments = assignments.stream().map(Assignment::getId)
+                .collect(Collectors.toSet());
 
         Set<Long> existingAssignments = assignmentService.getAssignmentCanvasIdsByCourse(course);
 
-        Set<Long> assignmentsToCreate = incomingAssignments.stream().filter(id -> !existingAssignments.contains(id)).collect(Collectors.toSet());
-        Set<Long> assignmentsToRemove = existingAssignments.stream().filter(id -> !incomingAssignments.contains(id)).collect(Collectors.toSet());
-        Set<Long> assignmentsToUpdate = incomingAssignments.stream().filter(id -> !assignmentsToCreate.contains(id)).collect(Collectors.toSet());
+        Set<Long> assignmentsToCreate = incomingAssignments.stream()
+                .filter(id -> !existingAssignments.contains(id)).collect(Collectors.toSet());
+        Set<Long> assignmentsToRemove = existingAssignments.stream()
+                .filter(id -> !incomingAssignments.contains(id)).collect(Collectors.toSet());
+        Set<Long> assignmentsToUpdate = incomingAssignments.stream()
+                .filter(id -> !assignmentsToCreate.contains(id)).collect(Collectors.toSet());
 
-        if (task.shouldAddNewAssignments()){
+        if (task.shouldAddNewAssignments()) {
             assignmentService.createNewAssignmentsFromCanvas(
                     assignmentGroups,
-                    assignments.stream().filter(a -> assignmentsToCreate.contains(a.getId())).toList(),
+                    assignments
+                            .stream()
+                            .filter(a -> assignmentsToCreate.contains(a.getId()))
+                            .toList(),
                     course
             );
         }
 
-        if (task.shouldDeleteAssignments()){
-            if (!assignmentsToRemove.isEmpty()){
+        if (task.shouldDeleteAssignments()) {
+            if (!assignmentsToRemove.isEmpty()) {
                 assignmentService.deleteAssignments(assignmentsToRemove, course);
             }
         }
 
-        if (task.shouldUpdateAssignments()){
+        if (task.shouldUpdateAssignments()) {
             if (!assignmentsToUpdate.isEmpty()) {
                 assignmentService.updateAssignmentsFromCanvas(
                         assignmentGroups,
                         assignmentsToUpdate,
-                        assignments.stream().filter(a -> assignmentsToUpdate.contains(a.getId())).toList(),
+                        assignments
+                                .stream()
+                                .filter(a -> assignmentsToUpdate.contains(a.getId()))
+                                .toList(),
                         course
                 );
             }

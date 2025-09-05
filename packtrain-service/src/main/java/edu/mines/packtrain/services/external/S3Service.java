@@ -2,12 +2,15 @@ package edu.mines.packtrain.services.external;
 
 import edu.mines.packtrain.config.ExternalServiceConfig;
 import edu.mines.packtrain.models.User;
-import io.minio.*;
-import io.minio.errors.*;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
+import io.minio.BucketExistsArgs;
+import io.minio.MakeBucketArgs;
+import io.minio.MinioClient;
+import io.minio.ObjectWriteResponse;
+import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
+import io.minio.SetBucketPolicyArgs;
+import io.minio.StatObjectArgs;
+import io.minio.errors.MinioException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -18,6 +21,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Slf4j
@@ -29,7 +35,7 @@ public class S3Service {
     public S3Service(ExternalServiceConfig.S3Config config) throws MalformedURLException {
         this.config = config;
 
-        if (!config.isEnabled()){
+        if (!config.isEnabled()) {
             return;
         }
         s3Client = MinioClient.builder()
@@ -39,8 +45,8 @@ public class S3Service {
     }
 
 
-    private boolean bucketExists(String bucket){
-        if (!config.isEnabled()){
+    private boolean bucketExists(String bucket) {
+        if (!config.isEnabled()) {
             throw new ExternalServiceDisabledException("S3 Service is disabled!");
         }
         BucketExistsArgs args = BucketExistsArgs.builder()
@@ -56,8 +62,8 @@ public class S3Service {
 
     }
 
-    private boolean objectExists(String bucket, String objectName){
-        if (!config.isEnabled()){
+    private boolean objectExists(String bucket, String objectName) {
+        if (!config.isEnabled()) {
             throw new ExternalServiceDisabledException("S3 Service is disabled!");
         }
         StatObjectArgs args = StatObjectArgs.builder()
@@ -71,16 +77,16 @@ public class S3Service {
             // and this throws an exception if it cant find the object
             s3Client.statObject(args);
             return true;
-        } catch (MinioException | InvalidKeyException | IOException | NoSuchAlgorithmException e){
+        } catch (MinioException | InvalidKeyException | IOException | NoSuchAlgorithmException e) {
             return false;
         }
     }
 
-    public Optional<String> createNewBucketForCourse(UUID courseId){
-        if (!config.isEnabled()){
+    public Optional<String> createNewBucketForCourse(UUID courseId) {
+        if (!config.isEnabled()) {
             throw new ExternalServiceDisabledException("S3 Service is disabled!");
         }
-        if (bucketExists(courseId.toString())){
+        if (bucketExists(courseId.toString())) {
             return Optional.of(courseId.toString());
         }
 
@@ -109,11 +115,11 @@ public class S3Service {
                 .config(policy)
                 .build();
 
-        try{
+        try {
             s3Client.makeBucket(args);
             s3Client.setBucketPolicy(policyArgs);
 
-        }catch (MinioException | InvalidKeyException | IOException | NoSuchAlgorithmException e){
+        } catch (MinioException | InvalidKeyException | IOException | NoSuchAlgorithmException e) {
             log.error("Failed to create new bucket for course '{}'", courseId);
             log.error("Failed due to: ", e);
             return Optional.empty();
@@ -122,19 +128,21 @@ public class S3Service {
         return Optional.of(courseId.toString());
     }
 
-    public Optional<String> uploadNewPolicy(User creatingUser, UUID courseId, String filename, MultipartFile policyDocument){
-        if (!config.isEnabled()){
+    public Optional<String> uploadNewPolicy(User creatingUser, UUID courseId, String filename,
+                                            MultipartFile policyDocument) {
+        if (!config.isEnabled()) {
             throw new ExternalServiceDisabledException("S3 Service is disabled!");
         }
-        if (!bucketExists(courseId.toString())){
+        if (!bucketExists(courseId.toString())) {
             log.warn("Bucket for course '{}' does not exist!", courseId);
-            if (createNewBucketForCourse(courseId).isEmpty()){
-                log.error("Failed to create bucket for course '{}'! Failed to upload policy!", courseId);
+            if (createNewBucketForCourse(courseId).isEmpty()) {
+                log.error("Failed to create bucket for course '{}'! Failed to upload policy!",
+                        courseId);
                 return Optional.empty();
             }
         }
 
-        if (objectExists(courseId.toString(), filename)){
+        if (objectExists(courseId.toString(), filename)) {
             log.warn("Refusing to upload policy '{}'! Policy already exists!", filename);
             return Optional.empty();
         }
@@ -169,11 +177,10 @@ public class S3Service {
                             .add(courseId.toString())
                             .add(res.object()).toString());
 
-        } catch (IOException e){
+        } catch (IOException e) {
             log.error("Failed to get policy document content", e);
             return Optional.empty();
-        }
-        catch (MinioException | InvalidKeyException | NoSuchAlgorithmException e){
+        } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException e) {
             log.error("Failed to upload policy '{}' for course '{}'", filename, courseId);
             log.error("Failed due to: ", e);
             return Optional.empty();
@@ -181,16 +188,16 @@ public class S3Service {
 
     }
 
-    public boolean deletePolicy(UUID courseId, String filename){
-        if (!config.isEnabled()){
+    public boolean deletePolicy(UUID courseId, String filename) {
+        if (!config.isEnabled()) {
             throw new ExternalServiceDisabledException("S3 Service is disabled!");
         }
-        if (!bucketExists(courseId.toString())){
+        if (!bucketExists(courseId.toString())) {
             log.error("Failed to delete policy! Bucket for course '{}' does not exist!", courseId);
             return false;
         }
 
-        if (!objectExists(courseId.toString(), filename)){
+        if (!objectExists(courseId.toString(), filename)) {
             return true;
         }
 

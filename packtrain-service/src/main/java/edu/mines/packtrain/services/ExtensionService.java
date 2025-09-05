@@ -27,7 +27,10 @@ public class ExtensionService {
     private final CourseService courseService;
     private final UserService userService;
 
-    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo, AssignmentService assignmentService, CourseMemberService courseMemberService, CourseService courseService, UserService userService) {
+    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo,
+                            AssignmentService assignmentService,
+                            CourseMemberService courseMemberService,
+                            CourseService courseService, UserService userService) {
         this.extensionRepo = extensionRepo;
         this.lateRequestRepo = lateRequestRepo;
         this.assignmentService = assignmentService;
@@ -44,20 +47,25 @@ public class ExtensionService {
         if (lateRequestStatus == null) {
             return lateRequestRepo.getAllLateRequests(courseId);
         } else if (lateRequestStatus.equalsIgnoreCase("approved")) {
-            return lateRequestRepo.getAllLateRequests(courseId).stream().filter(c -> c.getStatus() == LateRequestStatus.APPROVED).toList();
+            return lateRequestRepo.getAllLateRequests(courseId).stream()
+                    .filter(c -> c.getStatus() == LateRequestStatus.APPROVED).toList();
         } else if (lateRequestStatus.equalsIgnoreCase("denied")) {
-            return lateRequestRepo.getAllLateRequests(courseId).stream().filter(c -> c.getStatus() == LateRequestStatus.REJECTED || c.getStatus() == LateRequestStatus.IGNORED).toList();
+            return lateRequestRepo.getAllLateRequests(courseId).stream()
+                    .filter(c -> c.getStatus() == LateRequestStatus.REJECTED || c.getStatus() == LateRequestStatus.IGNORED).toList();
         } else if (lateRequestStatus.equalsIgnoreCase("pending")) {
-            return lateRequestRepo.getAllLateRequests(courseId).stream().filter(c -> c.getStatus() == LateRequestStatus.PENDING).toList();
+            return lateRequestRepo.getAllLateRequests(courseId).stream()
+                    .filter(c -> c.getStatus() == LateRequestStatus.PENDING).toList();
         }
         return List.of();
     }
 
-    public LateRequest approveExtension(UUID assignmentId, String userId, UUID extensionId, String reason) {
+    public LateRequest approveExtension(UUID assignmentId, String userId, UUID extensionId,
+                                        String reason) {
         Optional<LateRequest> lateRequest = getLateRequest(extensionId);
 
         if (lateRequest.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request '%s' for user '%s' does not exist", extensionId, userId));
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request " +
+                    "'%s' for user '%s' does not exist", extensionId, userId));
         }
 
         lateRequest.get().getExtension().setReviewer(userService.getUserByCwid(userId));
@@ -70,11 +78,13 @@ public class ExtensionService {
         return lateRequestRepo.save(lateRequest.get());
     }
 
-    public LateRequest denyExtension(UUID assignmentId, String userId, UUID extensionId, String reason) {
+    public LateRequest denyExtension(UUID assignmentId, String userId, UUID extensionId,
+                                     String reason) {
         Optional<LateRequest> lateRequest = getLateRequest(extensionId);
 
         if (lateRequest.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request '%s' for user '%s' does not exist", extensionId, userId));
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request " +
+                    "'%s' for user '%s' does not exist", extensionId, userId));
         }
 
         lateRequest.get().getExtension().setReviewer(userService.getUserByCwid(userId));
@@ -97,7 +107,8 @@ public class ExtensionService {
 
         Course course = courseService.getCourse(courseId);
 
-        Optional<Section> userSection = courseMemberService.getSectionsForUserAndCourse(user, course).stream().findFirst();
+        Optional<Section> userSection = courseMemberService
+                .getSectionsForUserAndCourse(user, course).stream().findFirst();
 
         CourseMember instructor = courseMemberService.getStudentInstructor(course, userSection);
 
@@ -130,7 +141,8 @@ public class ExtensionService {
 
         Course course = courseService.getCourse(courseId);
 
-        Optional<Section> userSection = courseMemberService.getSectionsForUserAndCourse(actingUser, course).stream().findFirst();
+        Optional<Section> userSection = courseMemberService
+                .getSectionsForUserAndCourse(actingUser, course).stream().findFirst();
 
         CourseMember instructor = courseMemberService.getStudentInstructor(course, userSection);
 
@@ -159,16 +171,21 @@ public class ExtensionService {
 
     public void deleteLateRequest(Course course, User actingUser, UUID lateRequestId) {
         LateRequest lateRequest = getLateRequest(lateRequestId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request '%s' was not found!", lateRequestId)));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("Late request '%s' was not found!", lateRequestId)));
 
-        if(lateRequest.getLateRequestType() == LateRequestType.LATE_PASS) {
-            courseMemberService.refundLatePasses(course, actingUser, lateRequest.getDaysRequested());
+        if (lateRequest.getLateRequestType() == LateRequestType.LATE_PASS) {
+            courseMemberService.refundLatePasses(course, actingUser,
+                    lateRequest.getDaysRequested());
         }
 
         lateRequestRepo.delete(lateRequest);
     }
 
     public Map<String, LateRequest> getLateRequestsForAssignment(UUID assignment) {
-        return lateRequestRepo.getLateRequestsForAssignment(assignment).stream().collect(Collectors.toUnmodifiableMap(l -> l.getRequestingUser().getCwid(), l -> l));
+        return lateRequestRepo.getLateRequestsForAssignment(assignment)
+                .stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        l -> l.getRequestingUser().getCwid(), l -> l));
     }
 }

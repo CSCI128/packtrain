@@ -45,6 +45,10 @@ If you run into an issue building on Windows, make sure that your user has permi
 
 We use [Checkstyle](https://checkstyle.sourceforge.io) with the [Google standard](https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml) to format our code.
 
+Install the Checkstyle for IntelliJ IDEA plugin and then go to `Settings` > `Tools` > `Checkstyle` and add a new configuration file, pointing to the `checkstyle.xml` in the root of the `packtrain-service` directory.
+
+We recommend installing the free version of SonarQube for more intelligent and advanced language suggestions.
+
 ## Frontend
 
 Install [Node.js](https://nodejs.org/en) and navigate to the `packtrain-frontend` directory.

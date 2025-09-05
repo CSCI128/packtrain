@@ -1,18 +1,5 @@
 package edu.mines.packtrain.services.external;
 
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.interfaces.AssignmentGroupReader;
 import edu.ksu.canvas.interfaces.AssignmentReader;
@@ -41,7 +28,17 @@ import edu.mines.packtrain.managers.IdentityProvider;
 import edu.mines.packtrain.managers.SecurityManager;
 import edu.mines.packtrain.models.enums.CourseRole;
 import edu.mines.packtrain.models.enums.CredentialType;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -57,20 +54,24 @@ public class CanvasService {
 
         protected BuiltAssignmentSubmissions(String courseId, long assignmentId) {
             map = new HashMap<>();
-            multipleSubmissionsOptions = new MultipleSubmissionsOptions(courseId, assignmentId, null);
+            multipleSubmissionsOptions = new MultipleSubmissionsOptions(courseId, assignmentId,
+                    null);
         }
 
-        public BuiltAssignmentSubmissions addSubmission(String canvasId, String comment, double score, boolean excuseStudent){
-            if (map.containsKey(canvasId)){
+        public BuiltAssignmentSubmissions addSubmission(String canvasId, String comment,
+                                                        double score, boolean excuseStudent) {
+            if (map.containsKey(canvasId)) {
                 log.warn("overwriting score for student '{}'", canvasId);
             }
 
-            map.put(canvasId, multipleSubmissionsOptions.createStudentSubmissionOption(comment, String.valueOf(score), excuseStudent, null, null, null));
+            map.put(canvasId, multipleSubmissionsOptions.createStudentSubmissionOption(comment,
+                    String.valueOf(score), excuseStudent, null,
+                    null, null));
 
             return this;
         }
 
-        protected MultipleSubmissionsOptions build(){
+        protected MultipleSubmissionsOptions build() {
             multipleSubmissionsOptions.setStudentSubmissionOptionMap(map);
             return multipleSubmissionsOptions;
         }
@@ -81,16 +82,19 @@ public class CanvasService {
         private final CanvasApiFactory canvasApiFactory;
         private final IdentityProvider identityProvider;
 
-        protected CanvasServiceWithAuth(boolean writeDisabled, CanvasApiFactory canvasApiFactory, IdentityProvider identityProvider) {
+        protected CanvasServiceWithAuth(boolean writeDisabled, CanvasApiFactory canvasApiFactory,
+                                        IdentityProvider identityProvider) {
             this.writeDisabled = writeDisabled;
             this.canvasApiFactory = canvasApiFactory;
             this.identityProvider = identityProvider;
         }
 
-        public List<Course> getAllAvailableCourses(){
-            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+        public List<Course> getAllAvailableCourses() {
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(
+                    CredentialType.CANVAS, UUID.randomUUID()));
 
-            log.info("Retrieving available courses for user '{}'.", identityProvider.getUser().getEmail());
+            log.info("Retrieving available courses for user '{}'.",
+                    identityProvider.getUser().getEmail());
 
             CourseReader reader = canvasApiFactory.getReader(CourseReader.class, canvasToken);
 
@@ -105,13 +109,15 @@ public class CanvasService {
                 log.error("Failed to get courses from Canvas");
             }
 
-            log.info("Retrieved {} courses for user '{}'.", courses.size(), identityProvider.getUser().getEmail());
+            log.info("Retrieved {} courses for user '{}'.", courses.size(),
+                    identityProvider.getUser().getEmail());
 
             return courses;
         }
 
-        public Optional<Course> getCourse(String id){
-            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+        public Optional<Course> getCourse(String id) {
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(
+                    CredentialType.CANVAS, UUID.randomUUID()));
 
             CourseReader reader = canvasApiFactory.getReader(CourseReader.class, canvasToken);
 
@@ -129,11 +135,12 @@ public class CanvasService {
         }
 
         @Cacheable("canvas_users")
-        public Map<String, User> getCourseMembers(long id){
-            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+        public Map<String, User> getCourseMembers(long id) {
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(
+                    CredentialType.CANVAS, UUID.randomUUID()));
 
-            log.info("Retrieving users for course '{}'. Note: this may take a while depending on enrollment size of course.", id);
-
+            log.info("Retrieving users for course '{}'. Note: this may take a while depending on" +
+                    " enrollment size of course.", id);
 
             UserReader reader = canvasApiFactory.getReader(UserReader.class, canvasToken);
 
@@ -141,14 +148,16 @@ public class CanvasService {
 
             GetUsersInCourseOptions params = new GetUsersInCourseOptions(String.valueOf(id))
                     .enrollmentState(List.of(GetUsersInCourseOptions.EnrollmentState.ACTIVE))
-                    .enrollmentType(List.of(GetUsersInCourseOptions.EnrollmentType.TEACHER, GetUsersInCourseOptions.EnrollmentType.STUDENT))
+                    .enrollmentType(List.of(GetUsersInCourseOptions.EnrollmentType.TEACHER,
+                            GetUsersInCourseOptions.EnrollmentType.STUDENT))
                     .include(List.of(GetUsersInCourseOptions.Include.ENROLLMENTS));
 
             try {
                 // omg i love you KSU.
                 // automatic handling of result pages <3
-                users = reader.getUsersInCourse(params).stream().collect(Collectors.toMap(User::getSisUserId, user -> user));
-            } catch (IOException e){
+                users = reader.getUsersInCourse(params).stream().collect(Collectors
+                        .toMap(User::getSisUserId, user -> user));
+            } catch (IOException e) {
                 log.error("Failed to get users from in course from Canvas.");
             }
 
@@ -157,8 +166,9 @@ public class CanvasService {
             return users;
         }
 
-        public List<Section> getCourseSections(long id){
-            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+        public List<Section> getCourseSections(long id) {
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(
+                    CredentialType.CANVAS, UUID.randomUUID()));
             log.info("Retrieving sections for course '{}'.", id);
 
             SectionReader reader = canvasApiFactory.getReader(SectionReader.class, canvasToken);
@@ -167,7 +177,7 @@ public class CanvasService {
 
             try {
                 sections = reader.listCourseSections(String.valueOf(id), List.of());
-            } catch (IOException e){
+            } catch (IOException e) {
                 log.error("Failed to get sections for course from Canvas", e);
             }
 
@@ -176,19 +186,23 @@ public class CanvasService {
             return sections;
         }
 
-        public Map<Long, String> getAssignmentGroups(long id){
-            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+        public Map<Long, String> getAssignmentGroups(long id) {
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(
+                    CredentialType.CANVAS, UUID.randomUUID()));
             log.info("Retrieving Assignments Groups for course '{}'.", id);
 
-            AssignmentGroupReader reader = canvasApiFactory.getReader(AssignmentGroupReader.class, canvasToken);
+            AssignmentGroupReader reader = canvasApiFactory.getReader(AssignmentGroupReader.class,
+                    canvasToken);
 
 
             Map<Long, String> assignmentGroups = Map.of();
 
             try {
-                assignmentGroups = reader.listAssignmentGroup(new ListAssignmentGroupOptions(String.valueOf(id))).stream().collect(Collectors.toMap(AssignmentGroup::getId, AssignmentGroup::getName));
+                assignmentGroups = reader.listAssignmentGroup(new ListAssignmentGroupOptions(
+                        String.valueOf(id))).stream().collect(Collectors
+                        .toMap(AssignmentGroup::getId, AssignmentGroup::getName));
 
-            } catch (IOException e){
+            } catch (IOException e) {
                 log.error("Failed to get assignment groups for course from Canvas", e);
             }
 
@@ -197,17 +211,21 @@ public class CanvasService {
             return assignmentGroups;
         }
 
-        public List<Assignment> getCourseAssignments(long id){
-            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
-            log.info("Retrieving Assignments for course '{}'. This will take a while depending on the number of assignments in the course.", id);
+        public List<Assignment> getCourseAssignments(long id) {
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(
+                    CredentialType.CANVAS, UUID.randomUUID()));
+            log.info("Retrieving Assignments for course '{}'. This will take a while depending" +
+                    " on the number of assignments in the course.", id);
 
-            AssignmentReader reader = canvasApiFactory.getReader(AssignmentReader.class, canvasToken);
+            AssignmentReader reader = canvasApiFactory.getReader(AssignmentReader.class,
+                    canvasToken);
 
             List<Assignment> assignments = List.of();
 
             try {
                 // group category id is set iff it's a group assignment
-                assignments = reader.listCourseAssignments(new ListCourseAssignmentsOptions(String.valueOf(id)));
+                assignments = reader.listCourseAssignments(new ListCourseAssignmentsOptions(
+                        String.valueOf(id)));
             } catch (IOException e) {
                 log.error("Failed to get assignments for course from Canvas", e);
             }
@@ -218,43 +236,49 @@ public class CanvasService {
         }
 
 
-        public Optional<Progress> publishCanvasScores(BuiltAssignmentSubmissions submissions){
-            if (writeDisabled){
+        public Optional<Progress> publishCanvasScores(BuiltAssignmentSubmissions submissions) {
+            if (writeDisabled) {
                 log.warn("Canvas write has been disabled. No action will be taken!");
 
                 return Optional.of(new Progress());
             }
 
-            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(
+                    CredentialType.CANVAS, UUID.randomUUID()));
 
             MultipleSubmissionsOptions builtSubmissions = submissions.build();
 
-            log.info("Preparing to publish {} submissions to Canvas", builtSubmissions.getStudentSubmissionOptionMap().size());
+            log.info("Preparing to publish {} submissions to Canvas",
+                    builtSubmissions.getStudentSubmissionOptionMap().size());
 
-            SubmissionWriter writer = canvasApiFactory.getWriter(SubmissionWriter.class, canvasToken);
+            SubmissionWriter writer = canvasApiFactory.getWriter(SubmissionWriter.class,
+                    canvasToken);
 
             Optional<Progress> progress = Optional.empty();
 
             try {
                 progress = writer.gradeMultipleSubmissionsByCourse(builtSubmissions);
 
-            } catch (IOException e){
+            } catch (IOException e) {
                 log.error("Failed to publish scores!", e);
             }
 
-            if (progress.isEmpty()){
-                log.error("Failed to publish scores! Canvas async task service failed to register incoming gradebook changes!");
+            if (progress.isEmpty()) {
+                log.error("Failed to publish scores! Canvas async task service failed to " +
+                        "register incoming gradebook changes!");
                 return Optional.empty();
             }
 
-            log.info("Gradebook changes acknowledged by Canvas async task service. See '{}' for real time updates.", progress.get().getUrl());
+            log.info("Gradebook changes acknowledged by Canvas async task service. " +
+                    "See '{}' for real time updates.", progress.get().getUrl());
 
 
             return progress;
         }
 
-        public boolean isAsyncTaskDone(long asyncTaskId){
-            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(CredentialType.CANVAS, UUID.randomUUID()));
+        public boolean isAsyncTaskDone(long asyncTaskId) {
+            OauthToken canvasToken = new NonRefreshableOauthToken(identityProvider.getCredential(
+                    CredentialType.CANVAS, UUID.randomUUID()));
 
             ProgressReader reader = canvasApiFactory.getReader(ProgressReader.class, canvasToken);
 
@@ -266,7 +290,7 @@ public class CanvasService {
                 log.error("Failed to get progress status!", e);
             }
 
-            if(progress.isEmpty()){
+            if (progress.isEmpty()) {
                 log.error("No progress object was returned! Marking as complete.");
                 return true;
             }
@@ -278,52 +302,53 @@ public class CanvasService {
 
     }
 
-    public CanvasService(@Autowired(required = false) SecurityManager manager, ExternalServiceConfig.CanvasConfig config) {
+    public CanvasService(@Autowired(required = false) SecurityManager manager,
+                         ExternalServiceConfig.CanvasConfig config) {
         this.manager = manager;
         this.config = config;
 
-        if (!config.isEnabled()){
+        if (!config.isEnabled()) {
             return;
         }
 
         canvasApiFactory = new CanvasApiFactory(this.config.getEndpoint().toString());
     }
 
-    public CanvasServiceWithAuth withRequestIdentity(){
-        if (!config.isEnabled()){
+    public CanvasServiceWithAuth withRequestIdentity() {
+        if (!config.isEnabled()) {
             throw new ExternalServiceDisabledException("Canvas service is disabled!");
         }
 
-        if (manager == null){
+        if (manager == null) {
             throw new RuntimeException("No request in scope");
         }
         return new CanvasServiceWithAuth(config.isWriteDisabled(), canvasApiFactory, manager);
     }
 
-    public CanvasServiceWithAuth asUser(IdentityProvider identityProvider){
-        if (!config.isEnabled()){
+    public CanvasServiceWithAuth asUser(IdentityProvider identityProvider) {
+        if (!config.isEnabled()) {
             throw new ExternalServiceDisabledException("Canvas service is disabled!");
         }
-        return new CanvasServiceWithAuth(config.isWriteDisabled(), canvasApiFactory, identityProvider);
+        return new CanvasServiceWithAuth(config.isWriteDisabled(), canvasApiFactory,
+                identityProvider);
     }
 
-    public BuiltAssignmentSubmissions prepCanvasSubmissionsForPublish(String canvasCourseId, long canvasAssignmentId){
+    public BuiltAssignmentSubmissions prepCanvasSubmissionsForPublish(String canvasCourseId,
+                                                                      long canvasAssignmentId) {
         return new BuiltAssignmentSubmissions(canvasCourseId, canvasAssignmentId);
     }
 
-    public Optional<CourseRole> mapEnrollmentToRole(Enrollment enrollment){
+    public Optional<CourseRole> mapEnrollmentToRole(Enrollment enrollment) {
         // for some reason, java pattern matching does not like non-constant strings
         // while I could hard code the enrollment names, Canvas has already changed it a few times in the past few years
         // so, I don't want to.
         // Also, Mines is allowed to override these names if they want to
 
-        if (enrollment.getType().equals(config.getTeacherEnrollment())){
+        if (enrollment.getType().equals(config.getTeacherEnrollment())) {
             return Optional.of(CourseRole.INSTRUCTOR);
-        }
-        else if (enrollment.getType().equals(config.getStudentEnrollment())) {
+        } else if (enrollment.getType().equals(config.getStudentEnrollment())) {
             return Optional.of(CourseRole.STUDENT);
-        }
-        else if (enrollment.getType().equals(config.getTaEnrollment())){
+        } else if (enrollment.getType().equals(config.getTaEnrollment())) {
             return Optional.of(CourseRole.TA);
         }
 
