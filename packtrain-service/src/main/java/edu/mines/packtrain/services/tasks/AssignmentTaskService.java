@@ -136,11 +136,11 @@ public class AssignmentTaskService {
                     course);
         }
 
-        if (task.shouldDeleteAssignments()) {
+        if (task.shouldDeleteAssignments() && !assignmentsToUpdate.isEmpty()) {
             assignmentService.deleteAssignments(assignmentsToRemove, course);
         }
 
-        if (task.shouldUpdateAssignments()) {
+        if (task.shouldUpdateAssignments() && !assignmentsToUpdate.isEmpty()) {
             assignmentService.updateAssignmentsFromCanvas(
                     assignmentGroups,
                     assignmentsToUpdate,
