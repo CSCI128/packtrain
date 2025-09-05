@@ -1,23 +1,34 @@
 package edu.mines.packtrain.controllers;
 
 import edu.mines.packtrain.api.StudentApiDelegate;
-import edu.mines.packtrain.data.*;
+import edu.mines.packtrain.data.AssignmentSlimDTO;
+import edu.mines.packtrain.data.CourseDTO;
+import edu.mines.packtrain.data.LateRequestDTO;
+import edu.mines.packtrain.data.StudentInformationDTO;
 import edu.mines.packtrain.factories.DTOFactory;
 import edu.mines.packtrain.managers.SecurityManager;
-import edu.mines.packtrain.models.*;
+import edu.mines.packtrain.models.Assignment;
+import edu.mines.packtrain.models.Course;
+import edu.mines.packtrain.models.CourseMember;
+import edu.mines.packtrain.models.LateRequest;
+import edu.mines.packtrain.models.Section;
+import edu.mines.packtrain.models.User;
 import edu.mines.packtrain.models.enums.CourseRole;
 import edu.mines.packtrain.models.enums.LateRequestType;
-import edu.mines.packtrain.services.*;
+import edu.mines.packtrain.services.AssignmentService;
+import edu.mines.packtrain.services.CourseMemberService;
+import edu.mines.packtrain.services.CourseService;
+import edu.mines.packtrain.services.ExtensionService;
 import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
 
 @Transactional
 @Controller
@@ -29,7 +40,9 @@ public class StudentApiImpl implements StudentApiDelegate {
     private final AssignmentService assignmentService;
     private final SecurityManager securityManager;
 
-    public StudentApiImpl(CourseService courseService, ExtensionService extensionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager) {
+    public StudentApiImpl(CourseService courseService, ExtensionService extensionService,
+                          CourseMemberService courseMemberService,
+                          AssignmentService assignmentService, SecurityManager securityManager) {
         this.courseService = courseService;
         this.extensionService = extensionService;
         this.courseMemberService = courseMemberService;
@@ -41,22 +54,26 @@ public class StudentApiImpl implements StudentApiDelegate {
     public ResponseEntity<StudentInformationDTO> getCourseInformationStudent(UUID courseId) {
         Course course = courseService.getCourse(courseId);
 
-        Optional<CourseMember> courseMember = courseMemberService.findCourseMemberGivenCourseAndCwid(course, securityManager.getUser().getCwid());
+        Optional<CourseMember> courseMember = courseMemberService
+                .findCourseMemberGivenCourseAndCwid(course, securityManager.getUser().getCwid());
 
-        if(courseMember.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student is not enrolled in course!");
+        if (courseMember.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Student is not enrolled in course!");
         }
 
-        Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(securityManager.getUser(), course);
-        CourseRole courseRole = courseMemberService.getRoleForUserAndCourse(securityManager.getUser(), course.getId());
+        Set<Section> sections = courseMemberService
+                .getSectionsForUserAndCourse(securityManager.getUser(), course);
+        CourseRole courseRole = courseMemberService
+                .getRoleForUserAndCourse(securityManager.getUser(), course.getId());
 
         CourseDTO courseDTO = DTOFactory.toDto(course)
-            .assignments(course.getAssignments().stream()
-                    .filter(Assignment::isEnabled)
-                    .map(DTOFactory::toDto)
-                    .toList())
-            .sections(sections.stream().map(Section::getName).toList())
-            .lateRequestConfig(DTOFactory.toDto(course.getLateRequestConfig()));
+                .assignments(course.getAssignments().stream()
+                        .filter(Assignment::isEnabled)
+                        .map(DTOFactory::toDto)
+                        .toList())
+                .sections(sections.stream().map(Section::getName).toList())
+                .lateRequestConfig(DTOFactory.toDto(course.getLateRequestConfig()));
 
         StudentInformationDTO studentInformationDTO = new StudentInformationDTO()
                 .course(courseDTO)
@@ -64,7 +81,7 @@ public class StudentApiImpl implements StudentApiDelegate {
                 .courseRole(StudentInformationDTO.CourseRoleEnum.fromValue(courseRole.getRole()));
 
         Optional<Section> section = sections.stream().findFirst();
-        if(section.isPresent()) {
+        if (section.isPresent()) {
             CourseMember instructor = courseMemberService.getStudentInstructor(course, section);
 
             studentInformationDTO.setProfessor(instructor.getUser().getName());
@@ -84,28 +101,30 @@ public class StudentApiImpl implements StudentApiDelegate {
     public ResponseEntity<List<LateRequestDTO>> getAllExtensions(UUID courseId) {
         User user = securityManager.getUser();
 
-        List<LateRequest> lateRequests = extensionService.getAllLateRequestsForStudent(courseId, user);
+        List<LateRequest> lateRequests = extensionService.getAllLateRequestsForStudent(courseId,
+                user);
 
         return ResponseEntity.ok(lateRequests.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
-    public ResponseEntity<LateRequestDTO> createExtensionRequest(UUID courseId, LateRequestDTO lateRequestDTO) {
+    public ResponseEntity<LateRequestDTO> createExtensionRequest(UUID courseId,
+                                                                 LateRequestDTO lateRequestDTO) {
         User user = securityManager.getUser();
 
         Course course = courseService.getCourse(courseId);
 
         LateRequest lateRequest = extensionService.createLateRequest(
-            courseId,
-            user,
-            lateRequestDTO.getRequestType(),
-            lateRequestDTO.getNumDaysRequested(),
-            lateRequestDTO.getDateSubmitted(),
-            lateRequestDTO.getAssignmentId(),
-            lateRequestDTO.getExtension()
+                courseId,
+                user,
+                lateRequestDTO.getRequestType(),
+                lateRequestDTO.getNumDaysRequested(),
+                lateRequestDTO.getDateSubmitted(),
+                lateRequestDTO.getAssignmentId(),
+                lateRequestDTO.getExtension()
         );
 
-        if(lateRequest.getLateRequestType() == LateRequestType.LATE_PASS) {
+        if (lateRequest.getLateRequestType() == LateRequestType.LATE_PASS) {
             courseMemberService.useLatePasses(course, user, lateRequestDTO.getNumDaysRequested());
         }
 

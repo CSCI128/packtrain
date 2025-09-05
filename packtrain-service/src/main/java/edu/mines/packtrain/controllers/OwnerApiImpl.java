@@ -1,18 +1,5 @@
 package edu.mines.packtrain.controllers;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
-
 import edu.mines.packtrain.api.OwnerApiDelegate;
 import edu.mines.packtrain.data.AssignmentDTO;
 import edu.mines.packtrain.data.CourseDTO;
@@ -37,6 +24,17 @@ import edu.mines.packtrain.services.CourseService;
 import edu.mines.packtrain.services.PolicyService;
 import edu.mines.packtrain.services.SectionService;
 import edu.mines.packtrain.services.tasks.AssignmentTaskService;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 public class OwnerApiImpl implements OwnerApiDelegate {
@@ -49,7 +47,11 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     private final AssignmentService assignmentService;
     private final AssignmentTaskService assignmentTaskService;
 
-    public OwnerApiImpl(CourseService courseService, SectionService sectionService, CourseMemberService courseMemberService, AssignmentService assignmentService, SecurityManager securityManager, PolicyService policyService, AssignmentTaskService assignmentTaskService) {
+    public OwnerApiImpl(CourseService courseService, SectionService sectionService,
+                        CourseMemberService courseMemberService,
+                        AssignmentService assignmentService,
+                        SecurityManager securityManager,
+                        PolicyService policyService, AssignmentTaskService assignmentTaskService) {
         this.courseService = courseService;
         this.sectionService = sectionService;
         this.courseMemberService = courseMemberService;
@@ -76,7 +78,8 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<TaskDTO>> syncCourse(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+    public ResponseEntity<List<TaskDTO>> syncCourse(UUID courseId,
+                                                    CourseSyncTaskDTO courseSyncTaskDTO) {
         List<TaskDTO> tasks = new LinkedList<>();
 
         ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
@@ -92,13 +95,18 @@ public class OwnerApiImpl implements OwnerApiDelegate {
         tasks.add(DTOFactory.toDto(sectionTask));
 
         if (courseSyncTaskDTO.getImportUsers()) {
-            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()), courseId, true, true, true);
+            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(
+                    securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()),
+                    courseId, true, true, true);
 
             tasks.add(DTOFactory.toDto(importUsersTask));
         }
 
         if (courseSyncTaskDTO.getImportAssignments()) {
-            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseId, true, true, true);
+            ScheduledTaskDef importAssignmentsTask = assignmentTaskService
+                    .syncAssignmentsFromCanvas(securityManager.getUser(),
+                            Set.of(courseTask.getId()), courseId,
+                            true, true, true);
 
             tasks.add(DTOFactory.toDto(importAssignmentsTask));
         }
@@ -107,7 +115,8 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<TaskDTO>> importCourse(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+    public ResponseEntity<List<TaskDTO>> importCourse(UUID courseId,
+                                                      CourseSyncTaskDTO courseSyncTaskDTO) {
         List<TaskDTO> tasks = new LinkedList<>();
 
         ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
@@ -123,13 +132,18 @@ public class OwnerApiImpl implements OwnerApiDelegate {
         tasks.add(DTOFactory.toDto(sectionTask));
 
         if (courseSyncTaskDTO.getImportUsers()) {
-            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()), courseId, true, true, true);
+            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(
+                    securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()),
+                    courseId, true, true, true);
 
             tasks.add(DTOFactory.toDto(importUsersTask));
         }
 
         if (courseSyncTaskDTO.getImportAssignments()) {
-            ScheduledTaskDef importAssignmentsTask = assignmentTaskService.syncAssignmentsFromCanvas(securityManager.getUser(), Set.of(courseTask.getId()), courseId, true, true, true);
+            ScheduledTaskDef importAssignmentsTask = assignmentTaskService
+                    .syncAssignmentsFromCanvas(securityManager.getUser(),
+                            Set.of(courseTask.getId()), courseId,
+                            true, true, true);
 
             tasks.add(DTOFactory.toDto(importAssignmentsTask));
         }
@@ -155,26 +169,32 @@ public class OwnerApiImpl implements OwnerApiDelegate {
         CourseDTO courseDto = DTOFactory.toDto(course);
 
         if (include.contains("members")) {
-            courseDto.setMembers(courseMemberService.getAllMembersGivenCourse(course).stream().map(DTOFactory::toDto).toList());
+            courseDto.setMembers(courseMemberService.getAllMembersGivenCourse(course)
+                    .stream().map(DTOFactory::toDto).toList());
         }
 
         if (include.contains("assignments")) {
-            courseDto.setAssignments(assignmentService.getAllAssignmentsGivenCourse(course).stream().map(DTOFactory::toDto).toList());
+            courseDto.setAssignments(assignmentService.getAllAssignmentsGivenCourse(course)
+                    .stream().map(DTOFactory::toDto).toList());
         }
 
         if (include.contains("sections")) {
-            courseDto.setSections(sectionService.getSectionsForCourse(course.getId()).stream().map(Section::getName).toList());
+            courseDto.setSections(sectionService.getSectionsForCourse(course.getId())
+                    .stream().map(Section::getName).toList());
         }
 
         return ResponseEntity.ok(courseDto);
     }
 
     @Override
-    public ResponseEntity<List<CourseMemberDTO>> getMembers(UUID courseId, List<String> enrollments, String name, String cwid) {
+    public ResponseEntity<List<CourseMemberDTO>> getMembers(UUID courseId,
+                                                            List<String> enrollments,
+                                                            String name, String cwid) {
         Course course = courseService.getCourse(courseId);
 
         if (name != null && cwid != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must define one of 'name' or 'cwid'");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must define one of " +
+                    "'name' or 'cwid'");
         }
 
         List<CourseRole> roles = new ArrayList<>();
@@ -194,7 +214,8 @@ public class OwnerApiImpl implements OwnerApiDelegate {
                 roles.add(CourseRole.STUDENT);
             }
         }
-        List<CourseMember> members = courseMemberService.searchCourseMembers(course, roles, name, cwid);
+        List<CourseMember> members = courseMemberService.searchCourseMembers(course, roles,
+                name, cwid);
         members.forEach(m -> m.setSections(sectionService.getSectionByMember(m)));
 
         return ResponseEntity.ok(members
@@ -202,8 +223,10 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<PolicyDTO> newPolicy(UUID courseId, String name, String filePath, MultipartFile fileData, String description) {
-        Policy policy = policyService.createNewPolicy(securityManager.getUser(), courseId, name, description, filePath, fileData);
+    public ResponseEntity<PolicyDTO> newPolicy(UUID courseId, String name, String filePath,
+                                               MultipartFile fileData, String description) {
+        Policy policy = policyService.createNewPolicy(securityManager.getUser(), courseId,
+                name, description, filePath, fileData);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(policy));
     }
@@ -239,12 +262,13 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<PolicyDryRunResultsDTO> dryRunPolicy(UUID courseId, MultipartFile fileData,
-            PolicyRawScoreDTO rawScore) {
+    public ResponseEntity<PolicyDryRunResultsDTO> dryRunPolicy(UUID courseId,
+                                                               MultipartFile fileData,
+                                                               PolicyRawScoreDTO rawScore) {
 
         Optional<PolicyDryRunResultsDTO> res = policyService.dryRunPolicy(fileData, rawScore);
 
-        if (res.isEmpty()){
+        if (res.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 

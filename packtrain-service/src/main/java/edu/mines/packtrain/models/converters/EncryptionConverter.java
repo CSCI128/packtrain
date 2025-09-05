@@ -2,19 +2,18 @@ package edu.mines.packtrain.models.converters;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -24,8 +23,7 @@ public class EncryptionConverter implements AttributeConverter<String, String> {
     private final Cipher cipher;
 
     public EncryptionConverter(@Value("${grading-admin.secret-key}") String secretKey)
-            throws NoSuchPaddingException, NoSuchAlgorithmException
-    {
+            throws NoSuchPaddingException, NoSuchAlgorithmException {
         key = new SecretKeySpec(secretKey.getBytes(), "AES");
         cipher = Cipher.getInstance("AES");
     }

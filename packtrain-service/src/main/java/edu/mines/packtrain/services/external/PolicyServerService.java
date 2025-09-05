@@ -6,9 +6,9 @@ import edu.mines.packtrain.data.PolicyDryRunResultsDTO;
 import edu.mines.packtrain.data.PolicyRawScoreDTO;
 import edu.mines.packtrain.data.policyServer.GradingStartDTO;
 import edu.mines.packtrain.data.policyServer.ValidateDTO;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -16,14 +16,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -33,7 +29,8 @@ public class PolicyServerService {
 
     private RestClient client;
 
-    public PolicyServerService(ExternalServiceConfig.PolicyServerConfig config, ObjectMapper objectMapper) {
+    public PolicyServerService(ExternalServiceConfig.PolicyServerConfig config,
+                               ObjectMapper objectMapper) {
         this.config = config;
         this.objectMapper = objectMapper;
 
@@ -61,7 +58,8 @@ public class PolicyServerService {
             log.warn("Failed to start grading - policy server '{}' is not ready!", config.getUri());
         }
 
-        ResponseEntity<String> res = client.post().uri("/grading/start").body(gradingStartDTO).retrieve()
+        ResponseEntity<String> res = client.post().uri("/grading/start").body(gradingStartDTO)
+                .retrieve()
                 .toEntity(String.class);
 
         if (res.getStatusCode() != HttpStatus.CREATED) {
@@ -79,7 +77,8 @@ public class PolicyServerService {
         }
 
         if (!serverReady()) {
-            log.warn("Failed to validate policy - policy server '{}' is not ready!", config.getUri());
+            log.warn("Failed to validate policy - policy server '{}' is not ready!",
+                    config.getUri());
         }
 
         log.debug("Validating policy '{}'", policyURI);
@@ -94,29 +93,33 @@ public class PolicyServerService {
 
         client.post().uri("/validate").body(dto).retrieve()
                 .onStatus(HttpStatusCode::isError,
-                        (_, response) -> container.res = new String(response.getBody().readAllBytes()))
+                        (_, response) -> container.res =
+                                    new String(response.getBody().readAllBytes()))
                 .toBodilessEntity();
 
         return Optional.ofNullable(container.res);
     }
 
     @SneakyThrows
-    public Optional<PolicyDryRunResultsDTO> dryRunPolicy(MultipartFile javascriptFile, PolicyRawScoreDTO dto) {
+    public Optional<PolicyDryRunResultsDTO> dryRunPolicy(MultipartFile javascriptFile,
+                                                         PolicyRawScoreDTO dto) {
         if (!config.isEnabled()) {
             throw new ExternalServiceDisabledException("Policy Server Service");
         }
 
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
-        bodyBuilder.part("raw_score", objectMapper.writeValueAsString(dto), MediaType.APPLICATION_JSON);
-        bodyBuilder.part("file", javascriptFile.getResource()).filename(javascriptFile.getOriginalFilename());
+        bodyBuilder.part("raw_score", objectMapper.writeValueAsString(dto),
+                MediaType.APPLICATION_JSON);
+        bodyBuilder.part("file", javascriptFile.getResource())
+                .filename(javascriptFile.getOriginalFilename());
 
         MultiValueMap<String, HttpEntity<?>> parts = bodyBuilder.build();
 
         try {
             ResponseEntity<PolicyDryRunResultsDTO> res = client.post().uri("/dry-run")
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(parts).retrieve()
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(parts).retrieve()
                     .toEntity(PolicyDryRunResultsDTO.class);
             return Optional.ofNullable(res.getBody());
         } catch (HttpClientErrorException error) {

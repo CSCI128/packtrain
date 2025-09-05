@@ -12,14 +12,13 @@ import edu.mines.packtrain.services.CourseMemberService;
 import edu.mines.packtrain.services.CourseService;
 import edu.mines.packtrain.services.UserService;
 import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Transactional
 @Controller
@@ -30,7 +29,8 @@ public class AdminApiImpl implements AdminApiDelegate {
     private final UserService userService;
     private final CourseMemberService courseMemberService;
 
-    public AdminApiImpl(CourseService courseService, SecurityManager securityManager, UserService userService, CourseMemberService courseMemberService) {
+    public AdminApiImpl(CourseService courseService, SecurityManager securityManager,
+                        UserService userService, CourseMemberService courseMemberService) {
         this.courseService = courseService;
         this.securityManager = securityManager;
         this.userService = userService;
@@ -77,7 +77,8 @@ public class AdminApiImpl implements AdminApiDelegate {
         );
 
         if (user.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User '%s' already exists!", userDTO.getCwid()));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("User '%s' already exists!", userDTO.getCwid()));
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -85,16 +86,22 @@ public class AdminApiImpl implements AdminApiDelegate {
 
     @Override
     public ResponseEntity<UserDTO> adminUpdateUser(UserDTO userDTO) {
-        boolean adminRes = userDTO.getAdmin() ? userService.makeAdmin(securityManager.getUser(), userDTO.getCwid()) : userService.demoteAdmin(securityManager.getUser(), userDTO.getCwid());
+        boolean adminRes = userDTO.getAdmin() ?
+                userService.makeAdmin(securityManager.getUser(), userDTO.getCwid())
+                : userService.demoteAdmin(securityManager.getUser(), userDTO.getCwid());
 
-        if (!adminRes){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update admin for user!");
+        if (!adminRes) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Failed to update admin for user!");
         }
 
-        boolean disabledRes = userDTO.getEnabled() ? userService.enableUser(securityManager.getUser(), userDTO.getCwid()) : userService.disableUser(securityManager.getUser(), userDTO.getCwid());
+        boolean disabledRes = userDTO.getEnabled() ?
+                userService.enableUser(securityManager.getUser(), userDTO.getCwid())
+                : userService.disableUser(securityManager.getUser(), userDTO.getCwid());
 
-        if (!disabledRes){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update enabled for user!");
+        if (!disabledRes) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Failed to update enabled for user!");
         }
 
         User user = userService.updateUser(userDTO);
@@ -106,8 +113,9 @@ public class AdminApiImpl implements AdminApiDelegate {
     public ResponseEntity<Void> enableUser(String cwid) {
         boolean res = userService.enableUser(securityManager.getUser(), cwid);
 
-        if (!res){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update enabled for user!");
+        if (!res) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Failed to update enabled for user!");
         }
 
         return ResponseEntity.noContent().build();
@@ -118,8 +126,9 @@ public class AdminApiImpl implements AdminApiDelegate {
     public ResponseEntity<Void> disableUser(String cwid) {
         boolean res = userService.disableUser(securityManager.getUser(), cwid);
 
-        if (!res){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update enabled for user!");
+        if (!res) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Failed to update enabled for user!");
         }
 
         return ResponseEntity.noContent().build();

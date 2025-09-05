@@ -1,22 +1,26 @@
 package edu.mines.packtrain.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import java.util.Set;
+import java.util.UUID;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.Set;
-import java.util.UUID;
-
 @Data
-@Entity(name="user")
-@Table(name="users", indexes = {@Index(columnList = "oauth_id"), @Index(columnList = "cwid")})
-public class User{
+@Entity(name = "user")
+@Table(name = "users", indexes = {@Index(columnList = "oauth_id"), @Index(columnList = "cwid")})
+public class User {
     @Id
-    @Column(name="cwid", unique = true, nullable = false)
+    @Column(name = "cwid", unique = true, nullable = false)
     private String cwid;
 
-    @Column(name="oauth_id", nullable = true)
+    @Column(name = "oauth_id", nullable = true)
     private UUID oAuthId;
 
     @Column(name = "admin", nullable = false)
@@ -25,10 +29,10 @@ public class User{
     @Column(name = "enabled", nullable = false)
     private boolean enabled = false;
 
-    @Column(name="name")
+    @Column(name = "name")
     private String name;
 
-    @Column(name="email", unique = true, nullable = false)
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
     @OneToMany(mappedBy = "owningUser")

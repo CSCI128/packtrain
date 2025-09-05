@@ -2,19 +2,6 @@ package edu.mines.packtrain.controllers;
 
 import static java.util.stream.Collectors.toList;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import org.aspectj.lang.annotation.RequiredTypes;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.server.ResponseStatusException;
-
 import edu.mines.packtrain.api.InstructorApiDelegate;
 import edu.mines.packtrain.data.AssignmentDTO;
 import edu.mines.packtrain.data.CourseDTO;
@@ -46,11 +33,22 @@ import edu.mines.packtrain.services.PolicyService;
 import edu.mines.packtrain.services.RawScoreService;
 import edu.mines.packtrain.services.SectionService;
 import jakarta.transaction.Transactional;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 @RequiredArgsConstructor
 public class InstructorApiImpl implements InstructorApiDelegate {
+
     private final CourseService courseService;
     private final SectionService sectionService;
     private final ExtensionService extensionService;
@@ -62,22 +60,26 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     private final AssignmentService assignmentService;
 
     @Override
-    public ResponseEntity<List<MigrationWithScoresDTO>> getMasterMigrationToReview(UUID courseId, UUID masterMigrationId) {
+    public ResponseEntity<List<MigrationWithScoresDTO>> getMasterMigrationToReview(UUID courseId,
+                                                                       UUID masterMigrationId) {
         return ResponseEntity.ok(migrationService.getMasterMigrationToReview(masterMigrationId));
     }
 
     @Override
-    public ResponseEntity<List<TaskDTO>> applyMasterMigration(UUID courseId, UUID masterMigrationId) {
-        List<ScheduledTaskDef> tasks = migrationService.startProcessScoresAndExtensions(securityManager.getUser(), masterMigrationId);
+    public ResponseEntity<List<TaskDTO>> applyMasterMigration(UUID courseId,
+                                                              UUID masterMigrationId) {
+        List<ScheduledTaskDef> tasks = migrationService.startProcessScoresAndExtensions(
+                securityManager.getUser(), masterMigrationId);
 
         return ResponseEntity.accepted().body(tasks.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
-    public ResponseEntity<Void> applyValidateMasterMigration(UUID courseId, UUID masterMigrationId) {
+    public ResponseEntity<Void> applyValidateMasterMigration(UUID courseId,
+                                                             UUID masterMigrationId) {
         boolean b = migrationService.validateApplyMasterMigration(masterMigrationId);
 
-        if (!b){
+        if (!b) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -86,7 +88,8 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<MasterMigrationDTO> createMasterMigration(UUID courseId) {
-        MasterMigration masterMigration = migrationService.createMasterMigration(courseId, securityManager.getUser());
+        MasterMigration masterMigration = migrationService.createMasterMigration(courseId,
+                securityManager.getUser());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(masterMigration));
 
@@ -95,39 +98,49 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     @Override
     public ResponseEntity<Void> deleteMasterMigration(UUID courseId, UUID masterMigrationId) {
         if (!migrationService.deleteMasterMigration(courseId, masterMigrationId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to delete master migration!");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to delete " +
+                    "master migration!");
         }
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @Override
-    public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(UUID courseId, UUID masterMigrationId, UUID assignmentId) {
-        MasterMigration masterMigration = migrationService.addMigration(masterMigrationId, assignmentId);
+    public ResponseEntity<MasterMigrationDTO> createMigrationForMasterMigration(
+            UUID courseId, UUID masterMigrationId, UUID assignmentId) {
+        MasterMigration masterMigration = migrationService.addMigration(masterMigrationId,
+                assignmentId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(masterMigration));
     }
 
     @Override
-    public ResponseEntity<List<LateRequestDTO>> getAllExtensionsForCourse(UUID courseId, String status) {
+    public ResponseEntity<List<LateRequestDTO>> getAllExtensionsForCourse(UUID courseId,
+                                                                          String status) {
         List<LateRequest> lateRequests = extensionService.getAllLateRequests(courseId, status);
 
         return ResponseEntity.ok(lateRequests.stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
-    public ResponseEntity<List<ErrorResponseDTO>> getAllApprovedExtensionsForAssignment(UUID courseId, UUID assignmentId, UUID extensionId, String status) {
-        return InstructorApiDelegate.super.getAllApprovedExtensionsForAssignment(courseId, assignmentId, extensionId, status);
+    public ResponseEntity<List<ErrorResponseDTO>> getAllApprovedExtensionsForAssignment(
+            UUID courseId, UUID assignmentId, UUID extensionId, String status) {
+        return InstructorApiDelegate.super.getAllApprovedExtensionsForAssignment(courseId,
+                assignmentId, extensionId, status);
     }
 
     @Override
-    public ResponseEntity<List<ErrorResponseDTO>> getAllApprovedExtensionsForMember(UUID courseId, String cwid, UUID extensionId, String status) {
-        return InstructorApiDelegate.super.getAllApprovedExtensionsForMember(courseId, cwid, extensionId, status);
+    public ResponseEntity<List<ErrorResponseDTO>> getAllApprovedExtensionsForMember(
+            UUID courseId, String cwid, UUID extensionId, String status) {
+        return InstructorApiDelegate.super.getAllApprovedExtensionsForMember(courseId, cwid,
+                extensionId, status);
     }
 
     @Override
-    public ResponseEntity<List<ErrorResponseDTO>> getAllExtensionsForSection(UUID courseId, String sectionId, UUID extensionId, String status) {
-        return InstructorApiDelegate.super.getAllExtensionsForSection(courseId, sectionId, extensionId, status);
+    public ResponseEntity<List<ErrorResponseDTO>> getAllExtensionsForSection(
+            UUID courseId, String sectionId, UUID extensionId, String status) {
+        return InstructorApiDelegate.super.getAllExtensionsForSection(courseId, sectionId,
+                extensionId, status);
     }
 
     @Override
@@ -138,7 +151,8 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
-    public ResponseEntity<MasterMigrationDTO> getMasterMigration(UUID courseId, UUID masterMigrationId) {
+    public ResponseEntity<MasterMigrationDTO> getMasterMigration(UUID courseId,
+                                                                 UUID masterMigrationId) {
         MasterMigration masterMigration = migrationService.getMasterMigration(masterMigrationId);
 
         return ResponseEntity.ok(DTOFactory.toDto(masterMigration));
@@ -146,10 +160,11 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<Void> loadMasterMigration(UUID courseId, UUID masterMigrationId) {
-        boolean res =  migrationService.finalizeLoadMasterMigration(masterMigrationId);
+        boolean res = migrationService.finalizeLoadMasterMigration(masterMigrationId);
 
-        if(!res) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to finalize load phase for migration!");
+        if (!res) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to finalize load " +
+                    "phase for migration!");
         }
 
         return ResponseEntity.accepted().build();
@@ -160,15 +175,19 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         boolean res = migrationService.validateLoadMasterMigration(masterMigrationId);
 
         if (!res) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to validate load phase for migration!");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to validate load " +
+                    "phase for migration!");
         }
 
         return ResponseEntity.ok().build();
     }
 
     @Override
-    public ResponseEntity<List<TaskDTO>> postMasterMigration(UUID courseId, UUID masterMigrationId) {
-        return ResponseEntity.accepted().body(migrationService.processMigrationLog(securityManager.getUser(), masterMigrationId).stream().map(DTOFactory::toDto).toList());
+    public ResponseEntity<List<TaskDTO>> postMasterMigration(UUID courseId,
+                                                             UUID masterMigrationId) {
+        return ResponseEntity.accepted().body(migrationService.processMigrationLog(
+                securityManager.getUser(), masterMigrationId).stream().map(DTOFactory::toDto)
+                .toList());
     }
 
     @Override
@@ -176,14 +195,16 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         boolean res = migrationService.finalizeReviewMasterMigration(masterMigrationId);
 
         if (!res) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to finalize review phase for migration!");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to finalize " +
+                    "review phase for migration!");
         }
 
         return ResponseEntity.ok().build();
     }
 
     @Override
-    public ResponseEntity<MasterMigrationDTO> setPolicy(UUID courseId, UUID masterMigrationId, UUID migrationId, UUID policyId) {
+    public ResponseEntity<MasterMigrationDTO> setPolicy(UUID courseId, UUID masterMigrationId,
+                                                        UUID migrationId, UUID policyId) {
         Migration newMigration = migrationService.setPolicyForMigration(migrationId, policyId);
 
         MasterMigration masterMigration = migrationService.getMasterMigration(masterMigrationId);
@@ -192,25 +213,33 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
-    public ResponseEntity<Void> updateStudentScore(UUID courseId, UUID masterMigrationId, UUID migrationId, MigrationScoreChangeDTO migrationScoreChangeDTO) {
-        boolean res = migrationService.updateStudentScore(securityManager.getUser(), migrationId, migrationScoreChangeDTO);
+    public ResponseEntity<Void> updateStudentScore(UUID courseId, UUID masterMigrationId,
+                                               UUID migrationId,
+                                               MigrationScoreChangeDTO migrationScoreChangeDTO) {
+        boolean res = migrationService.updateStudentScore(securityManager.getUser(),
+                migrationId, migrationScoreChangeDTO);
 
-        if (!res){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update score for student!");
+        if (!res) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update score " +
+                    "for student!");
         }
 
         return ResponseEntity.accepted().build();
     }
 
     @Override
-    public ResponseEntity<MasterMigrationDTO> uploadRawScores(UUID courseId, UUID masterMigrationId, UUID migrationId, Resource body) {
+    public ResponseEntity<MasterMigrationDTO> uploadRawScores(UUID courseId,
+                                                              UUID masterMigrationId,
+                                                              UUID migrationId, Resource body) {
         try {
-            switch (migrationService.getAssignmentForMigration(migrationId).getExternalAssignmentConfig().getType()){
-                case GRADESCOPE -> {
+            switch (migrationService.getAssignmentForMigration(migrationId)
+                    .getExternalAssignmentConfig().getType()) {
+                case GRADESCOPE ->
                         rawScoreService.uploadGradescopeCSV(body.getInputStream(), migrationId);
-                }
-                case PRAIRIELEARN -> rawScoreService.uploadPrairieLearnCSV(body.getInputStream(), migrationId);
-                case RUNESTONE -> rawScoreService.uploadRunestoneCSV(body.getInputStream(), migrationId);
+                case PRAIRIELEARN ->
+                        rawScoreService.uploadPrairieLearnCSV(body.getInputStream(), migrationId);
+                case RUNESTONE ->
+                        rawScoreService.uploadRunestoneCSV(body.getInputStream(), migrationId);
                 default -> throw new IllegalStateException("Request to import non supported csv");
             }
         } catch (IOException e) {
@@ -228,22 +257,27 @@ public class InstructorApiImpl implements InstructorApiDelegate {
         Course course = courseService.getCourse(courseId);
 
 
-        Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(securityManager.getUser(), course);
+        Set<Section> sections = courseMemberService.getSectionsForUserAndCourse(
+                securityManager.getUser(), course);
 
         CourseDTO courseDTO = DTOFactory.toDto(course)
                 .assignments(course.getAssignments().stream().map(DTOFactory::toDto).toList())
-                .members(sections.stream().map(Section::getMembers).flatMap(Set::stream).map(DTOFactory::toDto).collect(toList()))
+                .members(sections.stream().map(Section::getMembers).flatMap(Set::stream)
+                        .map(DTOFactory::toDto).collect(toList()))
                 .sections(sections.stream().map(Section::getName).toList());
 
         return ResponseEntity.ok(courseDTO);
     }
 
     @Override
-    public ResponseEntity<List<CourseMemberDTO>> getMembersInstructor(UUID courseId, List<String> enrollments, String name, String cwid) {
+    public ResponseEntity<List<CourseMemberDTO>> getMembersInstructor(UUID courseId,
+                                                                      List<String> enrollments,
+                                                                      String name, String cwid) {
         Course course = courseService.getCourse(courseId);
 
         if (name != null && cwid != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must define one of 'name' or 'cwid'");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must define one of " +
+                    "'name' or 'cwid'");
         }
 
         List<CourseRole> roles = new ArrayList<>();
@@ -263,7 +297,8 @@ public class InstructorApiImpl implements InstructorApiDelegate {
                 roles.add(CourseRole.STUDENT);
             }
         }
-        List<CourseMember> members = courseMemberService.searchCourseMembers(course, roles, name, cwid);
+        List<CourseMember> members = courseMemberService.searchCourseMembers(course, roles,
+                name, cwid);
         members.forEach(m -> m.setSections(sectionService.getSectionByMember(m)));
 
         return ResponseEntity.ok(members
@@ -271,27 +306,37 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<CourseMemberDTO>> getInstructorEnrollments(UUID courseId, String name, String cwid) {
+    public ResponseEntity<List<CourseMemberDTO>> getInstructorEnrollments(UUID courseId,
+                                                                          String name,
+                                                                          String cwid) {
         Course course = courseService.getCourse(courseId);
 
-        if(name != null && cwid != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must define one of 'name' or 'cwid'");
+        if (name != null && cwid != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must define one " +
+                    "of 'name' or 'cwid'");
         }
 
-        return ResponseEntity.ok(courseMemberService.searchCourseMembers(course, List.of(), name, cwid)
-            .stream().map(DTOFactory::toDto).toList());
+        return ResponseEntity.ok(courseMemberService.searchCourseMembers(course, List.of(),
+                        name, cwid)
+                .stream().map(DTOFactory::toDto).toList());
     }
 
     @Override
-    public ResponseEntity<LateRequestDTO> approveExtension(UUID courseId, UUID assignmentId, String cwid, UUID extensionId, String reason) {
-        LateRequest lateRequest = extensionService.approveExtension(assignmentId, cwid, extensionId, reason);
+    public ResponseEntity<LateRequestDTO> approveExtension(UUID courseId, UUID assignmentId,
+                                                           String cwid, UUID extensionId,
+                                                           String reason) {
+        LateRequest lateRequest = extensionService.approveExtension(assignmentId, cwid,
+                extensionId, reason);
 
         return ResponseEntity.accepted().body(DTOFactory.toDto(lateRequest));
     }
 
     @Override
-    public ResponseEntity<LateRequestDTO> denyExtension(UUID courseId, UUID assignmentId, String cwid, UUID extensionId, String reason) {
-        LateRequest lateRequest = extensionService.denyExtension(assignmentId, cwid, extensionId, reason);
+    public ResponseEntity<LateRequestDTO> denyExtension(UUID courseId, UUID assignmentId,
+                                                        String cwid, UUID extensionId,
+                                                        String reason) {
+        LateRequest lateRequest = extensionService.denyExtension(assignmentId, cwid,
+                extensionId, reason);
 
         return ResponseEntity.accepted().body(DTOFactory.toDto(lateRequest));
     }
@@ -306,22 +351,28 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     public ResponseEntity<Void> finalizeMasterMigration(UUID courseId, UUID masterMigrationId) {
         boolean res = migrationService.finalizePostToCanvas(masterMigrationId);
 
-        if (!res){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to finalize migration!");
+        if (!res) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to finalize " +
+                    "migration!");
         }
 
         return ResponseEntity.accepted().build();
     }
 
     @Override
-    public ResponseEntity<List<AssignmentDTO>> getCourseAssignmentsInstuctor(UUID courseId, Boolean onlyMigratable) {
-        if (onlyMigratable == null){
+    public ResponseEntity<List<AssignmentDTO>> getCourseAssignmentsInstuctor(UUID courseId,
+                                                                         Boolean onlyMigratable) {
+        if (onlyMigratable == null) {
             onlyMigratable = false;
         }
 
         Course course = courseService.getCourse(courseId);
 
-        return ResponseEntity.ok(assignmentService.getAllAssignmentsGivenCourse(course, onlyMigratable).stream().map(DTOFactory::toDto).toList());
+        return ResponseEntity.ok(assignmentService
+                .getAllAssignmentsGivenCourse(course, onlyMigratable)
+                .stream()
+                .map(DTOFactory::toDto)
+                .toList());
     }
 }
 

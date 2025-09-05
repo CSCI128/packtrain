@@ -2,20 +2,28 @@ package edu.mines.packtrain.services;
 
 import edu.mines.packtrain.data.ExtensionDTO;
 import edu.mines.packtrain.data.LateRequestDTO;
-import edu.mines.packtrain.models.*;
+import edu.mines.packtrain.models.Assignment;
+import edu.mines.packtrain.models.Course;
+import edu.mines.packtrain.models.CourseMember;
+import edu.mines.packtrain.models.Extension;
+import edu.mines.packtrain.models.LateRequest;
+import edu.mines.packtrain.models.Section;
+import edu.mines.packtrain.models.User;
 import edu.mines.packtrain.models.enums.LateRequestStatus;
 import edu.mines.packtrain.models.enums.LateRequestType;
 import edu.mines.packtrain.repositories.ExtensionRepo;
 import edu.mines.packtrain.repositories.LateRequestRepo;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -27,7 +35,10 @@ public class ExtensionService {
     private final CourseService courseService;
     private final UserService userService;
 
-    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo, AssignmentService assignmentService, CourseMemberService courseMemberService, CourseService courseService, UserService userService) {
+    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo,
+                            AssignmentService assignmentService,
+                            CourseMemberService courseMemberService,
+                            CourseService courseService, UserService userService) {
         this.extensionRepo = extensionRepo;
         this.lateRequestRepo = lateRequestRepo;
         this.assignmentService = assignmentService;
@@ -44,20 +55,26 @@ public class ExtensionService {
         if (lateRequestStatus == null) {
             return lateRequestRepo.getAllLateRequests(courseId);
         } else if (lateRequestStatus.equalsIgnoreCase("approved")) {
-            return lateRequestRepo.getAllLateRequests(courseId).stream().filter(c -> c.getStatus() == LateRequestStatus.APPROVED).toList();
+            return lateRequestRepo.getAllLateRequests(courseId).stream()
+                    .filter(c -> c.getStatus() == LateRequestStatus.APPROVED).toList();
         } else if (lateRequestStatus.equalsIgnoreCase("denied")) {
-            return lateRequestRepo.getAllLateRequests(courseId).stream().filter(c -> c.getStatus() == LateRequestStatus.REJECTED || c.getStatus() == LateRequestStatus.IGNORED).toList();
+            return lateRequestRepo.getAllLateRequests(courseId).stream()
+                    .filter(c -> c.getStatus() == LateRequestStatus.REJECTED
+                            || c.getStatus() == LateRequestStatus.IGNORED).toList();
         } else if (lateRequestStatus.equalsIgnoreCase("pending")) {
-            return lateRequestRepo.getAllLateRequests(courseId).stream().filter(c -> c.getStatus() == LateRequestStatus.PENDING).toList();
+            return lateRequestRepo.getAllLateRequests(courseId).stream()
+                    .filter(c -> c.getStatus() == LateRequestStatus.PENDING).toList();
         }
         return List.of();
     }
 
-    public LateRequest approveExtension(UUID assignmentId, String userId, UUID extensionId, String reason) {
+    public LateRequest approveExtension(UUID assignmentId, String userId, UUID extensionId,
+                                        String reason) {
         Optional<LateRequest> lateRequest = getLateRequest(extensionId);
 
         if (lateRequest.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request '%s' for user '%s' does not exist", extensionId, userId));
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request " +
+                    "'%s' for user '%s' does not exist", extensionId, userId));
         }
 
         lateRequest.get().getExtension().setReviewer(userService.getUserByCwid(userId));
@@ -70,11 +87,13 @@ public class ExtensionService {
         return lateRequestRepo.save(lateRequest.get());
     }
 
-    public LateRequest denyExtension(UUID assignmentId, String userId, UUID extensionId, String reason) {
+    public LateRequest denyExtension(UUID assignmentId, String userId, UUID extensionId,
+                                     String reason) {
         Optional<LateRequest> lateRequest = getLateRequest(extensionId);
 
         if (lateRequest.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request '%s' for user '%s' does not exist", extensionId, userId));
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request " +
+                    "'%s' for user '%s' does not exist", extensionId, userId));
         }
 
         lateRequest.get().getExtension().setReviewer(userService.getUserByCwid(userId));
@@ -97,7 +116,8 @@ public class ExtensionService {
 
         Course course = courseService.getCourse(courseId);
 
-        Optional<Section> userSection = courseMemberService.getSectionsForUserAndCourse(user, course).stream().findFirst();
+        Optional<Section> userSection = courseMemberService
+                .getSectionsForUserAndCourse(user, course).stream().findFirst();
 
         CourseMember instructor = courseMemberService.getStudentInstructor(course, userSection);
 
@@ -130,7 +150,8 @@ public class ExtensionService {
 
         Course course = courseService.getCourse(courseId);
 
-        Optional<Section> userSection = courseMemberService.getSectionsForUserAndCourse(actingUser, course).stream().findFirst();
+        Optional<Section> userSection = courseMemberService
+                .getSectionsForUserAndCourse(actingUser, course).stream().findFirst();
 
         CourseMember instructor = courseMemberService.getStudentInstructor(course, userSection);
 
@@ -159,16 +180,21 @@ public class ExtensionService {
 
     public void deleteLateRequest(Course course, User actingUser, UUID lateRequestId) {
         LateRequest lateRequest = getLateRequest(lateRequestId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request '%s' was not found!", lateRequestId)));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("Late request '%s' was not found!", lateRequestId)));
 
-        if(lateRequest.getLateRequestType() == LateRequestType.LATE_PASS) {
-            courseMemberService.refundLatePasses(course, actingUser, lateRequest.getDaysRequested());
+        if (lateRequest.getLateRequestType() == LateRequestType.LATE_PASS) {
+            courseMemberService.refundLatePasses(course, actingUser,
+                    lateRequest.getDaysRequested());
         }
 
         lateRequestRepo.delete(lateRequest);
     }
 
     public Map<String, LateRequest> getLateRequestsForAssignment(UUID assignment) {
-        return lateRequestRepo.getLateRequestsForAssignment(assignment).stream().collect(Collectors.toUnmodifiableMap(l -> l.getRequestingUser().getCwid(), l -> l));
+        return lateRequestRepo.getLateRequestsForAssignment(assignment)
+                .stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        l -> l.getRequestingUser().getCwid(), l -> l));
     }
 }

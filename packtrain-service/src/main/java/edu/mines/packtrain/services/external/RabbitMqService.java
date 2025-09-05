@@ -1,13 +1,15 @@
 package edu.mines.packtrain.services.external;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rabbitmq.client.*;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
 import edu.mines.packtrain.config.ExternalServiceConfig;
 import edu.mines.packtrain.data.PolicyRawScoreDTO;
 import edu.mines.packtrain.data.policyServer.ScoredDTO;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
@@ -15,6 +17,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -23,11 +27,13 @@ public class RabbitMqService {
     private final ObjectMapper mapper;
     private Connection rabbitMqConnection;
 
-    public RabbitMqService(ExternalServiceConfig.RabbitMqConfig rabbitMqConfig, ObjectMapper mapper) throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException, TimeoutException {
+    public RabbitMqService(ExternalServiceConfig.RabbitMqConfig rabbitMqConfig,
+                           ObjectMapper mapper) throws URISyntaxException,
+                           NoSuchAlgorithmException, KeyManagementException, TimeoutException {
         this.rabbitMqConfig = rabbitMqConfig;
         this.mapper = mapper;
 
-        if (!rabbitMqConfig.isEnabled()){
+        if (!rabbitMqConfig.isEnabled()) {
             log.warn("RabbitMQ is disabled!");
             return;
         }
@@ -39,49 +45,61 @@ public class RabbitMqService {
 
         try {
             rabbitMqConnection = factory.newConnection();
-        }catch (IOException e){
+        } catch (IOException e) {
             log.error("Failed to connect to RabbitMQ!", e);
             log.warn("RabbitMQ is disabled!");
             return;
         }
 
-        log.info("Connected to RabbitMQ broker at '{}' with client id '{}'", rabbitMqConnection.getAddress(), rabbitMqConnection.getId());
+        log.info("Connected to RabbitMQ broker at '{}' with client id '{}'",
+                rabbitMqConnection.getAddress(), rabbitMqConnection.getId());
     }
 
-    public Optional<Channel> createRawGradePublishChannel(String routingKey){
-        log.info("Creating new grade publish channel for migration with routing key '{}'", routingKey);
+    public Optional<Channel> createRawGradePublishChannel(String routingKey) {
+        log.info("Creating new grade publish channel for migration with routing key '{}'",
+                routingKey);
         try {
             Channel publishChannel = rabbitMqConnection.createChannel();
             // if the exchange already exists, then nothing happens
-            publishChannel.exchangeDeclare(rabbitMqConfig.getExchangeName(), "direct", true);
+            publishChannel.exchangeDeclare(rabbitMqConfig.getExchangeName(), "direct",
+                    true);
             String queueName = publishChannel.queueDeclare().getQueue();
             publishChannel.queueBind(queueName, rabbitMqConfig.getExchangeName(), routingKey);
 
-            log.info("Bind raw grade publish queue '{}' on exchange '{}' with routing key '{}'", queueName, rabbitMqConfig.getExchangeName(), routingKey);
+            log.info("Bind raw grade publish queue '{}' on exchange '{}' with routing key '{}'",
+                    queueName, rabbitMqConfig.getExchangeName(), routingKey);
 
             return Optional.of(publishChannel);
         } catch (IOException e) {
-            log.error("Failed to create raw grade publish channel for migration with routing key '{}'", routingKey);
+            log.error("Failed to create raw grade publish channel for migration with routing key" +
+                    " '{}'", routingKey);
             log.error("Failed due to: ", e);
         }
 
         return Optional.empty();
     }
 
-    public Optional<Channel> createScoreReceivedChannel(String routingKey, Consumer<ScoredDTO> onScoreReceived){
-        log.info("Creating new score received channel for migration with routing key '{}'", routingKey);
+    public Optional<Channel> createScoreReceivedChannel(String routingKey,
+                                                        Consumer<ScoredDTO> onScoreReceived) {
+        log.info("Creating new score received channel for migration with routing key '{}'",
+                routingKey);
 
         try {
             Channel recievedChannel = rabbitMqConnection.createChannel();
-            recievedChannel.exchangeDeclare(rabbitMqConfig.getExchangeName(), "direct", true);
+            recievedChannel.exchangeDeclare(rabbitMqConfig.getExchangeName(), "direct",
+                    true);
             String queueName = recievedChannel.queueDeclare().getQueue();
             recievedChannel.queueBind(queueName, rabbitMqConfig.getExchangeName(), routingKey);
 
-            log.info("Bind score received queue '{}' on exchange '{}' with routing key '{}'", queueName, rabbitMqConfig.getExchangeName(), routingKey);
+            log.info("Bind score received queue '{}' on exchange '{}' with routing key '{}'",
+                    queueName, rabbitMqConfig.getExchangeName(), routingKey);
 
-            recievedChannel.basicConsume(queueName, false, new DefaultConsumer(recievedChannel){
+            recievedChannel.basicConsume(queueName, false, new DefaultConsumer(
+                    recievedChannel) {
                 @Override
-                public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                public void handleDelivery(String consumerTag, Envelope envelope,
+                                           AMQP.BasicProperties properties, byte[] body)
+                    throws IOException {
                     long deliveryTag = envelope.getDeliveryTag();
 
                     ScoredDTO parsedBody = mapper.readValue(body, ScoredDTO.class);
@@ -98,17 +116,18 @@ public class RabbitMqService {
             return Optional.of(recievedChannel);
 
         } catch (IOException e) {
-            log.error("Failed to create score received channel for migration with routing key '{}'", routingKey);
+            log.error("Failed to create score received channel for migration with routing " +
+                    "key '{}'", routingKey);
             log.error("Failed due to: ", e);
         }
 
         return Optional.empty();
     }
 
-    public boolean sendScore(Channel channel, String routingKey, PolicyRawScoreDTO rawScore){
+    public boolean sendScore(Channel channel, String routingKey, PolicyRawScoreDTO rawScore) {
         log.debug("Sending raw score for '{}' on '{}'", rawScore.getCwid(), routingKey);
 
-        if (!channel.isOpen()){
+        if (!channel.isOpen()) {
             log.warn("Raw grade publish channel is closed! Attempting to recover");
             try {
                 channel.basicRecover(true);

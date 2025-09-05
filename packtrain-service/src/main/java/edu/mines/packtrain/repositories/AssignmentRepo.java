@@ -3,15 +3,14 @@ package edu.mines.packtrain.repositories;
 import edu.mines.packtrain.models.Assignment;
 import edu.mines.packtrain.models.Course;
 import edu.mines.packtrain.models.Migration;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.List;
 
 @Repository
 public interface AssignmentRepo extends CrudRepository<Assignment, UUID> {

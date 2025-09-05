@@ -1,10 +1,8 @@
 package edu.mines.packtrain.models.enums;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
 import java.util.stream.Stream;
+import lombok.Getter;
 
 public enum SubmissionStatus {
     @JsonProperty("missing")
@@ -26,7 +24,10 @@ public enum SubmissionStatus {
     }
 
     public static SubmissionStatus fromString(String status) {
-        return Stream.of(SubmissionStatus.values()).filter(t -> t.status.equals(status)).findFirst().orElseThrow(RuntimeException::new);
+        return Stream.of(SubmissionStatus.values())
+                .filter(t -> t.status.equals(status))
+                .findFirst()
+                .orElseThrow(RuntimeException::new);
     }
 
 }
