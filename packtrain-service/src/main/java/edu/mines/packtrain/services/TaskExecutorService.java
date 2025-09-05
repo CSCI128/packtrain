@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 @Slf4j
 public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
+
     private static final int MAX_ATTEMPTS = 10;
     private final ExecutorService executorService;
     private final ScheduledTaskRepo<? extends ScheduledTaskDef> scheduledTaskRepo;
@@ -97,6 +98,7 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
         try {
             taskData.getOnJobStart().ifPresent(start -> start.accept(data));
         } catch (Exception e) {
+            taskData.getOnJobFail().ifPresent(fail -> fail.accept(data));
             log.error("Failed to run 'onJobStart' for task '{}'", taskData.getTaskId());
             log.error(e.getMessage());
             taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED,
@@ -108,6 +110,7 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
         try {
             taskData.getJob().accept(data);
         } catch (Exception e) {
+            taskData.getOnJobFail().ifPresent(fail -> fail.accept(data));
             log.error("Failed to run 'job' for task '{}'", taskData.getTaskId());
             log.error(e.getMessage());
             taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED,
@@ -119,6 +122,7 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
         try {
             taskData.getOnJobComplete().ifPresent(start -> start.accept(data));
         } catch (Exception e) {
+            taskData.getOnJobFail().ifPresent(fail -> fail.accept(data));
             log.error("Failed to run 'onJobComplete' for task '{}'", taskData.getTaskId());
             log.error(e.getMessage());
             taskRepo.setStatus(taskData.getTaskId(), ScheduleStatus.FAILED,
@@ -129,7 +133,6 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
 
         return true;
     }
-
 
     @Override
     public void onApplicationEvent(NewTaskEvent event) {
@@ -153,6 +156,4 @@ public class TaskExecutorService implements ApplicationListener<NewTaskEvent> {
 
         return task.get();
     }
-
-
 }

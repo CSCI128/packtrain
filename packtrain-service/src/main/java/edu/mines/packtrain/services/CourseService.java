@@ -239,6 +239,16 @@ public class CourseService {
                 throw new RuntimeException("Could not process JSON for sending notification DTO!");
             }
         }));
+        taskDefinition.setOnJobFail(Optional.of(_ -> {
+            try {
+                CourseSyncNotificationDTO errorDTO = CourseSyncNotificationDTO.builder()
+                        .error("Could not create course!").build();
+                messagingTemplate.convertAndSend("/courses/import",
+                        objectMapper.writeValueAsString(errorDTO));
+            } catch (JsonProcessingException _) {
+                throw new RuntimeException("Could not process JSON for sending notification DTO!");
+            }
+        }));
 
         eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 

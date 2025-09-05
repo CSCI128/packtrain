@@ -22,9 +22,10 @@ public class NewTaskEvent extends ApplicationEvent {
 
         private final Long taskId;
 
-        private Optional<Consumer<T>> onJobStart = Optional.empty();
         private final Consumer<T> job;
+        private Optional<Consumer<T>> onJobStart = Optional.empty();
         private Optional<Consumer<T>> onJobComplete = Optional.empty();
+        private Optional<Consumer<T>> onJobFail = Optional.empty();
     }
 
     private final TaskData<?> data;
