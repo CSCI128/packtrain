@@ -278,7 +278,7 @@ export function CreatePage() {
     },
     validate: {
       canvasId: (value) =>
-        Number.isInteger(Number(value)) && value.trim().length === 5
+        /^\d+$/.test(value) && value.trim().length === 5
           ? null
           : "Canvas ID must be 5 characters and numeric",
       courseName: (value) =>
@@ -286,11 +286,11 @@ export function CreatePage() {
       courseTerm: (value) =>
         value.length < 1 ? "Course term must have at least 1 character" : null,
       gradescopeId: (value) =>
-        value.length !== 6 && value.length !== 7 && !Number.isInteger(value)
-          ? "Gradescope ID must be 6 or 7 characters and numeric"
-          : null,
+        (value.length === 6 || value.length === 7) && /^\d+$/.test(value)
+          ? null
+          : "Gradescope ID must be 6 or 7 characters and numeric",
       totalLatePassesAllowed: (value) =>
-        value < 0 || value > 1000 || !Number.isInteger(value)
+        value < 0 || value > 1000
           ? "Total number of late passes must be greater than or equal to 0 and less than 1000"
           : null,
     },
