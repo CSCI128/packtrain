@@ -47,6 +47,8 @@ We use [Checkstyle](https://checkstyle.sourceforge.io) with the [Google standard
 
 Install the Checkstyle for IntelliJ IDEA plugin and then go to `Settings` > `Tools` > `Checkstyle` and add a new configuration file, pointing to the `checkstyle.xml` in the root of the `packtrain-service` directory.
 
+Also, in `Settings` > `Editor` > `Code Style`, you should set hard wrap to `120` and check `Wrap on typing`.
+
 We recommend installing the free version of SonarQube for more intelligent and advanced language suggestions.
 
 ## Frontend
