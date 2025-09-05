@@ -44,8 +44,7 @@ export function CreatePage() {
     assignments: 0,
     sections: 0,
   });
-  // const [tasksFailed, setTasksFailed] = useState(false);
-  const [courseDeleted, setCourseDeleted] = useState(false);
+  const [tasksFailed, setTasksFailed] = useState(false);
   const [completed, setCompleted] = useState({
     course: false,
     sections: false,
@@ -54,7 +53,6 @@ export function CreatePage() {
   });
   const [userData, setUserData] = useState(null);
 
-  // fetch user token
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -85,6 +83,13 @@ export function CreatePage() {
       onConnect: () => {
         client.subscribe("/courses/import", (msg) => {
           const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
+
+          if (payload.error) {
+            console.log("Payload returned error:", payload.error);
+            setTasksFailed(true);
+            setAllTasksCompleted(false);
+          }
+
           if (payload.course_complete) {
             setCompleted((prev) => ({
               ...prev,
@@ -225,16 +230,16 @@ export function CreatePage() {
         assignments: data.assignments?.length || 0,
       });
     }
-
-    // if (tasksFailed && store$.id.get() && !courseDeleted) {
-    //   console.log(
-    //     `Tasks failed, deleting course by ID: ${store$.id.get() as string}`
-    //   );
-    //   deleteCourse(store$.id.get() as string);
-    //   setCourseDeleted(true);
-    // }
-    // }, [allTasksCompleted, data, tasksFailed, courseDeleted]);
   }, [allTasksCompleted, data]);
+
+  useEffect(() => {
+    if (tasksFailed) {
+      console.log(
+        `Tasks failed, deleting course by ID: ${store$.id.get() as string}`
+      );
+      deleteCourse(store$.id.get() as string);
+    }
+  }, [tasksFailed]);
 
   const createCourse = (values: typeof form.values) => {
     mutation.mutate(
@@ -436,15 +441,14 @@ export function CreatePage() {
 
             {courseCreated && (
               <Box p={20}>
-                {!allTasksCompleted ? (
+                {!allTasksCompleted && !tasksFailed ? (
                   <>
                     <Text>Importing, this may take a moment..</Text>{" "}
                     <Loader color="blue" />
                   </>
                 ) : (
                   <>
-                    {/* TODO TASKS FAILED instead of true */}
-                    {true ? (
+                    {!tasksFailed ? (
                       <>
                         <Text>Import complete!</Text>
                         <Text>
@@ -470,8 +474,7 @@ export function CreatePage() {
                 )}
 
                 <Group justify="flex-end" mt="md">
-                  {/* TODO TASKS FAILED instead of true */}
-                  {!true ? (
+                  {!tasksFailed ? (
                     <Button
                       disabled={!allTasksCompleted}
                       color={allTasksCompleted ? "blue" : "gray"}
