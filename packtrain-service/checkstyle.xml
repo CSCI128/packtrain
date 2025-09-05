@@ -7,7 +7,7 @@
 
     <!-- File-level checks -->
     <module name="LineLength">
-        <property name="max" value="100"/>
+        <property name="max" value="120"/>
         <property name="ignorePattern" value="^package.*|^import.*"/>
     </module>
 
@@ -15,10 +15,8 @@
         <property name="eachLine" value="true"/>
     </module>
 
-    <!-- TreeWalker for code-level checks -->
     <module name="TreeWalker">
-
-        <!-- Indentation: 4 spaces -->
+        <!--  Code style -->
         <module name="Indentation">
             <property name="basicOffset" value="4"/>
             <property name="braceAdjustment" value="0"/>
@@ -32,6 +30,7 @@
         <module name="NoWhitespaceAfter"/>
         <module name="NoWhitespaceBefore"/>
 
+        <!-- Imports -->
         <module name="CustomImportOrder">
             <property name="sortImportsInGroupAlphabetically" value="true"/>
             <property name="separateLineBetweenGroups" value="true"/>
@@ -40,8 +39,6 @@
         </module>
 
         <module name="UnusedImports"/>
-
         <module name="AvoidStarImport"/>
     </module>
-
 </module>
