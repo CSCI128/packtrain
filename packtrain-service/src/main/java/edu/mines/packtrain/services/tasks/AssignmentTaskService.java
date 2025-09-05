@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class AssignmentTaskService {
+
     private final ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo;
     private final ApplicationEventPublisher eventPublisher;
     private final CourseService courseService;
@@ -122,28 +123,22 @@ public class AssignmentTaskService {
                             .stream()
                             .filter(a -> assignmentsToCreate.contains(a.getId()))
                             .toList(),
-                    course
-            );
+                    course);
         }
 
         if (task.shouldDeleteAssignments()) {
-            if (!assignmentsToRemove.isEmpty()) {
-                assignmentService.deleteAssignments(assignmentsToRemove, course);
-            }
+            assignmentService.deleteAssignments(assignmentsToRemove, course);
         }
 
         if (task.shouldUpdateAssignments()) {
-            if (!assignmentsToUpdate.isEmpty()) {
-                assignmentService.updateAssignmentsFromCanvas(
-                        assignmentGroups,
-                        assignmentsToUpdate,
-                        assignments
-                                .stream()
-                                .filter(a -> assignmentsToUpdate.contains(a.getId()))
-                                .toList(),
-                        course
-                );
-            }
+            assignmentService.updateAssignmentsFromCanvas(
+                    assignmentGroups,
+                    assignmentsToUpdate,
+                    assignments
+                            .stream()
+                            .filter(a -> assignmentsToUpdate.contains(a.getId()))
+                            .toList(),
+                    course);
         }
     }
 }
