@@ -39,6 +39,7 @@ export function CreatePage() {
   const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
   const [courseCreated, setCourseCreated] = useState(false);
+  const [importErrorMessage, setErrorImportMessage] = useState("");
   const [importStatistics, setImportStatistics] = useState({
     members: 0,
     assignments: 0,
@@ -85,7 +86,7 @@ export function CreatePage() {
           const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
 
           if (payload.error) {
-            console.log("Payload returned error:", payload.error);
+            setErrorImportMessage(payload.error);
             setTasksFailed(true);
             setAllTasksCompleted(false);
           }
@@ -466,8 +467,12 @@ export function CreatePage() {
                       </>
                     ) : (
                       <>
-                        <Text>Import Failed!</Text>
-                        <Text>Deleting attempted import!</Text>
+                        <Text size="md" ta="center" c="red.9" fw={700}>
+                          Import Failed
+                        </Text>
+                        <Text ta="center" c="gray.7">
+                          Error message: {importErrorMessage}
+                        </Text>
                       </>
                     )}
                   </>
