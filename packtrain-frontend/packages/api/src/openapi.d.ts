@@ -2543,7 +2543,6 @@ declare namespace Paths {
     }
 }
 
-
 export interface OperationMethods {
   /**
    * check_health - Checks the health of the server
@@ -4043,7 +4042,6 @@ export interface PathsDictionary {
 }
 
 export type Client = OpenAPIClient<OperationMethods, PathsDictionary>
-
 
 export type Assignment = Components.Schemas.Assignment;
 export type AssignmentSlim = Components.Schemas.AssignmentSlim;

@@ -18,13 +18,12 @@ import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
 import { Course, CourseSyncTask } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { Client } from "@stomp/stompjs";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import SockJS from "sockjs-client";
 import { userManager } from "../../auth";
 import { useGetCredentials } from "../../hooks";
+import { useWebSocketClient } from "../../websocketHooks";
 
 type CourseSyncNotificationDTO = {
   error?: string;
@@ -67,59 +66,33 @@ export function CreatePage() {
     fetchUser();
   }, []);
 
-  useEffect(() => {
-    if (!userData) return;
+  useWebSocketClient({
+    authToken: userData?.access_token,
+    onConnect: (client) => {
+      client.subscribe("/courses/import", (msg) => {
+        const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
 
-    const API_URL =
-      window.__ENV__ && window.__ENV__.VITE_API_URL
-        ? window.__ENV__?.VITE_API_URL + "/api/ws"
-        : "https://localhost.dev/api/ws";
-    const socket = new SockJS(API_URL);
-    const client = new Client({
-      webSocketFactory: () => socket,
-      connectHeaders: {
-        Authorization: `Bearer ${userData.access_token}`,
-      },
-      reconnectDelay: 5000,
-      onConnect: () => {
-        client.subscribe("/courses/import", (msg) => {
-          const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
+        if (payload.error) {
+          setErrorImportMessage(payload.error);
+          setTasksFailed(true);
+          setAllTasksCompleted(false);
+        }
 
-          if (payload.error) {
-            setErrorImportMessage(payload.error);
-            setTasksFailed(true);
-            setAllTasksCompleted(false);
-          }
-
-          if (payload.course_complete) {
-            setCompleted((prev) => ({
-              ...prev,
-              course: true,
-            }));
-          }
-          if (payload.sections_complete) {
-            setCompleted((prev) => ({
-              ...prev,
-              sections: true,
-            }));
-          }
-          if (payload.assignments_complete) {
-            setCompleted((prev) => ({
-              ...prev,
-              assignments: true,
-            }));
-          }
-          if (payload.members_complete) {
-            setCompleted((prev) => ({
-              ...prev,
-              members: true,
-            }));
-          }
-        });
-      },
-    });
-    client.activate();
-  }, [userData]);
+        if (payload.course_complete) {
+          setCompleted((prev) => ({ ...prev, course: true }));
+        }
+        if (payload.sections_complete) {
+          setCompleted((prev) => ({ ...prev, sections: true }));
+        }
+        if (payload.assignments_complete) {
+          setCompleted((prev) => ({ ...prev, assignments: true }));
+        }
+        if (payload.members_complete) {
+          setCompleted((prev) => ({ ...prev, members: true }));
+        }
+      });
+    },
+  });
 
   useEffect(() => {
     if (
@@ -471,7 +444,7 @@ export function CreatePage() {
                           Import Failed
                         </Text>
                         <Text ta="center" c="gray.7">
-                          Error message: {importErrorMessage}
+                          {importErrorMessage}
                         </Text>
                       </>
                     )}
