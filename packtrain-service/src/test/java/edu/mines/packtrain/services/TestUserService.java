@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -59,6 +60,9 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
     @Autowired
     private ImpersonationManager impersonationManager;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
     @BeforeAll
     static void setupClass() {
         postgres.start();
@@ -70,7 +74,7 @@ public class TestUserService implements PostgresTestContainer, CanvasSeeder {
                 courseMemberRepo, scheduledTaskRepo,
                 userService, sectionService, courseService,
                 canvasService, Mockito.mock(ApplicationEventPublisher.class),
-                impersonationManager
+                impersonationManager, messagingTemplate
         );
     }
 

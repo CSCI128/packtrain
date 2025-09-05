@@ -1922,11 +1922,15 @@ components:
           type: number
           format: double
           example: 19
-        minScore:
+        canvsasMinScore:
           type: number
           format: double
           example: 0
-        maxScore:
+        canvasMaxScore:
+          type: number
+          format: double
+          example: 10
+        externalServiceMaxScore:
           type: number
           format: double
           example: 10

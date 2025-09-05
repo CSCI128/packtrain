@@ -118,16 +118,15 @@ export function AssignmentsPage() {
   });
 
   const editAssignment = (values: typeof form.values) => {
-    console.log(values.group_assignment);
     updateAssignment.mutate(
       {
         body: {
           id: selectedAssignment?.id,
           name: values.name,
           category: values.category,
-          due_date: value?.toISOString(),
+          due_date: values.due_date.toISOString(),
           points: values.points,
-          unlock_date: unlockDateValue?.toISOString(),
+          unlock_date: values.unlock_date.toISOString(),
           external_service: values.external_service,
           external_points: values.external_points,
           canvas_id: values.canvas_id,
@@ -140,9 +139,8 @@ export function AssignmentsPage() {
         onSuccess: () => {
           close();
           refetch();
-          resetTable();
-          setValue(new Date());
-          setUnlockDateValue(new Date());
+          setValue(values.due_date);
+          setUnlockDateValue(values.unlock_date);
         },
       }
     );
@@ -155,7 +153,6 @@ export function AssignmentsPage() {
     reverseSortDirection,
     handleSearchChange,
     handleSort,
-    resetTable,
   } = useTableData<Assignment>(
     (data?.assignments as AssignmentRowData[]) ?? []
   );

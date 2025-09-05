@@ -103,6 +103,9 @@ export function verifyPolicy(fun: ApplyPolicyFunctionSig): ValidationResults {
     rawScore.extensionId = "1";
     rawScore.assignmentId = "1";
     rawScore.rawScore = 10;
+    rawScore.canvasMaxScore = 10;
+    rawScore.canvasMinScore = 0;
+    rawScore.externalMaxScore = 20;
     rawScore.extensionDays = 3;
     rawScore.extensionType = "Late Pass";
     rawScore.submissionStatus = SubmissionStatus.LATE;
@@ -137,7 +140,6 @@ export function policyDryRun(policyText: string, rawScore: RawScoreDTO): DryRunR
         }
 
         const res = policy(rawScore);
-        console.log(res);
 
         const errors = validateScoredDTO(res);
 

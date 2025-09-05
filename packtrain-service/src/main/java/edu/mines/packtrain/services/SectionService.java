@@ -1,5 +1,8 @@
 package edu.mines.packtrain.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.mines.packtrain.data.websockets.CourseSyncNotificationDTO;
 import edu.mines.packtrain.events.NewTaskEvent;
 import edu.mines.packtrain.managers.IdentityProvider;
 import edu.mines.packtrain.managers.ImpersonationManager;
@@ -19,6 +22,7 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -33,16 +37,17 @@ public class SectionService {
     private final ApplicationEventPublisher eventPublisher;
     private final ImpersonationManager impersonationManager;
 
-    public SectionService(SectionRepo sectionRepo, ScheduledTaskRepo<SectionSyncTaskDef> taskRepo,
-                          CourseService courseService, CanvasService canvasService,
-                          ApplicationEventPublisher eventPublisher,
-                          ImpersonationManager impersonationManager) {
+    private final SimpMessagingTemplate messagingTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public SectionService(SectionRepo sectionRepo, ScheduledTaskRepo<SectionSyncTaskDef> taskRepo, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, SimpMessagingTemplate messagingTemplate) {
         this.sectionRepo = sectionRepo;
         this.taskRepo = taskRepo;
         this.courseService = courseService;
         this.canvasService = canvasService;
         this.eventPublisher = eventPublisher;
         this.impersonationManager = impersonationManager;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public void syncSectionTask(SectionSyncTaskDef task) {
@@ -101,10 +106,21 @@ public class SectionService {
 
         task = taskRepo.save(task);
 
+
         NewTaskEvent.TaskData<SectionSyncTaskDef> taskDef = new NewTaskEvent.TaskData<>(
                 taskRepo, task.getId(), this::syncSectionTask);
 
-        eventPublisher.publishEvent(new NewTaskEvent(this, taskDef));
+        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder().sectionsComplete(true).build();
+        NewTaskEvent.TaskData<SectionSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncSectionTask);
+        taskDefinition.setOnJobComplete(Optional.of(_ -> {
+            try {
+                messagingTemplate.convertAndSend("/courses/import", objectMapper.writeValueAsString(notificationDTO));
+            } catch (JsonProcessingException _) {
+                throw new RuntimeException("Could not process JSON for sending notification DTO!");
+            }
+        }));
+
+        eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
 
         return task;
     }
