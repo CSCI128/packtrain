@@ -1,7 +1,6 @@
 package edu.mines.packtrain.models.enums;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Getter;
 
 @Getter
@@ -21,7 +20,7 @@ public enum LateRequestStatus {
 
     private final String status;
 
-    LateRequestStatus(String status){
+    LateRequestStatus(String status) {
         this.status = status;
     }
 }

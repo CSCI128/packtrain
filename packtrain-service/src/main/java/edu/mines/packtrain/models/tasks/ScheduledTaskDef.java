@@ -1,11 +1,20 @@
 package edu.mines.packtrain.models.tasks;
 
 import edu.mines.packtrain.models.User;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import java.time.Instant;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.time.Instant;
 
 @Data
 @Entity
@@ -32,7 +41,6 @@ public abstract class ScheduledTaskDef {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     protected ScheduleStatus status = ScheduleStatus.CREATED;
-
 
     @Column(name = "status_text", length = 10000)
     protected String statusText;

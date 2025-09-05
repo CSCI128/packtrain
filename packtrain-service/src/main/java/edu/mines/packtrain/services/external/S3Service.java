@@ -202,7 +202,8 @@ public class S3Service {
         }
 
         try {
-            RemoveObjectArgs args = RemoveObjectArgs.builder().bucket(courseId.toString()).object(filename).build();
+            RemoveObjectArgs args = RemoveObjectArgs.builder().bucket(courseId.toString())
+                    .object(filename).build();
             s3Client.removeObject(args);
         } catch (MinioException | IOException | InvalidKeyException | NoSuchAlgorithmException e) {
             log.error("Failed to remove policy '{}' for course '{}'", filename, courseId);

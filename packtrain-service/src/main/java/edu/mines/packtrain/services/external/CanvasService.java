@@ -340,8 +340,8 @@ public class CanvasService {
 
     public Optional<CourseRole> mapEnrollmentToRole(Enrollment enrollment) {
         // for some reason, java pattern matching does not like non-constant strings
-        // while I could hard code the enrollment names, Canvas has already changed it a few times in the past few years
-        // so, I don't want to.
+        // while I could hard code the enrollment names, Canvas has already changed it a few times
+        // in the past few years so, I don't want to.
         // Also, Mines is allowed to override these names if they want to
 
         if (enrollment.getType().equals(config.getTeacherEnrollment())) {

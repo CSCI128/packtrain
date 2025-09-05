@@ -2,20 +2,28 @@ package edu.mines.packtrain.services;
 
 import edu.mines.packtrain.data.ExtensionDTO;
 import edu.mines.packtrain.data.LateRequestDTO;
-import edu.mines.packtrain.models.*;
+import edu.mines.packtrain.models.Assignment;
+import edu.mines.packtrain.models.Course;
+import edu.mines.packtrain.models.CourseMember;
+import edu.mines.packtrain.models.Extension;
+import edu.mines.packtrain.models.LateRequest;
+import edu.mines.packtrain.models.Section;
+import edu.mines.packtrain.models.User;
 import edu.mines.packtrain.models.enums.LateRequestStatus;
 import edu.mines.packtrain.models.enums.LateRequestType;
 import edu.mines.packtrain.repositories.ExtensionRepo;
 import edu.mines.packtrain.repositories.LateRequestRepo;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -51,7 +59,8 @@ public class ExtensionService {
                     .filter(c -> c.getStatus() == LateRequestStatus.APPROVED).toList();
         } else if (lateRequestStatus.equalsIgnoreCase("denied")) {
             return lateRequestRepo.getAllLateRequests(courseId).stream()
-                    .filter(c -> c.getStatus() == LateRequestStatus.REJECTED || c.getStatus() == LateRequestStatus.IGNORED).toList();
+                    .filter(c -> c.getStatus() == LateRequestStatus.REJECTED
+                            || c.getStatus() == LateRequestStatus.IGNORED).toList();
         } else if (lateRequestStatus.equalsIgnoreCase("pending")) {
             return lateRequestRepo.getAllLateRequests(courseId).stream()
                     .filter(c -> c.getStatus() == LateRequestStatus.PENDING).toList();
