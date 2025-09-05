@@ -283,7 +283,8 @@ public class RawScoreService {
         s.setCwid(cwid.get());
         s.setHoursLate(0.0);
         s.setSubmissionStatus(SubmissionStatus.ON_TIME);
-        s.setSubmissionTime(assignment.getDueDate().minus(Duration.ofMinutes(1))); // Runestone does not track submission times
+        s.setSubmissionTime(assignment.getDueDate().minus(Duration.ofMinutes(1)));
+        // Runestone does not track submission times ^^
         s.setScore(Double.parseDouble(line[assignmentIdx]));
 
         return Optional.of(createOrIncrementScore(s));

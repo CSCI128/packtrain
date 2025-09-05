@@ -1,8 +1,7 @@
 package edu.mines.packtrain.repositories;
 
-import edu.mines.packtrain.models.MasterMigrationStats;
-
 import java.util.UUID;
+import edu.mines.packtrain.models.MasterMigrationStats;
 
 public interface MasterMigrationStatsRepo extends ViewOnlyRepository<MasterMigrationStats, UUID> {
 }

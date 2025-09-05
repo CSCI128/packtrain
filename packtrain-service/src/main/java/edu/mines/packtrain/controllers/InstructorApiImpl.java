@@ -307,7 +307,8 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<List<CourseMemberDTO>> getInstructorEnrollments(UUID courseId,
-                                                                          String name, String cwid) {
+                                                                          String name,
+                                                                          String cwid) {
         Course course = courseService.getCourse(courseId);
 
         if (name != null && cwid != null) {
