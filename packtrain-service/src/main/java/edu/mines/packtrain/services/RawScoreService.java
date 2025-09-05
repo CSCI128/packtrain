@@ -109,7 +109,7 @@ public class RawScoreService {
                     header, csvReader.readAll()) : reduceColumns(header, csvReader.readAll());
 
             scores = contents.stream().map(l ->
-                    parseLinePL(course, assignment, migrationId, l))
+                            parseLinePL(course, assignment, migrationId, l))
                     .filter(Optional::isPresent).map(Optional::get).toList();
 
         } catch (IOException e) {
@@ -158,7 +158,8 @@ public class RawScoreService {
 
             int finalAssignmentIdx = assignmentIdx; // lambda vars have to be final
             scores = csvReader.readAll().stream().map(l ->
-                    parseLineRunestone(finalAssignmentIdx, course, assignment, migrationId, l))
+                            parseLineRunestone(finalAssignmentIdx, course, assignment,
+                                    migrationId, l))
                     .filter(Optional::isPresent).map(Optional::get).toList();
         } catch (Exception e) {
             log.error("Failed to read CSV", e);

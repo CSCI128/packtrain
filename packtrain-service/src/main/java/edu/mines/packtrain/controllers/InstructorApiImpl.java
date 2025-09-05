@@ -61,14 +61,15 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<List<MigrationWithScoresDTO>> getMasterMigrationToReview(UUID courseId,
-                                                                                   UUID masterMigrationId) {
+                                                                       UUID masterMigrationId) {
         return ResponseEntity.ok(migrationService.getMasterMigrationToReview(masterMigrationId));
     }
 
     @Override
     public ResponseEntity<List<TaskDTO>> applyMasterMigration(UUID courseId,
                                                               UUID masterMigrationId) {
-        List<ScheduledTaskDef> tasks = migrationService.startProcessScoresAndExtensions(securityManager.getUser(), masterMigrationId);
+        List<ScheduledTaskDef> tasks = migrationService.startProcessScoresAndExtensions(
+                securityManager.getUser(), masterMigrationId);
 
         return ResponseEntity.accepted().body(tasks.stream().map(DTOFactory::toDto).toList());
     }
@@ -124,19 +125,22 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     @Override
     public ResponseEntity<List<ErrorResponseDTO>> getAllApprovedExtensionsForAssignment(
             UUID courseId, UUID assignmentId, UUID extensionId, String status) {
-        return InstructorApiDelegate.super.getAllApprovedExtensionsForAssignment(courseId, assignmentId, extensionId, status);
+        return InstructorApiDelegate.super.getAllApprovedExtensionsForAssignment(courseId,
+                assignmentId, extensionId, status);
     }
 
     @Override
     public ResponseEntity<List<ErrorResponseDTO>> getAllApprovedExtensionsForMember(
             UUID courseId, String cwid, UUID extensionId, String status) {
-        return InstructorApiDelegate.super.getAllApprovedExtensionsForMember(courseId, cwid, extensionId, status);
+        return InstructorApiDelegate.super.getAllApprovedExtensionsForMember(courseId, cwid,
+                extensionId, status);
     }
 
     @Override
     public ResponseEntity<List<ErrorResponseDTO>> getAllExtensionsForSection(
             UUID courseId, String sectionId, UUID extensionId, String status) {
-        return InstructorApiDelegate.super.getAllExtensionsForSection(courseId, sectionId, extensionId, status);
+        return InstructorApiDelegate.super.getAllExtensionsForSection(courseId, sectionId,
+                extensionId, status);
     }
 
     @Override
@@ -356,7 +360,7 @@ public class InstructorApiImpl implements InstructorApiDelegate {
 
     @Override
     public ResponseEntity<List<AssignmentDTO>> getCourseAssignmentsInstuctor(UUID courseId,
-                                                                             Boolean onlyMigratable) {
+                                                                         Boolean onlyMigratable) {
         if (onlyMigratable == null) {
             onlyMigratable = false;
         }

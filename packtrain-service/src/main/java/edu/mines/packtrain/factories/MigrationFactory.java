@@ -18,7 +18,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 public class MigrationFactory {
@@ -45,9 +44,10 @@ public class MigrationFactory {
 
 
         StartProcessScoresAndExtensionsFactory(UUID migrationId, Function<String,
-                Optional<Channel>> createScorePublishChannel,
-                BiFunction<String, Consumer<ScoredDTO>,
-                Optional<Channel>> createScoreReceivedChannel) {
+                                                       Optional<Channel>> createScorePublishChannel,
+                                               BiFunction<String, Consumer<ScoredDTO>,
+                                                       Optional<Channel>>
+                                                       createScoreReceivedChannel) {
             this.createScorePublishChannel = createScorePublishChannel;
             this.createScoreReceivedChannel = createScoreReceivedChannel;
             processScoresAndExtensionsConfig = new ProcessScoresAndExtensionsConfig();
@@ -55,12 +55,14 @@ public class MigrationFactory {
             processScoresAndExtensionsConfig.setGradingStartDTO(new GradingStartDTO());
         }
 
-        public StartProcessScoresAndExtensionsFactory forAssignment(Assignment assignment){
-            processScoresAndExtensionsConfig.getGradingStartDTO().setGlobalMetadata(new GradingStartDTO.GlobalAssignmentMetadata(
+        public StartProcessScoresAndExtensionsFactory forAssignment(Assignment assignment) {
+            processScoresAndExtensionsConfig.getGradingStartDTO().setGlobalMetadata(
+                    new GradingStartDTO.GlobalAssignmentMetadata(
                     assignment.getId(),
                     assignment.getPoints(),
                     0,
-                    assignment.getExternalAssignmentConfig() == null ? assignment.getPoints() : assignment.getExternalAssignmentConfig().getExternalPoints(),
+                    assignment.getExternalAssignmentConfig() == null ? assignment.getPoints()
+                            : assignment.getExternalAssignmentConfig().getExternalPoints(),
                     assignment.getDueDate()
             ));
 
@@ -106,7 +108,8 @@ public class MigrationFactory {
                 throw new IOException("Failed to create score received channel!");
             }
 
-            processScoresAndExtensionsConfig.getGradingStartDTO().setScoreCreatedRoutingKey(scoredRoutingKey);
+            processScoresAndExtensionsConfig.getGradingStartDTO()
+                    .setScoreCreatedRoutingKey(scoredRoutingKey);
             processScoresAndExtensionsConfig.setScoreReceivedChannel(scoreReceivedChannel.get());
 
             return processScoresAndExtensionsConfig;

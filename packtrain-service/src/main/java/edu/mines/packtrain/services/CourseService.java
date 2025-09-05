@@ -26,16 +26,15 @@ import edu.mines.packtrain.repositories.MigrationRepo;
 import edu.mines.packtrain.repositories.ScheduledTaskRepo;
 import edu.mines.packtrain.services.external.CanvasService;
 import edu.mines.packtrain.services.external.S3Service;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -61,7 +60,9 @@ public class CourseService {
                          ApplicationEventPublisher eventPublisher,
                          ImpersonationManager impersonationManager,
                          CanvasService canvasService, S3Service s3Service, UserService userService,
-                         MasterMigrationRepo masterMigrationRepo, MigrationRepo migrationRepo, CourseMemberRepo courseMemberRepo, SimpMessagingTemplate messagingTemplate) {
+                         MasterMigrationRepo masterMigrationRepo, MigrationRepo migrationRepo,
+                         CourseMemberRepo courseMemberRepo,
+                         SimpMessagingTemplate messagingTemplate) {
         this.courseRepo = courseRepo;
         this.lateRequestConfigRepo = lateRequestConfigRepo;
         this.gradescopeConfigRepo = gradescopeConfigRepo;
@@ -226,11 +227,14 @@ public class CourseService {
 
         task = taskRepo.save(task);
 
-        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder().courseComplete(true).build();
-        NewTaskEvent.TaskData<CourseSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseTask);
+        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder()
+                .courseComplete(true).build();
+        NewTaskEvent.TaskData<CourseSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(
+                taskRepo, task.getId(), this::syncCourseTask);
         taskDefinition.setOnJobComplete(Optional.of(_ -> {
             try {
-                messagingTemplate.convertAndSend("/courses/import", objectMapper.writeValueAsString(notificationDTO));
+                messagingTemplate.convertAndSend("/courses/import",
+                        objectMapper.writeValueAsString(notificationDTO));
             } catch (JsonProcessingException _) {
                 throw new RuntimeException("Could not process JSON for sending notification DTO!");
             }

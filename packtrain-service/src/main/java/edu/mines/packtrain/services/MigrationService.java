@@ -5,9 +5,9 @@ import edu.mines.packtrain.data.AssignmentSlimDTO;
 import edu.mines.packtrain.data.MigrationScoreChangeDTO;
 import edu.mines.packtrain.data.MigrationWithScoresDTO;
 import edu.mines.packtrain.data.PolicyRawScoreDTO;
-import edu.mines.packtrain.data.ScoreDTO;
 import edu.mines.packtrain.data.PolicyRawScoreDTO.ExtensionStatusEnum;
 import edu.mines.packtrain.data.PolicyRawScoreDTO.SubmissionStatusEnum;
+import edu.mines.packtrain.data.ScoreDTO;
 import edu.mines.packtrain.data.policyServer.ScoredDTO;
 import edu.mines.packtrain.events.NewTaskEvent;
 import edu.mines.packtrain.factories.DTOFactory;
@@ -55,13 +55,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -694,7 +694,8 @@ public class MigrationService {
             throw new RuntimeException("Failed to post scores to Canvas!");
         }
 
-        // We will probably want to periodically check in on this and then only flag this as completed once this is done
+        // We will probably want to periodically check in on this and then only flag this
+        // as completed once this is done
     }
 
     public List<ScheduledTaskDef> processMigrationLog(User actingUser, UUID masterMigrationId) {

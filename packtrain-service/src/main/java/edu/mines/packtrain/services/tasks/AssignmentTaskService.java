@@ -17,16 +17,13 @@ import edu.mines.packtrain.services.CourseService;
 import edu.mines.packtrain.services.external.CanvasService;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
-import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -41,7 +38,13 @@ public class AssignmentTaskService {
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public AssignmentTaskService(ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo, ApplicationEventPublisher eventPublisher, CourseService courseService, ImpersonationManager impersonationManager, CanvasService canvasService, AssignmentService assignmentService, SimpMessagingTemplate messagingTemplate) {
+    public AssignmentTaskService(ScheduledTaskRepo<AssignmentsSyncTaskDef> taskRepo,
+                                 ApplicationEventPublisher eventPublisher,
+                                 CourseService courseService,
+                                 ImpersonationManager impersonationManager,
+                                 CanvasService canvasService,
+                                 AssignmentService assignmentService,
+                                 SimpMessagingTemplate messagingTemplate) {
         this.taskRepo = taskRepo;
         this.eventPublisher = eventPublisher;
         this.courseService = courseService;
@@ -63,15 +66,15 @@ public class AssignmentTaskService {
         task.shouldUpdateAssignments(updateExisting);
         task = taskRepo.save(task);
 
+        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder()
+                .assignmentsComplete(true).build();
         NewTaskEvent.TaskData<AssignmentsSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(
                 taskRepo, task.getId(), this::syncAssignmentTask);
-
-        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder().assignmentsComplete(true).build();
-        NewTaskEvent.TaskData<AssignmentsSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncAssignmentTask);
         taskDefinition.setDependsOn(dependencies);
         taskDefinition.setOnJobComplete(Optional.of(_ -> {
             try {
-                messagingTemplate.convertAndSend("/courses/import", objectMapper.writeValueAsString(notificationDTO));
+                messagingTemplate.convertAndSend("/courses/import",
+                        objectMapper.writeValueAsString(notificationDTO));
             } catch (JsonProcessingException _) {
                 throw new RuntimeException("Could not process JSON for sending notification DTO!");
             }

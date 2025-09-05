@@ -16,7 +16,7 @@ import lombok.ToString;
 
 @Data
 @Entity(name = "assignment")
-@Table(name="assignments")
+@Table(name = "assignments")
 public class Assignment {
 
     @Id
@@ -27,7 +27,7 @@ public class Assignment {
     @Column(name = "name")
     private String name;
 
-    @Column(name ="canvas_id", unique = true)
+    @Column(name = "canvas_id", unique = true)
     private long canvasId;
 
     @Column(name = "points")

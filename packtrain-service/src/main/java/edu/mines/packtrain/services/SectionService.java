@@ -40,7 +40,11 @@ public class SectionService {
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public SectionService(SectionRepo sectionRepo, ScheduledTaskRepo<SectionSyncTaskDef> taskRepo, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, SimpMessagingTemplate messagingTemplate) {
+    public SectionService(SectionRepo sectionRepo, ScheduledTaskRepo<SectionSyncTaskDef> taskRepo,
+                          CourseService courseService, CanvasService canvasService,
+                          ApplicationEventPublisher eventPublisher,
+                          ImpersonationManager impersonationManager,
+                          SimpMessagingTemplate messagingTemplate) {
         this.sectionRepo = sectionRepo;
         this.taskRepo = taskRepo;
         this.courseService = courseService;
@@ -106,15 +110,14 @@ public class SectionService {
 
         task = taskRepo.save(task);
 
-
-        NewTaskEvent.TaskData<SectionSyncTaskDef> taskDef = new NewTaskEvent.TaskData<>(
+        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder()
+                .sectionsComplete(true).build();
+        NewTaskEvent.TaskData<SectionSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(
                 taskRepo, task.getId(), this::syncSectionTask);
-
-        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder().sectionsComplete(true).build();
-        NewTaskEvent.TaskData<SectionSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncSectionTask);
         taskDefinition.setOnJobComplete(Optional.of(_ -> {
             try {
-                messagingTemplate.convertAndSend("/courses/import", objectMapper.writeValueAsString(notificationDTO));
+                messagingTemplate.convertAndSend("/courses/import",
+                        objectMapper.writeValueAsString(notificationDTO));
             } catch (JsonProcessingException _) {
                 throw new RuntimeException("Could not process JSON for sending notification DTO!");
             }

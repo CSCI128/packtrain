@@ -50,7 +50,15 @@ public class CourseMemberService {
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public CourseMemberService(CourseMemberRepo courseMemberRepo, ScheduledTaskRepo<UserSyncTaskDef> taskRepo, UserService userService, SectionService sectionService, CourseService courseService, CanvasService canvasService, ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager, SimpMessagingTemplate messagingTemplate) {
+    public CourseMemberService(CourseMemberRepo courseMemberRepo,
+                               ScheduledTaskRepo<UserSyncTaskDef> taskRepo,
+                               UserService userService,
+                               SectionService sectionService,
+                               CourseService courseService,
+                               CanvasService canvasService,
+                               ApplicationEventPublisher eventPublisher,
+                               ImpersonationManager impersonationManager,
+                               SimpMessagingTemplate messagingTemplate) {
         this.courseMemberRepo = courseMemberRepo;
         this.taskRepo = taskRepo;
         this.userService = userService;
@@ -193,24 +201,32 @@ public class CourseMemberService {
 
 
         if (task.shouldRemoveOldUsers()) {
-            log.info("Deleting {} course memberships for '{}'", cwidsToRemove.size(), course.getCode());
+            log.info("Deleting {} course memberships for '{}'",
+                    cwidsToRemove.size(), course.getCode());
             if (!cwidsToRemove.isEmpty()) {
                 courseMemberRepo.deleteByCourseAndCwid(course, cwidsToRemove);
             }
         }
 
         if (task.shouldUpdateExistingUsers()) {
-            Set<CourseMember> updatedMembers = updateExistingEnrollments(task, cwidsToUpdate, canvasUsersForCourse, course, sections);
+            Set<CourseMember> updatedMembers = updateExistingEnrollments(task, cwidsToUpdate,
+                    canvasUsersForCourse, course, sections);
 
-            log.info("Updating {} course memberships for '{}'", updatedMembers.size(), course.getCode());
+            log.info("Updating {} course memberships for '{}'",
+                    updatedMembers.size(), course.getCode());
 
             courseMemberRepo.saveAll(updatedMembers);
         }
     }
 
     @Transactional
-    protected Set<CourseMember> updateExistingEnrollments(UserSyncTaskDef task, Set<String> users, Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse, Course course, Map<String, Section> sections) {
-        Map<String, CourseMember> members = courseMemberRepo.getAllByCourseAndCwids(course, users).stream().collect(Collectors.toMap(c -> c.getUser().getCwid(), c -> c));
+    protected Set<CourseMember> updateExistingEnrollments(UserSyncTaskDef task,
+                                      Set<String> users,
+                                      Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse,
+                                                  Course course, Map<String, Section> sections) {
+        Map<String, CourseMember> members = courseMemberRepo.getAllByCourseAndCwids(course, users)
+                .stream().collect(Collectors.toMap(c ->
+                        c.getUser().getCwid(), c -> c));
 
         for (String user : members.keySet()) {
             log.trace("Updating membership for user: {}", user);
@@ -218,24 +234,29 @@ public class CourseMemberService {
             CourseMember member = members.get(user);
 
             edu.ksu.canvas.model.User canvasUser = canvasUsersForCourse.get(user);
-            // make sure that we keep canvasIds up to date (mostly because they can be self when a course is created)
+            // make sure that we keep canvasIds up to date
+            // (mostly because they can be self when a course is created)
             member.setCanvasId(String.valueOf(canvasUser.getId()));
 
             if (canvasUser.getEnrollments().isEmpty()) {
                 log.warn("User '{}' is not enrolled in any sections!", user);
             }
-            if (!canvasUser.getEnrollments().stream().allMatch(e -> sections.containsKey(e.getCourseSectionId()))) {
+            if (!canvasUser.getEnrollments().stream().allMatch(e ->
+                    sections.containsKey(e.getCourseSectionId()))) {
                 // this shouldn't be possible
                 log.warn("Requested sections for user '{}' do not exist!", user);
                 continue;
             }
 
-            Set<Section> enrolledSections = canvasUser.getEnrollments().stream().map(e -> sections.get(e.getCourseSectionId())).collect(Collectors.toSet());
+            Set<Section> enrolledSections = canvasUser.getEnrollments().stream().map(e ->
+                    sections.get(e.getCourseSectionId())).collect(Collectors.toSet());
 
-            Optional<CourseRole> role = canvasService.mapEnrollmentToRole(canvasUser.getEnrollments().getFirst());
+            Optional<CourseRole> role = canvasService
+                    .mapEnrollmentToRole(canvasUser.getEnrollments().getFirst());
 
             if (role.isEmpty()) {
-                log.warn("Missing role '{}' for user '{}'", canvasUser.getEnrollments().getFirst().getType(), user);
+                log.warn("Missing role '{}' for user '{}'",
+                        canvasUser.getEnrollments().getFirst().getType(), user);
                 continue;
             }
 
@@ -251,7 +272,9 @@ public class CourseMemberService {
 
     }
 
-    private Set<CourseMember> createNewEnrollments(UserSyncTaskDef task, List<User> users, Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse, Course course, Map<String, Section> sections) {
+    private Set<CourseMember> createNewEnrollments(UserSyncTaskDef task, List<User> users,
+                                   Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse,
+                                                   Course course, Map<String, Section> sections) {
         Set<CourseMember> members = new HashSet<>();
 
         for (User user : users) {
@@ -264,15 +287,18 @@ public class CourseMemberService {
                 log.warn("User '{}' is not enrolled in any sections!", user.getEmail());
             }
 
-            if (!canvasUser.getEnrollments().stream().allMatch(e -> sections.containsKey(e.getCourseSectionId()))) {
+            if (!canvasUser.getEnrollments().stream().allMatch(e ->
+                    sections.containsKey(e.getCourseSectionId()))) {
                 // this shouldn't be possible
                 log.warn("Requested sections for user '{}' do not exist!", user.getEmail());
                 continue;
             }
 
-            Set<Section> enrolledSections = canvasUser.getEnrollments().stream().map(e -> sections.get(e.getCourseSectionId())).collect(Collectors.toSet());
+            Set<Section> enrolledSections = canvasUser.getEnrollments().stream().map(e ->
+                    sections.get(e.getCourseSectionId())).collect(Collectors.toSet());
 
-            Optional<CourseRole> role = canvasService.mapEnrollmentToRole(canvasUser.getEnrollments().getFirst());
+            Optional<CourseRole> role = canvasService
+                    .mapEnrollmentToRole(canvasUser.getEnrollments().getFirst());
 
             // acting user should be made the owner of the class
             if (user.equals(task.getCreatedByUser())) {
@@ -280,7 +306,8 @@ public class CourseMemberService {
             }
 
             if (role.isEmpty()) {
-                log.warn("Missing role '{}' for user '{}'", canvasUser.getEnrollments().getFirst().getType(), user.getEmail());
+                log.warn("Missing role '{}' for user '{}'", canvasUser.getEnrollments()
+                        .getFirst().getType(), user.getEmail());
                 continue;
             }
 
@@ -297,7 +324,9 @@ public class CourseMemberService {
         return members;
     }
 
-    public ScheduledTaskDef syncMembersFromCanvas(User actingUser, Set<Long> dependencies, UUID courseId, boolean updateExisting, boolean removeOld, boolean addNew) {
+    public ScheduledTaskDef syncMembersFromCanvas(User actingUser, Set<Long> dependencies,
+                                                  UUID courseId, boolean updateExisting,
+                                                  boolean removeOld, boolean addNew) {
         UserSyncTaskDef task = new UserSyncTaskDef();
         task.setCreatedByUser(actingUser);
         task.setTaskName(String.format("Sync Course '%s': Course Members", courseId));
@@ -307,12 +336,15 @@ public class CourseMemberService {
         task.shouldRemoveOldUsers(removeOld);
         task = taskRepo.save(task);
 
-        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder().membersComplete(true).build();
-        NewTaskEvent.TaskData<UserSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseMembersTask);
+        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder()
+                .membersComplete(true).build();
+        NewTaskEvent.TaskData<UserSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(
+                taskRepo, task.getId(), this::syncCourseMembersTask);
         taskDefinition.setDependsOn(dependencies);
         taskDefinition.setOnJobComplete(Optional.of(_ -> {
             try {
-                messagingTemplate.convertAndSend("/courses/import", objectMapper.writeValueAsString(notificationDTO));
+                messagingTemplate.convertAndSend("/courses/import",
+                        objectMapper.writeValueAsString(notificationDTO));
             } catch (JsonProcessingException _) {
                 throw new RuntimeException("Could not process JSON for sending notification DTO!");
             }
@@ -343,7 +375,8 @@ public class CourseMemberService {
         Optional<CourseMember> courseMember = courseMemberRepo.getAllByCourseAndUser(course, user);
 
         if (courseMember.isEmpty()) {
-            log.warn("User '{}' is not enrolled in course '{}'!", user.getEmail(), course.getCode());
+            log.warn("User '{}' is not enrolled in course '{}'!",
+                    user.getEmail(), course.getCode());
             return false;
         }
 
@@ -381,10 +414,12 @@ public class CourseMemberService {
     }
 
     public void useLatePasses(Course course, User user, double amount) {
-        Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, user.getCwid()).stream().findFirst();
+        Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course,
+                user.getCwid()).stream().findFirst();
 
         if (courseMember.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User '%s' is not enrolled in course '%s'", user.getEmail(), course.getCode()));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User '%s' " +
+                    "is not enrolled in course '%s'", user.getEmail(), course.getCode()));
         }
 
         double finalLatePasses = courseMember.get().getLatePassesUsed() + amount;
@@ -393,10 +428,12 @@ public class CourseMemberService {
     }
 
     public void refundLatePasses(Course course, User user, double amount) {
-        Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course, user.getCwid()).stream().findFirst();
+        Optional<CourseMember> courseMember = courseMemberRepo.findAllByCourseByCwid(course,
+                user.getCwid()).stream().findFirst();
 
         if (courseMember.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User '%s' is not enrolled in course '%s'", user.getEmail(), course.getCode()));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User '%s' " +
+                    "is not enrolled in course '%s'", user.getEmail(), course.getCode()));
         }
 
         double finalLatePasses = courseMember.get().getLatePassesUsed() - amount;
@@ -422,7 +459,8 @@ public class CourseMemberService {
 
         if (member.isEmpty()) {
             log.warn("User '{}' is not enrolled in course '{}'", user.getCwid(), course.getCode());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not enrolled in this course");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not enrolled " +
+                    "in this course");
         }
 
         return member.get().getCanvasId();

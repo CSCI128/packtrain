@@ -12,12 +12,11 @@ import edu.mines.packtrain.models.User;
 import edu.mines.packtrain.services.CourseMemberService;
 import edu.mines.packtrain.services.CredentialService;
 import edu.mines.packtrain.services.UserService;
+import java.util.List;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-
-import java.util.List;
-import java.util.UUID;
 
 @Controller
 public class UserApiImpl implements UserApiDelegate {
@@ -26,7 +25,8 @@ public class UserApiImpl implements UserApiDelegate {
     private final SecurityManager securityManager;
     private final CourseMemberService courseMemberService;
 
-    public UserApiImpl(UserService userService, CredentialService credentialService, SecurityManager securityManager, CourseMemberService courseMemberService) {
+    public UserApiImpl(UserService userService, CredentialService credentialService,
+                       SecurityManager securityManager, CourseMemberService courseMemberService) {
         this.userService = userService;
         this.credentialService = credentialService;
         this.securityManager = securityManager;
@@ -48,7 +48,8 @@ public class UserApiImpl implements UserApiDelegate {
 
     @Override
     public ResponseEntity<CredentialDTO> newCredential(CredentialDTO credential) {
-        Credential newCredential = credentialService.createNewCredentialForService(securityManager.getCwid(), credential);
+        Credential newCredential = credentialService.createNewCredentialForService(
+                securityManager.getCwid(), credential);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(newCredential));
     }
@@ -60,22 +61,25 @@ public class UserApiImpl implements UserApiDelegate {
     }
 
     @Override
-    public ResponseEntity<Void> markCredentialAsPrivate(String credentialId){
-        credentialService.markCredentialAsPrivate(securityManager.getCwid(), UUID.fromString(credentialId));
+    public ResponseEntity<Void> markCredentialAsPrivate(String credentialId) {
+        credentialService.markCredentialAsPrivate(securityManager.getCwid(),
+                UUID.fromString(credentialId));
 
         return ResponseEntity.accepted().build();
     }
 
     @Override
-    public ResponseEntity<Void> markCredentialAsPublic(String credentialId){
-        credentialService.markCredentialAsPublic(securityManager.getCwid(), UUID.fromString(credentialId));
+    public ResponseEntity<Void> markCredentialAsPublic(String credentialId) {
+        credentialService.markCredentialAsPublic(securityManager.getCwid(),
+                UUID.fromString(credentialId));
 
         return ResponseEntity.accepted().build();
     }
 
     @Override
-    public ResponseEntity<Void> deleteCredential(String credentialId){
-        credentialService.deleteCredential(securityManager.getCwid(), UUID.fromString(credentialId));
+    public ResponseEntity<Void> deleteCredential(String credentialId) {
+        credentialService.deleteCredential(securityManager.getCwid(),
+                UUID.fromString(credentialId));
 
         return ResponseEntity.noContent().build();
     }
@@ -95,8 +99,10 @@ public class UserApiImpl implements UserApiDelegate {
                 .enabled(course.isEnabled())
                 .courseRole(
                         EnrollmentDTO.CourseRoleEnum.fromValue(
-                                courseMemberService.findCourseMemberGivenCourseAndCwid(course, user.getCwid())
-                                        .map(member -> member.getRole().name().toLowerCase())
+                                courseMemberService.findCourseMemberGivenCourseAndCwid(
+                                        course, user.getCwid())
+                                        .map(member -> member.getRole().name()
+                                                .toLowerCase())
                                         .orElse("unknown")
                         ))
         ).toList());
