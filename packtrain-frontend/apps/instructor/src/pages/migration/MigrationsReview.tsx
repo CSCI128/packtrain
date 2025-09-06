@@ -31,6 +31,14 @@ import {
   useGetMigrationWithScores,
 } from "../../hooks";
 
+interface ExportRow {
+  name: string;
+  score?: number;
+  rawScore?: number;
+  daysLate?: number;
+  status?: string;
+}
+
 export function MigrationsReviewPage() {
   const navigate = useNavigate();
   const {
@@ -190,6 +198,37 @@ export function MigrationsReviewPage() {
     );
   };
 
+  const exportData: ExportRow[] = sortedData.map((row: Score) => ({
+    name: row.student?.name ?? "",
+    score: row.score,
+    rawScore: row.raw_score,
+    daysLate: row.days_late,
+    status: row.status,
+  }));
+
+  function exportToCsv(data: ExportRow[], filename = "scores.csv") {
+    const headers = ["Name", "Score", "Raw Score", "Days Late", "Status"];
+    const rows = data.map((d) => [
+      d.name,
+      d.score,
+      d.rawScore,
+      d.daysLate,
+      d.status,
+    ]);
+
+    let csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map((e) => e.join(",")).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   const rows = sortedData.map((row: Score) => (
     // student name, days late, score to apply, raw score, status
     <Table.Tr key={row.student?.cwid}>
@@ -203,10 +242,10 @@ export function MigrationsReviewPage() {
         </Center>
       </Table.Td>
       <Table.Td>
-        <Center>{row.raw_score} </Center>
+        <Center>{row.raw_score}</Center>
       </Table.Td>
       <Table.Td>
-        <Center>{row.days_late} </Center>
+        <Center>{row.days_late}</Center>
       </Table.Td>
       <Table.Td>{row.status}</Table.Td>
     </Table.Tr>
@@ -392,16 +431,20 @@ export function MigrationsReviewPage() {
 
                   <Group>
                     <Text>
-                      <b>{migrationData[0].stats?.total_submission}</b> Total submissions
+                      <b>{migrationData[0].stats?.total_submission}</b> Total
+                      submissions
                     </Text>
                     <Text>
-                      <b>{migrationData[0].stats?.late_requests}</b> Late requests
+                      <b>{migrationData[0].stats?.late_requests}</b> Late
+                      requests
                     </Text>
                     <Text>
-                      <b>{migrationData[0].stats?.total_extensions}</b> Extensions applied
+                      <b>{migrationData[0].stats?.total_extensions}</b>{" "}
+                      Extensions applied
                     </Text>
                     <Text>
-                      <b>{migrationData[0].stats?.total_late_passes}</b> Total late passes 
+                      <b>{migrationData[0].stats?.total_late_passes}</b> Total
+                      late passes
                     </Text>
                   </Group>
                 </Tabs.Panel>
@@ -413,7 +456,9 @@ export function MigrationsReviewPage() {
         )}
 
         <Group justify="space-between" mt="l">
-          <Button color="gray">Export</Button>
+          <Button color="gray" onClick={() => exportToCsv(exportData)}>
+            Export
+          </Button>
 
           <Group>
             <Button onClick={openConfirm}>Post</Button>
