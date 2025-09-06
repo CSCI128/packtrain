@@ -232,7 +232,8 @@ export function ExtensionForm() {
         />
       </InputWrapper>
 
-      {latePassView ? (
+      {courseData.course.late_request_config.late_passes_enabled &&
+      latePassView ? (
         <form onSubmit={latePassForm.onSubmit(submitLatePass)}>
           <Stack gap="xs">
             {(courseData.late_passes_used ?? 0) >= LATE_PASSES_ALLOWED ? (
