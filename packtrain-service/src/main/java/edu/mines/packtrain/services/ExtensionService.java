@@ -2,6 +2,7 @@ package edu.mines.packtrain.services;
 
 import edu.mines.packtrain.data.ExtensionDTO;
 import edu.mines.packtrain.data.LateRequestDTO;
+import edu.mines.packtrain.managers.SecurityManager;
 import edu.mines.packtrain.models.Assignment;
 import edu.mines.packtrain.models.Course;
 import edu.mines.packtrain.models.CourseMember;
@@ -34,17 +35,20 @@ public class ExtensionService {
     private final CourseMemberService courseMemberService;
     private final CourseService courseService;
     private final UserService userService;
+    private final SecurityManager securityManager;
 
     public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo,
                             AssignmentService assignmentService,
                             CourseMemberService courseMemberService,
-                            CourseService courseService, UserService userService) {
+                            CourseService courseService, UserService userService,
+                            SecurityManager securityManager) {
         this.extensionRepo = extensionRepo;
         this.lateRequestRepo = lateRequestRepo;
         this.assignmentService = assignmentService;
         this.courseMemberService = courseMemberService;
         this.courseService = courseService;
         this.userService = userService;
+        this.securityManager = securityManager;
     }
 
     public List<Extension> getExtensionsByMigrationId(UUID migrationId) {
@@ -68,9 +72,9 @@ public class ExtensionService {
         return List.of();
     }
 
-    public LateRequest approveExtension(UUID assignmentId, String userId, UUID extensionId,
-                                        String reason) {
+    public LateRequest approveExtension(UUID extensionId, String reason) {
         Optional<LateRequest> lateRequest = getLateRequest(extensionId);
+        String userId = securityManager.getUser().getCwid();
 
         if (lateRequest.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request " +
@@ -87,9 +91,9 @@ public class ExtensionService {
         return lateRequestRepo.save(lateRequest.get());
     }
 
-    public LateRequest denyExtension(UUID assignmentId, String userId, UUID extensionId,
-                                     String reason) {
+    public LateRequest denyExtension(UUID extensionId, String reason) {
         Optional<LateRequest> lateRequest = getLateRequest(extensionId);
+        String userId = securityManager.getUser().getCwid();
 
         if (lateRequest.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Late request " +
@@ -156,7 +160,6 @@ public class ExtensionService {
         CourseMember instructor = courseMemberService.getStudentInstructor(course, userSection);
 
         lateRequest.setInstructor(instructor.getUser().getName());
-        lateRequest.setRequestor(actingUser.getName());
 
         if (extension != null) {
             Extension newExtension = createExtensionFromDTO(courseId, actingUser, extension);

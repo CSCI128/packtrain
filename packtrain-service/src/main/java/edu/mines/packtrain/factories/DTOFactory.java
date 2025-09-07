@@ -48,7 +48,7 @@ public class DTOFactory {
                 .assignmentId(lateRequest.getAssignment().getId())
                 .assignmentName(lateRequest.getAssignment().getName())
                 .instructor(lateRequest.getInstructor())
-                .requestor(lateRequest.getRequestor())
+                .userRequester(lateRequest.getRequestingUser().getName())
                 .userReviewer(lateRequest.getExtension() != null
                         ? lateRequest.getExtension().getReviewer().getName() : null)
                 .extension(lateRequest.getExtension() != null ?
