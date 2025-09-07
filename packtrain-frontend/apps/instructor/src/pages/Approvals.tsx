@@ -193,6 +193,7 @@ export function ApprovalPage() {
   };
 
   const rows = sortedData
+    .filter((row) => row.request_type === "extension")
     .filter(
       (row: LateRequestWithDueDate) =>
         statusFilter === null ||
@@ -219,14 +220,16 @@ export function ApprovalPage() {
       </Table.Tr>
     ));
 
-  const latePassRows = sortedData.map((row: LateRequestWithDueDate) => (
-    <Table.Tr key={row.id}>
-      <Table.Td>{formattedDate(new Date(row.date_submitted))}</Table.Td>
-      <Table.Td>{row.assignment_name}</Table.Td>
-      <Table.Td>{row.user_requester}</Table.Td>
-      <Table.Td>{row.instructor}</Table.Td>
-    </Table.Tr>
-  ));
+  const latePassRows = sortedData
+    .filter((row) => row.request_type === "late_pass")
+    .map((row: LateRequestWithDueDate) => (
+      <Table.Tr key={row.id}>
+        <Table.Td>{formattedDate(new Date(row.date_submitted))}</Table.Td>
+        <Table.Td>{row.assignment_name}</Table.Td>
+        <Table.Td>{row.user_requester}</Table.Td>
+        <Table.Td>{row.instructor}</Table.Td>
+      </Table.Tr>
+    ));
 
   return (
     <>
