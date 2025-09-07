@@ -1,17 +1,14 @@
 import {
   Box,
   Button,
-  Center,
   Container,
   Divider,
   Group,
-  Modal,
   Select,
   Stack,
   Stepper,
   Text,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
 import { Migration, Policy, Task } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
@@ -27,14 +24,15 @@ import {
 
 export function MigrationsApplyPage() {
   const navigate = useNavigate();
-  const [opened, { open, close }] = useDisclosure(false);
-  const [selectedMigration, setSelectedMigration] = useState<Migration>();
-  const [selectedPolicyId, setSelectedPolicyId] = useState<string>("");
+  const [selectedPolicies, setSelectedPolicies] = useState<
+    Record<string, string>
+  >({});
   const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
     []
   );
   const [posting, setPosting] = useState(true);
   const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
+  const [error, setError] = useState<string>();
 
   const {
     data: policyData,
@@ -78,15 +76,6 @@ export function MigrationsApplyPage() {
         .then((res) => res.data)
         .catch((err) => console.log(err)),
   });
-
-  const handleSetPolicy = (selectedAssignmentId: string) => {
-    setSelectedMigration(
-      migrationData?.migrations
-        ?.filter((x) => x.assignment.id === selectedAssignmentId)
-        .at(0)
-    );
-    open();
-  };
 
   const applyMasterMigration = useMutation({
     mutationKey: ["applyMasterMigration"],
@@ -200,168 +189,141 @@ export function MigrationsApplyPage() {
     return `An error occured: ${migrationError}`;
 
   return (
-    <>
-      <Modal opened={opened} onClose={close} title="Select Policy" centered>
-        <Center>
-          <Stack>
-            <Select
-              label="Select a policy:"
-              placeholder="Select policy.."
-              data={
-                policyData &&
-                policyData.map((policy: Policy) => ({
-                  label: policy.name ?? "",
-                  value: policy.id as string,
-                }))
-              }
-              onChange={(value) => {
-                setSelectedPolicyId(value ?? "1");
-              }}
-            />
-            <Group justify="flex-end">
-              <Button color="gray" variant="light" onClick={close}>
-                Cancel
-              </Button>
+    <Container size="md">
+      <Stepper pl={50} pr={50} pb={30} active={1} allowNextStepsSelect={false}>
+        <Stepper.Step label="Load"></Stepper.Step>
+        <Stepper.Step label="Apply"></Stepper.Step>
+        <Stepper.Step label="Review"></Stepper.Step>
+        <Stepper.Step label="Post"></Stepper.Step>
+      </Stepper>
 
-              <Button
-                color="blue"
-                onClick={() => {
-                  setPolicyMigration.mutate(
+      <Text size="xl" fw={700}>
+        Apply Policies
+      </Text>
+
+      <Divider my="sm" />
+
+      <Stack>
+        {selectedAssignmentIds.map((selectedAssignment) => (
+          <React.Fragment key={selectedAssignment}>
+            <Box p={20} bg="gray.1">
+              <Group justify="space-between">
+                <Group>
+                  <Text fw={800}>
                     {
-                      master_migration_id:
-                        store$.master_migration_id.get() as string,
-                      migration_id: selectedMigration?.id as string,
-                      policy_id: selectedPolicyId,
-                    },
-                    {
-                      onSuccess: () => {
-                        close();
-                        refetch();
-                      },
+                      migrationData.migrations
+                        ?.filter((x) => x.assignment.id === selectedAssignment)
+                        .at(0)?.assignment.name
                     }
-                  );
-                }}
-                variant="filled"
-              >
-                Select Policy
-              </Button>
-            </Group>
-          </Stack>
-        </Center>
-      </Modal>
-
-      <Container size="md">
-        <Stepper
-          pl={50}
-          pr={50}
-          pb={30}
-          active={1}
-          allowNextStepsSelect={false}
-        >
-          <Stepper.Step label="Load"></Stepper.Step>
-          <Stepper.Step label="Apply"></Stepper.Step>
-          <Stepper.Step label="Review"></Stepper.Step>
-          <Stepper.Step label="Post"></Stepper.Step>
-        </Stepper>
-
-        <Text size="xl" fw={700}>
-          Apply Policies
-        </Text>
-
-        <Divider my="sm" />
-
-        <Stack>
-          {selectedAssignmentIds.map((selectedAssignment) => (
-            <React.Fragment key={selectedAssignment}>
-              <Box p={20} bg="gray.1">
-                <Group justify="space-between">
-                  <Group>
-                    <Text fw={800}>
-                      {
-                        migrationData.migrations
-                          ?.filter(
-                            (x) => x.assignment.id === selectedAssignment
-                          )
-                          .at(0)?.assignment.name
-                      }
-                    </Text>
-                    <Text>
-                      {
-                        migrationData.migrations
-                          ?.filter(
-                            (x) => x.assignment.id === selectedAssignment
-                          )
-                          .at(0)?.policy?.name
-                      }
-                    </Text>
-                  </Group>
-
-                  <Group>
-                    <Button
-                      color="blue"
-                      onClick={() => handleSetPolicy(selectedAssignment)}
-                    >
-                      Select
-                    </Button>
-                  </Group>
+                  </Text>
                 </Group>
-              </Box>
-            </React.Fragment>
-          ))}
-        </Stack>
 
-        {/* <Text mt="md" fw={700}> */}
-        {/*   Statistics */}
-        {/* </Text> */}
-        {/* <Text> */}
-        {/*   <strong>{migrationData.stats?.total_submission}</strong> students */}
-        {/* </Text> */}
-        {/* <Text> */}
-        {/*   <strong>{migrationData.stats?.late_requests}</strong> late submissions */}
-        {/* </Text> */}
-        {/* <Text> */}
-        {/*   <strong>{migrationData.stats?.total_extensions}</strong> extensions */}
-        {/* </Text> */}
-        {/* <Text> */}
-        {/*   <strong>{migrationData.stats?.unapproved_requests}</strong> unapproved */}
-        {/*   extensions */}
-        {/* </Text> */}
+                <Group>
+                  Policy:
+                  <Select
+                    placeholder="Select policy.."
+                    data={
+                      policyData &&
+                      policyData.map((policy: Policy) => ({
+                        label: policy.name ?? "",
+                        value: policy.id as string,
+                      }))
+                    }
+                    value={selectedPolicies[selectedAssignment] || ""}
+                    error={!selectedPolicies[selectedAssignment] ? error : null}
+                    onChange={(value) => {
+                      if (!value) return;
 
-        {!posting && <Text mt={20}>Applying grades..</Text>}
+                      setSelectedPolicies((prev) => ({
+                        ...prev,
+                        [selectedAssignment]: value,
+                      }));
 
-        <Group justify="flex-end" mt="md">
-          <Button
-            disabled={!posting}
-            component={Link}
-            to="/instructor/migrate/load"
-            color="gray"
-            variant="light"
-          >
-            Previous
-          </Button>
-          <Button
-            disabled={!posting}
-            onClick={() => {
-              applyMasterMigration.mutate(
-                {
-                  master_migration_id:
-                    store$.master_migration_id.get() as string,
+                      setPolicyMigration.mutate(
+                        {
+                          master_migration_id:
+                            store$.master_migration_id.get() as string,
+                          migration_id: migrationData?.migrations
+                            ?.filter(
+                              (x) => x.assignment.id === selectedAssignment
+                            )
+                            .at(0)?.id as string,
+                          policy_id: value as string,
+                        },
+                        {
+                          onSuccess: () => {
+                            refetch();
+                          },
+                        }
+                      );
+                    }}
+                  />
+                </Group>
+              </Group>
+            </Box>
+          </React.Fragment>
+        ))}
+      </Stack>
+
+      {/* <Text mt="md" fw={700}> */}
+      {/*   Statistics */}
+      {/* </Text> */}
+      {/* <Text> */}
+      {/*   <strong>{migrationData.stats?.total_submission}</strong> students */}
+      {/* </Text> */}
+      {/* <Text> */}
+      {/*   <strong>{migrationData.stats?.late_requests}</strong> late submissions */}
+      {/* </Text> */}
+      {/* <Text> */}
+      {/*   <strong>{migrationData.stats?.total_extensions}</strong> extensions */}
+      {/* </Text> */}
+      {/* <Text> */}
+      {/*   <strong>{migrationData.stats?.unapproved_requests}</strong> unapproved */}
+      {/*   extensions */}
+      {/* </Text> */}
+
+      {!posting && <Text mt={20}>Applying grades..</Text>}
+
+      <Group justify="flex-end" mt="md">
+        <Button
+          disabled={!posting}
+          component={Link}
+          to="/instructor/migrate/load"
+          color="gray"
+          variant="light"
+        >
+          Previous
+        </Button>
+        <Button
+          disabled={!posting}
+          onClick={() => {
+            const allPoliciesSelected = selectedAssignmentIds.every(
+              (id) => selectedPolicies[id]
+            );
+
+            if (!allPoliciesSelected) {
+              setError("Please select policies for all selected assignments!");
+              return;
+            }
+
+            applyMasterMigration.mutate(
+              {
+                master_migration_id: store$.master_migration_id.get() as string,
+              },
+              {
+                onSuccess: (data) => {
+                  console.log(data);
+                  setPosting(false);
+                  setOutstandingTasks(data);
                 },
-                {
-                  onSuccess: (data) => {
-                    console.log(data);
-                    setPosting(false);
-                    setOutstandingTasks(data);
-                  },
-                }
-              );
-            }}
-            color="blue"
-          >
-            Next
-          </Button>
-        </Group>
-      </Container>
-    </>
+              }
+            );
+          }}
+          color="blue"
+        >
+          Next
+        </Button>
+      </Group>
+    </Container>
   );
 }
