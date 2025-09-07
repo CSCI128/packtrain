@@ -1,5 +1,7 @@
 package edu.mines.packtrain.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ksu.canvas.model.Progress;
 import edu.mines.packtrain.data.AssignmentSlimDTO;
 import edu.mines.packtrain.data.MigrationScoreChangeDTO;
@@ -9,6 +11,8 @@ import edu.mines.packtrain.data.PolicyRawScoreDTO.ExtensionStatusEnum;
 import edu.mines.packtrain.data.PolicyRawScoreDTO.SubmissionStatusEnum;
 import edu.mines.packtrain.data.ScoreDTO;
 import edu.mines.packtrain.data.policyServer.ScoredDTO;
+import edu.mines.packtrain.data.websockets.CourseSyncNotificationDTO;
+import edu.mines.packtrain.data.websockets.MigrationApplyNotificationDTO;
 import edu.mines.packtrain.events.NewTaskEvent;
 import edu.mines.packtrain.factories.DTOFactory;
 import edu.mines.packtrain.factories.MigrationFactory;
@@ -59,6 +63,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -84,7 +89,8 @@ public class MigrationService {
     private final CourseMemberService courseMemberService;
     private final ImpersonationManager impersonationManager;
     private final CanvasService canvasService;
-
+    private final SimpMessagingTemplate messagingTemplate;
+    private final ObjectMapper objectMapper;
 
     public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo,
                             MigrationTransactionLogRepo transactionLogRepo,
@@ -102,7 +108,9 @@ public class MigrationService {
                             PolicyService policyService,
                             CourseMemberService courseMemberService,
                             ImpersonationManager impersonationManager,
-                            CanvasService canvasService) {
+                            CanvasService canvasService,
+                            SimpMessagingTemplate messagingTemplate,
+                            ObjectMapper objectMapper) {
         this.migrationRepo = migrationRepo;
         this.masterMigrationRepo = masterMigrationRepo;
         this.transactionLogRepo = transactionLogRepo;
@@ -121,6 +129,8 @@ public class MigrationService {
         this.courseMemberService = courseMemberService;
         this.impersonationManager = impersonationManager;
         this.canvasService = canvasService;
+        this.messagingTemplate = messagingTemplate;
+        this.objectMapper = objectMapper;
     }
 
     public MasterMigration createMigrationForAssignments(Course course, User createdByUser,
@@ -424,10 +434,33 @@ public class MigrationService {
 
             tasks.add(zeroOutSubmissionsTask);
 
+            MigrationApplyNotificationDTO zeroNotificationDTO =
+                    MigrationApplyNotificationDTO.builder().zeroSubmissionsComplete(true).build();
             NewTaskEvent.TaskData<ZeroOutSubmissionsTaskDef> zeroTaskDef =
                     new NewTaskEvent.TaskData<>(zeroOutSubmissionsTaskRepo,
                             zeroOutSubmissionsTask.getId(), this::zeroOutSubmissions);
+            zeroTaskDef.setOnJobComplete(Optional.of(_ -> {
+                try {
+//                    TODO: stop duplicating this URL
+                    messagingTemplate.convertAndSend("/migrations/apply",
+                            objectMapper.writeValueAsString(zeroNotificationDTO));
+                } catch (JsonProcessingException _) {
+                    throw new RuntimeException("Could not process JSON for sending notification DTO!");
+                }
+            }));
+            zeroTaskDef.setOnJobFail(Optional.of(_ -> {
+                try {
+                    CourseSyncNotificationDTO errorDTO = CourseSyncNotificationDTO.builder()
+                            .error("Could not create course!").build();
+                    messagingTemplate.convertAndSend("/migrations/apply",
+                            objectMapper.writeValueAsString(errorDTO));
+                } catch (JsonProcessingException _) {
+                    throw new RuntimeException("Could not process JSON for sending notification DTO!");
+                }
+            }));
 
+            MigrationApplyNotificationDTO extensionsNotificationDTO =
+                    MigrationApplyNotificationDTO.builder().processExtensionsComplete(true).build();
             ProcessScoresAndExtensionsTaskDef task = new ProcessScoresAndExtensionsTaskDef();
             task.setCreatedByUser(actingUser);
             task.setTaskName(String.format("Process scores and extensions for assignment '%s'",
@@ -443,6 +476,24 @@ public class MigrationService {
                     new NewTaskEvent.TaskData<>(processScoresTaskRepo, task.getId(),
                             this::processScoresAndExtensionsTask);
             taskDefinition.setDependsOn(Set.of(zeroOutSubmissionsTask.getId()));
+            taskDefinition.setOnJobComplete(Optional.of(_ -> {
+                try {
+                    messagingTemplate.convertAndSend("/migrations/apply",
+                            objectMapper.writeValueAsString(extensionsNotificationDTO));
+                } catch (JsonProcessingException _) {
+                    throw new RuntimeException("Could not process JSON for sending notification DTO!");
+                }
+            }));
+            taskDefinition.setOnJobFail(Optional.of(_ -> {
+                try {
+                    CourseSyncNotificationDTO errorDTO = CourseSyncNotificationDTO.builder()
+                            .error("Could not create course!").build();
+                    messagingTemplate.convertAndSend("/migrations/apply",
+                            objectMapper.writeValueAsString(errorDTO));
+                } catch (JsonProcessingException _) {
+                    throw new RuntimeException("Could not process JSON for sending notification DTO!");
+                }
+            }));
 
             eventPublisher.publishEvent(new NewTaskEvent(this, zeroTaskDef));
             eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
