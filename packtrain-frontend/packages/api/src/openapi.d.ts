@@ -200,6 +200,11 @@ declare namespace Components {
             name: string;
             /**
              * example:
+             * 123456
+             */
+            canvas_id: number; // int64
+            /**
+             * example:
              * 15
              */
             points: number; // double

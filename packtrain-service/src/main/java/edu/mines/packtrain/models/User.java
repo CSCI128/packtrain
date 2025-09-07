@@ -2,6 +2,7 @@ package edu.mines.packtrain.models;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
@@ -35,7 +36,7 @@ public class User {
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    @OneToMany(mappedBy = "owningUser")
+    @OneToMany(mappedBy = "owningUser", fetch = FetchType.EAGER)
     @EqualsAndHashCode.Exclude
     private Set<Credential> credential;
 
@@ -43,6 +44,4 @@ public class User {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Set<CourseMember> courseMemberships;
-
-
 }

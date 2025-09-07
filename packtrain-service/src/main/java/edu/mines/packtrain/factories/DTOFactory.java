@@ -27,9 +27,7 @@ import edu.mines.packtrain.models.Policy;
 import edu.mines.packtrain.models.Section;
 import edu.mines.packtrain.models.User;
 import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class DTOFactory {
 
     private DTOFactory() {
@@ -154,6 +152,7 @@ public class DTOFactory {
     public static AssignmentSlimDTO toSlimDto(Assignment assignment) {
         return new AssignmentSlimDTO()
                 .id(assignment.getId())
+                .canvasId(assignment.getCanvasId())
                 .name(assignment.getName())
                 .points(assignment.getPoints())
                 .dueDate(assignment.getDueDate())
