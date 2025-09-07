@@ -5,6 +5,7 @@ import {
   Divider,
   Modal,
   ScrollArea,
+  SegmentedControl,
   Stack,
   Table,
   Text,
@@ -45,6 +46,7 @@ export function ApprovalPage() {
   const [denialReason, setDenialReason] = useState<string>("");
   const [approvalReason, setApprovalReason] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [extensionsView, setExtensionsView] = useState<boolean>(false);
 
   const approveExtensionMutation = useMutation({
     mutationKey: ["approveExtension"],
@@ -296,6 +298,33 @@ export function ApprovalPage() {
         </Text>
 
         <Divider my="sm" />
+
+        <SegmentedControl
+          mb={10}
+          onChange={() => {
+            setExtensionsView(!extensionsView);
+          }}
+          data={[
+            {
+              value: "extensions",
+              label: (
+                <Center style={{ gap: 10 }}>
+                  <span>Extensions</span>
+                </Center>
+              ),
+            },
+            {
+              value: "latepasses",
+              label: (
+                <Center style={{ gap: 10 }}>
+                  <span>Late Passes</span>
+                </Center>
+              ),
+            },
+          ]}
+        />
+
+        {extensionsView ? <>extensions view</> : <>late pass view</>}
 
         <ScrollArea>
           <TextInput
