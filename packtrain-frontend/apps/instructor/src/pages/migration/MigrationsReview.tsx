@@ -219,12 +219,9 @@ export function MigrationsReviewPage() {
 
     const assignmentName = assignment.name;
     const assignmentCanvasId = assignment.canvas_id;
-    const points = assignment.points;
 
     // Canvas header rows - SIS User ID,SIS Login ID,Section don't need to be populated bc Canvas is stupid
     const header1 = `Student,ID,SIS User ID,SIS Login ID,Section,${assignmentName} (${assignmentCanvasId})`;
-    const header2 = ",,,,,Manual Posting";
-    const header3 = `Points Possible,,,,,${points?.toFixed(2)}`;
 
     const rows = data.map((d) => [
       d.name ?? "",
@@ -237,7 +234,7 @@ export function MigrationsReviewPage() {
 
     const csvContent =
       "data:text/csv;charset=utf-8," +
-      [header1, header2, header3, ...rows.map((r) => r.join(","))].join("\n");
+      [header1, ...rows.map((r) => r.join(","))].join("\n");
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
