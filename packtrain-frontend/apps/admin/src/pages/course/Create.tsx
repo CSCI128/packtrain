@@ -18,13 +18,12 @@ import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
 import { Course, CourseSyncTask } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { Client } from "@stomp/stompjs";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import SockJS from "sockjs-client";
 import { userManager } from "../../auth";
 import { useGetCredentials } from "../../hooks";
+import { useWebSocketClient } from "../../websocketHooks";
 
 type CourseSyncNotificationDTO = {
   error?: string;
@@ -39,13 +38,13 @@ export function CreatePage() {
   const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
   const [courseCreated, setCourseCreated] = useState(false);
+  const [importErrorMessage, setErrorImportMessage] = useState("");
   const [importStatistics, setImportStatistics] = useState({
     members: 0,
     assignments: 0,
     sections: 0,
   });
-  // const [tasksFailed, setTasksFailed] = useState(false);
-  const [courseDeleted, setCourseDeleted] = useState(false);
+  const [tasksFailed, setTasksFailed] = useState(false);
   const [completed, setCompleted] = useState({
     course: false,
     sections: false,
@@ -54,7 +53,6 @@ export function CreatePage() {
   });
   const [userData, setUserData] = useState(null);
 
-  // fetch user token
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -68,52 +66,33 @@ export function CreatePage() {
     fetchUser();
   }, []);
 
-  useEffect(() => {
-    if (!userData) return;
+  useWebSocketClient({
+    authToken: userData?.access_token,
+    onConnect: (client) => {
+      client.subscribe("/courses/import", (msg) => {
+        const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
 
-    const API_URL =
-      window.__ENV__ && window.__ENV__.VITE_API_URL
-        ? window.__ENV__?.VITE_API_URL + "/api/ws"
-        : "https://localhost.dev/api/ws";
-    const socket = new SockJS(API_URL);
-    const client = new Client({
-      webSocketFactory: () => socket,
-      connectHeaders: {
-        Authorization: `Bearer ${userData.access_token}`,
-      },
-      reconnectDelay: 5000,
-      onConnect: () => {
-        client.subscribe("/courses/import", (msg) => {
-          const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
-          if (payload.course_complete) {
-            setCompleted((prev) => ({
-              ...prev,
-              course: true,
-            }));
-          }
-          if (payload.sections_complete) {
-            setCompleted((prev) => ({
-              ...prev,
-              sections: true,
-            }));
-          }
-          if (payload.assignments_complete) {
-            setCompleted((prev) => ({
-              ...prev,
-              assignments: true,
-            }));
-          }
-          if (payload.members_complete) {
-            setCompleted((prev) => ({
-              ...prev,
-              members: true,
-            }));
-          }
-        });
-      },
-    });
-    client.activate();
-  }, [userData]);
+        if (payload.error) {
+          setErrorImportMessage(payload.error);
+          setTasksFailed(true);
+          setAllTasksCompleted(false);
+        }
+
+        if (payload.course_complete) {
+          setCompleted((prev) => ({ ...prev, course: true }));
+        }
+        if (payload.sections_complete) {
+          setCompleted((prev) => ({ ...prev, sections: true }));
+        }
+        if (payload.assignments_complete) {
+          setCompleted((prev) => ({ ...prev, assignments: true }));
+        }
+        if (payload.members_complete) {
+          setCompleted((prev) => ({ ...prev, members: true }));
+        }
+      });
+    },
+  });
 
   useEffect(() => {
     if (
@@ -225,16 +204,16 @@ export function CreatePage() {
         assignments: data.assignments?.length || 0,
       });
     }
-
-    // if (tasksFailed && store$.id.get() && !courseDeleted) {
-    //   console.log(
-    //     `Tasks failed, deleting course by ID: ${store$.id.get() as string}`
-    //   );
-    //   deleteCourse(store$.id.get() as string);
-    //   setCourseDeleted(true);
-    // }
-    // }, [allTasksCompleted, data, tasksFailed, courseDeleted]);
   }, [allTasksCompleted, data]);
+
+  useEffect(() => {
+    if (tasksFailed) {
+      console.log(
+        `Tasks failed, deleting course by ID: ${store$.id.get() as string}`
+      );
+      deleteCourse(store$.id.get() as string);
+    }
+  }, [tasksFailed]);
 
   const createCourse = (values: typeof form.values) => {
     mutation.mutate(
@@ -436,15 +415,14 @@ export function CreatePage() {
 
             {courseCreated && (
               <Box p={20}>
-                {!allTasksCompleted ? (
+                {!allTasksCompleted && !tasksFailed ? (
                   <>
                     <Text>Importing, this may take a moment..</Text>{" "}
                     <Loader color="blue" />
                   </>
                 ) : (
                   <>
-                    {/* TODO TASKS FAILED instead of true */}
-                    {true ? (
+                    {!tasksFailed ? (
                       <>
                         <Text>Import complete!</Text>
                         <Text>
@@ -462,16 +440,19 @@ export function CreatePage() {
                       </>
                     ) : (
                       <>
-                        <Text>Import Failed!</Text>
-                        <Text>Deleting attempted import!</Text>
+                        <Text size="md" ta="center" c="red.9" fw={700}>
+                          Import Failed
+                        </Text>
+                        <Text ta="center" c="gray.7">
+                          {importErrorMessage}
+                        </Text>
                       </>
                     )}
                   </>
                 )}
 
                 <Group justify="flex-end" mt="md">
-                  {/* TODO TASKS FAILED instead of true */}
-                  {!true ? (
+                  {!tasksFailed ? (
                     <Button
                       disabled={!allTasksCompleted}
                       color={allTasksCompleted ? "blue" : "gray"}

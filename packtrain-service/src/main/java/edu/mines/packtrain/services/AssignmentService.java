@@ -55,7 +55,6 @@ public class AssignmentService {
         return assignmentRepo.getAssignmentByCourse(course);
     }
 
-
     public void createNewAssignmentsFromCanvas(Map<Long, String> assignmentGroups,
                                                List<edu.ksu.canvas.model.assignment.Assignment>
                                                        canvasAssignments, Course course) {
