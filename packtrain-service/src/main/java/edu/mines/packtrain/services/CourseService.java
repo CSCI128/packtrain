@@ -233,8 +233,6 @@ public class CourseService {
                 taskRepo, task.getId(), this::syncCourseTask);
         taskDefinition.setOnJobComplete(Optional.of(_ -> {
             try {
-//                TODO: stop duplicating this URL, also found in services: SectionService, AssignmentTaskService, and
-//                 CourseMemberService
                 messagingTemplate.convertAndSend("/courses/sync",
                         objectMapper.writeValueAsString(notificationDTO));
             } catch (JsonProcessingException _) {

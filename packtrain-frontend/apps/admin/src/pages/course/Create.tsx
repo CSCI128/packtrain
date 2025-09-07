@@ -196,8 +196,6 @@ export function CreatePage() {
     );
   };
 
-  // TODO dont need all tasks completed, we have completed var; make these changes in sync too
-  // TODO merge this with useEffect above once tasks complete
   useEffect(() => {
     if (allTasksCompleted && data) {
       setImportStatistics({

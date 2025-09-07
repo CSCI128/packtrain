@@ -13,6 +13,7 @@ import edu.mines.packtrain.data.ScoreDTO;
 import edu.mines.packtrain.data.policyServer.ScoredDTO;
 import edu.mines.packtrain.data.websockets.CourseSyncNotificationDTO;
 import edu.mines.packtrain.data.websockets.MigrationApplyNotificationDTO;
+import edu.mines.packtrain.data.websockets.MigrationPostNotificationDTO;
 import edu.mines.packtrain.events.NewTaskEvent;
 import edu.mines.packtrain.factories.DTOFactory;
 import edu.mines.packtrain.factories.MigrationFactory;
@@ -91,6 +92,8 @@ public class MigrationService {
     private final CanvasService canvasService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;
+    private final String MIGRATION_APPLY_ENDPOINT = "/migrations/apply";
+    private final String MIGRATION_POST_ENDPOINT = "/migrations/post";
 
     public MigrationService(MigrationRepo migrationRepo, MasterMigrationRepo masterMigrationRepo,
                             MigrationTransactionLogRepo transactionLogRepo,
@@ -441,8 +444,7 @@ public class MigrationService {
                             zeroOutSubmissionsTask.getId(), this::zeroOutSubmissions);
             zeroTaskDef.setOnJobComplete(Optional.of(_ -> {
                 try {
-//                    TODO: stop duplicating this URL
-                    messagingTemplate.convertAndSend("/migrations/apply",
+                    messagingTemplate.convertAndSend(MIGRATION_APPLY_ENDPOINT,
                             objectMapper.writeValueAsString(zeroNotificationDTO));
                 } catch (JsonProcessingException _) {
                     throw new RuntimeException("Could not process JSON for sending notification DTO!");
@@ -450,17 +452,15 @@ public class MigrationService {
             }));
             zeroTaskDef.setOnJobFail(Optional.of(_ -> {
                 try {
-                    CourseSyncNotificationDTO errorDTO = CourseSyncNotificationDTO.builder()
-                            .error("Could not create course!").build();
-                    messagingTemplate.convertAndSend("/migrations/apply",
+                    MigrationApplyNotificationDTO errorDTO = MigrationApplyNotificationDTO.builder()
+                            .error("Could not zero submissions!").build();
+                    messagingTemplate.convertAndSend(MIGRATION_APPLY_ENDPOINT,
                             objectMapper.writeValueAsString(errorDTO));
                 } catch (JsonProcessingException _) {
                     throw new RuntimeException("Could not process JSON for sending notification DTO!");
                 }
             }));
 
-            MigrationApplyNotificationDTO extensionsNotificationDTO =
-                    MigrationApplyNotificationDTO.builder().processExtensionsComplete(true).build();
             ProcessScoresAndExtensionsTaskDef task = new ProcessScoresAndExtensionsTaskDef();
             task.setCreatedByUser(actingUser);
             task.setTaskName(String.format("Process scores and extensions for assignment '%s'",
@@ -472,6 +472,8 @@ public class MigrationService {
 
             tasks.add(task);
 
+            MigrationApplyNotificationDTO extensionsNotificationDTO =
+                    MigrationApplyNotificationDTO.builder().processExtensionsComplete(true).build();
             NewTaskEvent.TaskData<ProcessScoresAndExtensionsTaskDef> taskDefinition =
                     new NewTaskEvent.TaskData<>(processScoresTaskRepo, task.getId(),
                             this::processScoresAndExtensionsTask);
@@ -486,8 +488,8 @@ public class MigrationService {
             }));
             taskDefinition.setOnJobFail(Optional.of(_ -> {
                 try {
-                    CourseSyncNotificationDTO errorDTO = CourseSyncNotificationDTO.builder()
-                            .error("Could not create course!").build();
+                    MigrationApplyNotificationDTO errorDTO = MigrationApplyNotificationDTO.builder()
+                            .error("Could not process scores and extensions!").build();
                     messagingTemplate.convertAndSend("/migrations/apply",
                             objectMapper.writeValueAsString(errorDTO));
                 } catch (JsonProcessingException _) {
@@ -779,9 +781,29 @@ public class MigrationService {
 
             tasks.add(task);
 
+            MigrationPostNotificationDTO notificationDTO =
+                    MigrationPostNotificationDTO.builder().post_complete(true).build();
             NewTaskEvent.TaskData<PostToCanvasTaskDef> taskDefinition =
                     new NewTaskEvent.TaskData<>(postToCanvasTaskRepo, task.getId(),
                             this::postGradesToCanvasTask);
+            taskDefinition.setOnJobComplete(Optional.of(_ -> {
+                try {
+                    messagingTemplate.convertAndSend(MIGRATION_POST_ENDPOINT,
+                            objectMapper.writeValueAsString(notificationDTO));
+                } catch (JsonProcessingException _) {
+                    throw new RuntimeException("Could not process JSON for sending notification DTO!");
+                }
+            }));
+            taskDefinition.setOnJobFail(Optional.of(_ -> {
+                try {
+                    MigrationPostNotificationDTO errorDTO = MigrationPostNotificationDTO.builder()
+                            .error("Could not post grades to Canvas!").build();
+                    messagingTemplate.convertAndSend(MIGRATION_POST_ENDPOINT,
+                            objectMapper.writeValueAsString(errorDTO));
+                } catch (JsonProcessingException _) {
+                    throw new RuntimeException("Could not process JSON for sending notification DTO!");
+                }
+            }));
 
             eventPublisher.publishEvent(new NewTaskEvent(this, taskDefinition));
         }

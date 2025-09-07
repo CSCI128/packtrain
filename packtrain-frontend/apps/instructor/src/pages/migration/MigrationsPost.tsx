@@ -1,6 +1,6 @@
 import {
+  Box,
   Button,
-  Center,
   Container,
   Divider,
   Group,
@@ -9,33 +9,25 @@ import {
   Text,
 } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
-import { Task } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { useWebSocketClient } from "@repo/ui/WebSocketHooks";
 import { useMutation } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { userManager } from "../../auth";
+
+type MigrationPostNotificationDTO = {
+  error?: string;
+  post_complete?: boolean;
+};
 
 export function MigrationsPostPage() {
   const navigate = useNavigate();
-  const [posting, setPosting] = useState(false);
-  const [postingFinished, setPostingFinished] = useState(false);
-  const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
-
-  const { mutateAsync: fetchTask } = useMutation({
-    mutationKey: ["getTask"],
-    mutationFn: ({ task_id }: { task_id: number }) =>
-      getApiClient()
-        .then((client) =>
-          client.get_task({
-            task_id: task_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-  });
+  const [posting, setPosting] = useState<boolean>(false);
+  const [postingFinished, setPostingFinished] = useState<boolean>(false);
+  const [tasksFailed, setTasksFailed] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [completed, setCompleted] = useState<boolean>(false);
 
   const postMasterMigration = useMutation({
     mutationKey: ["postMasterMigration"],
@@ -71,79 +63,50 @@ export function MigrationsPostPage() {
         }),
   });
 
-  const pollTaskUntilComplete = useCallback(
-    async (taskId: number, delay = 5000) => {
-      let tries = 0;
-      while (true) {
-        try {
-          if (tries > 20) {
-            throw new Error("Maximum attempts (20) at polling exceeded..");
-          }
+  const [userData, setUserData] = useState<any>();
 
-          const response = await fetchTask({ task_id: taskId });
-
-          if (response?.status === "COMPLETED") {
-            console.log(`Task ${taskId} is completed!`);
-            return response;
-          } else if (response?.status === "FAILED") {
-            console.log(`Task ${taskId} failed`);
-            throw new Error("ERR");
-          } else {
-            console.log(
-              `Task ${taskId} is still in progress, retrying in ${delay}ms...`
-            );
-            tries++;
-            await new Promise((res) => setTimeout(res, delay));
-          }
-        } catch (error) {
-          console.error(`Error fetching task ${taskId}:`, error);
-          return;
-        }
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const u = await userManager.getUser();
+        if (!u) throw new Error("Failed to get user");
+        setUserData(u);
+      } catch (err) {
+        console.error(err);
       }
-    },
-    [fetchTask]
-  );
-
-  useEffect(() => {
-    if (outstandingTasks.length === 0) return;
-
-    const pollTasks = async () => {
-      Promise.all(
-        outstandingTasks.map((task) => pollTaskUntilComplete(task.id))
-      )
-        .then((results) => {
-          console.log("All tasks are completed:", results);
-          setOutstandingTasks([]);
-          setPostingFinished(true);
-          setPosting(false);
-          finalizeMasterMigration.mutate({
-            master_migration_id: store$.master_migration_id.get() as string,
-          });
-        })
-        .catch((error) => {
-          console.error("Some tasks failed:", error);
-        });
     };
+    fetchUser();
+  }, []);
 
-    pollTasks();
-  }, [outstandingTasks, pollTaskUntilComplete]);
+  useWebSocketClient({
+    authToken: userData?.access_token,
+    onConnect: (client) => {
+      client.subscribe("/migrations/post", (msg) => {
+        const payload: MigrationPostNotificationDTO = JSON.parse(msg.body);
+
+        console.log("DEBUG: received payload:", payload);
+
+        if (payload.error) {
+          setErrorMessage(payload.error);
+          setTasksFailed(true);
+        }
+
+        if (payload.post_complete) {
+          setCompleted(true);
+        }
+      });
+    },
+  });
 
   useEffect(() => {
-    if (!posting && !postingFinished) {
-      postMasterMigration.mutate(
-        {
-          master_migration_id: store$.master_migration_id.get() as string,
-        },
-        {
-          onSuccess: (response) => {
-            console.log("RESP:", response);
-            setPosting(true);
-            setOutstandingTasks(response);
-          },
-        }
-      );
+    if (completed) {
+      setPostingFinished(true);
+      setPosting(false);
+      finalizeMasterMigration.mutate({
+        master_migration_id: store$.master_migration_id.get() as string,
+      });
     }
-  }, [posting, postingFinished]);
+  }, [completed]);
 
   return (
     <>
@@ -167,39 +130,71 @@ export function MigrationsPostPage() {
 
         <Divider my="sm" />
 
-        {posting ? (
+        {posting && (
           <>
             <Text size="lg" fw={700}>
               Posting grades..
             </Text>
             <Progress my="md" radius="xl" size="lg" value={50} animated />
           </>
-        ) : (
-          <Center mt={20}>
-            <Text size="lg" fw={500}>
-              Done posting!
-            </Text>
-          </Center>
         )}
 
-        <Text size="md" c="gray.6" ta="center">
-          Reminder: You must post/publish the grades in Canvas for students to
-          see them!
-        </Text>
+        {tasksFailed && (
+          <>
+            <Text size="md" ta="center" c="red.9" fw={700}>
+              Migration Post Failed
+            </Text>
+            <Text ta="center" c="gray.7">
+              {errorMessage}
+            </Text>
+          </>
+        )}
 
-        {postingFinished && (
-          <Group justify="flex-end" mt="md">
-            <Button
-              color="blue"
-              onClick={() => {
-                store$.master_migration_id.delete();
-                navigate("/instructor/migrate");
-              }}
-              variant="filled"
-            >
-              Done
-            </Button>
-          </Group>
+        {postingFinished ? (
+          <>
+            <Box mt={20}>
+              <Text size="lg" ta="center" fw={500}>
+                Done posting!
+              </Text>
+
+              <Text size="md" c="gray.6" ta="center">
+                Reminder: You must post/publish the grades in Canvas for
+                students to see them!
+              </Text>
+            </Box>
+            <Group justify="flex-end" mt="md">
+              <Button
+                color="blue"
+                onClick={() => {
+                  store$.master_migration_id.delete();
+                  navigate("/instructor/migrate");
+                }}
+                variant="filled"
+              >
+                Done
+              </Button>
+            </Group>
+          </>
+        ) : (
+          <Button
+            color="blue"
+            onClick={() => {
+              postMasterMigration.mutate(
+                {
+                  master_migration_id:
+                    store$.master_migration_id.get() as string,
+                },
+                {
+                  onSuccess: () => {
+                    setPosting(true);
+                  },
+                }
+              );
+            }}
+            variant="filled"
+          >
+            Post
+          </Button>
         )}
       </Container>
     </>
