@@ -16,7 +16,11 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { MigrationScoreChange, Score } from "@repo/api/openapi";
+import {
+  MigrationScoreChange,
+  MigrationWithScores,
+  Score,
+} from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { Loading } from "@repo/ui/Loading";
 import { TableHeader, useTableData } from "@repo/ui/table/Table";
@@ -31,13 +35,11 @@ import {
   useGetMigrationWithScores,
 } from "../../hooks";
 
-interface ExportRow {
+type ExportRow = {
   name: string;
-  score?: number;
-  rawScore?: number;
-  daysLate?: number;
-  status?: string;
-}
+  canvas_id: string;
+  score: number;
+};
 
 export function MigrationsReviewPage() {
   const navigate = useNavigate();
@@ -200,25 +202,42 @@ export function MigrationsReviewPage() {
 
   const exportData: ExportRow[] = sortedData.map((row: Score) => ({
     name: row.student?.name ?? "",
-    score: row.score,
-    rawScore: row.raw_score,
-    daysLate: row.days_late,
-    status: row.status,
+    canvas_id: row.student?.canvas_id ?? "",
+    score: row.score ?? 0.0,
   }));
 
-  function exportToCsv(data: ExportRow[], filename = "scores.csv") {
-    const headers = ["Name", "Score", "Raw Score", "Days Late", "Status"];
+  function exportToCanvasCsv(data: ExportRow[], filename = "scores.csv") {
+    // ex: "HW6 - Logic & Circuits (279003)";
+    const assignment = migrationData?.find(
+      (x: MigrationWithScores) => x.assignment?.id === selectedAssignment
+    )?.assignment;
+
+    if (!assignment) {
+      console.error("Assignment not found; could not export Canvas CSV");
+      return;
+    }
+
+    const assignmentName = assignment.name;
+    const assignmentCanvasId = assignment.canvas_id;
+    const points = assignment.points;
+
+    // Canvas header rows - SIS User ID,SIS Login ID,Section don't need to be populated bc Canvas is stupid
+    const header1 = `Student,ID,SIS User ID,SIS Login ID,Section,${assignmentName} (${assignmentCanvasId})`;
+    const header2 = ",,,,,Manual Posting";
+    const header3 = `Points Possible,,,,,${points?.toFixed(2)}`;
+
     const rows = data.map((d) => [
-      d.name,
-      d.score,
-      d.rawScore,
-      d.daysLate,
-      d.status,
+      d.name ?? "",
+      d.canvas_id ?? "",
+      "",
+      "",
+      "",
+      d.score ?? "",
     ]);
 
-    let csvContent =
+    const csvContent =
       "data:text/csv;charset=utf-8," +
-      [headers, ...rows].map((e) => e.join(",")).join("\n");
+      [header1, header2, header3, ...rows.map((r) => r.join(","))].join("\n");
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -456,7 +475,7 @@ export function MigrationsReviewPage() {
         )}
 
         <Group justify="space-between" mt="l">
-          <Button color="gray" onClick={() => exportToCsv(exportData)}>
+          <Button color="gray" onClick={() => exportToCanvasCsv(exportData)}>
             Export
           </Button>
 

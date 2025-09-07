@@ -3243,6 +3243,7 @@
         "required": [
           "id",
           "name",
+          "canvas_id",
           "points",
           "due_date",
           "unlock_date",
@@ -3257,6 +3258,11 @@
           "name": {
             "type": "string",
             "example": "Assessment 1"
+          },
+          "canvas_id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 123456
           },
           "points": {
             "type": "number",
