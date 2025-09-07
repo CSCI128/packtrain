@@ -44,6 +44,7 @@ export function ApprovalPage() {
     useState<LateRequest | null>(null);
   const [denialReason, setDenialReason] = useState<string>("");
   const [approvalReason, setApprovalReason] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   const approveExtensionMutation = useMutation({
     mutationKey: ["approveExtension"],
@@ -197,26 +198,35 @@ export function ApprovalPage() {
     );
   };
 
-  const rows = sortedData.map((row: LateRequestWithDueDate) => (
-    <Table.Tr key={row.id}>
-      <Table.Td>{formattedDate(new Date(row.date_submitted))}</Table.Td>
-      <Table.Td>{formattedDate(row.new_due_date)}</Table.Td>
-      <Table.Td>
-        {row.request_type === "late_pass" ? "Late Pass" : "Extension"}
-      </Table.Td>
-      <Table.Td>{row.assignment_name}</Table.Td>
-      <Table.Td>{row.requestor}</Table.Td>
-      <Table.Td>{row.user_reviewer}</Table.Td>
-      <Table.Td>{row.instructor}</Table.Td>
-      <Table.Td>{row.extension?.reason}</Table.Td>
-      <Table.Td>{row.status}</Table.Td>
-      <Table.Td>
-        {row.request_type !== "late_pass" && courseData?.enabled && (
-          <ApproveRejectButtons {...row} />
-        )}
-      </Table.Td>
-    </Table.Tr>
-  ));
+  const rows = sortedData
+    .filter(
+      (row: LateRequestWithDueDate) =>
+        statusFilter === null ||
+        statusFilter === "all" ||
+        row.status === statusFilter
+    )
+    .map((row: LateRequestWithDueDate) => (
+      <Table.Tr key={row.id}>
+        <Table.Td>{formattedDate(new Date(row.date_submitted))}</Table.Td>
+        <Table.Td>{formattedDate(row.new_due_date)}</Table.Td>
+        <Table.Td>
+          {row.request_type === "late_pass" ? "Late Pass" : "Extension"}
+        </Table.Td>
+        <Table.Td>{row.assignment_name}</Table.Td>
+        <Table.Td>{row.requestor}</Table.Td>
+        <Table.Td>{row.user_reviewer}</Table.Td>
+        <Table.Td>{row.instructor}</Table.Td>
+        <Table.Td>{row.extension?.reason}</Table.Td>
+        <Table.Td>
+          {row.status.charAt(0).toUpperCase() + row.status.slice(1)}
+        </Table.Td>
+        <Table.Td>
+          {row.request_type !== "late_pass" && courseData?.enabled && (
+            <ApproveRejectButtons {...row} />
+          )}
+        </Table.Td>
+      </Table.Tr>
+    ));
 
   return (
     <>
@@ -355,9 +365,16 @@ export function ApprovalPage() {
                   Reason
                 </TableHeader>
                 <TableHeader
-                  sorted={sortBy === "status"}
+                  sorted={false}
                   reversed={reverseSortDirection}
-                  onSort={() => handleSort("status")}
+                  onSort={undefined}
+                  filterOptions={[
+                    { label: "All", value: "all" },
+                    { label: "Approved", value: "approved" },
+                    { label: "Pending", value: "pending" },
+                    { label: "Rejected", value: "rejected" },
+                  ]}
+                  onFilter={(val) => setStatusFilter(val)}
                 >
                   Status
                 </TableHeader>

@@ -1,7 +1,15 @@
-import { Center, Group, Table, Text, UnstyledButton } from "@mantine/core";
+import {
+  Center,
+  Group,
+  Menu,
+  Table,
+  Text,
+  UnstyledButton,
+} from "@mantine/core";
 import {
   IconChevronDown,
   IconChevronUp,
+  IconFilter,
   IconSelector,
 } from "@tabler/icons-react";
 import React, { useMemo, useState } from "react";
@@ -12,6 +20,8 @@ interface TableHeaderProps {
   reversed: boolean;
   sorted: boolean;
   onSort: (() => void) | undefined;
+  filterOptions?: { label: string; value: string }[];
+  onFilter?: (value: string) => void;
 }
 
 export function useTableData<T extends Record<string, any>>(rawData: T[]) {
@@ -142,29 +152,84 @@ export function TableHeader({
   reversed,
   sorted,
   onSort,
+  filterOptions,
+  onFilter,
 }: TableHeaderProps) {
   const Icon = sorted
     ? reversed
       ? IconChevronUp
       : IconChevronDown
     : IconSelector;
+
+  const isPlainHeader = !onSort && !filterOptions;
+
   return (
-    <Table.Th className={classes.th}>
-      {onSort !== undefined ? (
+    <Table.Th
+      className={`${classes.th} ${isPlainHeader ? classes.centered : ""}`}
+    >
+      {onSort ? (
         <UnstyledButton onClick={onSort} className={classes.control}>
           <Group justify="space-between">
             <Text fw={500} fz="sm">
               {children}
             </Text>
-            <Center className={classes.icon}>
-              <Icon size={16} stroke={1.5} />
-            </Center>
+            {filterOptions && onFilter ? (
+              <Menu shadow="md" width={180} position="bottom-end">
+                <Menu.Target>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <IconFilter size={16} stroke={1.5} />
+                  </div>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {filterOptions.map((opt) => (
+                    <Menu.Item
+                      key={opt.value}
+                      onClick={() => onFilter(opt.value)}
+                    >
+                      {opt.label}
+                    </Menu.Item>
+                  ))}
+                </Menu.Dropdown>
+              </Menu>
+            ) : (
+              <Center className={classes.icon}>
+                <Icon size={16} stroke={1.5} />
+              </Center>
+            )}
           </Group>
         </UnstyledButton>
-      ) : (
+      ) : isPlainHeader ? (
         <Text fw={500} fz="sm" ta="center">
           {children}
         </Text>
+      ) : (
+        // non-sortable but with filter
+        <div className={classes.control}>
+          <Group justify="space-between">
+            <Text fw={500} fz="sm">
+              {children}
+            </Text>
+            {filterOptions && onFilter && (
+              <Menu shadow="md" width={180} position="bottom-end">
+                <Menu.Target>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <IconFilter size={16} stroke={1.5} />
+                  </div>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {filterOptions.map((opt) => (
+                    <Menu.Item
+                      key={opt.value}
+                      onClick={() => onFilter(opt.value)}
+                    >
+                      {opt.label}
+                    </Menu.Item>
+                  ))}
+                </Menu.Dropdown>
+              </Menu>
+            )}
+          </Group>
+        </div>
       )}
     </Table.Th>
   );
