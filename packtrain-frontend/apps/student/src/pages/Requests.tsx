@@ -198,17 +198,18 @@ export function Requests() {
               Close
             </Button>
 
-            {selectedExtension?.status !== "rejected" && (
-              <Button
-                color="red"
-                onClick={() => {
-                  close();
-                  openWithdrawConfirm();
-                }}
-              >
-                Withdraw Extension
-              </Button>
-            )}
+            {selectedExtension?.status !== "rejected" &&
+              selectedExtension?.status !== "approved" && (
+                <Button
+                  color="red"
+                  onClick={() => {
+                    close();
+                    openWithdrawConfirm();
+                  }}
+                >
+                  Withdraw Extension
+                </Button>
+              )}
           </Group>
         </Stack>
       </Modal>
