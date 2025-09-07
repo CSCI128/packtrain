@@ -11,7 +11,6 @@ import edu.mines.packtrain.data.PolicyRawScoreDTO.ExtensionStatusEnum;
 import edu.mines.packtrain.data.PolicyRawScoreDTO.SubmissionStatusEnum;
 import edu.mines.packtrain.data.ScoreDTO;
 import edu.mines.packtrain.data.policyServer.ScoredDTO;
-import edu.mines.packtrain.data.websockets.CourseSyncNotificationDTO;
 import edu.mines.packtrain.data.websockets.MigrationApplyNotificationDTO;
 import edu.mines.packtrain.data.websockets.MigrationPostNotificationDTO;
 import edu.mines.packtrain.events.NewTaskEvent;
