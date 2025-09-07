@@ -97,7 +97,7 @@ export function ExtensionForm() {
     postForm.mutate(
       {
         body: {
-          user_requester_id: auth.user?.profile.id as string,
+          user_requester: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
           date_submitted: new Date().toISOString(),
           num_days_requested: numDaysRequested,
@@ -121,7 +121,7 @@ export function ExtensionForm() {
     postForm.mutate(
       {
         body: {
-          user_requester_id: auth.user?.profile.id as string,
+          user_requester: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
           date_submitted: new Date().toISOString(),
           num_days_requested: numDaysRequested,
