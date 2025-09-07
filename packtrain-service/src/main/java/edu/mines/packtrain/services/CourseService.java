@@ -282,6 +282,13 @@ public class CourseService {
                 createCourseLateRequestConfig(courseDTO.getLateRequestConfig());
 
         if (courseDTO.getGradescopeId() != null) {
+            if (gradescopeConfigRepo.existsByGradescopeId(courseDTO.getGradescopeId().toString())) {
+                log.error("Failed to create course: Gradescope config by id {} already exists!",
+                        courseDTO.getGradescopeId());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Failed to create course: " +
+                        "Gradescope config by id %s already exists!", courseDTO.getGradescopeId().toString()));
+            }
+
             GradescopeConfig gsConfig = new GradescopeConfig();
             gsConfig.setGradescopeId(courseDTO.getGradescopeId().toString());
             newCourse.setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));
@@ -304,12 +311,10 @@ public class CourseService {
                     "create S3 bucket for course '%s'!", courseDTO.getCode()));
         }
 
-
         return newCourse;
     }
 
-    private Optional<CourseLateRequestConfig> createCourseLateRequestConfig(
-            CourseLateRequestConfigDTO dto) {
+    private Optional<CourseLateRequestConfig> createCourseLateRequestConfig(CourseLateRequestConfigDTO dto) {
         if (dto == null) {
             return Optional.empty();
         }
