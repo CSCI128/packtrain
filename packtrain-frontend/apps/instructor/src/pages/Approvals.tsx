@@ -46,7 +46,7 @@ export function ApprovalPage() {
   const [denialReason, setDenialReason] = useState<string>("");
   const [approvalReason, setApprovalReason] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [extensionsView, setExtensionsView] = useState<boolean>(false);
+  const [extensionsView, setExtensionsView] = useState<boolean>(true);
 
   const approveExtensionMutation = useMutation({
     mutationKey: ["approveExtension"],
@@ -203,9 +203,6 @@ export function ApprovalPage() {
       <Table.Tr key={row.id}>
         <Table.Td>{formattedDate(new Date(row.date_submitted))}</Table.Td>
         <Table.Td>{formattedDate(row.new_due_date)}</Table.Td>
-        <Table.Td>
-          {row.request_type === "late_pass" ? "Late Pass" : "Extension"}
-        </Table.Td>
         <Table.Td>{row.assignment_name}</Table.Td>
         <Table.Td>{row.user_requester}</Table.Td>
         <Table.Td>{row.user_reviewer}</Table.Td>
@@ -221,6 +218,15 @@ export function ApprovalPage() {
         </Table.Td>
       </Table.Tr>
     ));
+
+  const latePassRows = sortedData.map((row: LateRequestWithDueDate) => (
+    <Table.Tr key={row.id}>
+      <Table.Td>{formattedDate(new Date(row.date_submitted))}</Table.Td>
+      <Table.Td>{row.assignment_name}</Table.Td>
+      <Table.Td>{row.user_requester}</Table.Td>
+      <Table.Td>{row.instructor}</Table.Td>
+    </Table.Tr>
+  ));
 
   return (
     <>
@@ -316,109 +322,164 @@ export function ApprovalPage() {
           ]}
         />
 
-        {extensionsView ? <>extensions view</> : <>late pass view</>}
-
-        <ScrollArea>
-          <TextInput
-            placeholder="Search by any field"
-            mb="md"
-            leftSection={<IconSearch size={16} stroke={1.5} />}
-            value={search}
-            onChange={handleSearchChange}
-          />
-          <Table horizontalSpacing="md" verticalSpacing="xs" miw={700}>
-            <Table.Tbody>
-              <Table.Tr>
-                <TableHeader
-                  sorted={sortBy === "date_submitted"}
-                  reversed={reverseSortDirection}
-                  onSort={() => handleSort("date_submitted")}
-                >
-                  Request Date
-                </TableHeader>
-                <TableHeader
-                  sorted={sortBy === "new_due_date"}
-                  reversed={reverseSortDirection}
-                  onSort={() => handleSort("new_due_date")}
-                >
-                  New Due Date
-                </TableHeader>
-                <TableHeader
-                  sorted={sortBy === "request_type"}
-                  reversed={reverseSortDirection}
-                  onSort={() => handleSort("request_type")}
-                >
-                  Type
-                </TableHeader>
-                <TableHeader
-                  sorted={sortBy === "assignment_name"}
-                  reversed={reverseSortDirection}
-                  onSort={() => handleSort("assignment_name")}
-                >
-                  Assignment(s)
-                </TableHeader>
-                <TableHeader
-                  sorted={sortBy === "requestor"}
-                  reversed={reverseSortDirection}
-                  onSort={() => handleSort("requestor")}
-                >
-                  Requestor
-                </TableHeader>
-                <TableHeader
-                  sorted={sortBy === "reviewer"}
-                  reversed={reverseSortDirection}
-                  onSort={() => handleSort("reviewer")}
-                >
-                  Reviewer
-                </TableHeader>
-                <TableHeader
-                  sorted={sortBy === "instructor"}
-                  reversed={reverseSortDirection}
-                  onSort={() => handleSort("instructor")}
-                >
-                  Section Instructor
-                </TableHeader>
-                <TableHeader
-                  sorted={sortBy === "extension"}
-                  reversed={reverseSortDirection}
-                  onSort={() => handleSort("extension")}
-                >
-                  Reason
-                </TableHeader>
-                <TableHeader
-                  sorted={false}
-                  reversed={reverseSortDirection}
-                  onSort={undefined}
-                  filterOptions={[
-                    { label: "All", value: "all" },
-                    { label: "Approved", value: "approved" },
-                    { label: "Pending", value: "pending" },
-                    { label: "Rejected", value: "rejected" },
-                  ]}
-                  onFilter={(val) => setStatusFilter(val)}
-                >
-                  Status
-                </TableHeader>
-                <TableHeader sorted={false} reversed={false} onSort={undefined}>
-                  Actions
-                </TableHeader>
-              </Table.Tr>
-            </Table.Tbody>
-            <Table.Tbody>
-              {rows.length > 0 ? (
-                rows
-              ) : (
+        {extensionsView ? (
+          <ScrollArea>
+            <TextInput
+              placeholder="Search by any field"
+              mb="md"
+              leftSection={<IconSearch size={16} stroke={1.5} />}
+              value={search}
+              onChange={handleSearchChange}
+            />
+            <Table horizontalSpacing="md" verticalSpacing="xs" miw={700}>
+              <Table.Tbody>
                 <Table.Tr>
-                  <Table.Td colSpan={data.length}>
-                    <Text fw={400} ta="center">
-                      No late requests found
-                    </Text>
-                  </Table.Td>
+                  <TableHeader
+                    sorted={sortBy === "date_submitted"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("date_submitted")}
+                  >
+                    Request Date
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "new_due_date"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("new_due_date")}
+                  >
+                    New Due Date
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "assignment_name"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("assignment_name")}
+                  >
+                    Assignment
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "requestor"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("requestor")}
+                  >
+                    Requestor
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "reviewer"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("reviewer")}
+                  >
+                    Reviewer
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "instructor"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("instructor")}
+                  >
+                    Section Instructor
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "extension.reason"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("extension.reason")}
+                  >
+                    Reason
+                  </TableHeader>
+                  <TableHeader
+                    sorted={false}
+                    reversed={reverseSortDirection}
+                    onSort={undefined}
+                    filterOptions={[
+                      { label: "All", value: "all" },
+                      { label: "Approved", value: "approved" },
+                      { label: "Pending", value: "pending" },
+                      { label: "Rejected", value: "rejected" },
+                    ]}
+                    onFilter={(val) => setStatusFilter(val)}
+                  >
+                    Status
+                  </TableHeader>
+                  <TableHeader
+                    sorted={false}
+                    reversed={false}
+                    onSort={undefined}
+                  >
+                    Actions
+                  </TableHeader>
                 </Table.Tr>
-              )}
-            </Table.Tbody>
-          </Table>
-        </ScrollArea>
+              </Table.Tbody>
+              <Table.Tbody>
+                {rows.length > 0 ? (
+                  rows
+                ) : (
+                  <Table.Tr>
+                    <Table.Td colSpan={data.length}>
+                      <Text fw={400} ta="center">
+                        No extensions found
+                      </Text>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+              </Table.Tbody>
+            </Table>
+          </ScrollArea>
+        ) : (
+          // LATE PASSES
+          <ScrollArea>
+            <TextInput
+              placeholder="Search by any field"
+              mb="md"
+              leftSection={<IconSearch size={16} stroke={1.5} />}
+              value={search}
+              onChange={handleSearchChange}
+            />
+            <Table horizontalSpacing="md" verticalSpacing="xs" miw={700}>
+              <Table.Tbody>
+                <Table.Tr>
+                  <TableHeader
+                    sorted={sortBy === "date_submitted"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("date_submitted")}
+                  >
+                    Request Date
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "assignment_name"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("assignment_name")}
+                  >
+                    Assignment
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "requestor"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("requestor")}
+                  >
+                    Requestor
+                  </TableHeader>
+                  <TableHeader
+                    sorted={sortBy === "instructor"}
+                    reversed={reverseSortDirection}
+                    onSort={() => handleSort("instructor")}
+                  >
+                    Section Instructor
+                  </TableHeader>
+                </Table.Tr>
+              </Table.Tbody>
+              <Table.Tbody>
+                {latePassRows.length > 0 ? (
+                  latePassRows
+                ) : (
+                  <Table.Tr>
+                    <Table.Td colSpan={data.length}>
+                      <Text fw={400} ta="center">
+                        No late passes found
+                      </Text>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+              </Table.Tbody>
+            </Table>
+          </ScrollArea>
+        )}
       </Container>
     </>
   );
