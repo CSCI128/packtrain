@@ -517,14 +517,9 @@ declare namespace Components {
             instructor?: string;
             /**
              * example:
-             * Jane Doe
+             * A Student
              */
-            requestor?: string;
-            /**
-             * example:
-             * 9999999
-             */
-            user_requester_id?: string;
+            user_requester: string;
             /**
              * example:
              * Extension pending instructor approval

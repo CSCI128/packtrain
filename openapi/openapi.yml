@@ -2458,12 +2458,9 @@ components:
         instructor:
           type: string
           example: "Tim Professor"
-        requestor:
+        user_requester:
           type: string
-          example: "Jane Doe"
-        user_requester_id:
-          type: string
-          example: "9999999"
+          example: "A Student"
         status:
           type: string
           enum:

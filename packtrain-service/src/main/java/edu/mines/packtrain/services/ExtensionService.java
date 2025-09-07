@@ -156,7 +156,6 @@ public class ExtensionService {
         CourseMember instructor = courseMemberService.getStudentInstructor(course, userSection);
 
         lateRequest.setInstructor(instructor.getUser().getName());
-        lateRequest.setRequestor(actingUser.getName());
 
         if (extension != null) {
             Extension newExtension = createExtensionFromDTO(courseId, actingUser, extension);

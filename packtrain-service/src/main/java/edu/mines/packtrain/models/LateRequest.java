@@ -49,9 +49,6 @@ public class LateRequest {
     @Column(name = "instructor")
     private String instructor;
 
-    @Column(name = "requestor")
-    private String requestor;
-
     @OneToOne()
     @JoinColumn(name = "extension", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude
@@ -67,7 +64,7 @@ public class LateRequest {
     @EqualsAndHashCode.Exclude
     private Migration migration;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "cwid", nullable = false)
     @EqualsAndHashCode.Exclude
     private User requestingUser;
