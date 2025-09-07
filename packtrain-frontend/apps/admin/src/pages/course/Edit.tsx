@@ -205,59 +205,6 @@ export function EditCourse() {
     // eslint-disable-next-line
   }, [data]);
 
-  // const pollTaskUntilComplete = useCallback(
-  //   async (taskId: number, delay = 5000) => {
-  //     let tries = 0;
-  //     while (true) {
-  //       try {
-  //         if (tries > 20) {
-  //           throw new Error("Maximum attempts (20) at polling exceeded..");
-  //         }
-
-  //         const response = await fetchTask({ task_id: taskId });
-
-  //         if (response.status === "COMPLETED") {
-  //           console.log(`Task ${taskId} is completed!`);
-  //           return response;
-  //         } else if (response.status === "FAILED") {
-  //           console.log(`Task ${taskId} failed`);
-  //           throw new Error("ERR");
-  //         } else {
-  //           console.log(
-  //             `Task ${taskId} is still in progress, retrying in ${delay}ms...`
-  //           );
-  //           tries++;
-  //           await new Promise((res) => setTimeout(res, delay));
-  //         }
-  //       } catch (error) {
-  //         console.error(`Error fetching task ${taskId}:`, error);
-  //         return;
-  //       }
-  //     }
-  //   },
-  //   [fetchTask]
-  // );
-
-  // useEffect(() => {
-  //   if (outstandingTasks.length === 0) return;
-
-  //   const pollTasks = async () => {
-  //     Promise.all(
-  //       outstandingTasks.map((task) => pollTaskUntilComplete(task.id))
-  //     )
-  //       .then((results) => {
-  //         console.log("All tasks are completed:", results);
-  //         setAllTasksCompleted(true);
-  //         setOutstandingTasks([]);
-  //       })
-  //       .catch((error) => {
-  //         console.error("Some tasks failed:", error);
-  //       });
-  //   };
-
-  //   pollTasks();
-  // }, [syncing, outstandingTasks, pollTaskUntilComplete]);
-
   const syncAssignmentsMutation = useMutation({
     mutationKey: ["syncAssignments"],
     mutationFn: ({ body }: { body: CourseSyncTask }) =>
