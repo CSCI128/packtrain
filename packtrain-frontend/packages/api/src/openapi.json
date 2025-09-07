@@ -1315,23 +1315,17 @@
         }
       }
     },
-    "/instructor/courses/{course_id}/assignment/{assignment_id}/user/{cwid}/extensions/{extension_id}/approve": {
+    "/instructor/courses/{course_id}/extensions/{extension_id}/approve": {
       "put": {
         "tags": [
           "instructor"
         ],
         "operationId": "approve_extension",
-        "summary": "Approves an extension for an assignment for the user.",
-        "description": "Approves an extension for an assignment for the user.\n",
+        "summary": "Approves an extension for the user.",
+        "description": "Approves an extension for the user.\n",
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
-          },
-          {
-            "$ref": "#/components/parameters/AssignmentPathParameters"
-          },
-          {
-            "$ref": "#/components/parameters/CwidPathParameters"
           },
           {
             "$ref": "#/components/parameters/ExtensionPathParameters"
@@ -1388,23 +1382,17 @@
         }
       }
     },
-    "/instructor/courses/{course_id}/assignment/{assignment_id}/user/{cwid}/extensions/{extension_id}/deny": {
+    "/instructor/courses/{course_id}/extensions/{extension_id}/deny": {
       "put": {
         "tags": [
           "instructor"
         ],
         "operationId": "deny_extension",
-        "summary": "Denies an extension for an assignment for the user.",
-        "description": "Denies an extension for an assignment for the user.\n",
+        "summary": "Denies an extension for the user.",
+        "description": "Denies an extension for the user.\n",
         "parameters": [
           {
             "$ref": "#/components/parameters/CoursePathParameters"
-          },
-          {
-            "$ref": "#/components/parameters/AssignmentPathParameters"
-          },
-          {
-            "$ref": "#/components/parameters/CwidPathParameters"
           },
           {
             "$ref": "#/components/parameters/ExtensionPathParameters"

@@ -51,8 +51,6 @@ export function ApprovalPage() {
   const approveExtensionMutation = useMutation({
     mutationKey: ["approveExtension"],
     mutationFn: ({
-      assignment_id,
-      user_id,
       extension_id,
       reason,
     }: {
@@ -65,8 +63,6 @@ export function ApprovalPage() {
         .then((client) =>
           client.approve_extension({
             course_id: store$.id.get() as string,
-            assignment_id: assignment_id,
-            cwid: user_id,
             extension_id: extension_id,
             reason: reason,
           })
@@ -78,8 +74,6 @@ export function ApprovalPage() {
   const denyExtensionMutation = useMutation({
     mutationKey: ["denyExtension"],
     mutationFn: ({
-      assignment_id,
-      user_id,
       extension_id,
       reason,
     }: {
@@ -92,8 +86,6 @@ export function ApprovalPage() {
         .then((client) =>
           client.deny_extension({
             course_id: store$.id.get() as string,
-            assignment_id: assignment_id,
-            cwid: user_id,
             extension_id: extension_id,
             reason: reason,
           })
