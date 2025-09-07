@@ -78,77 +78,13 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<TaskDTO>> syncCourse(UUID courseId,
-                                                    CourseSyncTaskDTO courseSyncTaskDTO) {
-        List<TaskDTO> tasks = new LinkedList<>();
-
-        ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
-                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId(),
-                courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
-
-
-        tasks.add(DTOFactory.toDto(courseTask));
-
-        ScheduledTaskDef sectionTask = sectionService.createSectionsFromCanvas(
-                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId());
-
-        tasks.add(DTOFactory.toDto(sectionTask));
-
-        if (courseSyncTaskDTO.getImportUsers()) {
-            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(
-                    securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()),
-                    courseId, true, true, true);
-
-            tasks.add(DTOFactory.toDto(importUsersTask));
-        }
-
-        if (courseSyncTaskDTO.getImportAssignments()) {
-            ScheduledTaskDef importAssignmentsTask = assignmentTaskService
-                    .syncAssignmentsFromCanvas(securityManager.getUser(),
-                            Set.of(courseTask.getId()), courseId,
-                            true, true, true);
-
-            tasks.add(DTOFactory.toDto(importAssignmentsTask));
-        }
-
-        return ResponseEntity.accepted().body(tasks);
+    public ResponseEntity<List<TaskDTO>> syncCourse(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+        return ResponseEntity.accepted().body(queueSyncCourseTasks(courseId, courseSyncTaskDTO));
     }
 
     @Override
-    public ResponseEntity<List<TaskDTO>> importCourse(UUID courseId,
-                                                      CourseSyncTaskDTO courseSyncTaskDTO) {
-        List<TaskDTO> tasks = new LinkedList<>();
-
-        ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
-                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId(),
-                courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
-
-        tasks.add(DTOFactory.toDto(courseTask));
-
-        ScheduledTaskDef sectionTask = sectionService.createSectionsFromCanvas(
-                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId());
-
-
-        tasks.add(DTOFactory.toDto(sectionTask));
-
-        if (courseSyncTaskDTO.getImportUsers()) {
-            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(
-                    securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()),
-                    courseId, true, true, true);
-
-            tasks.add(DTOFactory.toDto(importUsersTask));
-        }
-
-        if (courseSyncTaskDTO.getImportAssignments()) {
-            ScheduledTaskDef importAssignmentsTask = assignmentTaskService
-                    .syncAssignmentsFromCanvas(securityManager.getUser(),
-                            Set.of(courseTask.getId()), courseId,
-                            true, true, true);
-
-            tasks.add(DTOFactory.toDto(importAssignmentsTask));
-        }
-
-        return ResponseEntity.accepted().body(tasks);
+    public ResponseEntity<List<TaskDTO>> importCourse(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+        return ResponseEntity.accepted().body(queueSyncCourseTasks(courseId, courseSyncTaskDTO));
     }
 
     @Override
@@ -274,5 +210,40 @@ public class OwnerApiImpl implements OwnerApiDelegate {
 
 
         return ResponseEntity.ok(res.get());
+    }
+
+    private List<TaskDTO> queueSyncCourseTasks(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+        List<TaskDTO> tasks = new LinkedList<>();
+
+        ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
+                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId(),
+                courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
+
+        tasks.add(DTOFactory.toDto(courseTask));
+
+        ScheduledTaskDef sectionTask = sectionService.createSectionsFromCanvas(
+                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId());
+
+
+        tasks.add(DTOFactory.toDto(sectionTask));
+
+        if (courseSyncTaskDTO.getImportUsers()) {
+            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(
+                    securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()),
+                    courseId, true, true, true);
+
+            tasks.add(DTOFactory.toDto(importUsersTask));
+        }
+
+        if (courseSyncTaskDTO.getImportAssignments()) {
+            ScheduledTaskDef importAssignmentsTask = assignmentTaskService
+                    .syncAssignmentsFromCanvas(securityManager.getUser(),
+                            Set.of(courseTask.getId()), courseId,
+                            true, true, true);
+
+            tasks.add(DTOFactory.toDto(importAssignmentsTask));
+        }
+
+        return tasks;
     }
 }

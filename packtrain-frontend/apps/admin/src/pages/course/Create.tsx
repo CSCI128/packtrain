@@ -18,12 +18,12 @@ import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
 import { Course, CourseSyncTask } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
+import { useWebSocketClient } from "@repo/ui/WebSocketHooks";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { userManager } from "../../auth";
 import { useGetCredentials } from "../../hooks";
-import { useWebSocketClient } from "../../websocketHooks";
 
 type CourseSyncNotificationDTO = {
   error?: string;
@@ -69,7 +69,7 @@ export function CreatePage() {
   useWebSocketClient({
     authToken: userData?.access_token,
     onConnect: (client) => {
-      client.subscribe("/courses/import", (msg) => {
+      client.subscribe("/courses/sync", (msg) => {
         const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
 
         if (payload.error) {

@@ -116,7 +116,7 @@ public class SectionService {
                 taskRepo, task.getId(), this::syncSectionTask);
         taskDefinition.setOnJobComplete(Optional.of(_ -> {
             try {
-                messagingTemplate.convertAndSend("/courses/import",
+                messagingTemplate.convertAndSend("/courses/sync",
                         objectMapper.writeValueAsString(notificationDTO));
             } catch (JsonProcessingException _) {
                 throw new RuntimeException("Could not process JSON for sending notification DTO!");
@@ -126,7 +126,7 @@ public class SectionService {
             try {
                 CourseSyncNotificationDTO errorDTO = CourseSyncNotificationDTO.builder()
                         .error("Could not create section!").build();
-                messagingTemplate.convertAndSend("/courses/import",
+                messagingTemplate.convertAndSend("/courses/sync",
                         objectMapper.writeValueAsString(errorDTO));
             } catch (JsonProcessingException _) {
                 throw new RuntimeException("Could not process JSON for sending notification DTO!");

@@ -343,7 +343,7 @@ public class CourseMemberService {
         taskDefinition.setDependsOn(dependencies);
         taskDefinition.setOnJobComplete(Optional.of(_ -> {
             try {
-                messagingTemplate.convertAndSend("/courses/import",
+                messagingTemplate.convertAndSend("/courses/sync",
                         objectMapper.writeValueAsString(notificationDTO));
             } catch (JsonProcessingException _) {
                 throw new RuntimeException("Could not process JSON for sending notification DTO!");
@@ -353,7 +353,7 @@ public class CourseMemberService {
             try {
                 CourseSyncNotificationDTO errorDTO = CourseSyncNotificationDTO.builder()
                         .error("Could not create course members!").build();
-                messagingTemplate.convertAndSend("/courses/import",
+                messagingTemplate.convertAndSend("/courses/sync",
                         objectMapper.writeValueAsString(errorDTO));
             } catch (JsonProcessingException _) {
                 throw new RuntimeException("Could not process JSON for sending notification DTO!");
