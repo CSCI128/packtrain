@@ -33,6 +33,14 @@ grading-admin:
   # needs to be 16, 32, or 64 bytes long - this should also be randomly generated.
   secret-key: ${SECRET_KEY:password91023451}
   time-zone: "America/Denver"
+  email:
+    enabled: true
+    smtp-server: ${SMTP_SERVER}
+    smtp-port: ${SMTP_PORT}
+    smtp-username: ${SMTP_USERNAME}
+    smtp-password: ${SMTP_PASSWORD}
+    from-name: "Packtrain No-Reply"
+    from-email: ${FROM_EMAIL_ADDRESS:no-reply@localhost.dev}
   external-services:
     canvas:
       enabled: true

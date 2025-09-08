@@ -21,6 +21,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+
+import org.simplejavamail.api.mailer.Mailer;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -36,12 +38,13 @@ public class ExtensionService {
     private final CourseService courseService;
     private final UserService userService;
     private final SecurityManager securityManager;
+    private final EmailService emailService;
 
     public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo,
                             AssignmentService assignmentService,
                             CourseMemberService courseMemberService,
                             CourseService courseService, UserService userService,
-                            SecurityManager securityManager) {
+                            SecurityManager securityManager, EmailService emailService) {
         this.extensionRepo = extensionRepo;
         this.lateRequestRepo = lateRequestRepo;
         this.assignmentService = assignmentService;
@@ -49,6 +52,7 @@ public class ExtensionService {
         this.courseService = courseService;
         this.userService = userService;
         this.securityManager = securityManager;
+        this.emailService = emailService;
     }
 
     public List<Extension> getExtensionsByMigrationId(UUID migrationId) {
@@ -169,6 +173,8 @@ public class ExtensionService {
         Assignment assignment = assignmentService.getAssignmentById(assignmentId);
         lateRequest.setAssignment(assignment);
         lateRequest.setRequestingUser(actingUser);
+
+        emailService.sendEmail("gjbell@mines.edu", List.of("trihard.studios@outlook.com"), "New Late Request Created!");
 
         return lateRequestRepo.save(lateRequest);
     }

@@ -40,6 +40,11 @@ declare namespace Components {
         export type ExtensionPathParameters = string; // uuid
         /**
          * example:
+         * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+         */
+        export type ExtensionResponsePathParameters = string; // uuid
+        /**
+         * example:
          * 49D2FB6A-598A-4618-A467-C71D6542D14F
          */
         export type MasterMigrationPathParameters = string; // uuid
@@ -85,6 +90,11 @@ declare namespace Components {
          * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
          */
         Parameters.ExtensionPathParameters /* uuid */;
+        ExtensionResponsePathParameters?: /**
+         * example:
+         * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+         */
+        Parameters.ExtensionResponsePathParameters /* uuid */;
         MasterMigrationPathParameters?: /**
          * example:
          * 49D2FB6A-598A-4618-A467-C71D6542D14F
@@ -1324,6 +1334,46 @@ declare namespace Paths {
         export type RequestBody = /* A policy dry run request */ Components.Schemas.PolicyDryRun;
         namespace Responses {
             export type $200 = Components.Schemas.PolicyDryRunResults;
+        }
+    }
+    namespace EmailExtensionResponseApprove {
+        namespace Parameters {
+            /**
+             * example:
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+             */
+            export type ExtensionResponseId = string; // uuid
+        }
+        export interface PathParameters {
+            extension_response_id: /**
+             * example:
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+             */
+            Parameters.ExtensionResponseId /* uuid */;
+        }
+        namespace Responses {
+            export interface $202 {
+            }
+        }
+    }
+    namespace EmailExtensionResponseDeny {
+        namespace Parameters {
+            /**
+             * example:
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+             */
+            export type ExtensionResponseId = string; // uuid
+        }
+        export interface PathParameters {
+            extension_response_id: /**
+             * example:
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+             */
+            Parameters.ExtensionResponseId /* uuid */;
+        }
+        namespace Responses {
+            export interface $202 {
+            }
         }
     }
     namespace EnableAssignment {
@@ -3234,6 +3284,22 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.WithdrawExtension.Responses.$204>
+  /**
+   * email_extension_response_approve
+   */
+  'email_extension_response_approve'(
+    parameters?: Parameters<Paths.EmailExtensionResponseApprove.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.EmailExtensionResponseApprove.Responses.$202>
+  /**
+   * email_extension_response_deny
+   */
+  'email_extension_response_deny'(
+    parameters?: Parameters<Paths.EmailExtensionResponseDeny.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.EmailExtensionResponseDeny.Responses.$202>
 }
 
 export interface PathsDictionary {
@@ -4029,6 +4095,26 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.WithdrawExtension.Responses.$204>
+  }
+  ['/extension-response/{extension_response_id}/approve']: {
+    /**
+     * email_extension_response_approve
+     */
+    'post'(
+      parameters?: Parameters<Paths.EmailExtensionResponseApprove.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.EmailExtensionResponseApprove.Responses.$202>
+  }
+  ['/extension-response/{extension_response_id}/deny']: {
+    /**
+     * email_extension_response_deny
+     */
+    'post'(
+      parameters?: Parameters<Paths.EmailExtensionResponseDeny.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.EmailExtensionResponseDeny.Responses.$202>
   }
 }
 
