@@ -2,11 +2,20 @@ package edu.mines.packtrain.models;
 
 import edu.mines.packtrain.models.enums.ExternalAssignmentType;
 import edu.mines.packtrain.models.enums.RawScoreStatus;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.util.UUID;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.UUID;
 
 @Data
 @Entity(name = "migration")
@@ -42,7 +51,8 @@ public class Migration {
 
     // for now this relationship is one to one, later on this will be one to many
     // for now this relationship is one to one, later on this will be one to many
-    // TO-DO: implement one to many so edge case like One Migration is for an assessment and reflection
+    // TO-DO: implement one to many so edge case like One Migration is for an assessment
+    // and reflection
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "assignment", referencedColumnName = "id")
     @EqualsAndHashCode.Exclude

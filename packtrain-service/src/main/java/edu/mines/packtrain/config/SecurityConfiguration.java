@@ -20,13 +20,15 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/ws/**").permitAll()
-                    .requestMatchers("/api/-/health").permitAll()
-                    .anyRequest().authenticated()
-            )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/api/-/health").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2ResourceServer(oauth2 ->
+                        oauth2.jwt(Customizer.withDefaults()));
         return http.build();
     }
 

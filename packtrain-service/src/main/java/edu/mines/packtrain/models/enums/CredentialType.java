@@ -11,7 +11,10 @@ public enum CredentialType {
         this.type = type;
     }
 
-    public static CredentialType fromString(String type){
-        return Stream.of(CredentialType.values()).filter(t -> t.type.equals(type)).findFirst().orElseThrow(RuntimeException::new);
+    public static CredentialType fromString(String type) {
+        return Stream.of(CredentialType.values())
+                .filter(t -> t.type.equals(type))
+                .findFirst()
+                .orElseThrow(RuntimeException::new);
     }
 }

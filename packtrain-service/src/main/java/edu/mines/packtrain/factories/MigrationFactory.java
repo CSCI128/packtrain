@@ -4,9 +4,6 @@ import com.rabbitmq.client.Channel;
 import edu.mines.packtrain.data.policyServer.GradingStartDTO;
 import edu.mines.packtrain.data.policyServer.ScoredDTO;
 import edu.mines.packtrain.models.Assignment;
-import lombok.*;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
@@ -15,12 +12,15 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import org.springframework.transaction.annotation.Transactional;
-
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class MigrationFactory{
+public class MigrationFactory {
 
     @Getter
     @Setter(AccessLevel.PRIVATE)
@@ -37,12 +37,17 @@ public class MigrationFactory{
     public static class StartProcessScoresAndExtensionsFactory {
 
         private final Function<String, Optional<Channel>> createScorePublishChannel;
-        private final BiFunction<String, Consumer<ScoredDTO>, Optional<Channel>> createScoreReceivedChannel;
+        private final BiFunction<String, Consumer<ScoredDTO>, Optional<Channel>>
+                createScoreReceivedChannel;
         private final ProcessScoresAndExtensionsConfig processScoresAndExtensionsConfig;
         private Consumer<ScoredDTO> onScoreReceived;
 
 
-        StartProcessScoresAndExtensionsFactory(UUID migrationId, Function<String, Optional<Channel>> createScorePublishChannel, BiFunction<String, Consumer<ScoredDTO>, Optional<Channel>> createScoreReceivedChannel) {
+        StartProcessScoresAndExtensionsFactory(UUID migrationId, Function<String,
+                                                       Optional<Channel>> createScorePublishChannel,
+                                               BiFunction<String, Consumer<ScoredDTO>,
+                                                       Optional<Channel>>
+                                                       createScoreReceivedChannel) {
             this.createScorePublishChannel = createScorePublishChannel;
             this.createScoreReceivedChannel = createScoreReceivedChannel;
             processScoresAndExtensionsConfig = new ProcessScoresAndExtensionsConfig();
@@ -50,65 +55,74 @@ public class MigrationFactory{
             processScoresAndExtensionsConfig.setGradingStartDTO(new GradingStartDTO());
         }
 
-
-        @Transactional
-        public StartProcessScoresAndExtensionsFactory forAssignment(Assignment assignment){
-            processScoresAndExtensionsConfig.getGradingStartDTO().setGlobalMetadata(new GradingStartDTO.GlobalAssignmentMetadata(
+        public StartProcessScoresAndExtensionsFactory forAssignment(Assignment assignment) {
+            processScoresAndExtensionsConfig.getGradingStartDTO().setGlobalMetadata(
+                    new GradingStartDTO.GlobalAssignmentMetadata(
                     assignment.getId(),
                     assignment.getPoints(),
                     0,
-                    assignment.getExternalAssignmentConfig() == null ? assignment.getPoints() : assignment.getExternalAssignmentConfig().getExternalPoints(),
+                    assignment.getExternalAssignmentConfig() == null ? assignment.getPoints()
+                            : assignment.getExternalAssignmentConfig().getExternalPoints(),
                     assignment.getDueDate()
             ));
 
             return this;
         }
 
-        public StartProcessScoresAndExtensionsFactory withPolicy(URI policy){
+        public StartProcessScoresAndExtensionsFactory withPolicy(URI policy) {
             processScoresAndExtensionsConfig.getGradingStartDTO().setPolicyURI(policy);
             return this;
         }
 
-        public StartProcessScoresAndExtensionsFactory withOnScoreReceived(Consumer<ScoredDTO> onScoreReceived){
+        public StartProcessScoresAndExtensionsFactory withOnScoreReceived(Consumer<ScoredDTO>
+                                                                                  onScoreReceived) {
             this.onScoreReceived = onScoreReceived;
             return this;
         }
 
 
         public ProcessScoresAndExtensionsConfig build() throws IOException, TimeoutException {
-            String rawScoreRoutingKey = String.format("%s.raw-grades", processScoresAndExtensionsConfig.getMigrationId());
+            String rawScoreRoutingKey = String.format("%s.raw-grades",
+                    processScoresAndExtensionsConfig.getMigrationId());
             Optional<Channel> publishChannel = createScorePublishChannel.apply(rawScoreRoutingKey);
-            if (publishChannel.isEmpty()){
+            if (publishChannel.isEmpty()) {
                 throw new IOException("Failed to create raw score publish channel!");
             }
 
-            processScoresAndExtensionsConfig.getGradingStartDTO().setRawGradeRoutingKey(rawScoreRoutingKey);
+            processScoresAndExtensionsConfig.getGradingStartDTO()
+                    .setRawGradeRoutingKey(rawScoreRoutingKey);
             processScoresAndExtensionsConfig.setRawGradePublishChannel(publishChannel.get());
 
-            if (onScoreReceived == null){
+            if (onScoreReceived == null) {
                 log.warn("No score received action specified!");
                 return processScoresAndExtensionsConfig;
             }
 
-            String scoredRoutingKey = String.format("%s.scored", processScoresAndExtensionsConfig.getMigrationId());
-            Optional<Channel> scoreReceivedChannel = createScoreReceivedChannel.apply(scoredRoutingKey, onScoreReceived);
+            String scoredRoutingKey = String.format("%s.scored",
+                    processScoresAndExtensionsConfig.getMigrationId());
+            Optional<Channel> scoreReceivedChannel = createScoreReceivedChannel
+                    .apply(scoredRoutingKey, onScoreReceived);
 
-            if (scoreReceivedChannel.isEmpty()){
+            if (scoreReceivedChannel.isEmpty()) {
                 publishChannel.get().close();
                 throw new IOException("Failed to create score received channel!");
             }
 
-            processScoresAndExtensionsConfig.getGradingStartDTO().setScoreCreatedRoutingKey(scoredRoutingKey);
+            processScoresAndExtensionsConfig.getGradingStartDTO()
+                    .setScoreCreatedRoutingKey(scoredRoutingKey);
             processScoresAndExtensionsConfig.setScoreReceivedChannel(scoreReceivedChannel.get());
 
             return processScoresAndExtensionsConfig;
         }
     }
 
-    public static StartProcessScoresAndExtensionsFactory startProcessScoresAndExtensions(UUID migrationId, Function<String, Optional<Channel>> createScorePublishChannel, BiFunction<String, Consumer<ScoredDTO>, Optional<Channel>> createScoreReceivedChannel){
+    public static StartProcessScoresAndExtensionsFactory startProcessScoresAndExtensions(
+            UUID migrationId, Function<String, Optional<Channel>> createScorePublishChannel,
+            BiFunction<String, Consumer<ScoredDTO>, Optional<Channel>> createScoreReceivedChannel) {
 
         // in case we need to eventually wrap things from the parent
-        return new StartProcessScoresAndExtensionsFactory(migrationId, createScorePublishChannel, createScoreReceivedChannel);
+        return new StartProcessScoresAndExtensionsFactory(migrationId, createScorePublishChannel,
+                createScoreReceivedChannel);
 
     }
 }

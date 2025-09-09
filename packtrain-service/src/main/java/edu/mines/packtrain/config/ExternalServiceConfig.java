@@ -1,5 +1,6 @@
 package edu.mines.packtrain.config;
 
+import java.net.URI;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -7,14 +8,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.net.URI;
-
 @Configuration
 public class ExternalServiceConfig {
     @AllArgsConstructor
     @RequiredArgsConstructor
     @Getter
-    public static class CanvasConfig{
+    public static class CanvasConfig {
         private final boolean enabled;
         private boolean writeDisabled;
         private URI endpoint;
@@ -23,11 +22,10 @@ public class ExternalServiceConfig {
         private String taEnrollment;
     }
 
-
     @AllArgsConstructor
     @RequiredArgsConstructor
     @Getter
-    public static class S3Config{
+    public static class S3Config {
         private final boolean enabled;
         private URI endpoint;
         private String accessKey;
@@ -37,19 +35,18 @@ public class ExternalServiceConfig {
     @AllArgsConstructor
     @RequiredArgsConstructor
     @Getter
-    public static class RabbitMqConfig{
+    public static class RabbitMqConfig {
         private final boolean enabled;
         private URI uri;
         private String username;
         private String password;
         private String exchangeName;
-    };
-
+    }
 
     @AllArgsConstructor
     @RequiredArgsConstructor
     @Getter
-    public static class PolicyServerConfig{
+    public static class PolicyServerConfig {
         private final boolean enabled;
         private URI uri;
     }
@@ -57,24 +54,31 @@ public class ExternalServiceConfig {
     @AllArgsConstructor
     @RequiredArgsConstructor
     @Getter
-    public static class GradescopeConfig{
+    public static class GradescopeConfig {
         private final boolean enabled;
         private URI uri;
     }
 
     @Bean
     public CanvasConfig configureCanvas(
-            @Value("${grading-admin.external-services.canvas.enabled}") boolean enabled,
-            @Value("${grading-admin.external-services.canvas.write-disabled:false}") boolean writeDisabled,
-            @Value("${grading-admin.external-services.canvas.endpoint}") URI endpoint,
-            @Value("${grading-admin.external-services.canvas.teacher-enrollment-name}") String teacherEnrollment,
-            @Value("${grading-admin.external-services.canvas.student-enrollment-name}") String studentEnrollment,
-            @Value("${grading-admin.external-services.canvas.ta-enrollment-name}") String taEnrollment
+            @Value("${grading-admin.external-services.canvas.enabled}")
+            boolean enabled,
+            @Value("${grading-admin.external-services.canvas.write-disabled:false}")
+            boolean writeDisabled,
+            @Value("${grading-admin.external-services.canvas.endpoint}")
+            URI endpoint,
+            @Value("${grading-admin.external-services.canvas.teacher-enrollment-name}")
+            String teacherEnrollment,
+            @Value("${grading-admin.external-services.canvas.student-enrollment-name}")
+            String studentEnrollment,
+            @Value("${grading-admin.external-services.canvas.ta-enrollment-name}")
+            String taEnrollment
     ) {
-        if (!enabled){
+        if (!enabled) {
             return new CanvasConfig(false);
         }
-        return new CanvasConfig(true, writeDisabled, endpoint, teacherEnrollment, studentEnrollment, taEnrollment);
+        return new CanvasConfig(true, writeDisabled, endpoint, teacherEnrollment,
+                studentEnrollment, taEnrollment);
     }
 
     @Bean
@@ -83,8 +87,8 @@ public class ExternalServiceConfig {
             @Value("${grading-admin.external-services.s3.uri}") URI endpoint,
             @Value("${grading-admin.external-services.s3.access-key}") String accessKey,
             @Value("${grading-admin.external-services.s3.secret-key}") String secretKey
-    ){
-        if (!enabled){
+    ) {
+        if (!enabled) {
             return new S3Config(false);
         }
         return new S3Config(true, endpoint, accessKey, secretKey);
@@ -97,8 +101,8 @@ public class ExternalServiceConfig {
             @Value("${grading-admin.external-services.rabbitmq.user}") String username,
             @Value("${grading-admin.external-services.rabbitmq.password}") String password,
             @Value("${grading-admin.external-services.rabbitmq.exchange-name}") String exchangeName
-    ){
-        if (!enabled){
+    ) {
+        if (!enabled) {
             return new RabbitMqConfig(false);
         }
         return new RabbitMqConfig(true, uri, username, password, exchangeName);
@@ -108,8 +112,8 @@ public class ExternalServiceConfig {
     public PolicyServerConfig configurePolicyServer(
             @Value("${grading-admin.external-services.policy-server.enabled}") boolean enabled,
             @Value("${grading-admin.external-services.policy-server.uri}") URI uri
-    ){
-        if (!enabled){
+    ) {
+        if (!enabled) {
             return new PolicyServerConfig(false);
         }
 
@@ -120,8 +124,8 @@ public class ExternalServiceConfig {
     public GradescopeConfig configureGradescope(
             @Value("${grading-admin.external-services.gradescope.enabled}") boolean enabled,
             @Value("${grading-admin.external-services.gradescope.uri}") URI uri
-    ){
-        if (!enabled){
+    ) {
+        if (!enabled) {
             return new GradescopeConfig(false);
         }
 

@@ -1,10 +1,9 @@
 package edu.mines.packtrain.managers;
 
-import edu.mines.packtrain.models.enums.CredentialType;
 import edu.mines.packtrain.models.User;
-import org.springframework.security.access.AccessDeniedException;
-
+import edu.mines.packtrain.models.enums.CredentialType;
 import java.util.UUID;
+import org.springframework.security.access.AccessDeniedException;
 
 public interface IdentityProvider {
 
@@ -24,7 +23,7 @@ public interface IdentityProvider {
      * <br></br>
      * If a user doesn't have a credential set, then they will receive a 403 error.
      *
-     * @param type the type of credential to look up
+     * @param type   the type of credential to look up
      * @param course the course to look up credentials for if the user doesn't have any set
      * @return the credential
      */

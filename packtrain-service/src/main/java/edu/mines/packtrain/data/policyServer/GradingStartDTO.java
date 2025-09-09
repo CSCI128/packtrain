@@ -1,11 +1,10 @@
 package edu.mines.packtrain.data.policyServer;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
 import java.net.URI;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 @Data
 public class GradingStartDTO {

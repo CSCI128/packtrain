@@ -4,9 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Data;
-
 import java.util.UUID;
+import lombok.Data;
 
 @Entity(name = "master_migration_stats")
 @Table(name = "master_migration_stats_view")
@@ -28,6 +27,6 @@ public class MasterMigrationStats {
     @Column(name = "total_late_passes")
     private int totalLatePasses;
 
-    @Column(name="unapproved_requests")
+    @Column(name = "unapproved_requests")
     private int unapprovedRequests;
 }

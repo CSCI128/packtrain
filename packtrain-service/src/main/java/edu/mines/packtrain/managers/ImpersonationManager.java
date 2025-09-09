@@ -1,32 +1,30 @@
 package edu.mines.packtrain.managers;
 
-import edu.mines.packtrain.models.enums.CredentialType;
 import edu.mines.packtrain.models.User;
+import edu.mines.packtrain.models.enums.CredentialType;
 import edu.mines.packtrain.services.CredentialService;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 @Service
 public class ImpersonationManager {
     private final CredentialService credentialService;
 
-    public ImpersonationManager(CredentialService credentialService){
+    public ImpersonationManager(CredentialService credentialService) {
         this.credentialService = credentialService;
     }
 
     @Slf4j
     public static class ImpersonatedUserProvider implements IdentityProvider {
 
-
         private final CredentialService credentialService;
         @Getter
         User user;
 
-        protected ImpersonatedUserProvider(User user, CredentialService credentialService){
+        protected ImpersonatedUserProvider(User user, CredentialService credentialService) {
             this.user = user;
             this.credentialService = credentialService;
         }
@@ -48,20 +46,16 @@ public class ImpersonationManager {
 
         @Override
         public String getCredential(CredentialType type, UUID course) {
-            log.debug("Getting credential for '{}' for user '{}' in context of course '{}'", type, user.getEmail(), course);
+            log.debug("Getting credential for '{}' for user '{}' in context of course '{}'",
+                    type, user.getEmail(), course);
 
             return credentialService.getCredentialByService(user.getCwid(), type)
                     .or(() -> credentialService.getCredentialByService(course, type))
                     .orElseThrow(() -> new AccessDeniedException("No valid credentials found!"));
         }
-
     }
 
-    public ImpersonatedUserProvider impersonateUser(User user){
+    public ImpersonatedUserProvider impersonateUser(User user) {
         return new ImpersonatedUserProvider(user, credentialService);
     }
-
-
-
-
 }

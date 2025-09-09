@@ -911,19 +911,16 @@ paths:
                 error_source: "User Service"
                 error_message: "Error: extension request not found"
 
-  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{cwid}/extensions/{extension_id}/approve:
+  /instructor/courses/{course_id}/extensions/{extension_id}/approve:
     put:
       tags:
         - instructor
       operationId: approve_extension
-      summary: Approves an extension for an assignment for the user.
+      summary: Approves an extension for the user.
       description: |
-        Approves an extension for an assignment for the user.
-
+        Approves an extension for the user.
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
-        - $ref: "#/components/parameters/AssignmentPathParameters"
-        - $ref: "#/components/parameters/CwidPathParameters"
         - $ref: "#/components/parameters/ExtensionPathParameters"
         - name: reason
           in: query
@@ -957,19 +954,16 @@ paths:
                 error_source: "update_user"
                 error_message: "Failed to approve extensions for user"
 
-  /instructor/courses/{course_id}/assignment/{assignment_id}/user/{cwid}/extensions/{extension_id}/deny:
+  /instructor/courses/{course_id}/extensions/{extension_id}/deny:
     put:
       tags:
         - instructor
       operationId: deny_extension
-      summary: Denies an extension for an assignment for the user.
+      summary: Denies an extension for the user.
       description: |
-        Denies an extension for an assignment for the user.
-
+        Denies an extension for the user.
       parameters:
         - $ref: "#/components/parameters/CoursePathParameters"
-        - $ref: "#/components/parameters/AssignmentPathParameters"
-        - $ref: "#/components/parameters/CwidPathParameters"
         - $ref: "#/components/parameters/ExtensionPathParameters"
         - name: reason
           in: query
@@ -2255,6 +2249,7 @@ components:
       required:
         - id
         - name
+        - canvas_id
         - points
         - due_date
         - unlock_date
@@ -2267,6 +2262,10 @@ components:
         name:
           type: string
           example: "Assessment 1"
+        canvas_id:
+          type: integer
+          format: int64
+          example: 123456
         points:
           type: number
           format: double
@@ -2458,12 +2457,9 @@ components:
         instructor:
           type: string
           example: "Tim Professor"
-        requestor:
+        user_requester:
           type: string
-          example: "Jane Doe"
-        user_requester_id:
-          type: string
-          example: "9999999"
+          example: "A Student"
         status:
           type: string
           enum:

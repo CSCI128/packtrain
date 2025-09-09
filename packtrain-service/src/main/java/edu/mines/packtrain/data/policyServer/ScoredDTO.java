@@ -2,10 +2,9 @@ package edu.mines.packtrain.data.policyServer;
 
 import edu.mines.packtrain.models.enums.LateRequestStatus;
 import edu.mines.packtrain.models.enums.SubmissionStatus;
-import lombok.Data;
-
 import java.time.Instant;
 import java.util.UUID;
+import lombok.Data;
 
 @Data
 public class ScoredDTO {

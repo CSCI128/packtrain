@@ -1,8 +1,7 @@
 package edu.mines.packtrain.models.enums;
 
-import lombok.Getter;
-
 import java.util.stream.Stream;
+import lombok.Getter;
 
 public enum CourseRole {
     NOT_ENROLLED("not enrolled"),
@@ -14,11 +13,14 @@ public enum CourseRole {
     @Getter
     private final String role;
 
-    CourseRole(String role){
+    CourseRole(String role) {
         this.role = role;
     }
 
-    public static CourseRole fromString(String type){
-        return Stream.of(CourseRole.values()).filter(r -> r.role.equals(type)).findFirst().orElseThrow(RuntimeException::new);
+    public static CourseRole fromString(String type) {
+        return Stream.of(CourseRole.values())
+                .filter(r -> r.role.equals(type))
+                .findFirst()
+                .orElseThrow(RuntimeException::new);
     }
 }

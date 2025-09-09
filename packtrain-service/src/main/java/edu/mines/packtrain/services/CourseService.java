@@ -15,21 +15,26 @@ import edu.mines.packtrain.models.GradescopeConfig;
 import edu.mines.packtrain.models.MasterMigration;
 import edu.mines.packtrain.models.User;
 import edu.mines.packtrain.models.enums.CourseRole;
-import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
 import edu.mines.packtrain.models.tasks.CourseSyncTaskDef;
-import edu.mines.packtrain.repositories.*;
+import edu.mines.packtrain.models.tasks.ScheduledTaskDef;
+import edu.mines.packtrain.repositories.CourseLateRequestConfigRepo;
+import edu.mines.packtrain.repositories.CourseMemberRepo;
+import edu.mines.packtrain.repositories.CourseRepo;
+import edu.mines.packtrain.repositories.GradescopeConfigRepo;
+import edu.mines.packtrain.repositories.MasterMigrationRepo;
+import edu.mines.packtrain.repositories.MigrationRepo;
+import edu.mines.packtrain.repositories.ScheduledTaskRepo;
 import edu.mines.packtrain.services.external.CanvasService;
 import edu.mines.packtrain.services.external.S3Service;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -49,10 +54,15 @@ public class CourseService {
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo, GradescopeConfigRepo gradescopeConfigRepo, ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
-                         ApplicationEventPublisher eventPublisher, ImpersonationManager impersonationManager,
+    public CourseService(CourseRepo courseRepo, CourseLateRequestConfigRepo lateRequestConfigRepo,
+                         GradescopeConfigRepo gradescopeConfigRepo,
+                         ScheduledTaskRepo<CourseSyncTaskDef> taskRepo,
+                         ApplicationEventPublisher eventPublisher,
+                         ImpersonationManager impersonationManager,
                          CanvasService canvasService, S3Service s3Service, UserService userService,
-                         MasterMigrationRepo masterMigrationRepo, MigrationRepo migrationRepo, CourseMemberRepo courseMemberRepo, SimpMessagingTemplate messagingTemplate) {
+                         MasterMigrationRepo masterMigrationRepo, MigrationRepo migrationRepo,
+                         CourseMemberRepo courseMemberRepo,
+                         SimpMessagingTemplate messagingTemplate) {
         this.courseRepo = courseRepo;
         this.lateRequestConfigRepo = lateRequestConfigRepo;
         this.gradescopeConfigRepo = gradescopeConfigRepo;
@@ -76,7 +86,7 @@ public class CourseService {
     }
 
 
-    public List<Course> getCoursesStudent(User user){
+    public List<Course> getCoursesStudent(User user) {
         return getCoursesByRole(user, CourseRole.STUDENT, true);
     }
 
@@ -85,15 +95,17 @@ public class CourseService {
 
         return memberships.stream().filter(m -> m.getRole().equals(courseRole))
                 .map(CourseMember::getCourse)
-                // only filter on enabled if boolean is non-null - this is why it has the object instead of primitive
+                // only filter on enabled if boolean is non-null - this is why it has the object
+                // instead of primitive
                 .filter(c -> enabled == null || c.isEnabled() == enabled)
                 .toList();
     }
 
     public Course getCourse(UUID courseId) {
         Optional<Course> course = courseRepo.getById(courseId);
-        if (course.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Course '%s' does not exist", courseId));
+        if (course.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Course " +
+                    "'%s' does not exist", courseId));
         }
 
         return course.get();
@@ -111,8 +123,10 @@ public class CourseService {
         if (config != null) {
             config.setLatePassesEnabled(courseDTO.getLateRequestConfig().getLatePassesEnabled());
             config.setLatePassName(courseDTO.getLateRequestConfig().getLatePassName());
-            config.setEnabledExtensionReasons(courseDTO.getLateRequestConfig().getEnabledExtensionReasons());
-            config.setTotalLatePassesAllowed(courseDTO.getLateRequestConfig().getTotalLatePassesAllowed());
+            config.setEnabledExtensionReasons(courseDTO.getLateRequestConfig()
+                    .getEnabledExtensionReasons());
+            config.setTotalLatePassesAllowed(courseDTO.getLateRequestConfig()
+                    .getTotalLatePassesAllowed());
 
             course.setLateRequestConfig(lateRequestConfigRepo.save(config));
         }
@@ -131,22 +145,25 @@ public class CourseService {
     public boolean deleteCourse(UUID courseId) {
         Optional<Course> course = courseRepo.getById(courseId);
 
-        if (course.isEmpty()){
+        if (course.isEmpty()) {
             log.warn("Attempt to get course that doesn't exist!");
             return false;
         }
 
-        List<MasterMigration> masterMigrations = masterMigrationRepo.getMasterMigrationsByCourseId(courseId);
+        List<MasterMigration> masterMigrations = masterMigrationRepo
+                .getMasterMigrationsByCourseId(courseId);
 
-        for(MasterMigration masterMigration : masterMigrations){
-            if (!migrationRepo.getMigrationListByMasterMigrationId(masterMigration.getId()).isEmpty()){
+        for (MasterMigration masterMigration : masterMigrations) {
+            if (!migrationRepo.getMigrationListByMasterMigrationId(masterMigration.getId())
+                    .isEmpty()) {
                 log.warn("Attempt to delete course that has existing migrations!");
                 return false;
             }
         }
 
         // must delete accidentally imported course members first
-        courseMemberRepo.deleteByCourseAndCwid(course.get(), courseMemberRepo.getAllCwidsByCourse(course.get()));
+        courseMemberRepo.deleteByCourseAndCwid(course.get(),
+                courseMemberRepo.getAllCwidsByCourse(course.get()));
 
         courseRepo.delete(course.get());
 
@@ -163,12 +180,15 @@ public class CourseService {
 
         if (availableCourses.isEmpty()) {
             log.warn("No courses were found with canvas id '{}'", task.getCanvasId());
-            throw new RuntimeException(String.format("Failed to find Canvas course: '%d'", task.getCanvasId()));
+            throw new RuntimeException(String.format("Failed to find Canvas course: '%d'",
+                    task.getCanvasId()));
         }
 
         if (availableCourses.size() != 1) {
-            log.warn("More than one course was found with canvas id '{}'. This shouldn't be possible", task.getCanvasId());
-            throw new RuntimeException(String.format("Failed to find Canvas course: '%d'", task.getCanvasId()));
+            log.warn("More than one course was found with canvas id '{}'. This shouldn't " +
+                    "be possible", task.getCanvasId());
+            throw new RuntimeException(String.format("Failed to find Canvas course: '%d'",
+                    task.getCanvasId()));
         }
 
         edu.ksu.canvas.model.Course canvasCourse = availableCourses.getFirst();
@@ -177,7 +197,8 @@ public class CourseService {
 
         if (toUpdate.isEmpty()) {
             log.warn("Course to sync not found!");
-            throw new RuntimeException(String.format("Failed to find course: '%s'", task.getCourseToSync()));
+            throw new RuntimeException(String.format("Failed to find course: '%s'",
+                    task.getCourseToSync()));
         }
 
         toUpdate.get().setCanvasId(canvasCourse.getId());
@@ -206,11 +227,24 @@ public class CourseService {
 
         task = taskRepo.save(task);
 
-        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder().courseComplete(true).build();
-        NewTaskEvent.TaskData<CourseSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(taskRepo, task.getId(), this::syncCourseTask);
+        CourseSyncNotificationDTO notificationDTO = CourseSyncNotificationDTO.builder()
+                .courseComplete(true).build();
+        NewTaskEvent.TaskData<CourseSyncTaskDef> taskDefinition = new NewTaskEvent.TaskData<>(
+                taskRepo, task.getId(), this::syncCourseTask);
         taskDefinition.setOnJobComplete(Optional.of(_ -> {
             try {
-                messagingTemplate.convertAndSend("/courses/import", objectMapper.writeValueAsString(notificationDTO));
+                messagingTemplate.convertAndSend("/courses/import",
+                        objectMapper.writeValueAsString(notificationDTO));
+            } catch (JsonProcessingException _) {
+                throw new RuntimeException("Could not process JSON for sending notification DTO!");
+            }
+        }));
+        taskDefinition.setOnJobFail(Optional.of(_ -> {
+            try {
+                CourseSyncNotificationDTO errorDTO = CourseSyncNotificationDTO.builder()
+                        .error("Could not create course!").build();
+                messagingTemplate.convertAndSend("/courses/import",
+                        objectMapper.writeValueAsString(errorDTO));
             } catch (JsonProcessingException _) {
                 throw new RuntimeException("Could not process JSON for sending notification DTO!");
             }
@@ -244,15 +278,21 @@ public class CourseService {
         newCourse.setTerm(courseDTO.getTerm());
         newCourse.setEnabled(true);
 
-        Optional<CourseLateRequestConfig> lateRequestConfig = createCourseLateRequestConfig(courseDTO.getLateRequestConfig());
-
+        Optional<CourseLateRequestConfig> lateRequestConfig =
+                createCourseLateRequestConfig(courseDTO.getLateRequestConfig());
 
         if (courseDTO.getGradescopeId() != null) {
+            if (gradescopeConfigRepo.existsByGradescopeId(courseDTO.getGradescopeId().toString())) {
+                log.error("Failed to create course: Gradescope config by id {} already exists!",
+                        courseDTO.getGradescopeId());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Failed to create course: " +
+                        "Gradescope config by id %s already exists!", courseDTO.getGradescopeId().toString()));
+            }
+
             GradescopeConfig gsConfig = new GradescopeConfig();
             gsConfig.setGradescopeId(courseDTO.getGradescopeId().toString());
             newCourse.setGradescopeConfig(gradescopeConfigRepo.save(gsConfig));
         }
-
 
         if (lateRequestConfig.isPresent()) {
             newCourse.setLateRequestConfig(lateRequestConfig.get());
@@ -267,9 +307,9 @@ public class CourseService {
             log.error("Failed to create S3 bucket for course!");
             log.error("Cleaning up course");
             courseRepo.delete(newCourse);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Failed to create S3 bucket for course '%s'!", courseDTO.getCode()));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Failed to " +
+                    "create S3 bucket for course '%s'!", courseDTO.getCode()));
         }
-
 
         return newCourse;
     }
@@ -290,8 +330,9 @@ public class CourseService {
     public Course getCourseForMigration(UUID migrationId) {
         Optional<Course> course = courseRepo.getCourseByMigrationId(migrationId);
 
-        if (course.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("No course exists for migration '%s'!", migrationId));
+        if (course.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("No course " +
+                    "exists for migration '%s'!", migrationId));
         }
 
         return course.get();
@@ -300,8 +341,9 @@ public class CourseService {
     public Course getCourseForMasterMigration(UUID masterMigrationId) {
         Optional<Course> course = courseRepo.getCourseByMasterMigrationId(masterMigrationId);
 
-        if (course.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("No course exists for master migration '%s'!", masterMigrationId));
+        if (course.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("No course " +
+                    "exists for master migration '%s'!", masterMigrationId));
         }
 
         return course.get();

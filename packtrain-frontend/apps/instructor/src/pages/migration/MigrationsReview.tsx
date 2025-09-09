@@ -16,7 +16,11 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { MigrationScoreChange, Score } from "@repo/api/openapi";
+import {
+  MigrationScoreChange,
+  MigrationWithScores,
+  Score,
+} from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { Loading } from "@repo/ui/Loading";
 import { TableHeader, useTableData } from "@repo/ui/table/Table";
@@ -30,6 +34,12 @@ import {
   useGetMasterMigration,
   useGetMigrationWithScores,
 } from "../../hooks";
+
+type ExportRow = {
+  name: string;
+  canvas_id: string;
+  score: number;
+};
 
 export function MigrationsReviewPage() {
   const navigate = useNavigate();
@@ -190,6 +200,51 @@ export function MigrationsReviewPage() {
     );
   };
 
+  const exportData: ExportRow[] = sortedData.map((row: Score) => ({
+    name: row.student?.name ?? "",
+    canvas_id: row.student?.canvas_id ?? "",
+    score: row.score ?? 0.0,
+  }));
+
+  function exportToCanvasCsv(data: ExportRow[], filename = "scores.csv") {
+    // ex: "HW6 - Logic & Circuits (279003)";
+    const assignment = migrationData?.find(
+      (x: MigrationWithScores) => x.assignment?.id === selectedAssignment
+    )?.assignment;
+
+    if (!assignment) {
+      console.error("Assignment not found; could not export Canvas CSV");
+      return;
+    }
+
+    const assignmentName = assignment.name;
+    const assignmentCanvasId = assignment.canvas_id;
+
+    // Canvas header rows - SIS User ID,SIS Login ID,Section don't need to be populated bc Canvas is stupid
+    const header1 = `Student,ID,SIS User ID,SIS Login ID,Section,${assignmentName} (${assignmentCanvasId})`;
+
+    const rows = data.map((d) => [
+      d.name ?? "",
+      d.canvas_id ?? "",
+      "",
+      "",
+      "",
+      d.score ?? "",
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [header1, ...rows.map((r) => r.join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   const rows = sortedData.map((row: Score) => (
     // student name, days late, score to apply, raw score, status
     <Table.Tr key={row.student?.cwid}>
@@ -203,10 +258,10 @@ export function MigrationsReviewPage() {
         </Center>
       </Table.Td>
       <Table.Td>
-        <Center>{row.raw_score} </Center>
+        <Center>{row.raw_score}</Center>
       </Table.Td>
       <Table.Td>
-        <Center>{row.days_late} </Center>
+        <Center>{row.days_late}</Center>
       </Table.Td>
       <Table.Td>{row.status}</Table.Td>
     </Table.Tr>
@@ -392,16 +447,20 @@ export function MigrationsReviewPage() {
 
                   <Group>
                     <Text>
-                      <b>{migrationData[0].stats?.total_submission}</b> Total submissions
+                      <b>{migrationData[0].stats?.total_submission}</b> Total
+                      submissions
                     </Text>
                     <Text>
-                      <b>{migrationData[0].stats?.late_requests}</b> Late requests
+                      <b>{migrationData[0].stats?.late_requests}</b> Late
+                      requests
                     </Text>
                     <Text>
-                      <b>{migrationData[0].stats?.total_extensions}</b> Extensions applied
+                      <b>{migrationData[0].stats?.total_extensions}</b>{" "}
+                      Extensions applied
                     </Text>
                     <Text>
-                      <b>{migrationData[0].stats?.total_late_passes}</b> Total late passes 
+                      <b>{migrationData[0].stats?.total_late_passes}</b> Total
+                      late passes
                     </Text>
                   </Group>
                 </Tabs.Panel>
@@ -413,7 +472,9 @@ export function MigrationsReviewPage() {
         )}
 
         <Group justify="space-between" mt="l">
-          <Button color="gray">Export</Button>
+          <Button color="gray" onClick={() => exportToCanvasCsv(exportData)}>
+            Export
+          </Button>
 
           <Group>
             <Button onClick={openConfirm}>Post</Button>

@@ -200,6 +200,11 @@ declare namespace Components {
             name: string;
             /**
              * example:
+             * 123456
+             */
+            canvas_id: number; // int64
+            /**
+             * example:
              * 15
              */
             points: number; // double
@@ -517,14 +522,9 @@ declare namespace Components {
             instructor?: string;
             /**
              * example:
-             * Jane Doe
+             * A Student
              */
-            requestor?: string;
-            /**
-             * example:
-             * 9999999
-             */
-            user_requester_id?: string;
+            user_requester: string;
             /**
              * example:
              * Extension pending instructor approval
@@ -972,19 +972,9 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
-             */
-            export type AssignmentId = string; // uuid
-            /**
-             * example:
              * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
             export type CourseId = string; // uuid
-            /**
-             * example:
-             * 99999999
-             */
-            export type Cwid = string;
             /**
              * example:
              * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
@@ -1002,16 +992,6 @@ declare namespace Paths {
              * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
             Parameters.CourseId /* uuid */;
-            assignment_id: /**
-             * example:
-             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
-             */
-            Parameters.AssignmentId /* uuid */;
-            cwid: /**
-             * example:
-             * 99999999
-             */
-            Parameters.Cwid;
             extension_id: /**
              * example:
              * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
@@ -1235,19 +1215,9 @@ declare namespace Paths {
         namespace Parameters {
             /**
              * example:
-             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
-             */
-            export type AssignmentId = string; // uuid
-            /**
-             * example:
              * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
             export type CourseId = string; // uuid
-            /**
-             * example:
-             * 99999999
-             */
-            export type Cwid = string;
             /**
              * example:
              * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
@@ -1265,16 +1235,6 @@ declare namespace Paths {
              * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
             Parameters.CourseId /* uuid */;
-            assignment_id: /**
-             * example:
-             * 3697C75D-8DB6-447F-AAA0-0DB129EFEC45
-             */
-            Parameters.AssignmentId /* uuid */;
-            cwid: /**
-             * example:
-             * 99999999
-             */
-            Parameters.Cwid;
             extension_id: /**
              * example:
              * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
@@ -2543,7 +2503,6 @@ declare namespace Paths {
     }
 }
 
-
 export interface OperationMethods {
   /**
    * check_health - Checks the health of the server
@@ -2879,9 +2838,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.GetAllExtensionsForCourse.Responses.$200>
   /**
-   * approve_extension - Approves an extension for an assignment for the user.
+   * approve_extension - Approves an extension for the user.
    * 
-   * Approves an extension for an assignment for the user.
+   * Approves an extension for the user.
    * 
    */
   'approve_extension'(
@@ -2890,9 +2849,9 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.ApproveExtension.Responses.$202>
   /**
-   * deny_extension - Denies an extension for an assignment for the user.
+   * deny_extension - Denies an extension for the user.
    * 
-   * Denies an extension for an assignment for the user.
+   * Denies an extension for the user.
    * 
    */
   'deny_extension'(
@@ -3620,11 +3579,11 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.GetAllExtensionsForCourse.Responses.$200>
   }
-  ['/instructor/courses/{course_id}/assignment/{assignment_id}/user/{cwid}/extensions/{extension_id}/approve']: {
+  ['/instructor/courses/{course_id}/extensions/{extension_id}/approve']: {
     /**
-     * approve_extension - Approves an extension for an assignment for the user.
+     * approve_extension - Approves an extension for the user.
      * 
-     * Approves an extension for an assignment for the user.
+     * Approves an extension for the user.
      * 
      */
     'put'(
@@ -3633,11 +3592,11 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.ApproveExtension.Responses.$202>
   }
-  ['/instructor/courses/{course_id}/assignment/{assignment_id}/user/{cwid}/extensions/{extension_id}/deny']: {
+  ['/instructor/courses/{course_id}/extensions/{extension_id}/deny']: {
     /**
-     * deny_extension - Denies an extension for an assignment for the user.
+     * deny_extension - Denies an extension for the user.
      * 
-     * Denies an extension for an assignment for the user.
+     * Denies an extension for the user.
      * 
      */
     'put'(
@@ -4043,7 +4002,6 @@ export interface PathsDictionary {
 }
 
 export type Client = OpenAPIClient<OperationMethods, PathsDictionary>
-
 
 export type Assignment = Components.Schemas.Assignment;
 export type AssignmentSlim = Components.Schemas.AssignmentSlim;
