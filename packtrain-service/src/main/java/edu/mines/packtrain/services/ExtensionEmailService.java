@@ -4,14 +4,11 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.mines.packtrain.data.templates.ExtensionCreatedInstructorDTO;
 import edu.mines.packtrain.data.templates.ExtensionCreatedStudentDTO;
 import edu.mines.packtrain.models.Course;

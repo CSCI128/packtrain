@@ -1,11 +1,9 @@
 package edu.mines.packtrain.config;
 
 import java.io.IOException;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.cache.TemplateLoader;
 import freemarker.core.ParseException;
@@ -24,8 +22,7 @@ public class FreeMarkerConfiguration {
     public FreeMarkerConfiguration(
             @Value("${grading-admin.email.templates.template-directory}") String templatePath,
             @Value("${grading-admin.email.templates.extension-created-student}") String extensionCreatedStudent,
-            @Value("${grading-admin.email.templates.extension-created-instructor}") String extensionCreatedInstructor
-            ) {
+            @Value("${grading-admin.email.templates.extension-created-instructor}") String extensionCreatedInstructor) {
         templateLoader = new ClassTemplateLoader(this.getClass(), templatePath);
 
         freemarker.template.Configuration configuration = new freemarker.template.Configuration(

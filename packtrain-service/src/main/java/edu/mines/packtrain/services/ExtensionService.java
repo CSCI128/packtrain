@@ -1,5 +1,15 @@
 package edu.mines.packtrain.services;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.springframework.http.HttpStatus;
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import edu.mines.packtrain.data.ExtensionDTO;
 import edu.mines.packtrain.data.LateRequestDTO;
 import edu.mines.packtrain.managers.SecurityManager;
@@ -14,21 +24,8 @@ import edu.mines.packtrain.models.enums.LateRequestStatus;
 import edu.mines.packtrain.models.enums.LateRequestType;
 import edu.mines.packtrain.repositories.ExtensionRepo;
 import edu.mines.packtrain.repositories.LateRequestRepo;
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.simplejavamail.api.mailer.Mailer;
-import org.springframework.http.HttpStatus;
-import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
