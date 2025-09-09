@@ -21,10 +21,13 @@ import lombok.extern.slf4j.Slf4j;
 public class FreeMarkerConfiguration {
     private final TemplateLoader templateLoader;
     private final Template extensionCreatedStudentTemplate;
+    private final Template extensionCreatedInstructorTemplate;
 
     public FreeMarkerConfiguration(
             @Value("${grading-admin.email.templates.template-directory}") String templatePath,
-            @Value("${grading-admin.email.templates.extension-created-student}") String extensionCreatedStudent) {
+            @Value("${grading-admin.email.templates.extension-created-student}") String extensionCreatedStudent,
+            @Value("${grading-admin.email.templates.extension-created-instructor}") String extensionCreatedInstructor
+            ) {
         templateLoader = new ClassTemplateLoader(this.getClass(), templatePath);
 
         freemarker.template.Configuration configuration = new freemarker.template.Configuration(
@@ -50,6 +53,25 @@ public class FreeMarkerConfiguration {
             log.error("Failed to read template!", e);
             throw new RuntimeException(e);
         }
+
+        try {
+            extensionCreatedInstructorTemplate = configuration.getTemplate(extensionCreatedInstructor);
+        } catch (TemplateNotFoundException e) {
+            log.error("Failed to locate template '{}'", extensionCreatedInstructor);
+            log.error("Template not found", e);
+            throw new RuntimeException(e);
+        } catch (MalformedTemplateNameException e) {
+            log.error("Bad template name '{}'", extensionCreatedInstructor);
+            log.error("Bad template name", e);
+            throw new RuntimeException(e);
+        } catch (ParseException e) {
+            log.error("Failed to parse template '{}'", extensionCreatedInstructor);
+            log.error("Parse error!", e);
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            log.error("Failed to read template!", e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Bean(name = "extensionCreatedStudentTemplate")
@@ -57,4 +79,8 @@ public class FreeMarkerConfiguration {
         return extensionCreatedStudentTemplate;
     }
 
+    @Bean(name = "extensionCreatedInstructorTemplate")
+    public Template getExtensionCreatedInstructorTemplate() {
+        return extensionCreatedInstructorTemplate;
+    }
 }
