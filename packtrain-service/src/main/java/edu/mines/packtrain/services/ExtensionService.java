@@ -203,7 +203,7 @@ public class ExtensionService {
 
     public void processExtensionApplied(UUID extensionId, boolean extensionApplied, int extensionDays) {
         Optional<LateRequest> lateRequest = lateRequestRepo.getLateRequestById(extensionId);
-        if !(lateRequest.isPresent()) {
+        if lateRequest.isPresent() {
             // assume extension exists
             // actually process the extension by marking extension as applied or ignored
         }
