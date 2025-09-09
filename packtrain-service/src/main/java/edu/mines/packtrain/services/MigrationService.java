@@ -264,6 +264,7 @@ public class MigrationService {
         entry.setSubmissionStatus(dto.getSubmissionStatus());
         entry.setScore(dto.getFinalScore());
         entry.setSubmissionTime(dto.getAdjustedSubmissionTime());
+        entry.setExtensionDays(dto.get)
 
         StringBuilder msg = new StringBuilder();
         Optional<LateRequest> lateRequest = extensionService.getLateRequest(entry.getExtensionId());
