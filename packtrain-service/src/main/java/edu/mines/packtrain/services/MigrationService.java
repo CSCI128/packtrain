@@ -686,7 +686,7 @@ public class MigrationService {
         for (MigrationTransactionLog entry : entries) {
             submissions.addSubmission(entry.getCanvasId(), entry.getMessage(), entry.getScore(),
                     entry.getSubmissionStatus().equals(SubmissionStatus.EXCUSED));
-            if (entry.extensionId != null) {
+            if (entry.getExtensionId() != null) {
                 extensionService.processExtensionApplied(entry.getExtensionId(), entry.isExtensionApplied(), entry.getExtensionDays());
             }
         }
