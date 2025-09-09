@@ -85,29 +85,41 @@ export function ProfilePage() {
 
   const mutation = useMutation({
     mutationKey: ["newCredential"],
-    mutationFn: ({ body }: { body: Credential }) =>
-      getApiClient()
-        .then((client) => client.new_credential({}, body))
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({ body }: { body: Credential }) => {
+      const client = await getApiClient();
+      const res = await client.new_credential({}, body);
+      return res.data;
+    },
+    onError: (error) => {
+      // TODO show toast/error message here
+      console.error("Mutation failed:", error);
+    },
   });
 
   const deleteCredentialMutation = useMutation({
     mutationKey: ["deleteCredential"],
-    mutationFn: ({ credential_id }: { credential_id: string }) =>
-      getApiClient()
-        .then((client) => client.delete_credential(credential_id))
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({ credential_id }: { credential_id: string }) => {
+      const client = await getApiClient();
+      const res = await client.delete_credential({ credential_id });
+      return res.data;
+    },
+    onError: (error) => {
+      // TODO show toast/error message here
+      console.error("Mutation failed:", error);
+    },
   });
 
   const updateUserMutation = useMutation({
     mutationKey: ["updateUser"],
-    mutationFn: ({ body }: { body: User }) =>
-      getApiClient()
-        .then((client) => client.update_user({}, body))
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({ body }: { body: User }) => {
+      const client = await getApiClient();
+      const res = await client.update_user({}, body);
+      return res.data;
+    },
+    onError: (error) => {
+      // TODO show toast/error message here
+      console.error("Mutation failed:", error);
+    },
   });
 
   if (isLoading || !data) return <Loading />;
@@ -128,9 +140,7 @@ export function ProfilePage() {
         },
       },
       {
-        onSuccess: () => {
-          refetchUser();
-        },
+        onSuccess: () => refetchUser(),
       }
     );
     closeEditUser();
@@ -154,9 +164,7 @@ export function ProfilePage() {
         },
       },
       {
-        onSuccess: () => {
-          refetch();
-        },
+        onSuccess: () => refetch(),
       }
     );
     close();
@@ -168,9 +176,7 @@ export function ProfilePage() {
         credential_id: credential_id,
       },
       {
-        onSuccess: () => {
-          refetch();
-        },
+        onSuccess: () => refetch(),
       }
     );
     closeDelete();
