@@ -664,7 +664,6 @@ paths:
       tags:
         - user
       operationId: get_enrollments
-
       summary: "Get all enrollments for a user"
       description: |
         Gets all enrollments (classes) that a

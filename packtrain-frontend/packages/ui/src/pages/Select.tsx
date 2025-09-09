@@ -17,7 +17,7 @@ import { useAuth } from "react-oidc-context";
 
 export const SelectClass = ({ close }: { close?: () => void }) => {
   const auth = useAuth();
-  const [checked, setChecked] = useState(true);
+  const [checked, setChecked] = useState(false);
 
   const { data, error, isLoading, refetch } = useQuery<
     Enrollment[],
@@ -29,21 +29,18 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
       getApiClient()
         .then((client) => client.get_enrollments())
         .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return [];
-        }),
+        .catch(() => []),
     enabled: !!auth.isAuthenticated,
   });
 
   const switchCourse = (id: string, name: string) => {
     store$.id.set(id);
     store$.name.set(name);
-    if (close) {
-      close();
-    }
+    close?.();
 
-    const enrollment = data?.filter((c) => c.id === store$.id.get()).at(0);
+    const enrollment = data
+      ?.filter((enrollment: Enrollment) => enrollment.id === store$.id.get())
+      .at(0);
     if (enrollment !== undefined) {
       if (enrollment.course_role === "owner") {
         window.location.href = "/admin/";
@@ -69,58 +66,62 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
       >
         {enrollment.name} ({enrollment.term}){" "}
         {store$.id.get() == enrollment.id && <>(selected)</>}
+        {!enrollment.enabled && <>(inactive)</>}
       </Button>
     );
   }
 
   if (!data || isLoading) return <Loading />;
 
-  if (error) return `An error occured: ${error}`;
+  if (error) return <Text>An error occured: {error.message}</Text>;
 
   return (
     <Container size="sm">
       <Center>
         <Stack>
-          {/* students can only see enabled courses, admin sees all */}
-          {auth.user?.profile.is_admin ? (
-            <>
-              {data.length === 0 ? (
-                <Center>
-                  <Text>No enrollments found!</Text>
-                </Center>
-              ) : (
-                data.map((enrollment: Enrollment) => (
-                  <ClassButton key={enrollment.id} {...enrollment} />
-                ))
-              )}
-              <Button color="green" onClick={handleCreateClass}>
-                Create Class
-              </Button>
-              <Center>
-                <Group>
-                  <Checkbox
-                    checked={checked}
-                    onChange={(event) => {
-                      setChecked(event.currentTarget.checked);
-                      refetch();
-                    }}
-                  />
-                  <Text c="gray">Show only active courses</Text>
-                </Group>
-              </Center>
-            </>
+          {data.length === 0 ? (
+            <Center>
+              <Text>No enrollments found!</Text>
+            </Center>
           ) : (
             <>
-              {data.length === 0 ? (
-                <Center>
-                  <Text>No enrollments found!</Text>
-                </Center>
+              {auth.user?.profile.is_admin ? (
+                // admin sees all courses, filterable by active
+                <>
+                  {data
+                    .filter(
+                      (enrollment: Enrollment) =>
+                        checked ||
+                        enrollment.enabled ||
+                        // state where course could be selected but disabled
+                        store$.id.get() === enrollment.id
+                    )
+                    .map((enrollment: Enrollment) => (
+                      <ClassButton key={enrollment.id} {...enrollment} />
+                    ))}
+                  <Button color="green" onClick={handleCreateClass}>
+                    Create Class
+                  </Button>
+                  <Group>
+                    <Checkbox
+                      checked={checked}
+                      onChange={(event) => {
+                        setChecked(event.currentTarget.checked);
+                        refetch();
+                      }}
+                    />
+                    <Text c="gray">Show inactive courses</Text>
+                  </Group>
+                </>
               ) : (
-                data
-                  .filter((enrollment: Enrollment) => enrollment.enabled)
-                  .map((enrollment: Enrollment) => (
-                    <ClassButton key={enrollment.id} {...enrollment} />
-                  ))
+                // students only see enabled courses
+                <>
+                  {data
+                    .filter((enrollment: Enrollment) => enrollment.enabled)
+                    .map((enrollment: Enrollment) => (
+                      <ClassButton key={enrollment.id} {...enrollment} />
+                    ))}
+                </>
               )}
             </>
           )}
