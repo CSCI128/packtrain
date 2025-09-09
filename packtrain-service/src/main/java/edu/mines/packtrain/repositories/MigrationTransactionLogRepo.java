@@ -18,7 +18,8 @@ public interface MigrationTransactionLogRepo extends CrudRepository<MigrationTra
     List<MigrationTransactionLog> getByCwidAndMigrationId(String cwid, UUID migrationId);
 
     @Query("select l from migration_transaction_log l where l.migrationId = ?1" + 
-         "and l.revision = (select max(l2.revision) from migration_transaction_log l2 where l2.cwid = l.cwid )")
+            "and l.revision = (select max(l2.revision) from migration_transaction_log l2 
+            where l2.cwid = l.cwid )")
     // grabbing the latest revision from migration transaction log by migration id 
     // cursed subquery version (im so sorry)
      List<MigrationTransactionLog> getLatestByMigrationId(UUID migrationId);
