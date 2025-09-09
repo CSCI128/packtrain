@@ -19,17 +19,13 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
   const auth = useAuth();
   const [checked, setChecked] = useState(false);
 
-  const { data, error, isLoading, refetch } = useQuery<
-    Enrollment[],
-    Error,
-    Enrollment[]
-  >({
+  const { data, error, isLoading } = useQuery<Enrollment[], Error>({
     queryKey: ["getEnrollments"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_enrollments())
-        .then((res) => res.data)
-        .catch(() => []),
+    queryFn: async () => {
+      const client = await getApiClient();
+      const res = await client.get_enrollments();
+      return res.data;
+    },
     enabled: !!auth.isAuthenticated,
   });
 
@@ -38,9 +34,9 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     store$.name.set(name);
     close?.();
 
-    const enrollment = data
-      ?.filter((enrollment: Enrollment) => enrollment.id === store$.id.get())
-      .at(0);
+    const enrollment = data?.find(
+      (enrollment: Enrollment) => enrollment.id === store$.id.get()
+    );
     if (enrollment !== undefined) {
       if (enrollment.course_role === "owner") {
         window.location.href = "/admin/";
@@ -80,9 +76,7 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
       <Center>
         <Stack>
           {data.length === 0 ? (
-            <Center>
-              <Text>No enrollments found!</Text>
-            </Center>
+            <Text>No enrollments found!</Text>
           ) : (
             <>
               {auth.user?.profile.is_admin ? (
@@ -107,7 +101,6 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
                       checked={checked}
                       onChange={(event) => {
                         setChecked(event.currentTarget.checked);
-                        refetch();
                       }}
                     />
                     <Text c="gray">Show inactive courses</Text>
