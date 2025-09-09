@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 
-
 @Service
 @Slf4j
 public class EmailService {
@@ -27,8 +26,7 @@ public class EmailService {
             @Value("${grading-admin.email.from-email}") String fromEmail,
             @Value("${grading-admin.email.from-name}") String fromName,
             @Value("${grading-admin.email.testing.override-cc:#{null}}") String overrideCC,
-            @Value("${grading-admin.email.testing.override-to:#{null}}") String overrideTo
-            ) {
+            @Value("${grading-admin.email.testing.override-to:#{null}}") String overrideTo) {
 
         this.enabled = enabled;
         this.mailer = mailer;
@@ -37,18 +35,17 @@ public class EmailService {
         this.overrideCC = overrideCC;
         this.overrideTo = overrideTo;
 
-        if (this.overrideCC != null){
+        if (this.overrideCC != null) {
             log.warn("CC has been overridden so all emails will be cc'd to {}", overrideCC);
         }
 
-        if (this.overrideTo != null){
+        if (this.overrideTo != null) {
             log.warn("TO has been overridden so all emails will be sent to {}", overrideTo);
         }
     }
 
-
     public void sendEmail(String to, List<String> cc, String subject, String html) {
-        if(!enabled){
+        if (!enabled) {
             return;
         }
 

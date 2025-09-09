@@ -2,6 +2,7 @@ package edu.mines.packtrain.config;
 
 import org.simplejavamail.api.mailer.Mailer;
 import org.simplejavamail.mailer.MailerBuilder;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,16 +30,16 @@ public class SmtpConfig {
 
     @Bean
     public Mailer createMailer() {
-        if (!enabled){
+        if (!enabled) {
             return null;
         }
 
         return MailerBuilder
-            .withSMTPServerHost(smtpServer)
-            .withSMTPServerPort(smtpPort)
-            .withSMTPServerUsername(smtpUsername)
-            .withSMTPServerPassword(smtpPassword)
-            .buildMailer();
+                .withSMTPServerHost(smtpServer)
+                .withSMTPServerPort(smtpPort)
+                .withSMTPServerUsername(smtpUsername)
+                .withSMTPServerPassword(smtpPassword)
+                .buildMailer();
     }
 
 }

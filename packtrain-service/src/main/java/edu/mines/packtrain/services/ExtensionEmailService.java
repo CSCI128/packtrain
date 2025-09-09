@@ -12,11 +12,11 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.mines.packtrain.data.templates.ExtensionCreatedInstructorDTO;
+import edu.mines.packtrain.data.templates.ExtensionCreatedStudentDTO;
 import edu.mines.packtrain.models.Course;
 import edu.mines.packtrain.models.LateRequest;
 import edu.mines.packtrain.models.User;
-import edu.mines.packtrain.data.templates.ExtensionCreatedStudentDTO;
-import edu.mines.packtrain.data.templates.ExtensionCreatedInstructorDTO;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +56,7 @@ public class ExtensionEmailService {
             createExtensionCreatedStudentEmail(requester.getEmail(), model);
         }
 
-        if (lateRequest.getExtension() == null){
+        if (lateRequest.getExtension() == null) {
             return;
         }
 
@@ -100,12 +100,11 @@ public class ExtensionEmailService {
                 renderedTemplate);
     }
 
-
-    private void createExtensionCreatedInstructorEmail(String emailAddress, ExtensionCreatedInstructorDTO model){
+    private void createExtensionCreatedInstructorEmail(String emailAddress, ExtensionCreatedInstructorDTO model) {
         StringWriter writer = new StringWriter();
 
         try {
-           extensionCreatedInStructorTemplate 
+            extensionCreatedInStructorTemplate
                     .process(mapper.convertValue(model, new TypeReference<Map<String, Object>>() {
                     }), writer);
         } catch (TemplateException | IOException e) {
