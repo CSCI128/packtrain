@@ -7,13 +7,12 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { getApiClient } from "@repo/api/index";
 import { Enrollment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { Loading } from "@repo/ui/Loading";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
+import { Loading } from "../components/Loading";
+import { useGetEnrollments } from "../hooks";
 
 function ClassButton({
   enrollment,
@@ -36,16 +35,7 @@ function ClassButton({
 export const SelectClass = ({ close }: { close?: () => void }) => {
   const auth = useAuth();
   const [checked, setChecked] = useState(false);
-
-  const { data, error, isLoading } = useQuery<Enrollment[], Error>({
-    queryKey: ["getEnrollments"],
-    queryFn: async () => {
-      const client = await getApiClient();
-      const res = await client.get_enrollments();
-      return res.data;
-    },
-    enabled: !!auth.isAuthenticated,
-  });
+  const { data, error, isLoading } = useGetEnrollments(!!auth.isAuthenticated);
 
   const switchCourse = (id: string, name: string) => {
     store$.id.set(id);

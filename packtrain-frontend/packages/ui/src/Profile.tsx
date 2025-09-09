@@ -14,12 +14,13 @@ import {
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { Credential, Enrollment, User } from "@repo/api/openapi";
+import { Credential, User } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { Loading } from "@repo/ui/Loading";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { useAuth } from "react-oidc-context";
+import { Loading } from "./components/Loading";
+import { useGetEnrollments, useGetUser } from "./hooks";
 
 export function ProfilePage() {
   const auth = useAuth();
@@ -45,25 +46,6 @@ export function ProfilePage() {
         value != "canvas" ? "Please select a valid service!" : null,
     },
   });
-
-  const {
-    data,
-    error,
-    isLoading,
-    refetch: refetchUser,
-  } = useQuery<User | null>({
-    queryKey: ["getUser"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_user())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-    enabled: !!auth.isAuthenticated,
-  });
-
   const editUserForm = useForm({
     mode: "controlled",
     initialValues: {
@@ -81,34 +63,25 @@ export function ProfilePage() {
   });
 
   const {
+    data,
+    error,
+    isLoading,
+    refetch: refetchUser,
+  } = useGetUser(!!auth.isAuthenticated);
+  const {
     data: credentialData,
     error: credentialError,
     isLoading: credentialIsLoading,
     refetch,
-  } = useQuery<Credential[] | null>({
+  } = useQuery<Credential[]>({
     queryKey: ["getCredentials"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_credentials())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    queryFn: async () => {
+      const client = await getApiClient();
+      const res = await client.get_credentials();
+      return res.data;
+    },
   });
-
-  const { data: enrollmentInfo } = useQuery<Enrollment[]>({
-    queryKey: ["getEnrollments"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_enrollments())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return [];
-        }),
-    enabled: !!auth.isAuthenticated,
-  });
+  const { data: enrollmentInfo } = useGetEnrollments(!!auth.isAuthenticated);
 
   const mutation = useMutation({
     mutationKey: ["newCredential"],
