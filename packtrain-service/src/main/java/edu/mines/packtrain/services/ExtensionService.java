@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.simplejavamail.api.mailer.Mailer;
@@ -29,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class ExtensionService {
     private final ExtensionRepo extensionRepo;
@@ -38,22 +41,8 @@ public class ExtensionService {
     private final CourseService courseService;
     private final UserService userService;
     private final SecurityManager securityManager;
-    private final EmailService emailService;
+    private final ExtensionEmailService extensionEmailService;
 
-    public ExtensionService(ExtensionRepo extensionRepo, LateRequestRepo lateRequestRepo,
-                            AssignmentService assignmentService,
-                            CourseMemberService courseMemberService,
-                            CourseService courseService, UserService userService,
-                            SecurityManager securityManager, EmailService emailService) {
-        this.extensionRepo = extensionRepo;
-        this.lateRequestRepo = lateRequestRepo;
-        this.assignmentService = assignmentService;
-        this.courseMemberService = courseMemberService;
-        this.courseService = courseService;
-        this.userService = userService;
-        this.securityManager = securityManager;
-        this.emailService = emailService;
-    }
 
     public List<Extension> getExtensionsByMigrationId(UUID migrationId) {
         return extensionRepo.getExtensionsByMigrationId(migrationId);
@@ -174,7 +163,7 @@ public class ExtensionService {
         lateRequest.setAssignment(assignment);
         lateRequest.setRequestingUser(actingUser);
 
-        emailService.sendEmail("gjbell@mines.edu", List.of("trihard.studios@outlook.com"), "New Late Request Created!");
+        extensionEmailService.handleExtensionCreated(lateRequest, course, actingUser, instructor.getUser());
 
         return lateRequestRepo.save(lateRequest);
     }

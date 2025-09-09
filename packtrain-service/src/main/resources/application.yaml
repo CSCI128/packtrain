@@ -34,6 +34,9 @@ grading-admin:
   secret-key: ${SECRET_KEY:password91023451}
   time-zone: "America/Denver"
   email:
+    templates:
+      template-directory: /templates/emails
+      extension-created-student: extension-created-student.ftl
     enabled: true
     smtp-server: ${SMTP_SERVER}
     smtp-port: ${SMTP_PORT}
@@ -41,6 +44,9 @@ grading-admin:
     smtp-password: ${SMTP_PASSWORD}
     from-name: "Packtrain No-Reply"
     from-email: ${FROM_EMAIL_ADDRESS:no-reply@localhost.dev}
+    testing:
+      override-cc: ${EMAIL_TESTING_OVERRIDE_CC:null}
+      override-to: ${EMAIL_TESTING_OVERRIDE_TO:null}
   external-services:
     canvas:
       enabled: true
