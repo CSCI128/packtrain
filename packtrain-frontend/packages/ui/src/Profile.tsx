@@ -14,7 +14,7 @@ import {
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
-import { Credential, User } from "@repo/api/openapi";
+import { Credential, Enrollment, User } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
@@ -176,11 +176,6 @@ export function ProfilePage() {
     closeDelete();
   };
 
-  const handleDelete = (credential: Credential) => {
-    setSelectedCredential(credential);
-    openDelete();
-  };
-
   return (
     <>
       <Modal
@@ -307,7 +302,7 @@ export function ProfilePage() {
         <Divider my="sm" />
 
         <Text size="md" fw={700}>
-          {data.name} {data.admin ? "(Admin)" : ""}
+          {data.name} {data.admin && "(Admin)"}
         </Text>
 
         <Text size="md">{data.email}</Text>
@@ -315,39 +310,44 @@ export function ProfilePage() {
         <Text size="md">CWID: {data.cwid}</Text>
 
         {enrollmentInfo &&
-        enrollmentInfo.filter((c) => c.id === store$.id.get()).at(0)
-          ?.course_role !== "student" ? (
-          <>
-            <Group mt={25} justify="space-between">
-              <Text size="xl" fw={700}>
-                Credentials
-              </Text>
-              <Button justify="flex-end" variant="filled" onClick={open}>
-                Add Credential
-              </Button>
-            </Group>
+          enrollmentInfo.find(
+            (enrollment: Enrollment) => enrollment.id === store$.id.get()
+          )?.course_role !== "student" && (
+            <>
+              <Group mt={25} justify="space-between">
+                <Text size="xl" fw={700}>
+                  Credentials
+                </Text>
+                <Button justify="flex-end" variant="filled" onClick={open}>
+                  Add Credential
+                </Button>
+              </Group>
 
-            <Divider my="sm" />
+              <Divider my="sm" />
 
-            {credentialData.map((credential: Credential) => (
-              <React.Fragment key={credential.id}>
-                <Box size="sm" mt={15}>
-                  <Text size="md" fw={700}>
-                    {credential.name}
-                  </Text>
+              {credentialData.map((credential: Credential) => (
+                <React.Fragment key={credential.id}>
+                  <Box size="sm" mt={15}>
+                    <Text size="md" fw={700}>
+                      {credential.name}
+                    </Text>
 
-                  <Text size="md">Service: {credential.service}</Text>
+                    <Text size="md">Service: {credential.service}</Text>
 
-                  <Button color="red" onClick={() => handleDelete(credential)}>
-                    Delete
-                  </Button>
-                </Box>
-              </React.Fragment>
-            ))}
-          </>
-        ) : (
-          <></>
-        )}
+                    <Button
+                      color="red"
+                      onClick={() => {
+                        setSelectedCredential(credential);
+                        openDelete();
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </Box>
+                </React.Fragment>
+              ))}
+            </>
+          )}
       </Container>
     </>
   );

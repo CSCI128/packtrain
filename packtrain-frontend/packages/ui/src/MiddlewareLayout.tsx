@@ -12,9 +12,7 @@ export const MiddlewareLayout = () => {
   const { data, error, status } = useGetUser(true);
 
   useEffect(() => {
-    const shouldSkip =
-      status === "pending" || status === "error" || auth.isLoading;
-    if (shouldSkip) return;
+    if (status === "pending" || status === "error" || auth.isLoading) return;
 
     const fetchData = async () => {
       if (
