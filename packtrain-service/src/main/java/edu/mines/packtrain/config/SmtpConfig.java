@@ -9,19 +9,16 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SmtpConfig {
-    private final boolean enabled;
     private final String smtpServer;
     private final int smtpPort;
     private final String smtpUsername;
     private final String smtpPassword;
 
     public SmtpConfig(
-            @Value("${grading-admin.email.enabled}") boolean enabled,
             @Value("${grading-admin.email.smtp-server}") String smtpServer,
             @Value("${grading-admin.email.smtp-port}") int smtpPort,
             @Value("${grading-admin.email.smtp-username}") String smtpUsername,
             @Value("${grading-admin.email.smtp-password}") String smtpPassword) {
-        this.enabled = enabled;
         this.smtpServer = smtpServer;
         this.smtpPort = smtpPort;
         this.smtpUsername = smtpUsername;
@@ -30,10 +27,6 @@ public class SmtpConfig {
 
     @Bean
     public Mailer createMailer() {
-        if (!enabled) {
-            return null;
-        }
-
         return MailerBuilder
                 .withSMTPServerHost(smtpServer)
                 .withSMTPServerPort(smtpPort)
