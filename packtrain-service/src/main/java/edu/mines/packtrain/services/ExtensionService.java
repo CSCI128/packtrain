@@ -200,4 +200,14 @@ public class ExtensionService {
                 .collect(Collectors.toUnmodifiableMap(
                         l -> l.getRequestingUser().getCwid(), l -> l));
     }
+
+    public void processExtensionApplied(UUID extensionId, boolean extensionApplied, int extensionDays) {
+        Optional<LateRequest> lateRequest = lateRequestRepo.getLateRequestById(extensionId);
+        if !(lateRequest.isPresent()) {
+            // assume extension exists
+            // actually process the extension by marking extension as applied or ignored
+        }
+
+    }
+
 }

@@ -21,5 +21,5 @@ public interface MigrationTransactionLogRepo extends CrudRepository<MigrationTra
          "and l.revision = (select max(l2.revision) from migration_transaction_log l2 where l2.cwid = l.cwid )")
     // grabbing the latest revision from migration transaction log by migration id 
     // cursed subquery version (im so sorry)
-     List<MigrationTransactionLog> getAllByMigrationIdSorted(UUID migrationId);
+     List<MigrationTransactionLog> getLatestByMigrationId(UUID migrationId);
 }
