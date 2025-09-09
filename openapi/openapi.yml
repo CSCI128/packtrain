@@ -1916,7 +1916,7 @@ components:
           type: number
           format: double
           example: 19
-        canvsasMinScore:
+        canvasMinScore:
           type: number
           format: double
           example: 0
@@ -1924,7 +1924,7 @@ components:
           type: number
           format: double
           example: 10
-        externalServiceMaxScore:
+        externalMaxScore:
           type: number
           format: double
           example: 10

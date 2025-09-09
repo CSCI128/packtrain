@@ -2805,7 +2805,7 @@
             "format": "double",
             "example": 19
           },
-          "canvsasMinScore": {
+          "canvasMinScore": {
             "type": "number",
             "format": "double",
             "example": 0
