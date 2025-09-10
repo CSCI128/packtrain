@@ -10,8 +10,8 @@ import {
 import { getApiClient } from "@repo/api/index";
 import { Policy } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { Loading } from "@repo/ui/Loading";
-import { TableHeader, useTableData } from "@repo/ui/table/Table";
+import { Loading } from "@repo/ui/components/Loading";
+import { TableHeader, useTableData } from "@repo/ui/components/table/Table";
 import { useMutation } from "@tanstack/react-query";
 import { BsTrash } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
@@ -92,7 +92,7 @@ export function CoursePage() {
     <>
       <Container size="md">
         {courseIsLoading || !courseData ? (
-            <Loading></Loading>
+          <Loading></Loading>
         ) : courseError ? (
           <Text>There was an error while trying to fetch the course!</Text>
         ) : (

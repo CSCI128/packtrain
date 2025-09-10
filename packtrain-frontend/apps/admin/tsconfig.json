@@ -23,6 +23,6 @@
       "react": ["./node_modules/@types/react"]
     }
   },
-  "include": ["src", "../student/src/pages/ExtensionForm.tsx", "../student/src/pages/Requests.tsx", "../../packages/ui/src/pages/Select.tsx", "../instructor/src/migration", "../instructor/src/pages/Members.tsx", "../instructor/src/Migrations.tsx", "../../packages/ui/src/DateUtil.ts", "../../packages/ui/src/table", "src/templates", "../../packages/ui/src/navbar/Navbar.tsx"],
+  "include": ["src", "../student/src/pages/ExtensionForm.tsx", "../student/src/pages/Requests.tsx", "../../packages/ui/src/pages/Select.tsx", "../instructor/src/migration", "../instructor/src/pages/Members.tsx", "../instructor/src/Migrations.tsx", "../../packages/ui/src/DateUtil.ts", "../../packages/ui/src/components/table", "src/templates", "../../packages/ui/src/components/navbar/Navbar.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

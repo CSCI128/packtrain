@@ -1,7 +1,7 @@
 import { Box } from "@mantine/core";
 import "@mantine/dates/styles.css";
-import { Footer } from "@repo/ui/footer/Footer";
-import { Navbar } from "@repo/ui/navbar/Navbar";
+import { Footer } from "@repo/ui/components/footer/Footer";
+import { Navbar } from "@repo/ui/components/navbar/Navbar";
 import { Outlet } from "react-router-dom";
 
 const staticLinks = [

@@ -16,9 +16,8 @@ import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
 import { Course, CourseSyncTask, Task } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { Loading } from "@repo/ui/Loading";
+import { Loading } from "@repo/ui/components/Loading";
 import { useMutation } from "@tanstack/react-query";
-
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGetCourse } from "../../hooks";
