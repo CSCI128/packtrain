@@ -452,14 +452,19 @@ public class CourseMemberService {
     }
 
     public Optional<String> getCwidGivenCourseAndEmail(String email, Course course) {
-        User user = userService.getUserByEmail(email);
+        Optional<User> user = userService.findUserByEmail(email);
 
-        if (!courseMemberRepo.existsByCourseAndUser(course, user)) {
-            log.warn("User '{}' is not enrolled in course '{}'", user.getEmail(), course.getCode());
+        if (user.isEmpty()){
+            log.warn("User '{}' does not exist in system!", email);
             return Optional.empty();
         }
 
-        return Optional.of(user.getCwid());
+        if (!courseMemberRepo.existsByCourseAndUser(course, user.get())) {
+            log.warn("User '{}' is not enrolled in course '{}'", user.get().getEmail(), course.getCode());
+            return Optional.empty();
+        }
+
+        return Optional.of(user.get().getCwid());
     }
 
     public String getCanvasIdGivenCourseAndCwid(String cwid, Course course) {

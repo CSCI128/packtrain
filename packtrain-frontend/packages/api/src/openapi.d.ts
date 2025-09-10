@@ -738,7 +738,7 @@ declare namespace Components {
              * example:
              * 10
              */
-            externalServiceMaxScore?: number; // double
+            externalMaxScore?: number; // double
             initialDueDate?: string; // date-time
             submissionDate?: string; // date-time
             submissionStatus?: "missing" | "excused" | "late" | "extended" | "on_time";

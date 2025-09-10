@@ -224,6 +224,11 @@ public class RawScoreService {
 
         RawScore s = new RawScore();
 
+        if (line[USER_ID_IDX].isEmpty() || line[USER_ID_IDX].isBlank()){
+            log.warn("Empty student submission: {}. Skipping.", Arrays.toString(line));
+            return Optional.empty();
+        }
+
         Optional<String> cwid = courseMemberService.getCwidGivenCourseAndEmail(line[USER_ID_IDX],
                 course);
 

@@ -33,6 +33,10 @@ public class UserService {
         return userRepo.getByCwid(cwid);
     }
 
+    public Optional<User> findUserByEmail(String email) {
+        return userRepo.getByEmail(email);
+    }
+
     public User getUserByCwid(String cwid) {
         Optional<User> user = userRepo.getByCwid(cwid);
         if (user.isEmpty()) {
