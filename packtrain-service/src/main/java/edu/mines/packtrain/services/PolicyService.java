@@ -37,7 +37,7 @@ public class PolicyService {
     }
 
     public Policy createNewPolicy(User actingUser, UUID courseId, String policyName,
-            String description, String fileName, MultipartFile file) {
+            String description, String fileName, String file) {
         // if this is slow, we may need to make this a task
         Optional<Course> course = courseRepo.getById(courseId);
 
@@ -155,7 +155,7 @@ public class PolicyService {
     public PolicyWithCodeDTO getFullPolicy(UUID policyId) {
         Policy policy = getPolicy(policyId);
 
-        Optional<Resource> policyText = s3Service.getPolicy(policy.getPolicyURI());
+        Optional<String> policyText = s3Service.getPolicy(policy.getPolicyURI());
 
         if (policyText.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to download policy!");
@@ -168,8 +168,8 @@ public class PolicyService {
                 .fileData(policyText.get());
     }
 
-    public Policy updatePolicy(User actingUser, UUID policyId, UUID courseId, String policyName,
-            String description, String fileName, MultipartFile file) {
+    public Policy updatePolicy(User actingUser, UUID courseId, UUID policyId, String policyName,
+            String description, String fileName, String file) {
 
         Policy policy = getPolicy(policyId);
 

@@ -11,6 +11,8 @@ import io.minio.RemoveObjectArgs;
 import io.minio.SetBucketPolicyArgs;
 import io.minio.StatObjectArgs;
 import io.minio.errors.MinioException;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -135,7 +137,7 @@ public class S3Service {
     }
 
     public Optional<String> uploadPolicy(User creatingUser, UUID courseId, String filename,
-            MultipartFile policyDocument, boolean overwrite) {
+            String policyDocument, boolean overwrite) {
         if (!config.isEnabled()) {
             throw new ExternalServiceDisabledException("S3 Service is disabled!");
         }
@@ -162,7 +164,7 @@ public class S3Service {
                     "created-by", creatingUser.getEmail(),
                     "created-on", LocalDateTime.now().toString());
 
-            InputStream docStream = policyDocument.getInputStream();
+            InputStream docStream = new ByteArrayInputStream(policyDocument.getBytes());
 
             PutObjectArgs args = PutObjectArgs.builder()
                     .bucket(courseId.toString())
@@ -194,7 +196,7 @@ public class S3Service {
     }
 
     public Optional<String> uploadPolicy(User creatingUser, UUID courseId, String filename,
-            MultipartFile policyDocument) {
+            String policyDocument) {
 
         return uploadPolicy(creatingUser, courseId, filename, policyDocument, false);
     }
@@ -225,14 +227,14 @@ public class S3Service {
         return true;
     }
 
-    public Optional<Resource> getPolicy(String url) {
+    public Optional<String> getPolicy(String url) {
         if (!config.isEnabled()) {
             throw new ExternalServiceDisabledException("S3 Service is disabled!");
         }
 
         try {
-            ResponseEntity<byte[]> res = restClient.get().uri(url).retrieve().toEntity(byte[].class);
-            return Optional.of(new ByteArrayResource(res.getBody()));
+            ResponseEntity<String> res = restClient.get().uri(url).retrieve().toEntity(String.class);
+            return Optional.of(res.getBody());
         } catch (Exception ex) {
             log.error("Failed to download policy!", ex);
             return Optional.empty();

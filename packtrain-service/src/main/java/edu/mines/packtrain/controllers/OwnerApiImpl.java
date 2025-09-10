@@ -276,7 +276,7 @@ public class OwnerApiImpl implements OwnerApiDelegate {
 
     @Override
     public ResponseEntity<PolicyDTO> newPolicy(UUID courseId, String name, String filePath,
-                                                String description, MultipartFile fileData) {
+                                                String description, String fileData) {
         Policy policy = policyService.createNewPolicy(securityManager.getUser(), courseId,
                 name, description, filePath, fileData);
 
@@ -285,7 +285,7 @@ public class OwnerApiImpl implements OwnerApiDelegate {
 
     @Override
     public ResponseEntity<Void> updatePolicy(UUID courseId, UUID policyId, String name, String filePath,
-            String description, MultipartFile fileData) {
+            String description, String fileData) {
         Policy policy = policyService.updatePolicy(securityManager.getUser(), courseId, policyId,
                 name, description, filePath, fileData);
 

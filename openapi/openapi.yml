@@ -1923,7 +1923,6 @@ components:
             The default policy
         file_data:
           type: string
-          format: binary
           example: |
             // valid javascript code
 
