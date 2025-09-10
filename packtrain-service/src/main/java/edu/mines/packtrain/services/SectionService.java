@@ -79,8 +79,9 @@ public class SectionService {
 
     public Optional<Section> createSection(long canvasId, String name, Course course) {
         if (sectionRepo.existsByCanvasId(canvasId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Section " +
-                    "'%s' already exists, can not create section with same id!", name));
+            return Optional.empty();
+            // throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Section " +
+            //         "'%s' already exists, can not create section with same id!", name));
         }
 
         Section newSection = new Section();
