@@ -22,13 +22,18 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Slf4j
 public class S3Service {
 
+    private RestClient restClient;
     private MinioClient s3Client;
     private final ExternalServiceConfig.S3Config config;
 
@@ -42,8 +47,8 @@ public class S3Service {
                 .endpoint(config.getEndpoint().toURL())
                 .credentials(config.getAccessKey(), config.getSecretKey())
                 .build();
+        restClient = RestClient.create();
     }
-
 
     private boolean bucketExists(String bucket) {
         if (!config.isEnabled()) {
@@ -91,7 +96,8 @@ public class S3Service {
         }
 
         // Allows you to download any resources in this bucket.
-        // This is an acceptable policy for this as it is internal to the docker network,
+        // This is an acceptable policy for this as it is internal to the docker
+        // network,
         // but if this were exposed, we'd want to adjust this.
         // Generated with https://awspolicygen.s3.amazonaws.com/policygen.html
         String policy = String.format("""
@@ -128,8 +134,8 @@ public class S3Service {
         return Optional.of(courseId.toString());
     }
 
-    public Optional<String> uploadNewPolicy(User creatingUser, UUID courseId, String filename,
-                                            MultipartFile policyDocument) {
+    public Optional<String> uploadPolicy(User creatingUser, UUID courseId, String filename,
+            MultipartFile policyDocument, boolean overwrite) {
         if (!config.isEnabled()) {
             throw new ExternalServiceDisabledException("S3 Service is disabled!");
         }
@@ -142,7 +148,7 @@ public class S3Service {
             }
         }
 
-        if (objectExists(courseId.toString(), filename)) {
+        if (!overwrite && objectExists(courseId.toString(), filename)) {
             log.warn("Refusing to upload policy '{}'! Policy already exists!", filename);
             return Optional.empty();
         }
@@ -154,8 +160,7 @@ public class S3Service {
                     "course-id", courseId.toString(),
                     "policy-type", "global",
                     "created-by", creatingUser.getEmail(),
-                    "created-on", LocalDateTime.now().toString()
-            );
+                    "created-on", LocalDateTime.now().toString());
 
             InputStream docStream = policyDocument.getInputStream();
 
@@ -188,6 +193,12 @@ public class S3Service {
 
     }
 
+    public Optional<String> uploadPolicy(User creatingUser, UUID courseId, String filename,
+            MultipartFile policyDocument) {
+
+        return uploadPolicy(creatingUser, courseId, filename, policyDocument, false);
+    }
+
     public boolean deletePolicy(UUID courseId, String filename) {
         if (!config.isEnabled()) {
             throw new ExternalServiceDisabledException("S3 Service is disabled!");
@@ -214,5 +225,18 @@ public class S3Service {
         return true;
     }
 
+    public Optional<Resource> getPolicy(String url) {
+        if (!config.isEnabled()) {
+            throw new ExternalServiceDisabledException("S3 Service is disabled!");
+        }
+
+        try {
+            ResponseEntity<byte[]> res = restClient.get().uri(url).retrieve().toEntity(byte[].class);
+            return Optional.of(new ByteArrayResource(res.getBody()));
+        } catch (Exception ex) {
+            log.error("Failed to download policy!", ex);
+            return Optional.empty();
+        }
+    }
 
 }
