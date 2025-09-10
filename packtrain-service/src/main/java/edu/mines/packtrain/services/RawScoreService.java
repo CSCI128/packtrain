@@ -90,8 +90,7 @@ public class RawScoreService {
         Assignment assignment = migrationService.getAssignmentForMigration(migrationId);
 
         try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(file))
-                .build()
-        ) {
+                .build()) {
 
             String[] s = csvReader.readNext();
 
@@ -108,8 +107,7 @@ public class RawScoreService {
             List<String[]> contents = groupMode ? convertGroupSubmissionToIndividualSubmission(
                     header, csvReader.readAll()) : reduceColumns(header, csvReader.readAll());
 
-            scores = contents.stream().map(l ->
-                            parseLinePL(course, assignment, migrationId, l))
+            scores = contents.stream().map(l -> parseLinePL(course, assignment, migrationId, l))
                     .filter(Optional::isPresent).map(Optional::get).toList();
 
         } catch (IOException e) {
@@ -157,9 +155,8 @@ public class RawScoreService {
             }
 
             int finalAssignmentIdx = assignmentIdx; // lambda vars have to be final
-            scores = csvReader.readAll().stream().map(l ->
-                            parseLineRunestone(finalAssignmentIdx, course, assignment,
-                                    migrationId, l))
+            scores = csvReader.readAll().stream().map(l -> parseLineRunestone(finalAssignmentIdx, course, assignment,
+                    migrationId, l))
                     .filter(Optional::isPresent).map(Optional::get).toList();
         } catch (Exception e) {
             log.error("Failed to read CSV", e);
@@ -182,9 +179,8 @@ public class RawScoreService {
         return groupMembers.split(",");
     }
 
-
     private List<String[]> convertGroupSubmissionToIndividualSubmission(List<String> header,
-                                                                        List<String[]> csv) {
+            List<String[]> csv) {
         List<String[]> normalizeGroupSubmissions = new LinkedList<>();
 
         final int GROUP_MEMBERS_IDX = header.indexOf("Usernames");
@@ -194,8 +190,9 @@ public class RawScoreService {
         for (String[] line : csv) {
             String[] members = extractMembersFromGroup(line[GROUP_MEMBERS_IDX]);
             for (String member : members) {
-                normalizeGroupSubmissions.add(new String[]{member.strip(),
-                        line[SUBMISSION_DATE_IDX], line[QUESTION_POINTS_IDX]});
+                normalizeGroupSubmissions.add(new String[] {
+                        member.strip(), line[SUBMISSION_DATE_IDX], line[QUESTION_POINTS_IDX]
+                });
             }
         }
 
@@ -209,22 +206,23 @@ public class RawScoreService {
         final int SUBMISSION_DATE_IDX = header.indexOf("Submission date");
         final int QUESTION_POINTS_IDX = header.indexOf("Question points");
         for (String[] line : csv) {
-            reducedSubmissions.add(new String[]{line[USER_ID_INDEX],
-                    line[SUBMISSION_DATE_IDX], line[QUESTION_POINTS_IDX]});
+            reducedSubmissions.add(new String[] {
+                    line[USER_ID_INDEX], line[SUBMISSION_DATE_IDX], line[QUESTION_POINTS_IDX]
+            });
         }
 
         return reducedSubmissions;
     }
 
     private Optional<RawScore> parseLinePL(Course course, Assignment assignment, UUID migrationId,
-                                           String[] line) {
+            String[] line) {
         final int USER_ID_IDX = 0;
         final int SUBMISSION_DATE_IDX = 1;
         final int POINTS_IDX = 2;
 
         RawScore s = new RawScore();
 
-        if (line[USER_ID_IDX].isEmpty() || line[USER_ID_IDX].isBlank()){
+        if (line[USER_ID_IDX].isEmpty() || line[USER_ID_IDX].isBlank()) {
             log.warn("Empty student submission: {}. Skipping.", Arrays.toString(line));
             return Optional.empty();
         }
@@ -265,8 +263,8 @@ public class RawScoreService {
     }
 
     private Optional<RawScore> parseLineRunestone(int assignmentIdx, Course course,
-                                                  Assignment assignment, UUID migrationId,
-                                                  String[] line) {
+            Assignment assignment, UUID migrationId,
+            String[] line) {
         if (assignmentIdx == -1) {
             log.warn("Could not find the specified assignment in the Runestone CSV!");
             return Optional.empty();
@@ -315,7 +313,6 @@ public class RawScoreService {
         return rawScoreRepo.save(existing);
     }
 
-
     private Optional<RawScore> parseLineGS(UUID migrationId, String[] line) {
         final int CWID_IDX = 2;
         final int SCORE_IDX = 5;
@@ -349,8 +346,8 @@ public class RawScoreService {
         double score = Double.parseDouble(line[SCORE_IDX]);
 
         Instant submissionTime = LocalDateTime.parse(
-                        line[SUBMISSION_TIME_IDX],
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z", Locale.US))
+                line[SUBMISSION_TIME_IDX],
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z", Locale.US))
                 .atZone(ZoneId.of(timeZone)).toInstant();
 
         double hoursLate = 0.0;
@@ -368,7 +365,6 @@ public class RawScoreService {
         newScore.setSubmissionTime(submissionTime);
         newScore.setHoursLate(hoursLate);
         newScore.setSubmissionStatus(submissionStatus);
-
 
         return Optional.of(rawScoreRepo.save(newScore));
     }
