@@ -152,6 +152,10 @@ public class AssignmentService {
     public void deleteAssignments(Set<Long> assignments, Course course) {
         log.info("Deleting {} assignments for course '{}'", assignments.size(), course.getCode());
 
+        if (assignments.isEmpty()){
+            return;
+        }
+
         assignmentRepo.deleteByCourseAndCanvasId(course, assignments);
     }
 
