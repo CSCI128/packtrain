@@ -267,7 +267,7 @@ export function MigrationsApplyPage() {
       {/*   extensions */}
       {/* </Text> */}
 
-      {!posting && <Text mt={20}>Applying grades..</Text>}
+      {posting && <Text mt={20}>Applying grades..</Text>}
 
       {completed.extensions && completed.zero && (
         <Text mt={20}>Applied grades successfully!</Text>
@@ -286,7 +286,7 @@ export function MigrationsApplyPage() {
 
       <Group justify="flex-end" mt="md">
         <Button
-          disabled={!posting}
+          disabled={posting}
           component={Link}
           to="/instructor/migrate/load"
           color="gray"
