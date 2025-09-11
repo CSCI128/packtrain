@@ -12,9 +12,8 @@ import {
 import { getApiClient } from "@repo/api/index";
 import { Migration, Policy } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { Loading } from "@repo/ui/Loading";
-import { useWebSocketClient } from "@repo/ui/WebSocketHooks";
 import { Loading } from "@repo/ui/components/Loading";
+import { useWebSocketClient } from "@repo/ui/WebSocketHooks";
 import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -41,7 +40,8 @@ export function MigrationsApplyPage() {
   );
   const [posting, setPosting] = useState(false);
   const [tasksFailed, setTasksFailed] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // WS error
+  const [error, setError] = useState(""); // policy validation error
 
   const {
     data: policyData,
@@ -132,15 +132,6 @@ export function MigrationsApplyPage() {
       setPosting(false);
     }
   }, [completed]);
-
-  const handleSetPolicy = (selectedAssignmentId: string) => {
-    setSelectedMigration(
-      migrationData?.migrations
-        ?.filter((x) => x.assignment.id === selectedAssignmentId)
-        .at(0)
-    );
-    open();
-  };
 
   const applyMasterMigration = useMutation({
     mutationKey: ["applyMasterMigration"],
@@ -278,21 +269,21 @@ export function MigrationsApplyPage() {
 
       {!posting && <Text mt={20}>Applying grades..</Text>}
 
-        {completed.extensions && completed.zero && (
-          <Text mt={20}>Applied grades successfully!</Text>
-        )}
+      {completed.extensions && completed.zero && (
+        <Text mt={20}>Applied grades successfully!</Text>
+      )}
 
-        {tasksFailed && (
-          <>
-            <Text size="md" ta="center" c="red.9" fw={700}>
-              Migration Apply Failed
-            </Text>
-            <Text ta="center" c="gray.7">
-              {errorMessage}
-            </Text>
-          </>
-        )}
-      
+      {tasksFailed && (
+        <>
+          <Text size="md" ta="center" c="red.9" fw={700}>
+            Migration Apply Failed
+          </Text>
+          <Text ta="center" c="gray.7">
+            {errorMessage}
+          </Text>
+        </>
+      )}
+
       <Group justify="flex-end" mt="md">
         <Button
           disabled={!posting}
@@ -315,15 +306,14 @@ export function MigrationsApplyPage() {
               return;
             }
 
-              if (completed.extensions && completed.zero) {
-                navigate("/instructor/migrate/review");
-              } else {
-                applyMasterMigration.mutate({
-                  master_migration_id:
-                    store$.master_migration_id.get() as string,
-                });
-                setPosting(true);
-              }
+            if (completed.extensions && completed.zero) {
+              navigate("/instructor/migrate/review");
+            } else {
+              applyMasterMigration.mutate({
+                master_migration_id: store$.master_migration_id.get() as string,
+              });
+              setPosting(true);
+            }
           }}
           color="blue"
         >
