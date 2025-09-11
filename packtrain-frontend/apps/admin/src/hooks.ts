@@ -4,6 +4,7 @@ import {
   CourseMember,
   Credential,
   Policy,
+  PolicyWithCode,
   User,
 } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
@@ -95,5 +96,23 @@ export function useGetPolicies() {
           console.log(err);
           return null;
         }),
+  });
+}
+
+export function useGetPolcicy(policyId: string) {
+  return useQuery<PolicyWithCode>({
+    queryKey: ["getPolicy"],
+    queryFn: () =>
+      getApiClient()
+        .then((client) => client.get_policy({
+          course_id: store$.id.get() as string,
+          policy_id: policyId,
+        })
+        )
+        .then(res => res.data)
+        .catch((err) => {
+          console.log(err);
+          return null;
+        })
   });
 }

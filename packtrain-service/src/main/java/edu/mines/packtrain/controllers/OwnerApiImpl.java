@@ -8,6 +8,7 @@ import edu.mines.packtrain.data.CourseSyncTaskDTO;
 import edu.mines.packtrain.data.PolicyDTO;
 import edu.mines.packtrain.data.PolicyDryRunResultsDTO;
 import edu.mines.packtrain.data.PolicyRawScoreDTO;
+import edu.mines.packtrain.data.PolicyWithCodeDTO;
 import edu.mines.packtrain.data.TaskDTO;
 import edu.mines.packtrain.factories.DTOFactory;
 import edu.mines.packtrain.managers.SecurityManager;
@@ -158,14 +159,6 @@ public class OwnerApiImpl implements OwnerApiDelegate {
                 .stream().map(DTOFactory::toDto).toList());
     }
 
-    @Override
-    public ResponseEntity<PolicyDTO> newPolicy(UUID courseId, String name, String filePath,
-                                               MultipartFile fileData, String description) {
-        Policy policy = policyService.createNewPolicy(securityManager.getUser(), courseId,
-                name, description, filePath, fileData);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(policy));
-    }
 
     @Override
     public ResponseEntity<Void> deletePolicy(UUID courseId, UUID policyId) {
@@ -245,5 +238,28 @@ public class OwnerApiImpl implements OwnerApiDelegate {
         }
 
         return tasks;
+    }
+
+    @Override
+    public ResponseEntity<PolicyWithCodeDTO> getPolicy(UUID courseId, UUID policyId) {
+        return ResponseEntity.ok(policyService.getFullPolicy(policyId));
+    }
+
+    @Override
+    public ResponseEntity<PolicyDTO> newPolicy(UUID courseId, String name, String filePath,
+                                                String description, String fileData) {
+        Policy policy = policyService.createNewPolicy(securityManager.getUser(), courseId,
+                name, description, filePath, fileData);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(DTOFactory.toDto(policy));
+    }
+
+    @Override
+    public ResponseEntity<Void> updatePolicy(UUID courseId, UUID policyId, String name, String filePath,
+            String description, String fileData) {
+        Policy policy = policyService.updatePolicy(securityManager.getUser(), courseId, policyId,
+                name, description, filePath, fileData);
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 }

@@ -11,7 +11,7 @@ import { getApiClient } from "@repo/api/index";
 import { MasterMigration, Migration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
-import { Loading } from "@repo/ui/Loading";
+import { Loading } from "@repo/ui/components/Loading";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useGetMasterMigration, useGetMasterMigrations } from "../../hooks";

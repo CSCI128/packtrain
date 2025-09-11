@@ -33,6 +33,10 @@ public class UserService {
         return userRepo.getByCwid(cwid);
     }
 
+    public Optional<User> findUserByEmail(String email) {
+        return userRepo.getByEmail(email);
+    }
+
     public User getUserByCwid(String cwid) {
         Optional<User> user = userRepo.getByCwid(cwid);
         if (user.isEmpty()) {
@@ -78,8 +82,7 @@ public class UserService {
         return userRepo.save(user);
     }
 
-    public List<User> getOrCreateUsersFromCanvas(Map<String, edu.ksu.canvas.model.User>
-                                                         canvasUsers) {
+    public List<User> getOrCreateUsersFromCanvas(Map<String, edu.ksu.canvas.model.User> canvasUsers) {
         List<User> users = new LinkedList<>();
 
         for (edu.ksu.canvas.model.User user : canvasUsers.values()) {
@@ -114,7 +117,7 @@ public class UserService {
     }
 
     public Optional<User> createNewUser(String cwid, boolean isAdmin, String name,
-                                        String email, @Nullable String oauthId) {
+            String email, @Nullable String oauthId) {
         if (userRepo.existsByCwid(cwid)) {
             return Optional.empty();
         }
@@ -227,6 +230,5 @@ public class UserService {
     public List<Course> getEnrollments(String cwid) {
         return userRepo.getMembershipsByCwid(cwid).stream().map(CourseMember::getCourse).toList();
     }
-
 
 }

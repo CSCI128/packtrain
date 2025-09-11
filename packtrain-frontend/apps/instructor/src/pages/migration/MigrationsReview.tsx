@@ -22,8 +22,8 @@ import {
   Score,
 } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { Loading } from "@repo/ui/Loading";
-import { TableHeader, useTableData } from "@repo/ui/table/Table";
+import { Loading } from "@repo/ui/components/Loading";
+import { TableHeader, useTableData } from "@repo/ui/components/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";

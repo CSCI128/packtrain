@@ -16,7 +16,7 @@ import { getApiClient } from "@repo/api/index";
 import { Assignment, LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store.js";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
-import { Loading } from "@repo/ui/Loading";
+import { Loading } from "@repo/ui/components/Loading";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
@@ -97,7 +97,7 @@ export function ExtensionForm() {
     postForm.mutate(
       {
         body: {
-          user_requester_id: auth.user?.profile.id as string,
+          user_requester: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
           date_submitted: new Date().toISOString(),
           num_days_requested: numDaysRequested,
@@ -121,7 +121,7 @@ export function ExtensionForm() {
     postForm.mutate(
       {
         body: {
-          user_requester_id: auth.user?.profile.id as string,
+          user_requester: auth.user?.profile.id as string,
           assignment_id: values.assignmentId,
           date_submitted: new Date().toISOString(),
           num_days_requested: numDaysRequested,

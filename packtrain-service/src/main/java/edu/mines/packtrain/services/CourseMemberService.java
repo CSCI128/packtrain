@@ -51,14 +51,14 @@ public class CourseMemberService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public CourseMemberService(CourseMemberRepo courseMemberRepo,
-                               ScheduledTaskRepo<UserSyncTaskDef> taskRepo,
-                               UserService userService,
-                               SectionService sectionService,
-                               CourseService courseService,
-                               CanvasService canvasService,
-                               ApplicationEventPublisher eventPublisher,
-                               ImpersonationManager impersonationManager,
-                               SimpMessagingTemplate messagingTemplate) {
+            ScheduledTaskRepo<UserSyncTaskDef> taskRepo,
+            UserService userService,
+            SectionService sectionService,
+            CourseService courseService,
+            CanvasService canvasService,
+            ApplicationEventPublisher eventPublisher,
+            ImpersonationManager impersonationManager,
+            SimpMessagingTemplate messagingTemplate) {
         this.courseMemberRepo = courseMemberRepo;
         this.taskRepo = taskRepo;
         this.userService = userService;
@@ -83,8 +83,10 @@ public class CourseMemberService {
     }
 
     public CourseMember getStudentInstructor(Course course, Optional<Section> section) {
-        // prefer who ever has less sections - coordinator is listed as instructor for all
-        // adjunct classes. if no instructor exists for that section, then return the owner
+        // prefer who ever has less sections - coordinator is listed as instructor for
+        // all
+        // adjunct classes. if no instructor exists for that section, then return the
+        // owner
 
         if (section.isEmpty()) {
             return getCourseOwner(course);
@@ -99,7 +101,6 @@ public class CourseMemberService {
             return getCourseOwner(course);
         }
 
-
         return members.getFirst();
     }
 
@@ -112,7 +113,7 @@ public class CourseMemberService {
 
     @Transactional
     public List<CourseMember> searchCourseMembers(Course course, List<CourseRole> roles,
-                                                  String name, String cwid) {
+            String name, String cwid) {
         if (name != null) {
             return courseMemberRepo.findAllByCourseByUserName(course, name).stream()
                     .filter(x -> roles.contains(x.getRole())).toList();
@@ -189,8 +190,7 @@ public class CourseMemberService {
                     task,
                     users.stream().filter(u -> cwidsToCreate.contains(u.getCwid())).toList(),
                     canvasUsersForCourse,
-                    course, sections
-            );
+                    course, sections);
 
             log.info("Saving {} new course memberships for '{}'",
                     newMembers.size(), course.getCode());
@@ -198,7 +198,6 @@ public class CourseMemberService {
             // faster than saving incrementally
             courseMemberRepo.saveAll(newMembers);
         }
-
 
         if (task.shouldRemoveOldUsers()) {
             log.info("Deleting {} course memberships for '{}'",
@@ -221,12 +220,11 @@ public class CourseMemberService {
 
     @Transactional
     protected Set<CourseMember> updateExistingEnrollments(UserSyncTaskDef task,
-                                      Set<String> users,
-                                      Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse,
-                                                  Course course, Map<String, Section> sections) {
+            Set<String> users,
+            Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse,
+            Course course, Map<String, Section> sections) {
         Map<String, CourseMember> members = courseMemberRepo.getAllByCourseAndCwids(course, users)
-                .stream().collect(Collectors.toMap(c ->
-                        c.getUser().getCwid(), c -> c));
+                .stream().collect(Collectors.toMap(c -> c.getUser().getCwid(), c -> c));
 
         for (String user : members.keySet()) {
             log.trace("Updating membership for user: {}", user);
@@ -241,15 +239,14 @@ public class CourseMemberService {
             if (canvasUser.getEnrollments().isEmpty()) {
                 log.warn("User '{}' is not enrolled in any sections!", user);
             }
-            if (!canvasUser.getEnrollments().stream().allMatch(e ->
-                    sections.containsKey(e.getCourseSectionId()))) {
+            if (!canvasUser.getEnrollments().stream().allMatch(e -> sections.containsKey(e.getCourseSectionId()))) {
                 // this shouldn't be possible
                 log.warn("Requested sections for user '{}' do not exist!", user);
                 continue;
             }
 
-            Set<Section> enrolledSections = canvasUser.getEnrollments().stream().map(e ->
-                    sections.get(e.getCourseSectionId())).collect(Collectors.toSet());
+            Set<Section> enrolledSections = canvasUser.getEnrollments().stream()
+                    .map(e -> sections.get(e.getCourseSectionId())).collect(Collectors.toSet());
 
             Optional<CourseRole> role = canvasService
                     .mapEnrollmentToRole(canvasUser.getEnrollments().getFirst());
@@ -273,29 +270,29 @@ public class CourseMemberService {
     }
 
     private Set<CourseMember> createNewEnrollments(UserSyncTaskDef task, List<User> users,
-                                   Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse,
-                                                   Course course, Map<String, Section> sections) {
+            Map<String, edu.ksu.canvas.model.User> canvasUsersForCourse,
+            Course course, Map<String, Section> sections) {
         Set<CourseMember> members = new HashSet<>();
 
         for (User user : users) {
             log.trace("Processing user: {}", user);
 
-            // we dont need to worry about this case, if we get here then it is in the course.
+            // we dont need to worry about this case, if we get here then it is in the
+            // course.
             edu.ksu.canvas.model.User canvasUser = canvasUsersForCourse.get(user.getCwid());
 
             if (canvasUser.getEnrollments().isEmpty()) {
                 log.warn("User '{}' is not enrolled in any sections!", user.getEmail());
             }
 
-            if (!canvasUser.getEnrollments().stream().allMatch(e ->
-                    sections.containsKey(e.getCourseSectionId()))) {
+            if (!canvasUser.getEnrollments().stream().allMatch(e -> sections.containsKey(e.getCourseSectionId()))) {
                 // this shouldn't be possible
                 log.warn("Requested sections for user '{}' do not exist!", user.getEmail());
                 continue;
             }
 
-            Set<Section> enrolledSections = canvasUser.getEnrollments().stream().map(e ->
-                    sections.get(e.getCourseSectionId())).collect(Collectors.toSet());
+            Set<Section> enrolledSections = canvasUser.getEnrollments().stream()
+                    .map(e -> sections.get(e.getCourseSectionId())).collect(Collectors.toSet());
 
             Optional<CourseRole> role = canvasService
                     .mapEnrollmentToRole(canvasUser.getEnrollments().getFirst());
@@ -318,15 +315,14 @@ public class CourseMemberService {
             newMembership.setUser(user);
             newMembership.setRole(role.get());
 
-
             members.add(newMembership);
         }
         return members;
     }
 
     public ScheduledTaskDef syncMembersFromCanvas(User actingUser, Set<Long> dependencies,
-                                                  UUID courseId, boolean updateExisting,
-                                                  boolean removeOld, boolean addNew) {
+            UUID courseId, boolean updateExisting,
+            boolean removeOld, boolean addNew) {
         UserSyncTaskDef task = new UserSyncTaskDef();
         task.setCreatedByUser(actingUser);
         task.setTaskName(String.format("Sync Course '%s': Course Members", courseId));
@@ -452,14 +448,19 @@ public class CourseMemberService {
     }
 
     public Optional<String> getCwidGivenCourseAndEmail(String email, Course course) {
-        User user = userService.getUserByEmail(email);
+        Optional<User> user = userService.findUserByEmail(email);
 
-        if (!courseMemberRepo.existsByCourseAndUser(course, user)) {
-            log.warn("User '{}' is not enrolled in course '{}'", user.getEmail(), course.getCode());
+        if (user.isEmpty()) {
+            log.warn("User '{}' does not exist in system!", email);
             return Optional.empty();
         }
 
-        return Optional.of(user.getCwid());
+        if (!courseMemberRepo.existsByCourseAndUser(course, user.get())) {
+            log.warn("User '{}' is not enrolled in course '{}'", user.get().getEmail(), course.getCode());
+            return Optional.empty();
+        }
+
+        return Optional.of(user.get().getCwid());
     }
 
     public String getCanvasIdGivenCourseAndCwid(String cwid, Course course) {

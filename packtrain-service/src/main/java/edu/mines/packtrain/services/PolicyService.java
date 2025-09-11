@@ -2,6 +2,7 @@ package edu.mines.packtrain.services;
 
 import edu.mines.packtrain.data.PolicyDryRunResultsDTO;
 import edu.mines.packtrain.data.PolicyRawScoreDTO;
+import edu.mines.packtrain.data.PolicyWithCodeDTO;
 import edu.mines.packtrain.models.Course;
 import edu.mines.packtrain.models.Policy;
 import edu.mines.packtrain.models.User;
@@ -27,7 +28,7 @@ public class PolicyService {
     private final PolicyRepo policyRepo;
 
     public PolicyService(S3Service s3Service, PolicyServerService policyServerService,
-                         CourseRepo courseRepo, PolicyRepo policyRepo) {
+            CourseRepo courseRepo, PolicyRepo policyRepo) {
         this.s3Service = s3Service;
         this.policyServerService = policyServerService;
         this.courseRepo = courseRepo;
@@ -35,7 +36,7 @@ public class PolicyService {
     }
 
     public Policy createNewPolicy(User actingUser, UUID courseId, String policyName,
-                                  String description, String fileName, MultipartFile file) {
+            String description, String fileName, String file) {
         // if this is slow, we may need to make this a task
         Optional<Course> course = courseRepo.getById(courseId);
 
@@ -46,14 +47,15 @@ public class PolicyService {
         log.debug("Creating new course wide policy '{}' for course '{}'",
                 policyName, course.get().getCode());
 
-        Optional<String> policyUrl = s3Service.uploadNewPolicy(actingUser, courseId, fileName,
+        Optional<String> policyUrl = s3Service.uploadPolicy(actingUser, courseId, fileName,
                 file);
 
         if (policyUrl.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to upload policy");
         }
 
-        // this should never happen, but if it does, then we also need to reject it as the URIs
+        // this should never happen, but if it does, then we also need to reject it as
+        // the URIs
         // must be unique
         if (policyRepo.existsByPolicyURI(policyUrl.get())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A policy already exists " +
@@ -87,10 +89,9 @@ public class PolicyService {
     }
 
     public Optional<PolicyDryRunResultsDTO> dryRunPolicy(MultipartFile file,
-                                                         PolicyRawScoreDTO dto) {
+            PolicyRawScoreDTO dto) {
         return policyServerService.dryRunPolicy(file, dto);
     }
-
 
     public Policy incrementUsedBy(Policy policy) {
         policy.setNumberOfMigrations(policy.getNumberOfMigrations() + 1);
@@ -149,4 +150,51 @@ public class PolicyService {
 
         return policy.get();
     }
+
+    public PolicyWithCodeDTO getFullPolicy(UUID policyId) {
+        Policy policy = getPolicy(policyId);
+
+        Optional<String> policyText = s3Service.getPolicy(policy.getPolicyURI());
+
+        if (policyText.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to download policy!");
+        }
+
+        return new PolicyWithCodeDTO()
+                .filePath(policy.getFileName())
+                .name(policy.getPolicyName())
+                .description(policy.getDescription())
+                .fileData(policyText.get());
+    }
+
+    public Policy updatePolicy(User actingUser, UUID courseId, UUID policyId, String policyName,
+            String description, String fileName, String file) {
+
+        Policy policy = getPolicy(policyId);
+
+        policy.setDescription(description);
+        policy.setFileName(fileName);
+        policy.setPolicyName(policyName);
+
+        Optional<String> policyUrl = s3Service.uploadPolicy(actingUser, courseId, fileName, file, true);
+
+        if (policyUrl.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to upload policy");
+        }
+
+        Optional<String> validationError = policyServerService.validatePolicy(policyUrl.get());
+
+        if (validationError.isPresent()) {
+            log.error("Policy '{}' failed to validate due to: '{}'", policyName,
+                    validationError.get());
+            s3Service.deletePolicy(courseId, fileName);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy validation failure: "
+                    + validationError.get());
+        }
+
+        policy.setPolicyURI(policyUrl.get());
+
+        return policyRepo.save(policy);
+    }
+
 }

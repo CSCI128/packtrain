@@ -16,10 +16,11 @@ import { useDisclosure } from "@mantine/hooks";
 import { getApiClient } from "@repo/api/index";
 import { Credential, Enrollment, User } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { Loading } from "@repo/ui/Loading";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { useAuth } from "react-oidc-context";
+import { Loading } from "./components/Loading";
+import { useGetEnrollments, useGetUser } from "./hooks";
 
 export function ProfilePage() {
   const auth = useAuth();
@@ -45,25 +46,6 @@ export function ProfilePage() {
         value != "canvas" ? "Please select a valid service!" : null,
     },
   });
-
-  const {
-    data,
-    error,
-    isLoading,
-    refetch: refetchUser,
-  } = useQuery<User | null>({
-    queryKey: ["getUser"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_user())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
-    enabled: !!auth.isAuthenticated,
-  });
-
   const editUserForm = useForm({
     mode: "controlled",
     initialValues: {
@@ -81,60 +63,63 @@ export function ProfilePage() {
   });
 
   const {
+    data,
+    error,
+    isLoading,
+    refetch: refetchUser,
+  } = useGetUser(!!auth.isAuthenticated);
+  const {
     data: credentialData,
     error: credentialError,
     isLoading: credentialIsLoading,
     refetch,
-  } = useQuery<Credential[] | null>({
+  } = useQuery<Credential[]>({
     queryKey: ["getCredentials"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_credentials())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    queryFn: async () => {
+      const client = await getApiClient();
+      const res = await client.get_credentials();
+      return res.data;
+    },
   });
-
-  const { data: enrollmentInfo } = useQuery<Enrollment[]>({
-    queryKey: ["getEnrollments"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_enrollments())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return [];
-        }),
-    enabled: !!auth.isAuthenticated,
-  });
+  const { data: enrollmentInfo } = useGetEnrollments(!!auth.isAuthenticated);
 
   const mutation = useMutation({
     mutationKey: ["newCredential"],
-    mutationFn: ({ body }: { body: Credential }) =>
-      getApiClient()
-        .then((client) => client.new_credential({}, body))
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({ body }: { body: Credential }) => {
+      const client = await getApiClient();
+      const res = await client.new_credential({}, body);
+      return res.data;
+    },
+    onError: (error) => {
+      // TODO show toast/error message here
+      console.error("Mutation failed:", error);
+    },
   });
 
   const deleteCredentialMutation = useMutation({
     mutationKey: ["deleteCredential"],
-    mutationFn: ({ credential_id }: { credential_id: string }) =>
-      getApiClient()
-        .then((client) => client.delete_credential(credential_id))
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({ credential_id }: { credential_id: string }) => {
+      const client = await getApiClient();
+      const res = await client.delete_credential({ credential_id });
+      return res.data;
+    },
+    onError: (error) => {
+      // TODO show toast/error message here
+      console.error("Mutation failed:", error);
+    },
   });
 
   const updateUserMutation = useMutation({
     mutationKey: ["updateUser"],
-    mutationFn: ({ body }: { body: User }) =>
-      getApiClient()
-        .then((client) => client.update_user({}, body))
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({ body }: { body: User }) => {
+      const client = await getApiClient();
+      const res = await client.update_user({}, body);
+      return res.data;
+    },
+    onError: (error) => {
+      // TODO show toast/error message here
+      console.error("Mutation failed:", error);
+    },
   });
 
   if (isLoading || !data) return <Loading />;
@@ -155,9 +140,7 @@ export function ProfilePage() {
         },
       },
       {
-        onSuccess: () => {
-          refetchUser();
-        },
+        onSuccess: () => refetchUser(),
       }
     );
     closeEditUser();
@@ -181,9 +164,7 @@ export function ProfilePage() {
         },
       },
       {
-        onSuccess: () => {
-          refetch();
-        },
+        onSuccess: () => refetch(),
       }
     );
     close();
@@ -195,17 +176,10 @@ export function ProfilePage() {
         credential_id: credential_id,
       },
       {
-        onSuccess: () => {
-          refetch();
-        },
+        onSuccess: () => refetch(),
       }
     );
     closeDelete();
-  };
-
-  const handleDelete = (credential: Credential) => {
-    setSelectedCredential(credential);
-    openDelete();
   };
 
   return (
@@ -334,7 +308,7 @@ export function ProfilePage() {
         <Divider my="sm" />
 
         <Text size="md" fw={700}>
-          {data.name} {data.admin ? "(Admin)" : ""}
+          {data.name} {data.admin && "(Admin)"}
         </Text>
 
         <Text size="md">{data.email}</Text>
@@ -342,39 +316,44 @@ export function ProfilePage() {
         <Text size="md">CWID: {data.cwid}</Text>
 
         {enrollmentInfo &&
-        enrollmentInfo.filter((c) => c.id === store$.id.get()).at(0)
-          ?.course_role !== "student" ? (
-          <>
-            <Group mt={25} justify="space-between">
-              <Text size="xl" fw={700}>
-                Credentials
-              </Text>
-              <Button justify="flex-end" variant="filled" onClick={open}>
-                Add Credential
-              </Button>
-            </Group>
+          enrollmentInfo.find(
+            (enrollment: Enrollment) => enrollment.id === store$.id.get()
+          )?.course_role !== "student" && (
+            <>
+              <Group mt={25} justify="space-between">
+                <Text size="xl" fw={700}>
+                  Credentials
+                </Text>
+                <Button justify="flex-end" variant="filled" onClick={open}>
+                  Add Credential
+                </Button>
+              </Group>
 
-            <Divider my="sm" />
+              <Divider my="sm" />
 
-            {credentialData.map((credential: Credential) => (
-              <React.Fragment key={credential.id}>
-                <Box size="sm" mt={15}>
-                  <Text size="md" fw={700}>
-                    {credential.name}
-                  </Text>
+              {credentialData.map((credential: Credential) => (
+                <React.Fragment key={credential.id}>
+                  <Box size="sm" mt={15}>
+                    <Text size="md" fw={700}>
+                      {credential.name}
+                    </Text>
 
-                  <Text size="md">Service: {credential.service}</Text>
+                    <Text size="md">Service: {credential.service}</Text>
 
-                  <Button color="red" onClick={() => handleDelete(credential)}>
-                    Delete
-                  </Button>
-                </Box>
-              </React.Fragment>
-            ))}
-          </>
-        ) : (
-          <></>
-        )}
+                    <Button
+                      color="red"
+                      onClick={() => {
+                        setSelectedCredential(credential);
+                        openDelete();
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </Box>
+                </React.Fragment>
+              ))}
+            </>
+          )}
       </Container>
     </>
   );

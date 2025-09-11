@@ -1,23 +1,34 @@
+import { Text } from "@mantine/core";
 import { getApiClient } from "@repo/api/index";
 import { store$ } from "@repo/api/store";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { PolicyPage } from "./Policy";
+import { useGetPolcicy as useGetPolicy } from "../../hooks";
+import { Loading } from "@repo/ui/components/Loading";
 
-export function CreatePolicy() {
+export function UpdatePolicy() {
+  const {policyId} = useParams();
   const navigate = useNavigate();
   const [errors, setErrors] = useState<string[]>([]);
 
-  const newPolicy = useMutation({
-    mutationKey: ["newPolicy"],
+  const {
+    data: policy,
+    error: policyError,
+    isLoading: policyIsLoading,
+  } = useGetPolicy(policyId);
+
+  const updatePolicy = useMutation({
+    mutationKey: ["updatePolicy"],
     mutationFn: ({ formData }: { formData: FormData }) =>
       getApiClient()
         .then((client) => {
           setErrors([]);
-          return client.new_policy(
+          return client.update_policy(
             {
               course_id: store$.id.get() as string,
+              policy_id: policyId,
             },
             {
               name: formData.get("name").toString(),
@@ -40,14 +51,14 @@ export function CreatePolicy() {
   });
 
 
-  const handleNewPolicy = (values) => {
+  const handleUpdatePolicy = (values) => {
     const formData = new FormData();
     formData.append("name", values.policyName);
     formData.append("file_path", values.fileName);
     formData.append("file_data", values.content);
     formData.append("description", values.description);
 
-    newPolicy.mutate(
+    updatePolicy.mutate(
       {
         formData,
       },
@@ -59,15 +70,21 @@ export function CreatePolicy() {
     );
   };
 
-  return <PolicyPage
-    title="Create a new Policy"
-    handleOnSubmit={handleNewPolicy}
-    button={"Create"}
-    errors={errors}
-    policyName=""
-    fileName=""
-    content=""
-    description=""
-  />
+  return (
+    policyIsLoading ?
+      <Loading />
+      :
+      (policyError ? <Text>{policyError.message}</Text> :
+
+        <PolicyPage
+          title={`Edit Policy '${policy.name}'`}
+          button={"Update"}
+          handleOnSubmit={handleUpdatePolicy}
+          errors={errors}
+          policyName={policy.name}
+          fileName={policy.file_path}
+          content={policy.file_data}
+          description={policy.description}
+        />));
 
 }

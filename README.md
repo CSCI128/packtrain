@@ -8,6 +8,8 @@ extension requests, and migrate grades from external websites to Canvas.
 Additionally, it provides full-feature functionality for students requesting
 extensions on work.
 
+Packtrain documentation can be found on [packtrain.readthedocs.io](https://packtrain.readthedocs.io/en/latest/).
+
 # Development Environment
 
 Install [Docker](https://www.docker.com) and [Docker Compose](https://docs.docker.com/compose/) and
@@ -30,7 +32,7 @@ Build all services: `docker compose build`
 
 Run the compose: `docker compose up -d`
 
-To run without backend and frontend containers running, run: `docker compose up localhost.dev-local -d`
+To run without backend and frontend containers running for local testing, run: `docker compose up localhost.dev-local -d`
 
 ## Backend
 
@@ -43,13 +45,15 @@ To run the backend tests, run: `./mvnw test "-Dspring.profiles.active=test"`
 If you run into an issue building on Windows, make sure that your user has permission to create symlinks.
 [StackOverflow thread about this issue](https://stackoverflow.com/a/65504258).
 
+### Backend Formatting
+
 We use [Checkstyle](https://checkstyle.sourceforge.io) with the [Google standard](https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml) to format our code.
 
 Install the Checkstyle for IntelliJ IDEA plugin and then go to `Settings` > `Tools` > `Checkstyle` and add a new configuration file, pointing to the `checkstyle.xml` in the root of the `packtrain-service` directory.
 
-Also, in `Settings` > `Editor` > `Code Style`, you should set hard wrap to `120` and check `Wrap on typing`.
+In `Settings` > `Editor` > `Code Style`, set hard wrap to `120` and check `Wrap on typing`.
 
-We recommend installing the free version of SonarQube for more intelligent and advanced language suggestions.
+We recommend installing the free version of SonarQube for better code suggestions.
 
 ## Frontend
 
