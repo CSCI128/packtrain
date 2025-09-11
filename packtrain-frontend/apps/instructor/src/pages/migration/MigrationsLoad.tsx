@@ -182,20 +182,26 @@ export function MigrationsLoadPage() {
       },
       {
         onSuccess: async (data: MasterMigration | void) => {
-          uploadScores.mutate({
-            master_migration_id: masterMigrationId,
-            migration_id: data?.migrations
-              ?.filter((x) => x.assignment.id === selectedAssignmentId)
-              .at(0)?.id as string,
-            // @ts-ignore should be different
-            file,
-          });
-          setUploading(false);
-          setCanValidate(true);
-          setUploadedFilesForAssignment([
-            ...uploadedFilesForAssignment,
-            selectedAssignmentId,
-          ]);
+          uploadScores.mutate(
+            {
+              master_migration_id: masterMigrationId,
+              migration_id: data?.migrations
+                ?.filter((x) => x.assignment.id === selectedAssignmentId)
+                .at(0)?.id as string,
+              // @ts-ignore should be different
+              file,
+            },
+            {
+              onSuccess: () => {
+                setUploading(false);
+                setCanValidate(true);
+                setUploadedFilesForAssignment([
+                  ...uploadedFilesForAssignment,
+                  selectedAssignmentId,
+                ]);
+              },
+            }
+          );
         },
       }
     );
