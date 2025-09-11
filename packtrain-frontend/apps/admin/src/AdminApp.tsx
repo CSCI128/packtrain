@@ -20,6 +20,7 @@ import { EditCourse } from "./pages/course/Edit.tsx";
 import { MembersPage } from "./pages/Members.tsx";
 import { UsersPage } from "./pages/Users.tsx";
 import Root from "./templates/Root.tsx";
+import { UpdatePolicy } from "./pages/course/EditPolicy.tsx";
 
 configureApiClient({ userManager: userManager });
 
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
           {
             path: "/admin/policies/new",
             element: <CreatePolicy />,
+          },
+          {
+            path: "/admin/policies/edit/:policyId",
+            element: <UpdatePolicy/>,
           },
           {
             path: "/admin/create",

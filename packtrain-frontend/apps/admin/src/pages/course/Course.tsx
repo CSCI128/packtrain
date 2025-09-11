@@ -4,6 +4,7 @@ import {
   Container,
   Divider,
   Group,
+  Stack,
   Table,
   Text,
 } from "@mantine/core";
@@ -58,33 +59,30 @@ export function CoursePage() {
     <Table.Tr key={element.name}>
       <Table.Td>{element.name}</Table.Td>
       <Table.Td>{element.description}</Table.Td>
-      <Table.Td>
-        <a href={element.uri}>S3 URI</a>
-      </Table.Td>
       <Table.Td>{element.number_of_migrations}</Table.Td>
-      {(element.number_of_migrations == 0 && (
-        <Table.Td
-          onClick={() => {
-            deletePolicy.mutate(element.id);
-            refetchPolicies();
-          }}
-        >
-          <Center>
-            <Text size="sm" pr={5}>
-              Delete
-            </Text>
-            <BsTrash />
-          </Center>
-        </Table.Td>
-      )) || (
-        <Table.Td>
-          <Center>
-            <Text size="sm" pr={5}>
-              Delete Disabled!
-            </Text>
-          </Center>
-        </Table.Td>
-      )}
+      <Table.Td >
+        <Stack>
+          <Button
+            variant="outline"
+            component={Link}
+            size="compact-sm"
+            to={`/admin/policies/edit/${element.id}`}>
+            Edit Policy
+          </Button>
+          <Button
+            size="compact-sm"
+            disabled={element.number_of_migrations != 0}
+            onClick={() => {
+              deletePolicy.mutate(element.id);
+              refetchPolicies();
+            }}
+            variant="outline"
+            color="red"
+          >
+            {element.number_of_migrations == 0 ? "Delete" : "Delete Disabled"}
+          </Button>
+        </Stack>
+      </Table.Td>
     </Table.Tr>
   ));
 
@@ -160,13 +158,6 @@ export function CoursePage() {
                     onSort={undefined}
                   >
                     Description
-                  </TableHeader>
-                  <TableHeader
-                    sorted={false}
-                    reversed={reverseSortDirection}
-                    onSort={undefined}
-                  >
-                    URI
                   </TableHeader>
                   <TableHeader
                     sorted={sortBy === "number_of_migrations"}

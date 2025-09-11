@@ -795,7 +795,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/NewPolicy"
+                "$ref": "#/components/schemas/PolicyWithCode"
               },
               "encoding": {
                 "file_data": {
@@ -889,6 +889,70 @@
       }
     },
     "/owner/course/{course_id}/policies/{policy_id}": {
+      "get": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "get_policy",
+        "summary": "Get a Policy",
+        "description": "Get a complete policy for a user\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CoursePathParameters"
+          },
+          {
+            "$ref": "#/components/parameters/PolicyPathParameters"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyWithCode"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "update_policy",
+        "summary": "Update a policy",
+        "description": "Updates a policy\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CoursePathParameters"
+          },
+          {
+            "$ref": "#/components/parameters/PolicyPathParameters"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PolicyWithCode"
+              },
+              "encoding": {
+                "file_data": {
+                  "contentType": "text/javascript"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          }
+        }
+      },
       "delete": {
         "tags": [
           "owner"
@@ -2741,12 +2805,13 @@
           }
         }
       },
-      "NewPolicy": {
-        "description": "Create a new policy file",
+      "PolicyWithCode": {
+        "description": "A complete policy with the actual code",
         "type": "object",
         "required": [
           "name",
           "file_path",
+          "description",
           "file_data"
         ],
         "properties": {
@@ -2764,7 +2829,6 @@
           },
           "file_data": {
             "type": "string",
-            "format": "binary",
             "example": "// valid javascript code\n"
           }
         }
