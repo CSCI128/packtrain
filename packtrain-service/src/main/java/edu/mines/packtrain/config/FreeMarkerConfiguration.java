@@ -20,9 +20,12 @@ public class FreeMarkerConfiguration {
     private final Template extensionCreatedInstructorEmailTemplate;
 
     public FreeMarkerConfiguration(
-            @Value("${grading-admin.email.templates.template-directory}") String templatePath,
-            @Value("${grading-admin.email.templates.extension-created-student}") String extensionCreatedStudentTemplateName,
-            @Value("${grading-admin.email.templates.extension-created-instructor}") String extensionCreatedInstructorTemplateName) {
+            @Value("${grading-admin.email.templates.template-directory}") 
+            String templatePath,
+            @Value("${grading-admin.email.templates.extension-created-student}") 
+            String extensionCreatedStudentTemplateName,
+            @Value("${grading-admin.email.templates.extension-created-instructor}") 
+            String extensionCreatedInstructorTemplateName) {
         templateLoader = new ClassTemplateLoader(this.getClass(), templatePath);
 
         freemarker.template.Configuration configuration = new freemarker.template.Configuration(
@@ -33,11 +36,9 @@ public class FreeMarkerConfiguration {
         extensionCreatedStudentEmailTemplate = readTemplates(configuration, extensionCreatedStudentTemplateName);
         extensionCreatedInstructorEmailTemplate = readTemplates(configuration, extensionCreatedInstructorTemplateName);
 
-
-
     }
 
-    private static Template readTemplates(freemarker.template.Configuration configuration, String template){
+    private static Template readTemplates(freemarker.template.Configuration configuration, String template) {
         try {
             return configuration.getTemplate(template);
         } catch (TemplateNotFoundException e) {

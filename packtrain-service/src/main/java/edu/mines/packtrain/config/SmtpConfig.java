@@ -5,7 +5,6 @@ import org.simplejavamail.mailer.MailerBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Configuration
@@ -29,13 +28,13 @@ public class SmtpConfig {
 
     @Bean
     public Mailer createMailer() {
-        if (smtpUsername == null && smtpPassword == null){
+        if (smtpUsername == null && smtpPassword == null) {
             log.warn("Using anonymous authenication for SMTP relay");
 
             return MailerBuilder
-                .withSMTPServerHost(smtpServer)
-                .withSMTPServerPort(smtpPort)
-                .buildMailer();
+                    .withSMTPServerHost(smtpServer)
+                    .withSMTPServerPort(smtpPort)
+                    .buildMailer();
         }
 
         return MailerBuilder
