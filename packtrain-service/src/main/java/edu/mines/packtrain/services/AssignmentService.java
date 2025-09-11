@@ -28,7 +28,7 @@ public class AssignmentService {
     private final ExternalAssignmentRepo externalAssignmentRepo;
 
     public AssignmentService(AssignmentRepo assignmentRepo,
-                             ExternalAssignmentRepo externalAssignmentRepo) {
+            ExternalAssignmentRepo externalAssignmentRepo) {
         this.assignmentRepo = assignmentRepo;
         this.externalAssignmentRepo = externalAssignmentRepo;
     }
@@ -56,8 +56,7 @@ public class AssignmentService {
     }
 
     public void createNewAssignmentsFromCanvas(Map<Long, String> assignmentGroups,
-                                               List<edu.ksu.canvas.model.assignment.Assignment>
-                                                       canvasAssignments, Course course) {
+            List<edu.ksu.canvas.model.assignment.Assignment> canvasAssignments, Course course) {
         Set<Assignment> assignments = new HashSet<>();
 
         for (edu.ksu.canvas.model.assignment.Assignment assignment : canvasAssignments) {
@@ -102,19 +101,17 @@ public class AssignmentService {
     }
 
     public void updateAssignmentsFromCanvas(Map<Long, String> assignmentGroups,
-                                            Set<Long> assignmentCanvasIds,
-                                            List<edu.ksu.canvas.model.assignment.Assignment>
-                                                    canvasAssignments, Course course) {
+            Set<Long> assignmentCanvasIds,
+            List<edu.ksu.canvas.model.assignment.Assignment> canvasAssignments, Course course) {
         Set<Assignment> assignments = assignmentRepo.getAllByCourseAndCanvasId(course,
                 assignmentCanvasIds);
 
         Set<Assignment> assignmentsToUpdate = new HashSet<>();
 
         for (Assignment assignment : assignments) {
-            Optional<edu.ksu.canvas.model.assignment.Assignment> canvasAssignment =
-                    canvasAssignments.stream()
-                            .filter(a -> a.getId().equals(assignment.getCanvasId()))
-                            .findFirst();
+            Optional<edu.ksu.canvas.model.assignment.Assignment> canvasAssignment = canvasAssignments.stream()
+                    .filter(a -> a.getId().equals(assignment.getCanvasId()))
+                    .findFirst();
             if (canvasAssignment.isEmpty()) {
                 log.warn("Requested to update assignment '{}', but no corresponding Canvas" +
                         " assignment was provided!", assignment.getName());
@@ -148,9 +145,12 @@ public class AssignmentService {
         assignmentRepo.saveAll(assignmentsToUpdate);
     }
 
-
     public void deleteAssignments(Set<Long> assignments, Course course) {
         log.info("Deleting {} assignments for course '{}'", assignments.size(), course.getCode());
+
+        if (assignments.isEmpty()) {
+            return;
+        }
 
         assignmentRepo.deleteByCourseAndCanvasId(course, assignments);
     }
@@ -220,7 +220,6 @@ public class AssignmentService {
                         || a.getUnlockDate().isBefore(now)) && a.isEnabled())
                 .toList();
     }
-
 
     public Assignment enableAssignment(UUID assignmentId) {
         Assignment assignment = getAssignmentById(assignmentId);
