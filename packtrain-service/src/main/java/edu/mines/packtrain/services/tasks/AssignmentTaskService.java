@@ -74,7 +74,7 @@ public class AssignmentTaskService {
         taskDefinition.setDependsOn(dependencies);
         taskDefinition.setOnJobComplete(Optional.of(_ -> {
             try {
-                messagingTemplate.convertAndSend("/courses/import",
+                messagingTemplate.convertAndSend("/courses/sync",
                         objectMapper.writeValueAsString(notificationDTO));
             } catch (JsonProcessingException _) {
                 throw new RuntimeException("Could not process JSON for sending notification DTO!");
@@ -84,7 +84,7 @@ public class AssignmentTaskService {
             try {
                 CourseSyncNotificationDTO errorDTO = CourseSyncNotificationDTO.builder()
                         .error("Could not create assignments!").build();
-                messagingTemplate.convertAndSend("/courses/import",
+                messagingTemplate.convertAndSend("/courses/sync",
                         objectMapper.writeValueAsString(errorDTO));
             } catch (JsonProcessingException _) {
                 throw new RuntimeException("Could not process JSON for sending notification DTO!");

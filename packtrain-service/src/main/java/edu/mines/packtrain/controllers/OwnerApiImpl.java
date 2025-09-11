@@ -79,77 +79,13 @@ public class OwnerApiImpl implements OwnerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<TaskDTO>> syncCourse(UUID courseId,
-                                                    CourseSyncTaskDTO courseSyncTaskDTO) {
-        List<TaskDTO> tasks = new LinkedList<>();
-
-        ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
-                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId(),
-                courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
-
-
-        tasks.add(DTOFactory.toDto(courseTask));
-
-        ScheduledTaskDef sectionTask = sectionService.createSectionsFromCanvas(
-                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId());
-
-        tasks.add(DTOFactory.toDto(sectionTask));
-
-        if (courseSyncTaskDTO.getImportUsers()) {
-            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(
-                    securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()),
-                    courseId, true, true, true);
-
-            tasks.add(DTOFactory.toDto(importUsersTask));
-        }
-
-        if (courseSyncTaskDTO.getImportAssignments()) {
-            ScheduledTaskDef importAssignmentsTask = assignmentTaskService
-                    .syncAssignmentsFromCanvas(securityManager.getUser(),
-                            Set.of(courseTask.getId()), courseId,
-                            true, true, true);
-
-            tasks.add(DTOFactory.toDto(importAssignmentsTask));
-        }
-
-        return ResponseEntity.accepted().body(tasks);
+    public ResponseEntity<List<TaskDTO>> syncCourse(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+        return ResponseEntity.accepted().body(queueSyncCourseTasks(courseId, courseSyncTaskDTO));
     }
 
     @Override
-    public ResponseEntity<List<TaskDTO>> importCourse(UUID courseId,
-                                                      CourseSyncTaskDTO courseSyncTaskDTO) {
-        List<TaskDTO> tasks = new LinkedList<>();
-
-        ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
-                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId(),
-                courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
-
-        tasks.add(DTOFactory.toDto(courseTask));
-
-        ScheduledTaskDef sectionTask = sectionService.createSectionsFromCanvas(
-                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId());
-
-
-        tasks.add(DTOFactory.toDto(sectionTask));
-
-        if (courseSyncTaskDTO.getImportUsers()) {
-            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(
-                    securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()),
-                    courseId, true, true, true);
-
-            tasks.add(DTOFactory.toDto(importUsersTask));
-        }
-
-        if (courseSyncTaskDTO.getImportAssignments()) {
-            ScheduledTaskDef importAssignmentsTask = assignmentTaskService
-                    .syncAssignmentsFromCanvas(securityManager.getUser(),
-                            Set.of(courseTask.getId()), courseId,
-                            true, true, true);
-
-            tasks.add(DTOFactory.toDto(importAssignmentsTask));
-        }
-
-        return ResponseEntity.accepted().body(tasks);
+    public ResponseEntity<List<TaskDTO>> importCourse(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+        return ResponseEntity.accepted().body(queueSyncCourseTasks(courseId, courseSyncTaskDTO));
     }
 
     @Override
@@ -269,6 +205,41 @@ public class OwnerApiImpl implements OwnerApiDelegate {
         return ResponseEntity.ok(res.get());
     }
 
+    private List<TaskDTO> queueSyncCourseTasks(UUID courseId, CourseSyncTaskDTO courseSyncTaskDTO) {
+        List<TaskDTO> tasks = new LinkedList<>();
+
+        ScheduledTaskDef courseTask = courseService.syncCourseWithCanvas(
+                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId(),
+                courseSyncTaskDTO.getOverwriteName(), courseSyncTaskDTO.getOverwriteCode());
+
+        tasks.add(DTOFactory.toDto(courseTask));
+
+        ScheduledTaskDef sectionTask = sectionService.createSectionsFromCanvas(
+                securityManager.getUser(), courseId, courseSyncTaskDTO.getCanvasId());
+
+
+        tasks.add(DTOFactory.toDto(sectionTask));
+
+        if (courseSyncTaskDTO.getImportUsers()) {
+            ScheduledTaskDef importUsersTask = courseMemberService.syncMembersFromCanvas(
+                    securityManager.getUser(), Set.of(courseTask.getId(), sectionTask.getId()),
+                    courseId, true, true, true);
+
+            tasks.add(DTOFactory.toDto(importUsersTask));
+        }
+
+        if (courseSyncTaskDTO.getImportAssignments()) {
+            ScheduledTaskDef importAssignmentsTask = assignmentTaskService
+                    .syncAssignmentsFromCanvas(securityManager.getUser(),
+                            Set.of(courseTask.getId()), courseId,
+                            true, true, true);
+
+            tasks.add(DTOFactory.toDto(importAssignmentsTask));
+        }
+
+        return tasks;
+    }
+
     @Override
     public ResponseEntity<PolicyWithCodeDTO> getPolicy(UUID courseId, UUID policyId) {
         return ResponseEntity.ok(policyService.getFullPolicy(policyId));
@@ -276,7 +247,7 @@ public class OwnerApiImpl implements OwnerApiDelegate {
 
     @Override
     public ResponseEntity<PolicyDTO> newPolicy(UUID courseId, String name, String filePath,
-                                                String description, String fileData) {
+                                               String description, String fileData) {
         Policy policy = policyService.createNewPolicy(securityManager.getUser(), courseId,
                 name, description, filePath, fileData);
 
@@ -285,11 +256,10 @@ public class OwnerApiImpl implements OwnerApiDelegate {
 
     @Override
     public ResponseEntity<Void> updatePolicy(UUID courseId, UUID policyId, String name, String filePath,
-            String description, String fileData) {
+                                             String description, String fileData) {
         Policy policy = policyService.updatePolicy(securityManager.getUser(), courseId, policyId,
                 name, description, filePath, fileData);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
-
 }

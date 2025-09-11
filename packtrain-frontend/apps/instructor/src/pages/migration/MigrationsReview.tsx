@@ -277,7 +277,9 @@ export function MigrationsReviewPage() {
       >
         <Center>
           <Stack>
-            <Text size="md">Are you sure you want to post grades?</Text>
+            <Text size="md">
+              Are you sure you want to continue? This action is irreversible!
+            </Text>
 
             <Button color="gray" variant="light" onClick={closeConfirm}>
               Cancel
@@ -300,7 +302,7 @@ export function MigrationsReviewPage() {
               }}
               variant="filled"
             >
-              Post
+              Yes
             </Button>
           </Stack>
         </Center>

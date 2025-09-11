@@ -1624,11 +1624,6 @@ declare namespace Paths {
             export type $200 = /* A grading policy */ Components.Schemas.Policy[];
         }
     }
-    namespace GetAllTasksForUser {
-        namespace Responses {
-            export type $200 = /* An async task on the server */ Components.Schemas.Task[];
-        }
-    }
     namespace GetAllUsers {
         namespace Responses {
             export type $200 = /* A server user */ Components.Schemas.User[];
@@ -1977,26 +1972,6 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* A complete policy with the actual code */ Components.Schemas.PolicyWithCode;
-        }
-    }
-    namespace GetTask {
-        namespace Parameters {
-            /**
-             * example:
-             * 219
-             */
-            export type TaskId = number; // int64
-        }
-        export interface PathParameters {
-            task_id: /**
-             * example:
-             * 219
-             */
-            Parameters.TaskId /* int64 */;
-        }
-        namespace Responses {
-            export type $200 = /* An async task on the server */ Components.Schemas.Task;
-            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
     namespace GetUser {
@@ -2562,7 +2537,6 @@ declare namespace Paths {
         }
     }
 }
-
 
 export interface OperationMethods {
   /**
@@ -3198,28 +3172,6 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.FinalizeMasterMigration.Responses.$202>
-  /**
-   * get_all_tasks_for_user - Get all tasks for current user
-   * 
-   * This endpoint gets all the tasks for the currently signed in user
-   * 
-   */
-  'get_all_tasks_for_user'(
-    parameters?: Parameters<UnknownParamsObject> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetAllTasksForUser.Responses.$200>
-  /**
-   * get_task - Get task by id
-   * 
-   * This endpoint returns the requested task if the user has access to it.
-   * 
-   */
-  'get_task'(
-    parameters?: Parameters<Paths.GetTask.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetTask.Responses.$200>
   /**
    * get_course_information_student - Get information for a course
    * 
@@ -4008,32 +3960,6 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.FinalizeMasterMigration.Responses.$202>
   }
-  ['/tasks']: {
-    /**
-     * get_all_tasks_for_user - Get all tasks for current user
-     * 
-     * This endpoint gets all the tasks for the currently signed in user
-     * 
-     */
-    'get'(
-      parameters?: Parameters<UnknownParamsObject> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetAllTasksForUser.Responses.$200>
-  }
-  ['/tasks/{task_id}']: {
-    /**
-     * get_task - Get task by id
-     * 
-     * This endpoint returns the requested task if the user has access to it.
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetTask.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetTask.Responses.$200>
-  }
   ['/student/courses/{course_id}']: {
     /**
      * get_course_information_student - Get information for a course
@@ -4107,7 +4033,6 @@ export interface PathsDictionary {
 }
 
 export type Client = OpenAPIClient<OperationMethods, PathsDictionary>
-
 
 export type Assignment = Components.Schemas.Assignment;
 export type AssignmentSlim = Components.Schemas.AssignmentSlim;
