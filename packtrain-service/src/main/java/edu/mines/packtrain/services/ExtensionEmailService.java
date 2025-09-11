@@ -9,11 +9,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.mines.packtrain.data.templates.ExtensionCreatedInstructorDTO;
-import edu.mines.packtrain.data.templates.ExtensionCreatedStudentDTO;
+import edu.mines.packtrain.data.templates.ExtensionCreatedInstructorEmailDTO;
+import edu.mines.packtrain.data.templates.ExtensionCreatedStudentEmailDTO;
 import edu.mines.packtrain.models.Course;
 import edu.mines.packtrain.models.LateRequest;
 import edu.mines.packtrain.models.User;
+import edu.mines.packtrain.models.enums.LateRequestType;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import lombok.extern.slf4j.Slf4j;
@@ -22,43 +23,44 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExtensionEmailService {
     private final EmailService emailService;
-    private final Template extensionCreatedStudentTemplate;
-    private final Template extensionCreatedInStructorTemplate;
+    private final Template extensionCreatedStudentEmailTemplate;
+    private final Template extensionCreatedInStructorEmailTemplate;
     private final ObjectMapper mapper;
     private final String frontendUrl;
 
     public ExtensionEmailService(EmailService emailService,
-            @Qualifier("extensionCreatedStudentTemplate") Template extensionCreatedStudentTemplate,
-            @Qualifier("extensionCreatedInstructorTemplate") Template extensionCreatedInStructorTemplate,
+            @Qualifier("extensionCreatedStudentEmailTemplate") Template extensionCreatedStudentEmailTemplate,
+            @Qualifier("extensionCreatedInstructorEmailTemplate") Template extensionCreatedInStructorEmailTemplate,
             @Value("${grading-admin.frontend-url}") String frontendUrl,
 
             ObjectMapper mapper) {
         this.emailService = emailService;
-        this.extensionCreatedStudentTemplate = extensionCreatedStudentTemplate;
-        this.extensionCreatedInStructorTemplate = extensionCreatedInStructorTemplate;
+        this.extensionCreatedStudentEmailTemplate = extensionCreatedStudentEmailTemplate;
+        this.extensionCreatedInStructorEmailTemplate = extensionCreatedInStructorEmailTemplate;
         this.frontendUrl = frontendUrl;
         this.mapper = mapper;
     }
 
     public void handleExtensionCreated(LateRequest lateRequest, Course course, User requester, User instructor) {
         {
-            ExtensionCreatedStudentDTO model = new ExtensionCreatedStudentDTO();
+            ExtensionCreatedStudentEmailDTO model = new ExtensionCreatedStudentEmailDTO();
             model.setCourseName(course.getName());
             model.setAssignmentName(lateRequest.getAssignment().getName());
             model.setRequester(requester.getName());
             model.setExtensionDays(lateRequest.getDaysRequested());
             model.setInstructor(instructor.getName());
-            model.setExtension(lateRequest.getExtension() != null);
+            model.setExtension(lateRequest.getLateRequestType() == LateRequestType.EXTENSION);
 
             createExtensionCreatedStudentEmail(requester.getEmail(), model);
         }
 
-        if (lateRequest.getExtension() == null) {
+        if (lateRequest.getLateRequestType() == LateRequestType.LATE_PASS) {
             return;
         }
 
+
         {
-            ExtensionCreatedInstructorDTO model = new ExtensionCreatedInstructorDTO();
+            ExtensionCreatedInstructorEmailDTO model = new ExtensionCreatedInstructorEmailDTO();
             model.setCourseName(lateRequest.getAssignment().getName());
             model.setAssignmentName(course.getName());
             model.setStudent(requester.getName());
@@ -71,12 +73,12 @@ public class ExtensionEmailService {
         }
     }
 
-    private void createExtensionCreatedStudentEmail(String emailAddress, ExtensionCreatedStudentDTO model) {
+    private void createExtensionCreatedStudentEmail(String emailAddress, ExtensionCreatedStudentEmailDTO model) {
 
         StringWriter writer = new StringWriter();
 
         try {
-            extensionCreatedStudentTemplate
+            extensionCreatedStudentEmailTemplate
                     .process(mapper.convertValue(model, new TypeReference<Map<String, Object>>() {
                     }), writer);
         } catch (TemplateException | IOException e) {
@@ -97,11 +99,11 @@ public class ExtensionEmailService {
                 renderedTemplate);
     }
 
-    private void createExtensionCreatedInstructorEmail(String emailAddress, ExtensionCreatedInstructorDTO model) {
+    private void createExtensionCreatedInstructorEmail(String emailAddress, ExtensionCreatedInstructorEmailDTO model) {
         StringWriter writer = new StringWriter();
 
         try {
-            extensionCreatedInStructorTemplate
+            extensionCreatedInStructorEmailTemplate
                     .process(mapper.convertValue(model, new TypeReference<Map<String, Object>>() {
                     }), writer);
         } catch (TemplateException | IOException e) {

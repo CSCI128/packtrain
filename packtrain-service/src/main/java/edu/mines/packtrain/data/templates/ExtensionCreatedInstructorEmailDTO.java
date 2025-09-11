@@ -3,7 +3,7 @@ package edu.mines.packtrain.data.templates;
 import lombok.Data;
 
 @Data
-public class ExtensionCreatedInstructorDTO {
+public class ExtensionCreatedInstructorEmailDTO {
     private String instructor;
     private String student;
     private String assignmentName;

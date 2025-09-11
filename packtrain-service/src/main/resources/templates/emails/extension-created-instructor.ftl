@@ -7,7 +7,7 @@
       <p>Hi ${instructor},</p>
       <p></p>
 
-      <p>A student in your class, ${student}, has requested an extension for ${assignmentName} for ${extensionDays} days.</p>
+      <p>A student in your class, ${student}, has requested an extension for <strong>${assignmentName}</strong> for ${extensionDays} days.</p>
 
       <p>Below is the student's reason for requesting the extension:</p>  
       <p style="padding-left: 1em; border-left: 2px solid #c7c7c75e;">${explanation}</p>

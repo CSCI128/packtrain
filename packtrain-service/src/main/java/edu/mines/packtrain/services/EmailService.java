@@ -55,7 +55,9 @@ public class EmailService {
 
         (overrideCC != null ? List.of(overrideCC) : cc).forEach(s -> builder.cc(s));
 
-        mailer.sendMail(builder.buildEmail()).join();
+        log.debug("Sending email '{}' to '{}'", subject, to);
+
+        mailer.sendMail(builder.buildEmail());
     }
 
 }
