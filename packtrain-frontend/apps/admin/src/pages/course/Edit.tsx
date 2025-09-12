@@ -25,14 +25,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { userManager } from "../../auth";
 import { useGetCourse } from "../../hooks";
-
-type CourseSyncNotificationDTO = {
-  error?: string;
-  course_complete?: boolean;
-  sections_complete?: boolean;
-  assignments_complete?: boolean;
-  members_complete?: boolean;
-};
+import { CourseSyncNotificationDTO } from "./Create";
 
 export function EditCourse() {
   const navigate = useNavigate();
@@ -114,12 +107,12 @@ export function EditCourse() {
     },
   });
 
-  const [syncing, setSyncing] = useState(false);
-  const [importErrorMessage, setErrorImportMessage] = useState("");
-  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
-  const [canvasId, setCanvasId] = useState("");
+  const [syncing, setSyncing] = useState<boolean>(false);
+  const [importErrorMessage, setErrorImportMessage] = useState<string>("");
+  const [allTasksCompleted, setAllTasksCompleted] = useState<boolean>(false);
+  const [canvasId, setCanvasId] = useState<string>("");
   const [userData, setUserData] = useState<User>();
-  const [tasksFailed, setTasksFailed] = useState(false);
+  const [tasksFailed, setTasksFailed] = useState<boolean>(false);
   const [completed, setCompleted] = useState({
     course: false,
     sections: false,
@@ -155,12 +148,15 @@ export function EditCourse() {
         if (payload.course_complete) {
           setCompleted((prev) => ({ ...prev, course: true }));
         }
+
         if (payload.sections_complete) {
           setCompleted((prev) => ({ ...prev, sections: true }));
         }
+
         if (payload.assignments_complete) {
           setCompleted((prev) => ({ ...prev, assignments: true }));
         }
+
         if (payload.members_complete) {
           setCompleted((prev) => ({ ...prev, members: true }));
         }
@@ -229,7 +225,7 @@ export function EditCourse() {
 
   if (isLoading || !data) return <Loading />;
 
-  if (error) return `An error occurred: ${error}`;
+  if (error) return <Text>An error occurred: {error.message}</Text>;
 
   return (
     <Container size="md">
@@ -279,7 +275,6 @@ export function EditCourse() {
 
           <InputWrapper label="Course Enabled">
             <Checkbox
-              defaultChecked={form.getValues().enabled}
               key={form.key("enabled")}
               {...form.getInputProps("enabled", { type: "checkbox" })}
             />

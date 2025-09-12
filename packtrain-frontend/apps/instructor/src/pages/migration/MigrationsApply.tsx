@@ -168,7 +168,12 @@ export function MigrationsApplyPage() {
     return <Loading />;
 
   if (migrationError || courseError || policyError)
-    return `An error occured: ${migrationError}`;
+    return (
+      <Text>
+        An error occured: {courseError?.message} {policyError?.message}{" "}
+        {migrationError?.message}
+      </Text>
+    );
 
   return (
     <Container size="md">

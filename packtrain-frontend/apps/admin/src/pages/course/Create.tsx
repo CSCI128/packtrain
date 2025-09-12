@@ -26,7 +26,7 @@ import { Link } from "react-router-dom";
 import { userManager } from "../../auth";
 import { useGetCredentials } from "../../hooks";
 
-type CourseSyncNotificationDTO = {
+export type CourseSyncNotificationDTO = {
   error?: string;
   course_complete?: boolean;
   sections_complete?: boolean;
@@ -37,15 +37,15 @@ type CourseSyncNotificationDTO = {
 export function CreatePage() {
   const { data: credentialData, error: credentialError } = useGetCredentials();
   const [userHasCredential, setUserHasCredential] = useState<boolean>(false);
-  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
-  const [courseCreated, setCourseCreated] = useState(false);
-  const [importErrorMessage, setErrorImportMessage] = useState("");
+  const [allTasksCompleted, setAllTasksCompleted] = useState<boolean>(false);
+  const [courseCreated, setCourseCreated] = useState<boolean>(false);
+  const [importErrorMessage, setErrorImportMessage] = useState<string>("");
   const [importStatistics, setImportStatistics] = useState({
     members: 0,
     assignments: 0,
     sections: 0,
   });
-  const [tasksFailed, setTasksFailed] = useState(false);
+  const [tasksFailed, setTasksFailed] = useState<boolean>(false);
   const [completed, setCompleted] = useState({
     course: false,
     sections: false,
@@ -86,12 +86,15 @@ export function CreatePage() {
         if (payload.course_complete) {
           setCompleted((prev) => ({ ...prev, course: true }));
         }
+
         if (payload.sections_complete) {
           setCompleted((prev) => ({ ...prev, sections: true }));
         }
+
         if (payload.assignments_complete) {
           setCompleted((prev) => ({ ...prev, assignments: true }));
         }
+
         if (payload.members_complete) {
           setCompleted((prev) => ({ ...prev, members: true }));
         }
@@ -266,13 +269,9 @@ export function CreatePage() {
     }
   }, [credentialData]);
 
-  if (error) {
-    return <p>Error while querying created course!</p>;
-  }
+  if (error) return <Text>Error while querying created course!</Text>;
 
-  if (credentialError) {
-    return <p>Error while querying credentials!</p>;
-  }
+  if (credentialError) return <Text>Error while querying credentials!</Text>;
 
   return (
     <>

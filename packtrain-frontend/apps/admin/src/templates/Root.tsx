@@ -20,7 +20,7 @@ const links = [
 export default function Root() {
   return (
     <>
-      <Navbar staticLinks={staticLinks} links={links}></Navbar>
+      <Navbar staticLinks={staticLinks} links={links} />
       <Box p={16}>
         <Outlet />
       </Box>

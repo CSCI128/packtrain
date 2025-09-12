@@ -109,7 +109,12 @@ export function ApprovalPage() {
 
   if (isLoading || !data || courseIsLoading || !courseData) return <Loading />;
 
-  if (error || courseError) return `An error occured: ${error} ${courseError}`;
+  if (error || courseError)
+    return (
+      <Text>
+        An error occured: {error?.message} {courseError?.message}
+      </Text>
+    );
 
   const approveExtension = (request: LateRequest, reason: string) => {
     approveExtensionMutation.mutate(
@@ -385,7 +390,6 @@ export function ApprovalPage() {
                   <TableHeader
                     sorted={false}
                     reversed={reverseSortDirection}
-                    onSort={undefined}
                     filterOptions={[
                       { label: "All", value: "all" },
                       { label: "Approved", value: "approved" },
@@ -396,11 +400,7 @@ export function ApprovalPage() {
                   >
                     Status
                   </TableHeader>
-                  <TableHeader
-                    sorted={false}
-                    reversed={false}
-                    onSort={undefined}
-                  >
+                  <TableHeader sorted={false} reversed={false}>
                     Actions
                   </TableHeader>
                 </Table.Tr>

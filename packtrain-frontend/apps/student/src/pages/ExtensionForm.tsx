@@ -137,7 +137,12 @@ export function ExtensionForm() {
 
   if (isLoading || !courseData || courseIsLoading || !data) return <Loading />;
 
-  if (error || courseError) return `An error occured: ${error}`;
+  if (error || courseError)
+    return (
+      <Text>
+        An error occured: {error?.message} {courseError?.message}
+      </Text>
+    );
 
   const LATE_PASSES_ALLOWED =
     courseData.course.late_request_config.total_late_passes_allowed;

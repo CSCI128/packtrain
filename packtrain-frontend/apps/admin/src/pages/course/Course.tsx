@@ -40,6 +40,7 @@ export function CoursePage() {
       });
       return res.data;
     },
+    onSuccess: () => refetchPolicies(),
   });
 
   const { sortedData, sortBy, reverseSortDirection, handleSort } =
@@ -49,7 +50,11 @@ export function CoursePage() {
     return <Loading />;
 
   if (policyError || courseError)
-    return `An error occured: ${courseError} ${policyError}`;
+    return (
+      <Text>
+        An error occured: {courseError?.message} {policyError?.message}
+      </Text>
+    );
 
   const rows = sortedData.map((element: Policy) => (
     <Table.Tr key={element.name}>
@@ -68,15 +73,12 @@ export function CoursePage() {
           </Button>
           <Button
             size="compact-sm"
-            disabled={element.number_of_migrations != 0}
-            onClick={() => {
-              deletePolicy.mutate(element.id as string);
-              refetchPolicies();
-            }}
+            disabled={element.number_of_migrations !== 0}
+            onClick={() => deletePolicy.mutate(element.id as string)}
             variant="outline"
             color="red"
           >
-            {element.number_of_migrations == 0 ? "Delete" : "Delete Disabled"}
+            {element.number_of_migrations === 0 ? "Delete" : "Delete Disabled"}
           </Button>
         </Stack>
       </Table.Td>
@@ -87,7 +89,7 @@ export function CoursePage() {
     <>
       <Container size="md">
         {courseIsLoading || !courseData ? (
-          <Loading></Loading>
+          <Loading />
         ) : courseError ? (
           <Text>There was an error while trying to fetch the course!</Text>
         ) : (
@@ -149,11 +151,7 @@ export function CoursePage() {
                   >
                     Name
                   </TableHeader>
-                  <TableHeader
-                    sorted={false}
-                    reversed={reverseSortDirection}
-                    onSort={undefined}
-                  >
+                  <TableHeader sorted={false} reversed={reverseSortDirection}>
                     Description
                   </TableHeader>
                   <TableHeader

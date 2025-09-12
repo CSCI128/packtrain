@@ -157,7 +157,7 @@ export function AssignmentsPage() {
 
   if (isLoading || !data) return <Loading />;
 
-  if (error) return `An error occurred: ${error}`;
+  if (error) return <Text>An error occured: {error?.message}</Text>;
 
   const rows = sortedData.map((element) => (
     <Table.Tr key={element.id}>
@@ -361,14 +361,10 @@ export function AssignmentsPage() {
                 >
                   Enabled
                 </TableHeader>
-                <TableHeader
-                  sorted={undefined}
-                  reversed={reverseSortDirection}
-                  onSort={undefined}
-                >
+                <TableHeader reversed={reverseSortDirection}>
                   Status
                 </TableHeader>
-                <TableHeader sorted={false} reversed={false} onSort={undefined}>
+                <TableHeader sorted={false} reversed={false}>
                   Actions
                 </TableHeader>
               </Table.Tr>

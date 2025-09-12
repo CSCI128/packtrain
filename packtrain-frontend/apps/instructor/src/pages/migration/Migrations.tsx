@@ -50,7 +50,7 @@ export function MigrationsPage() {
 
   if (isLoading || !data) return <Loading />;
 
-  if (error) return `An error occured: ${error}`;
+  if (error) return <Text>An error occured: {error?.message}</Text>;
 
   return (
     <>

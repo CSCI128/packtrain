@@ -5,14 +5,13 @@ import { Loading } from "@repo/ui/components/Loading";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGetPolcicy as useGetPolicy } from "../../hooks";
+import { useGetPolicy } from "../../hooks";
 import { PolicyFormValues, PolicyPage } from "./Policy";
 
 export function UpdatePolicy() {
-  const { policyId } = useParams();
   const navigate = useNavigate();
+  const { policyId } = useParams();
   const [errors, setErrors] = useState<string[]>([]);
-
   const {
     data: policy,
     error: policyError,
@@ -60,9 +59,7 @@ export function UpdatePolicy() {
         formData,
       },
       {
-        onSuccess: () => {
-          navigate("/admin/");
-        },
+        onSuccess: () => navigate("/admin/"),
       }
     );
   };

@@ -49,9 +49,7 @@ export function CreatePolicy() {
         formData,
       },
       {
-        onSuccess: () => {
-          navigate("/admin/");
-        },
+        onSuccess: () => navigate("/admin/"),
       }
     );
   };

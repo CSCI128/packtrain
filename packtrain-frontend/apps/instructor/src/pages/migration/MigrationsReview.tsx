@@ -167,7 +167,12 @@ export function MigrationsReviewPage() {
     return <Loading />;
 
   if (masterMigrationError || courseError || migrationError)
-    return `An error occured: ${masterMigrationError}`;
+    return (
+      <Text>
+        An error occured: {courseError?.message} {masterMigrationError?.message}{" "}
+        {migrationError?.message}
+      </Text>
+    );
 
   const handleEditOpen = (row: Score) => {
     setSelectedScore(row);

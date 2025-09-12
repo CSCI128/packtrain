@@ -77,11 +77,12 @@ export function Requests() {
 
   if (isLoading || !data) return <Loading />;
 
-  if (error) return `An error occured: ${error}`;
+  if (error) return <Text>An error occured: {error?.message}</Text>;
 
   if (studentIsLoading || !studentData) return <Loading />;
 
-  if (studentError) return `An error occured: ${studentError}`;
+  if (studentError)
+    return <Text>An error occured: {studentError?.message}</Text>;
 
   const LATE_PASSES_ALLOWED =
     studentData.course.late_request_config.total_late_passes_allowed;
@@ -315,7 +316,7 @@ export function Requests() {
                 >
                   Status
                 </TableHeader>
-                <TableHeader sorted={false} reversed={false} onSort={undefined}>
+                <TableHeader sorted={false} reversed={false}>
                   Actions
                 </TableHeader>
               </Table.Tr>

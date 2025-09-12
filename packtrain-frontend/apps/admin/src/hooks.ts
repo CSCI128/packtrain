@@ -78,7 +78,7 @@ export function useGetPolicies() {
   });
 }
 
-export function useGetPolcicy(policyId: string) {
+export function useGetPolicy(policyId: string) {
   return useQuery<PolicyWithCode>({
     queryKey: ["getPolicy"],
     queryFn: async () => {

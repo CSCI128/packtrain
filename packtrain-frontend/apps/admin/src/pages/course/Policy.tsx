@@ -321,7 +321,7 @@ export function PolicyPage({
                 <Accordion.Item value="scored">
                   <Accordion.Control>Scored Results</Accordion.Control>
                   <Accordion.Panel>
-                    {dryRunRes == null ? (
+                    {dryRunRes === null ? (
                       <Text c="indigo">Execute test to view results</Text>
                     ) : !dryRunRes.policyResults ? (
                       <Text c="red">No results were populated</Text>
@@ -395,7 +395,7 @@ export function PolicyPage({
                 <Accordion.Item value="errors">
                   <Accordion.Control>Errors</Accordion.Control>
                   <Accordion.Panel>
-                    {dryRunRes == null ? (
+                    {dryRunRes === null ? (
                       <Text>No errors!</Text>
                     ) : (
                       <div>
