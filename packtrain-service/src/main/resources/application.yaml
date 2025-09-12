@@ -42,13 +42,13 @@ grading-admin:
     enabled: true
     smtp-server: ${SMTP_SERVER}
     smtp-port: ${SMTP_PORT}
-    smtp-username: ${SMTP_USERNAME}
-    smtp-password: ${SMTP_PASSWORD}
+    smtp-username: ${SMTP_USERNAME:}
+    smtp-password: ${SMTP_PASSWORD:}
     from-name: "Packtrain No-Reply"
     from-email: ${FROM_EMAIL_ADDRESS:no-reply@localhost.dev}
     testing:
-      override-cc: ${EMAIL_TESTING_OVERRIDE_CC:null}
-      override-to: ${EMAIL_TESTING_OVERRIDE_TO:null}
+      override-cc: ${EMAIL_TESTING_OVERRIDE_CC:}
+      override-to: ${EMAIL_TESTING_OVERRIDE_TO:}
   external-services:
     canvas:
       enabled: true

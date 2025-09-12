@@ -33,11 +33,11 @@ public class EmailService {
         this.overrideCC = overrideCC;
         this.overrideTo = overrideTo;
 
-        if (this.overrideCC != null) {
+        if (this.overrideCC != null && !this.overrideCC.equals("null")) {
             log.warn("CC has been overridden so all emails will be cc'd to {}", overrideCC);
         }
 
-        if (this.overrideTo != null) {
+        if (this.overrideTo != null && !this.overrideCC.equals("null")) {
             log.warn("TO has been overridden so all emails will be sent to {}", overrideTo);
         }
     }

@@ -28,7 +28,7 @@ public class SmtpConfig {
 
     @Bean
     public Mailer createMailer() {
-        if (smtpUsername == null && smtpPassword == null) {
+        if ((smtpUsername == null || smtpUsername.isEmpty()) && (smtpPassword == null || smtpPassword.isEmpty())) {
             log.warn("Using anonymous authenication for SMTP relay");
 
             return MailerBuilder
