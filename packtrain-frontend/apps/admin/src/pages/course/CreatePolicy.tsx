@@ -3,7 +3,7 @@ import { store$ } from "@repo/api/store";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PolicyPage } from "./Policy";
+import { PolicyFormValues, PolicyPage } from "./Policy";
 
 export function CreatePolicy() {
   const navigate = useNavigate();
@@ -37,7 +37,7 @@ export function CreatePolicy() {
     },
   });
 
-  const handleNewPolicy = (values: any) => {
+  const handleNewPolicy = (values: PolicyFormValues) => {
     const formData = new FormData();
     formData.append("name", values.policyName);
     formData.append("file_path", values.fileName);

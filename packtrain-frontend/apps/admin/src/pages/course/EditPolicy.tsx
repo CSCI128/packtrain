@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetPolcicy as useGetPolicy } from "../../hooks";
-import { PolicyPage } from "./Policy";
+import { PolicyFormValues, PolicyPage } from "./Policy";
 
 export function UpdatePolicy() {
   const { policyId } = useParams();
@@ -48,7 +48,7 @@ export function UpdatePolicy() {
     },
   });
 
-  const handleUpdatePolicy = (values: any) => {
+  const handleUpdatePolicy = (values: PolicyFormValues) => {
     const formData = new FormData();
     formData.append("name", values.policyName);
     formData.append("file_path", values.fileName);

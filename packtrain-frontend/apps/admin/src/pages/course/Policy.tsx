@@ -28,6 +28,13 @@ import CodeMirror, { EditorState, Extension } from "@uiw/react-codemirror";
 import { useState } from "react";
 import { v4 as uuid } from "uuid";
 
+export interface PolicyFormValues {
+  policyName: string;
+  fileName: string;
+  content: string;
+  description: string;
+}
+
 export function PolicyPage({
   title,
   button,
@@ -40,7 +47,7 @@ export function PolicyPage({
 }: {
   title: string;
   button: string;
-  handleOnSubmit: (values: any) => void;
+  handleOnSubmit: (values: PolicyFormValues) => void;
   errors: string[];
   policyName: string;
   fileName: string;
@@ -50,7 +57,7 @@ export function PolicyPage({
   const [dryRunRes, setDryRunRes] = useState<PolicyDryRunResults | null>(null);
   const dryRun = useMutation({
     mutationKey: ["dryRunPolicy"],
-    mutationFn: ({
+    mutationFn: async ({
       file_data,
       raw_score,
     }: {
