@@ -208,6 +208,15 @@ public class ExtensionService {
             // assume extension exists
             // actually process the extension by marking extension as applied or ignored
         // }
+        LateRequestStatus status;
+        status = LateRequestStatus.IGNORED;
+        if(extensionApplied){
+            status = LateRequestStatus.APPLIED;
+        }
+        if (lateRequest != null){
+            lateRequest.setStatus(status);
+            lateRequest.setDaysRequested(extensionDays);
+        }
 
     }
 
