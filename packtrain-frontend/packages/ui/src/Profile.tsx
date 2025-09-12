@@ -126,7 +126,12 @@ export function ProfilePage() {
 
   if (credentialIsLoading || !credentialData) return "Credentials loading..";
 
-  if (error || credentialError) return `An error occurred: ${error}`;
+  if (error || credentialError)
+    return (
+      <Text>
+        An error occured: {error?.message} {credentialError?.message}
+      </Text>
+    );
 
   const editUser = (values: typeof editUserForm.values) => {
     updateUserMutation.mutate(

@@ -40,10 +40,10 @@ grading-admin:
       extension-created-student: extension-created-student.ftl
       extension-created-instructor: extension-created-instructor.ftl
     enabled: true
-    smtp-server: ${SMTP_SERVER}
-    smtp-port: ${SMTP_PORT}
-    smtp-username: ${SMTP_USERNAME:}
-    smtp-password: ${SMTP_PASSWORD:}
+    smtp-server: ${SMTP_SERVER:localhost.dev}
+    smtp-port: ${SMTP_PORT:25}
+    smtp-username: ${SMTP_USERNAME:admin}
+    smtp-password: ${SMTP_PASSWORD:password}
     from-name: "Packtrain No-Reply"
     from-email: ${FROM_EMAIL_ADDRESS:no-reply@localhost.dev}
     testing:

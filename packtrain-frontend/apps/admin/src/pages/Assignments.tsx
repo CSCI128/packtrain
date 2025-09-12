@@ -103,18 +103,16 @@ export function AssignmentsPage() {
 
   const updateAssignment = useMutation({
     mutationKey: ["updateAssignment"],
-    mutationFn: ({ body }: { body: Assignment }) =>
-      getApiClient()
-        .then((client) =>
-          client.update_assignment(
-            {
-              course_id: store$.id.get() as string,
-            },
-            body
-          )
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({ body }: { body: Assignment }) => {
+      const client = await getApiClient();
+      const res = await client.update_assignment(
+        {
+          course_id: store$.id.get() as string,
+        },
+        body
+      );
+      return res.data;
+    },
   });
 
   const editAssignment = (values: typeof form.values) => {
@@ -124,9 +122,9 @@ export function AssignmentsPage() {
           id: selectedAssignment?.id,
           name: values.name,
           category: values.category,
-          due_date: values.due_date.toISOString(),
+          due_date: values.due_date?.toISOString() as string,
           points: values.points,
-          unlock_date: values.unlock_date.toISOString(),
+          unlock_date: values.unlock_date?.toISOString() as string,
           external_service: values.external_service,
           external_points: values.external_points,
           canvas_id: values.canvas_id,
@@ -159,7 +157,7 @@ export function AssignmentsPage() {
 
   if (isLoading || !data) return <Loading />;
 
-  if (error) return `An error occurred: ${error}`;
+  if (error) return <Text>An error occured: {error?.message}</Text>;
 
   const rows = sortedData.map((element) => (
     <Table.Tr key={element.id}>
@@ -363,14 +361,10 @@ export function AssignmentsPage() {
                 >
                   Enabled
                 </TableHeader>
-                <TableHeader
-                  sorted={undefined}
-                  reversed={reverseSortDirection}
-                  onSort={undefined}
-                >
+                <TableHeader reversed={reverseSortDirection}>
                   Status
                 </TableHeader>
-                <TableHeader sorted={false} reversed={false} onSort={undefined}>
+                <TableHeader sorted={false} reversed={false}>
                   Actions
                 </TableHeader>
               </Table.Tr>

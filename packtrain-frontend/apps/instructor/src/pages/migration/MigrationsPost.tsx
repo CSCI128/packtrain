@@ -12,6 +12,7 @@ import { getApiClient } from "@repo/api/index";
 import { store$ } from "@repo/api/store";
 import { useWebSocketClient } from "@repo/ui/WebSocketHooks";
 import { useMutation } from "@tanstack/react-query";
+import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { userManager } from "../../auth";
@@ -31,39 +32,37 @@ export function MigrationsPostPage() {
 
   const postMasterMigration = useMutation({
     mutationKey: ["postMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.post_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return [];
-        }),
+    mutationFn: async ({
+      master_migration_id,
+    }: {
+      master_migration_id: string;
+    }) => {
+      const client = await getApiClient();
+      const res = await client.post_master_migration({
+        course_id: store$.id.get() as string,
+        master_migration_id: master_migration_id,
+      });
+      return res.data;
+    },
   });
 
   const finalizeMasterMigration = useMutation({
     mutationKey: ["finalizeMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.finalize_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    mutationFn: async ({
+      master_migration_id,
+    }: {
+      master_migration_id: string;
+    }) => {
+      const client = await getApiClient();
+      const res = await client.finalize_master_migration({
+        course_id: store$.id.get() as string,
+        master_migration_id: master_migration_id,
+      });
+      return res.data;
+    },
   });
 
-  const [userData, setUserData] = useState<any>();
+  const [userData, setUserData] = useState<User>();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -79,7 +78,7 @@ export function MigrationsPostPage() {
   }, []);
 
   useWebSocketClient({
-    authToken: userData?.access_token,
+    authToken: userData?.access_token as string,
     onConnect: (client) => {
       client.subscribe("/migrations/post", (msg) => {
         const payload: MigrationPostNotificationDTO = JSON.parse(msg.body);
@@ -106,7 +105,7 @@ export function MigrationsPostPage() {
         master_migration_id: store$.master_migration_id.get() as string,
       });
     }
-  }, [completed]);
+  }, [completed, finalizeMasterMigration]);
 
   return (
     <>
@@ -185,9 +184,7 @@ export function MigrationsPostPage() {
                     store$.master_migration_id.get() as string,
                 },
                 {
-                  onSuccess: () => {
-                    setPosting(true);
-                  },
+                  onSuccess: () => setPosting(true),
                 }
               );
             }}

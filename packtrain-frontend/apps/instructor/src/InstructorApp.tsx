@@ -23,7 +23,7 @@ import { MigrationsPostPage } from "./pages/migration/MigrationsPost";
 import { MigrationsReviewPage } from "./pages/migration/MigrationsReview";
 import Root from "./templates/Root";
 
-configureApiClient({ userManager: userManager });
+configureApiClient({ userManager });
 
 const queryClient = new QueryClient({
   defaultOptions: {

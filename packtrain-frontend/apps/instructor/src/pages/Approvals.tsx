@@ -50,7 +50,7 @@ export function ApprovalPage() {
 
   const approveExtensionMutation = useMutation({
     mutationKey: ["approveExtension"],
-    mutationFn: ({
+    mutationFn: async ({
       extension_id,
       reason,
     }: {
@@ -58,22 +58,20 @@ export function ApprovalPage() {
       user_id: string;
       extension_id: string;
       reason: string;
-    }) =>
-      getApiClient()
-        .then((client) =>
-          client.approve_extension({
-            course_id: store$.id.get() as string,
-            extension_id: extension_id,
-            reason: reason,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.approve_extension({
+        course_id: store$.id.get() as string,
+        extension_id: extension_id,
+        reason: reason,
+      });
+      return res.data;
+    },
   });
 
   const denyExtensionMutation = useMutation({
     mutationKey: ["denyExtension"],
-    mutationFn: ({
+    mutationFn: async ({
       extension_id,
       reason,
     }: {
@@ -81,17 +79,15 @@ export function ApprovalPage() {
       user_id: string;
       extension_id: string;
       reason: string;
-    }) =>
-      getApiClient()
-        .then((client) =>
-          client.deny_extension({
-            course_id: store$.id.get() as string,
-            extension_id: extension_id,
-            reason: reason,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.deny_extension({
+        course_id: store$.id.get() as string,
+        extension_id: extension_id,
+        reason: reason,
+      });
+      return res.data;
+    },
   });
 
   const preprocessedData = (data ?? []).map((row) => ({
@@ -113,7 +109,12 @@ export function ApprovalPage() {
 
   if (isLoading || !data || courseIsLoading || !courseData) return <Loading />;
 
-  if (error || courseError) return `An error occured: ${error} ${courseError}`;
+  if (error || courseError)
+    return (
+      <Text>
+        An error occured: {error?.message} {courseError?.message}
+      </Text>
+    );
 
   const approveExtension = (request: LateRequest, reason: string) => {
     approveExtensionMutation.mutate(
@@ -389,7 +390,6 @@ export function ApprovalPage() {
                   <TableHeader
                     sorted={false}
                     reversed={reverseSortDirection}
-                    onSort={undefined}
                     filterOptions={[
                       { label: "All", value: "all" },
                       { label: "Approved", value: "approved" },
@@ -400,11 +400,7 @@ export function ApprovalPage() {
                   >
                     Status
                   </TableHeader>
-                  <TableHeader
-                    sorted={false}
-                    reversed={false}
-                    onSort={undefined}
-                  >
+                  <TableHeader sorted={false} reversed={false}>
                     Actions
                   </TableHeader>
                 </Table.Tr>

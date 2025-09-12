@@ -27,14 +27,13 @@ import { useAuth } from "react-oidc-context";
 import { useGetCourse, useGetUsers } from "../hooks";
 
 export function UsersPage() {
+  const auth = useAuth();
   const {
     data: courseData,
     error: courseError,
     isLoading: courseIsLoading,
   } = useGetCourse([]);
   const { data, error, isLoading, refetch } = useGetUsers();
-
-  const auth = useAuth();
   const [opened, { open, close }] = useDisclosure(false);
   const [addUserOpened, { open: openAddUser, close: closeAddUser }] =
     useDisclosure(false);
@@ -53,7 +52,6 @@ export function UsersPage() {
       email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
       cwid: (value) =>
         value.length !== 8 ? "CWID must be 8 characters long" : null,
-      admin: () => null,
     },
   });
 
@@ -71,8 +69,6 @@ export function UsersPage() {
         value && value.length < 1
           ? "Name must have at least 1 character"
           : null,
-      admin: () => null,
-      enabled: () => null,
     },
   });
 
@@ -89,37 +85,31 @@ export function UsersPage() {
   };
 
   const addUserMutation = useMutation({
-    mutationFn: (userData: {
+    mutationFn: async (userData: {
       cwid: string;
       email: string;
       admin: boolean;
       name: string;
       enabled: boolean;
-    }) =>
-      getApiClient()
-        .then((client) => client.create_user({}, userData))
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.create_user({}, userData);
+      return res.data;
+    },
   });
 
   const editUserMutation = useMutation({
-    mutationFn: (userData: {
+    mutationFn: async (userData: {
       cwid: string;
       email: string;
       admin: boolean;
       name: string;
       enabled: boolean;
-    }) =>
-      getApiClient()
-        .then((client) => client.admin_update_user({}, userData))
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.admin_update_user({}, userData);
+      return res.data;
+    },
   });
 
   const addUser = (values: typeof addUserForm.values) => {
@@ -151,9 +141,7 @@ export function UsersPage() {
         enabled: values.enabled,
       },
       {
-        onSuccess: () => {
-          refetch();
-        },
+        onSuccess: () => refetch(),
       }
     );
     close();
@@ -166,11 +154,16 @@ export function UsersPage() {
     reverseSortDirection,
     handleSearchChange,
     handleSort,
-  } = useTableData<User>(data);
+  } = useTableData<User>(data as User[]);
 
   if (isLoading || !data || !courseData || courseIsLoading) return <Loading />;
 
-  if (error || courseError) return `An error occured: ${error}`;
+  if (error || courseError)
+    return (
+      <Text>
+        An error occured: {error?.message} {courseError?.message}
+      </Text>
+    );
 
   const rows = sortedData.map((row) => (
     <Table.Tr key={row.cwid}>
@@ -180,7 +173,7 @@ export function UsersPage() {
       <Table.Td>{row.email}</Table.Td>
       <Table.Td>{row.cwid}</Table.Td>
       <Table.Td onClick={() => handleEditOpen(row)}>
-        {courseData && courseData.enabled && (
+        {courseData.enabled && (
           <Center>
             <Text size="sm" pr={5}>
               Edit
@@ -345,7 +338,7 @@ export function UsersPage() {
                 >
                   CWID
                 </TableHeader>
-                <TableHeader sorted={false} reversed={false} onSort={undefined}>
+                <TableHeader sorted={false} reversed={false}>
                   Actions
                 </TableHeader>
               </Table.Tr>

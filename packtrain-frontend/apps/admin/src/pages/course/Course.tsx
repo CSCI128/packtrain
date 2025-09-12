@@ -1,6 +1,5 @@
 import {
   Button,
-  Center,
   Container,
   Divider,
   Group,
@@ -14,7 +13,6 @@ import { store$ } from "@repo/api/store";
 import { Loading } from "@repo/ui/components/Loading";
 import { TableHeader, useTableData } from "@repo/ui/components/table/Table";
 import { useMutation } from "@tanstack/react-query";
-import { BsTrash } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { useGetCourse, useGetPolicies } from "../../hooks";
 
@@ -34,52 +32,53 @@ export function CoursePage() {
 
   const deletePolicy = useMutation({
     mutationKey: ["deletePolicy"],
-    mutationFn: (policy_id: string) =>
-      getApiClient()
-        .then((client) =>
-          client.delete_policy({
-            course_id: store$.id.get() as string,
-            policy_id: policy_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async (policy_id: string) => {
+      const client = await getApiClient();
+      const res = await client.delete_policy({
+        course_id: store$.id.get() as string,
+        policy_id: policy_id,
+      });
+      return res.data;
+    },
+    onSuccess: () => refetchPolicies(),
   });
 
   const { sortedData, sortBy, reverseSortDirection, handleSort } =
-    useTableData<Policy>(policyData);
+    useTableData<Policy>(policyData as Policy[]);
 
   if (policyIsLoading || !policyData || !courseData || courseIsLoading)
     return <Loading />;
 
   if (policyError || courseError)
-    return `An error occured: ${courseError} ${policyError}`;
+    return (
+      <Text>
+        An error occured: {courseError?.message} {policyError?.message}
+      </Text>
+    );
 
   const rows = sortedData.map((element: Policy) => (
     <Table.Tr key={element.name}>
       <Table.Td>{element.name}</Table.Td>
       <Table.Td>{element.description}</Table.Td>
       <Table.Td>{element.number_of_migrations}</Table.Td>
-      <Table.Td >
+      <Table.Td>
         <Stack>
           <Button
             variant="outline"
             component={Link}
             size="compact-sm"
-            to={`/admin/policies/edit/${element.id}`}>
+            to={`/admin/policies/edit/${element.id}`}
+          >
             Edit Policy
           </Button>
           <Button
             size="compact-sm"
-            disabled={element.number_of_migrations != 0}
-            onClick={() => {
-              deletePolicy.mutate(element.id);
-              refetchPolicies();
-            }}
+            disabled={element.number_of_migrations !== 0}
+            onClick={() => deletePolicy.mutate(element.id as string)}
             variant="outline"
             color="red"
           >
-            {element.number_of_migrations == 0 ? "Delete" : "Delete Disabled"}
+            {element.number_of_migrations === 0 ? "Delete" : "Delete Disabled"}
           </Button>
         </Stack>
       </Table.Td>
@@ -90,7 +89,7 @@ export function CoursePage() {
     <>
       <Container size="md">
         {courseIsLoading || !courseData ? (
-          <Loading></Loading>
+          <Loading />
         ) : courseError ? (
           <Text>There was an error while trying to fetch the course!</Text>
         ) : (
@@ -152,11 +151,7 @@ export function CoursePage() {
                   >
                     Name
                   </TableHeader>
-                  <TableHeader
-                    sorted={false}
-                    reversed={reverseSortDirection}
-                    onSort={undefined}
-                  >
+                  <TableHeader sorted={false} reversed={reverseSortDirection}>
                     Description
                   </TableHeader>
                   <TableHeader

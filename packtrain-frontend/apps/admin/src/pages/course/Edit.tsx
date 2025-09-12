@@ -20,18 +20,12 @@ import { store$ } from "@repo/api/store";
 import { Loading } from "@repo/ui/components/Loading";
 import { useWebSocketClient } from "@repo/ui/WebSocketHooks";
 import { useMutation } from "@tanstack/react-query";
+import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { userManager } from "../../auth";
 import { useGetCourse } from "../../hooks";
-
-type CourseSyncNotificationDTO = {
-  error?: string;
-  course_complete?: boolean;
-  sections_complete?: boolean;
-  assignments_complete?: boolean;
-  members_complete?: boolean;
-};
+import { CourseSyncNotificationDTO } from "./Create";
 
 export function EditCourse() {
   const navigate = useNavigate();
@@ -43,21 +37,16 @@ export function EditCourse() {
 
   const mutation = useMutation({
     mutationKey: ["updateCourse"],
-    mutationFn: ({ body }: { body: Course }) =>
-      getApiClient()
-        .then((client) =>
-          client.update_course(
-            {
-              course_id: store$.id.get() as string,
-            },
-            body
-          )
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    mutationFn: async ({ body }: { body: Course }) => {
+      const client = await getApiClient();
+      const res = await client.update_course(
+        {
+          course_id: store$.id.get() as string,
+        },
+        body
+      );
+      return res.data;
+    },
   });
 
   const updateCourse = (values: typeof form.values) => {
@@ -79,9 +68,7 @@ export function EditCourse() {
         },
       },
       {
-        onSuccess: () => {
-          navigate("/admin");
-        },
+        onSuccess: () => navigate("/admin"),
       }
     );
   };
@@ -118,12 +105,12 @@ export function EditCourse() {
     },
   });
 
-  const [syncing, setSyncing] = useState(false);
-  const [importErrorMessage, setErrorImportMessage] = useState("");
-  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
-  const [canvasId, setCanvasId] = useState("");
-  const [userData, setUserData] = useState(null);
-  const [tasksFailed, setTasksFailed] = useState(false);
+  const [syncing, setSyncing] = useState<boolean>(false);
+  const [importErrorMessage, setErrorImportMessage] = useState<string>("");
+  const [allTasksCompleted, setAllTasksCompleted] = useState<boolean>(false);
+  const [canvasId, setCanvasId] = useState<string>("");
+  const [userData, setUserData] = useState<User>();
+  const [tasksFailed, setTasksFailed] = useState<boolean>(false);
   const [completed, setCompleted] = useState({
     course: false,
     sections: false,
@@ -145,7 +132,7 @@ export function EditCourse() {
   }, []);
 
   useWebSocketClient({
-    authToken: userData?.access_token,
+    authToken: userData?.access_token as string,
     onConnect: (client) => {
       client.subscribe("/courses/sync", (msg) => {
         const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
@@ -159,12 +146,15 @@ export function EditCourse() {
         if (payload.course_complete) {
           setCompleted((prev) => ({ ...prev, course: true }));
         }
+
         if (payload.sections_complete) {
           setCompleted((prev) => ({ ...prev, sections: true }));
         }
+
         if (payload.assignments_complete) {
           setCompleted((prev) => ({ ...prev, assignments: true }));
         }
+
         if (payload.members_complete) {
           setCompleted((prev) => ({ ...prev, members: true }));
         }
@@ -206,21 +196,16 @@ export function EditCourse() {
 
   const syncAssignmentsMutation = useMutation({
     mutationKey: ["syncAssignments"],
-    mutationFn: ({ body }: { body: CourseSyncTask }) =>
-      getApiClient()
-        .then((client) =>
-          client.sync_course(
-            {
-              course_id: store$.id.get() as string,
-            },
-            body
-          )
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    mutationFn: async ({ body }: { body: CourseSyncTask }) => {
+      const client = await getApiClient();
+      const res = await client.sync_course(
+        {
+          course_id: store$.id.get() as string,
+        },
+        body
+      );
+      return res.data;
+    },
   });
 
   const syncAssignments = () => {
@@ -238,7 +223,7 @@ export function EditCourse() {
 
   if (isLoading || !data) return <Loading />;
 
-  if (error) return `An error occurred: ${error}`;
+  if (error) return <Text>An error occurred: {error.message}</Text>;
 
   return (
     <Container size="md">
@@ -288,7 +273,6 @@ export function EditCourse() {
 
           <InputWrapper label="Course Enabled">
             <Checkbox
-              defaultChecked={form.getValues().enabled}
               key={form.key("enabled")}
               {...form.getInputProps("enabled", { type: "checkbox" })}
             />
