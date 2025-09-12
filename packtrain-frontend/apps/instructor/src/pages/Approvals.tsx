@@ -50,7 +50,7 @@ export function ApprovalPage() {
 
   const approveExtensionMutation = useMutation({
     mutationKey: ["approveExtension"],
-    mutationFn: ({
+    mutationFn: async ({
       extension_id,
       reason,
     }: {
@@ -58,22 +58,20 @@ export function ApprovalPage() {
       user_id: string;
       extension_id: string;
       reason: string;
-    }) =>
-      getApiClient()
-        .then((client) =>
-          client.approve_extension({
-            course_id: store$.id.get() as string,
-            extension_id: extension_id,
-            reason: reason,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.approve_extension({
+        course_id: store$.id.get() as string,
+        extension_id: extension_id,
+        reason: reason,
+      });
+      return res.data;
+    },
   });
 
   const denyExtensionMutation = useMutation({
     mutationKey: ["denyExtension"],
-    mutationFn: ({
+    mutationFn: async ({
       extension_id,
       reason,
     }: {
@@ -81,17 +79,15 @@ export function ApprovalPage() {
       user_id: string;
       extension_id: string;
       reason: string;
-    }) =>
-      getApiClient()
-        .then((client) =>
-          client.deny_extension({
-            course_id: store$.id.get() as string,
-            extension_id: extension_id,
-            reason: reason,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.deny_extension({
+        course_id: store$.id.get() as string,
+        extension_id: extension_id,
+        reason: reason,
+      });
+      return res.data;
+    },
   });
 
   const preprocessedData = (data ?? []).map((row) => ({

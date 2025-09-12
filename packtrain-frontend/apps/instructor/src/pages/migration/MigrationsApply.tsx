@@ -15,6 +15,7 @@ import { store$ } from "@repo/api/store";
 import { Loading } from "@repo/ui/components/Loading";
 import { useWebSocketClient } from "@repo/ui/WebSocketHooks";
 import { useMutation } from "@tanstack/react-query";
+import { User } from "oidc-client-ts";
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { userManager } from "../../auth";
@@ -64,7 +65,7 @@ export function MigrationsApplyPage() {
 
   const setPolicyMigration = useMutation({
     mutationKey: ["setPolicy"],
-    mutationFn: ({
+    mutationFn: async ({
       master_migration_id,
       migration_id,
       policy_id,
@@ -72,26 +73,23 @@ export function MigrationsApplyPage() {
       master_migration_id: string;
       migration_id: string;
       policy_id: string;
-    }) =>
-      getApiClient()
-        .then((client) =>
-          client.set_policy({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-            migration_id: migration_id,
-            policy_id: policy_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.set_policy({
+        course_id: store$.id.get() as string,
+        master_migration_id: master_migration_id,
+        migration_id: migration_id,
+        policy_id: policy_id,
+      });
+      return res.data;
+    },
   });
 
   const [completed, setCompleted] = useState({
     extensions: false,
     zero: false,
   });
-  // TODO fix these types and unify across admin+instructor+student; instructor seems to have more strict TS linting
-  const [userData, setUserData] = useState<any>();
+  const [userData, setUserData] = useState<User>();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -107,7 +105,7 @@ export function MigrationsApplyPage() {
   }, []);
 
   useWebSocketClient({
-    authToken: userData?.access_token,
+    authToken: userData?.access_token as string,
     onConnect: (client) => {
       client.subscribe("/migrations/apply", (msg) => {
         const payload: MigrationApplyNotificationDTO = JSON.parse(msg.body);
@@ -135,19 +133,18 @@ export function MigrationsApplyPage() {
 
   const applyMasterMigration = useMutation({
     mutationKey: ["applyMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.apply_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return [];
-        }),
+    mutationFn: async ({
+      master_migration_id,
+    }: {
+      master_migration_id: string;
+    }) => {
+      const client = await getApiClient();
+      const res = await client.apply_master_migration({
+        course_id: store$.id.get() as string,
+        master_migration_id: master_migration_id,
+      });
+      return res.data;
+    },
   });
 
   useEffect(() => {
@@ -196,9 +193,9 @@ export function MigrationsApplyPage() {
                 <Group>
                   <Text fw={800}>
                     {
-                      migrationData.migrations
-                        ?.filter((x) => x.assignment.id === selectedAssignment)
-                        .at(0)?.assignment.name
+                      migrationData.migrations?.find(
+                        (x) => x.assignment.id === selectedAssignment
+                      )?.assignment.name
                     }
                   </Text>
                 </Group>
@@ -228,11 +225,9 @@ export function MigrationsApplyPage() {
                         {
                           master_migration_id:
                             store$.master_migration_id.get() as string,
-                          migration_id: migrationData?.migrations
-                            ?.filter(
-                              (x) => x.assignment.id === selectedAssignment
-                            )
-                            .at(0)?.id as string,
+                          migration_id: migrationData?.migrations?.find(
+                            (x) => x.assignment.id === selectedAssignment
+                          )?.id as string,
                           policy_id: value as string,
                         },
                         {

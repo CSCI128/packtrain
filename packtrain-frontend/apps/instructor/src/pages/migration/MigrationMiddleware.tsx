@@ -64,6 +64,7 @@ export const MigrationMiddleware = ({
     migrationData,
     migrationIsLoading,
     currentPage,
+    lastState,
     navigate,
   ]);
 

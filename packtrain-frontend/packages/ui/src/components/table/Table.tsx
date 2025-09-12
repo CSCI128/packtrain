@@ -18,7 +18,7 @@ import classes from "./Table.module.scss";
 interface TableHeaderProps {
   children: React.ReactNode;
   reversed: boolean;
-  sorted: boolean;
+  sorted?: boolean;
   onSort: (() => void) | undefined;
   filterOptions?: { label: string; value: string }[];
   onFilter?: (value: string) => void;

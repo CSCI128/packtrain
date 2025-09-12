@@ -1,8 +1,8 @@
 import { getApiClient } from "@repo/api/index";
 import { store$ } from "@repo/api/store";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PolicyPage } from "./Policy";
 
 export function CreatePolicy() {
@@ -11,36 +11,33 @@ export function CreatePolicy() {
 
   const newPolicy = useMutation({
     mutationKey: ["newPolicy"],
-    mutationFn: ({ formData }: { formData: FormData }) =>
-      getApiClient()
-        .then((client) => {
-          setErrors([]);
-          return client.new_policy(
-            {
-              course_id: store$.id.get() as string,
-            },
-            {
-              name: formData.get("name").toString(),
-              file_path: formData.get("file_path").toString(),
-              file_data: formData.get("file_data").toString(),
-              description: formData.get("description").toString(),
-            },
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
-        })
-        .then((res) => res.data)
-        .catch((err) => {
-          setErrors([String(err?.response?.data?.error_message)])
-          throw err;
-        }),
+    mutationFn: async ({ formData }: { formData: FormData }) => {
+      const client = await getApiClient();
+      setErrors([]);
+      const res = await client.new_policy(
+        {
+          course_id: store$.id.get() as string,
+        },
+        {
+          name: formData.get("name")?.toString() ?? "",
+          file_path: formData.get("file_path")?.toString() ?? "",
+          file_data: formData.get("file_data")?.toString() ?? "",
+          description: formData.get("description")?.toString() ?? "",
+        },
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return res.data;
+    },
+    onError: (error) => {
+      setErrors([error.message]);
+    },
   });
 
-
-  const handleNewPolicy = (values) => {
+  const handleNewPolicy = (values: any) => {
     const formData = new FormData();
     formData.append("name", values.policyName);
     formData.append("file_path", values.fileName);
@@ -59,15 +56,16 @@ export function CreatePolicy() {
     );
   };
 
-  return <PolicyPage
-    title="Create a new Policy"
-    handleOnSubmit={handleNewPolicy}
-    button={"Create"}
-    errors={errors}
-    policyName=""
-    fileName=""
-    content=""
-    description=""
-  />
-
+  return (
+    <PolicyPage
+      title="Create a new Policy"
+      handleOnSubmit={handleNewPolicy}
+      button={"Create"}
+      errors={errors}
+      policyName=""
+      fileName=""
+      content=""
+      description=""
+    />
+  );
 }

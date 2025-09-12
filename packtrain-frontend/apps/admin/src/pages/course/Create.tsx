@@ -20,6 +20,7 @@ import { Course, CourseSyncTask } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { useWebSocketClient } from "@repo/ui/WebSocketHooks";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { userManager } from "../../auth";
@@ -51,7 +52,7 @@ export function CreatePage() {
     assignments: false,
     members: false,
   });
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState<User>();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -67,7 +68,7 @@ export function CreatePage() {
   }, []);
 
   useWebSocketClient({
-    authToken: userData?.access_token,
+    authToken: userData?.access_token as string,
     onConnect: (client) => {
       client.subscribe("/courses/sync", (msg) => {
         const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
@@ -76,6 +77,10 @@ export function CreatePage() {
           setErrorImportMessage(payload.error);
           setTasksFailed(true);
           setAllTasksCompleted(false);
+          console.log(
+            `Tasks failed, deleting course by ID: ${store$.id.get() as string}`
+          );
+          deleteCourse(store$.id.get() as string);
         }
 
         if (payload.course_complete) {
@@ -107,49 +112,39 @@ export function CreatePage() {
 
   const importMutation = useMutation({
     mutationKey: ["importCourse"],
-    mutationFn: ({ body }: { body: CourseSyncTask }) =>
-      getApiClient()
-        .then((client) =>
-          client.import_course(
-            {
-              course_id: store$.id.get() as string,
-            },
-            body
-          )
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    mutationFn: async ({ body }: { body: CourseSyncTask }) => {
+      const client = await getApiClient();
+      const res = await client.import_course(
+        {
+          course_id: store$.id.get() as string,
+        },
+        body
+      );
+      return res.data;
+    },
   });
 
   const mutation = useMutation({
     mutationKey: ["newCourse"],
-    mutationFn: ({ body }: { body: Course }) =>
-      getApiClient()
-        .then((client) =>
-          client.new_course(
-            {
-              course_id: store$.id.get() as string,
-            },
-            body
-          )
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    mutationFn: async ({ body }: { body: Course }) => {
+      const client = await getApiClient();
+      const res = await client.new_course(
+        {
+          course_id: store$.id.get() as string,
+        },
+        body
+      );
+      return res.data;
+    },
   });
 
   const deleteCourseMutation = useMutation({
     mutationKey: ["deleteCourse"],
-    mutationFn: ({ course_id }: { course_id: string }) =>
-      getApiClient()
-        .then((client) => client.delete_course(course_id))
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({ course_id }: { course_id: string }) => {
+      const client = await getApiClient();
+      const res = await client.delete_course(course_id);
+      return res.data;
+    },
   });
 
   const importCourse = (canvasId: string) => {
@@ -166,19 +161,14 @@ export function CreatePage() {
 
   const { data, error } = useQuery<Course>({
     queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course({
-            course_id: store$.id.get() as string,
-            include: ["members", "assignments", "sections"],
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    queryFn: async () => {
+      const client = await getApiClient();
+      const res = await client.get_course({
+        course_id: store$.id.get() as string,
+        include: ["members", "assignments", "sections"],
+      });
+      return res.data;
+    },
     enabled: courseCreated && allTasksCompleted,
   });
 
@@ -206,15 +196,6 @@ export function CreatePage() {
     }
   }, [allTasksCompleted, data]);
 
-  useEffect(() => {
-    if (tasksFailed) {
-      console.log(
-        `Tasks failed, deleting course by ID: ${store$.id.get() as string}`
-      );
-      deleteCourse(store$.id.get() as string);
-    }
-  }, [tasksFailed]);
-
   const createCourse = (values: typeof form.values) => {
     mutation.mutate(
       {
@@ -235,8 +216,8 @@ export function CreatePage() {
       {
         onSuccess: (response) => {
           setCourseCreated(true);
-          store$.id.set(response.id as string);
-          store$.name.set(response.name);
+          store$.id.set(response?.id as string);
+          store$.name.set(response?.name);
           importCourse(values.canvasId);
         },
       }

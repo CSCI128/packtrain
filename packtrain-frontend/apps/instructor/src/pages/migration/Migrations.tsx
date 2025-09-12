@@ -23,29 +23,29 @@ export function MigrationsPage() {
 
   const createMasterMigration = useMutation({
     mutationKey: ["createMasterMigration"],
-    mutationFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.create_master_migration({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async () => {
+      const client = await getApiClient();
+      const res = await client.create_master_migration({
+        course_id: store$.id.get() as string,
+      });
+      return res.data;
+    },
   });
 
   const deleteMasterMigration = useMutation({
     mutationKey: ["deleteMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.delete_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({
+      master_migration_id,
+    }: {
+      master_migration_id: string;
+    }) => {
+      const client = await getApiClient();
+      const res = await client.delete_master_migration({
+        course_id: store$.id.get() as string,
+        master_migration_id: master_migration_id,
+      });
+      return res.data;
+    },
   });
 
   if (isLoading || !data) return <Loading />;

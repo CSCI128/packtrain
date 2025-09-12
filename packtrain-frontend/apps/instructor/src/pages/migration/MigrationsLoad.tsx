@@ -39,28 +39,26 @@ export function MigrationsLoadPage() {
 
   const createMigration = useMutation({
     mutationKey: ["createMigration"],
-    mutationFn: ({
+    mutationFn: async ({
       master_migration_id,
       assignment_id,
     }: {
       master_migration_id: string;
       assignment_id: string;
-    }) =>
-      getApiClient()
-        .then((client) =>
-          client.create_migration_for_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-            assignment_id: assignment_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.create_migration_for_master_migration({
+        course_id: store$.id.get() as string,
+        master_migration_id: master_migration_id,
+        assignment_id: assignment_id,
+      });
+      return res.data;
+    },
   });
 
   const uploadScores = useMutation({
     mutationKey: ["uploadScores"],
-    mutationFn: ({
+    mutationFn: async ({
       master_migration_id,
       migration_id,
       file,
@@ -68,67 +66,71 @@ export function MigrationsLoadPage() {
       master_migration_id: string;
       migration_id: string;
       file: string;
-    }) =>
-      getApiClient()
-        .then((client) => {
-          return client.upload_raw_scores(
-            {
-              course_id: store$.id.get() as string,
-              master_migration_id: master_migration_id,
-              migration_id: migration_id,
-            },
-            file,
-            {
-              headers: {
-                "Content-Type": "application/octet-stream",
-              },
-            }
-          );
-        })
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.upload_raw_scores(
+        {
+          course_id: store$.id.get() as string,
+          master_migration_id: master_migration_id,
+          migration_id: migration_id,
+        },
+        file,
+        {
+          headers: {
+            "Content-Type": "application/octet-stream",
+          },
+        }
+      );
+      return res.data;
+    },
   });
 
   const loadMasterMigration = useMutation({
     mutationKey: ["loadMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.load_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({
+      master_migration_id,
+    }: {
+      master_migration_id: string;
+    }) => {
+      const client = await getApiClient();
+      const res = await client.load_master_migration({
+        course_id: store$.id.get() as string,
+        master_migration_id: master_migration_id,
+      });
+      return res.data;
+    },
   });
 
   const loadValidateMasterMigration = useMutation({
     mutationKey: ["loadValidateMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.load_validate_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({
+      master_migration_id,
+    }: {
+      master_migration_id: string;
+    }) => {
+      const client = await getApiClient();
+      const res = await client.load_validate_master_migration({
+        course_id: store$.id.get() as string,
+        master_migration_id: master_migration_id,
+      });
+      return res.data;
+    },
   });
 
   const deleteMasterMigration = useMutation({
     mutationKey: ["deleteMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.delete_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({
+      master_migration_id,
+    }: {
+      master_migration_id: string;
+    }) => {
+      const client = await getApiClient();
+      const res = await client.delete_master_migration({
+        course_id: store$.id.get() as string,
+        master_migration_id: master_migration_id,
+      });
+      return res.data;
+    },
   });
 
   const form = useForm({
@@ -185,10 +187,10 @@ export function MigrationsLoadPage() {
           uploadScores.mutate(
             {
               master_migration_id: masterMigrationId,
-              migration_id: data?.migrations
-                ?.filter((x) => x.assignment.id === selectedAssignmentId)
-                .at(0)?.id as string,
-              // @ts-ignore should be different
+              migration_id: data?.migrations?.find(
+                (x) => x.assignment.id === selectedAssignmentId
+              )?.id as string,
+              // @ts-expect-error - TS can't seem to handle the OpenAPI file types properly
               file,
             },
             {
@@ -210,7 +212,7 @@ export function MigrationsLoadPage() {
   // set master migration id for queries
   useEffect(() => {
     setMasterMigrationId(store$.master_migration_id.get() as string);
-  }, [store$]);
+  }, []);
 
   const loadAssignments = () => {
     loadMasterMigration.mutate(

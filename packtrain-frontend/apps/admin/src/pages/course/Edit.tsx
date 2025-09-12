@@ -20,6 +20,7 @@ import { store$ } from "@repo/api/store";
 import { Loading } from "@repo/ui/components/Loading";
 import { useWebSocketClient } from "@repo/ui/WebSocketHooks";
 import { useMutation } from "@tanstack/react-query";
+import { User } from "oidc-client-ts";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { userManager } from "../../auth";
@@ -43,21 +44,16 @@ export function EditCourse() {
 
   const mutation = useMutation({
     mutationKey: ["updateCourse"],
-    mutationFn: ({ body }: { body: Course }) =>
-      getApiClient()
-        .then((client) =>
-          client.update_course(
-            {
-              course_id: store$.id.get() as string,
-            },
-            body
-          )
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    mutationFn: async ({ body }: { body: Course }) => {
+      const client = await getApiClient();
+      const res = await client.update_course(
+        {
+          course_id: store$.id.get() as string,
+        },
+        body
+      );
+      return res.data;
+    },
   });
 
   const updateCourse = (values: typeof form.values) => {
@@ -122,7 +118,7 @@ export function EditCourse() {
   const [importErrorMessage, setErrorImportMessage] = useState("");
   const [allTasksCompleted, setAllTasksCompleted] = useState(false);
   const [canvasId, setCanvasId] = useState("");
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState<User>();
   const [tasksFailed, setTasksFailed] = useState(false);
   const [completed, setCompleted] = useState({
     course: false,
@@ -145,7 +141,7 @@ export function EditCourse() {
   }, []);
 
   useWebSocketClient({
-    authToken: userData?.access_token,
+    authToken: userData?.access_token as string,
     onConnect: (client) => {
       client.subscribe("/courses/sync", (msg) => {
         const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
@@ -206,21 +202,16 @@ export function EditCourse() {
 
   const syncAssignmentsMutation = useMutation({
     mutationKey: ["syncAssignments"],
-    mutationFn: ({ body }: { body: CourseSyncTask }) =>
-      getApiClient()
-        .then((client) =>
-          client.sync_course(
-            {
-              course_id: store$.id.get() as string,
-            },
-            body
-          )
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    mutationFn: async ({ body }: { body: CourseSyncTask }) => {
+      const client = await getApiClient();
+      const res = await client.sync_course(
+        {
+          course_id: store$.id.get() as string,
+        },
+        body
+      );
+      return res.data;
+    },
   });
 
   const syncAssignments = () => {

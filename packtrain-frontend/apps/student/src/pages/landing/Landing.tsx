@@ -1,35 +1,23 @@
 import { Button, Container, Text, Title } from "@mantine/core";
-import { getApiClient } from "@repo/api/index";
 import { Enrollment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import { useNavigate } from "react-router-dom";
+import { useGetEnrollments } from "../../hooks";
 import classes from "./Landing.module.scss";
 
 export const LandingPage = () => {
   const auth = useAuth();
   const navigate = useNavigate();
 
-  const { data: enrollmentInfo } = useQuery<Enrollment[]>({
-    queryKey: ["getEnrollments"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_enrollments())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return [];
-        }),
-    enabled: !!auth.isAuthenticated,
-  });
+  const { data: enrollmentInfo } = useGetEnrollments(!!auth.isAuthenticated);
 
   useEffect(() => {
     if (enrollmentInfo) {
-      const enrollment = enrollmentInfo
-        .filter((c) => c.id === store$.id.get())
-        .at(0);
+      const enrollment = enrollmentInfo.find(
+        (c: Enrollment) => c.id === store$.id.get()
+      );
       if (enrollment !== undefined) {
         if (enrollment.course_role === "owner") {
           window.location.href = "/admin/";
@@ -69,7 +57,7 @@ export const LandingPage = () => {
           <>
             <div className={classes.controls}>
               {enrollmentInfo &&
-              enrollmentInfo.filter((c) => c.id === store$.id.get()).at(0)
+              enrollmentInfo.find((c: Enrollment) => c.id === store$.id.get())
                 ?.course_role === "instructor" ? (
                 <Button
                   className={classes.control}
@@ -79,7 +67,7 @@ export const LandingPage = () => {
                   Manage Extensions
                 </Button>
               ) : enrollmentInfo &&
-                enrollmentInfo.filter((c) => c.id === store$.id.get()).at(0)
+                enrollmentInfo.find((c: Enrollment) => c.id === store$.id.get())
                   ?.course_role === "owner" ? (
                 <Button
                   className={classes.control}

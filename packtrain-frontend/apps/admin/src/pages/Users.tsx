@@ -89,37 +89,31 @@ export function UsersPage() {
   };
 
   const addUserMutation = useMutation({
-    mutationFn: (userData: {
+    mutationFn: async (userData: {
       cwid: string;
       email: string;
       admin: boolean;
       name: string;
       enabled: boolean;
-    }) =>
-      getApiClient()
-        .then((client) => client.create_user({}, userData))
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.create_user({}, userData);
+      return res.data;
+    },
   });
 
   const editUserMutation = useMutation({
-    mutationFn: (userData: {
+    mutationFn: async (userData: {
       cwid: string;
       email: string;
       admin: boolean;
       name: string;
       enabled: boolean;
-    }) =>
-      getApiClient()
-        .then((client) => client.admin_update_user({}, userData))
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.admin_update_user({}, userData);
+      return res.data;
+    },
   });
 
   const addUser = (values: typeof addUserForm.values) => {
@@ -166,7 +160,7 @@ export function UsersPage() {
     reverseSortDirection,
     handleSearchChange,
     handleSort,
-  } = useTableData<User>(data);
+  } = useTableData<User>(data as User[]);
 
   if (isLoading || !data || !courseData || courseIsLoading) return <Loading />;
 
