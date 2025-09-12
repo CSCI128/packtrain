@@ -55,6 +55,8 @@ Install the Checkstyle for IntelliJ IDEA plugin and then go to ``Settings`` > ``
 
 In ``Settings`` > ``Editor`` > ``Code Style``, set hard wrap to ``120`` and check ``Wrap on typing``.
 
+Alternatively, you can run this Checkstyle command: ``mvn checkstyle:check``
+
 We recommend installing the free version of SonarQube for better code suggestions.
 
 Frontend
