@@ -36,3 +36,18 @@ for a robust and seamless flow for the majority of your Canvas-external assignme
 adding a seamless flow for grading reading assignments.
 
 ## Application Screenshots
+
+![Image showing the student extension form screen](docs/src/images/application/StudentRequests.png)
+_Image showing the student requests screen_
+
+![Image showing the student extension form screen](docs/src/images/application/StudentForm.png)
+_Image showing the student extension form screen_
+
+![Image showing the instructor approvals screen](docs/src/images/application/Approvals.png)
+_Image showing the instructor approvals screen_
+
+![Image showing the course management screen](docs/src/images/application/CourseManagement.png)
+_Image showing the student extension form screen_
+
+![Image showing the course assignments management screen](docs/src/images/application/Assignments.png)
+_Image showing the student extension form screen_
