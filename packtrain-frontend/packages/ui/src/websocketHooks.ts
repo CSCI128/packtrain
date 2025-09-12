@@ -17,7 +17,9 @@ export function useWebSocketClient({
     if (!authToken) return;
 
     const socket = new SockJS(
-      (window.__ENV__?.VITE_API_URL ?? "https://localhost.dev") + "/api/ws"
+      window.__ENV__?.VITE_API_URL
+        ? window.__ENV__.VITE_API_URL + "ws"
+        : "https://localhost.dev/api/ws"
     );
     const client = new Client({
       webSocketFactory: () => socket,
