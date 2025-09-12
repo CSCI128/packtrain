@@ -23,8 +23,8 @@ public class EmailService {
             @Value("${grading-admin.email.enabled}") boolean enabled,
             @Value("${grading-admin.email.from-email}") String fromEmail,
             @Value("${grading-admin.email.from-name}") String fromName,
-            @Value("${grading-admin.email.testing.override-cc:#{null}}") String overrideCC,
-            @Value("${grading-admin.email.testing.override-to:#{null}}") String overrideTo) {
+            @Value("${grading-admin.email.testing.override-cc}") String overrideCC,
+            @Value("${grading-admin.email.testing.override-to}") String overrideTo) {
 
         this.enabled = enabled;
         this.mailer = mailer;
@@ -33,11 +33,11 @@ public class EmailService {
         this.overrideCC = overrideCC;
         this.overrideTo = overrideTo;
 
-        if (this.overrideCC != null && !this.overrideCC.equals("null")) {
+        if (!this.overrideCC.isEmpty()) {
             log.warn("CC has been overridden so all emails will be cc'd to {}", overrideCC);
         }
 
-        if (this.overrideTo != null && !this.overrideCC.equals("null")) {
+        if (!this.overrideTo.isEmpty()) {
             log.warn("TO has been overridden so all emails will be sent to {}", overrideTo);
         }
     }
