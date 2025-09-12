@@ -15,7 +15,7 @@ public class GradingStartDTO {
         private double canvasMaxScore;
         private double canvasMinScore;
         private double externalMaxScore;
-        private Instant initialDueDate;
+        private String initialDueDate;
     }
 
     private UUID migrationId;

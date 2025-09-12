@@ -63,9 +63,12 @@ public class MigrationFactory {
                     0,
                     assignment.getExternalAssignmentConfig() == null ? assignment.getPoints()
                             : assignment.getExternalAssignmentConfig().getExternalPoints(),
-                    assignment.getDueDate()
+                    assignment.getDueDate().toString()
             ));
 
+            log.debug("START FOR: {}", assignment);
+
+            
             return this;
         }
 
