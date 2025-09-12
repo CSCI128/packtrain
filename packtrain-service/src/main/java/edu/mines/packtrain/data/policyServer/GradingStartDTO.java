@@ -1,7 +1,6 @@
 package edu.mines.packtrain.data.policyServer;
 
 import java.net.URI;
-import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +14,7 @@ public class GradingStartDTO {
         private double canvasMaxScore;
         private double canvasMinScore;
         private double externalMaxScore;
-        private Instant initialDueDate;
+        private String initialDueDate;
     }
 
     private UUID migrationId;

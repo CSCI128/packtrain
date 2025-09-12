@@ -125,8 +125,6 @@ public class RabbitMqService {
     }
 
     public boolean sendScore(Channel channel, String routingKey, PolicyRawScoreDTO rawScore) {
-        log.debug("Sending raw score for '{}' on '{}'", rawScore.getCwid(), routingKey);
-
         if (!channel.isOpen()) {
             log.warn("Raw grade publish channel is closed! Attempting to recover");
             try {
