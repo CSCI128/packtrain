@@ -2716,6 +2716,42 @@
           }
         }
       }
+    },
+    "/extension-response/{extension_response_id}/approve": {
+      "post": {
+        "tags": [
+          "instructor"
+        ],
+        "operationId": "email_extension_response_approve",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ExtensionResponsePathParameters"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          }
+        }
+      }
+    },
+    "/extension-response/{extension_response_id}/deny": {
+      "post": {
+        "tags": [
+          "instructor"
+        ],
+        "operationId": "email_extension_response_deny",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ExtensionResponsePathParameters"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3820,6 +3856,16 @@
       },
       "ExtensionPathParameters": {
         "name": "extension_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid",
+          "example": "452E7EC3-29BD-4B3B-94FD-5AE9901257AA"
+        }
+      },
+      "ExtensionResponsePathParameters": {
+        "name": "extension_response_id",
         "in": "path",
         "required": true,
         "schema": {
