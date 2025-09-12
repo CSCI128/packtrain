@@ -141,9 +141,7 @@ export function UsersPage() {
         enabled: values.enabled,
       },
       {
-        onSuccess: () => {
-          refetch();
-        },
+        onSuccess: () => refetch(),
       }
     );
     close();

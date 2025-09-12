@@ -108,9 +108,7 @@ export function ExtensionForm() {
         },
       },
       {
-        onSuccess: () => {
-          navigate("/requests");
-        },
+        onSuccess: () => navigate("/requests"),
       }
     );
   };
@@ -128,9 +126,7 @@ export function ExtensionForm() {
         },
       },
       {
-        onSuccess: () => {
-          navigate("/requests");
-        },
+        onSuccess: () => navigate("/requests"),
       }
     );
   };

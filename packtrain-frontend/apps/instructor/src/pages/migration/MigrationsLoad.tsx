@@ -18,7 +18,7 @@ import { MasterMigration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { Loading } from "@repo/ui/components/Loading";
 import { useMutation } from "@tanstack/react-query";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGetMigratableAssignmentsInstructor } from "../../hooks";
 
@@ -34,7 +34,6 @@ export function MigrationsLoadPage() {
     string[]
   >([]); // if present, uploaded files for assignment id
   const [validated, setValidated] = useState(false);
-  const [masterMigrationId, setMasterMigrationId] = useState<string>("");
   const { data, error, isLoading } = useGetMigratableAssignmentsInstructor();
 
   const createMigration = useMutation({
@@ -166,12 +165,10 @@ export function MigrationsLoadPage() {
   const validateAssignments = () => {
     loadValidateMasterMigration.mutate(
       {
-        master_migration_id: masterMigrationId,
+        master_migration_id: store$.master_migration_id.get() as string,
       },
       {
-        onSuccess: () => {
-          setValidated(true);
-        },
+        onSuccess: () => setValidated(true),
       }
     );
   };
@@ -179,14 +176,14 @@ export function MigrationsLoadPage() {
   const uploadForAssignment = (file: File, selectedAssignmentId: string) => {
     createMigration.mutate(
       {
-        master_migration_id: masterMigrationId,
+        master_migration_id: store$.master_migration_id.get() as string,
         assignment_id: selectedAssignmentId,
       },
       {
         onSuccess: async (data: MasterMigration | void) => {
           uploadScores.mutate(
             {
-              master_migration_id: masterMigrationId,
+              master_migration_id: store$.master_migration_id.get() as string,
               migration_id: data?.migrations?.find(
                 (x) => x.assignment.id === selectedAssignmentId
               )?.id as string,
@@ -209,20 +206,13 @@ export function MigrationsLoadPage() {
     );
   };
 
-  // set master migration id for queries
-  useEffect(() => {
-    setMasterMigrationId(store$.master_migration_id.get() as string);
-  }, []);
-
   const loadAssignments = () => {
     loadMasterMigration.mutate(
       {
-        master_migration_id: masterMigrationId,
+        master_migration_id: store$.master_migration_id.get() as string,
       },
       {
-        onSuccess: () => {
-          navigate("/instructor/migrate/apply");
-        },
+        onSuccess: () => navigate("/instructor/migrate/apply"),
       }
     );
   };

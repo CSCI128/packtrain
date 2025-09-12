@@ -39,10 +39,10 @@ export function MigrationsApplyPage() {
   const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
     []
   );
-  const [posting, setPosting] = useState(false);
-  const [tasksFailed, setTasksFailed] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(""); // WS error
-  const [error, setError] = useState(""); // policy validation error
+  const [posting, setPosting] = useState<boolean>(false);
+  const [tasksFailed, setTasksFailed] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>(""); // WS error
+  const [error, setError] = useState<string>(""); // policy validation error
 
   const {
     data: policyData,
@@ -236,9 +236,7 @@ export function MigrationsApplyPage() {
                           policy_id: value as string,
                         },
                         {
-                          onSuccess: () => {
-                            refetch();
-                          },
+                          onSuccess: () => refetch(),
                         }
                       );
                     }}

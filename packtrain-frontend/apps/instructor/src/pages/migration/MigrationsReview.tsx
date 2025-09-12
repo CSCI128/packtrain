@@ -299,9 +299,7 @@ export function MigrationsReviewPage() {
                       store$.master_migration_id.get() as string,
                   },
                   {
-                    onSuccess: () => {
-                      navigate("/instructor/migrate/post");
-                    },
+                    onSuccess: () => navigate("/instructor/migrate/post"),
                   }
                 );
               }}

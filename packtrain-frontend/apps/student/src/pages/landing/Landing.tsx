@@ -10,7 +10,6 @@ import classes from "./Landing.module.scss";
 export const LandingPage = () => {
   const auth = useAuth();
   const navigate = useNavigate();
-
   const { data: enrollmentInfo } = useGetEnrollments(!!auth.isAuthenticated);
 
   useEffect(() => {

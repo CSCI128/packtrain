@@ -68,9 +68,7 @@ export function EditCourse() {
         },
       },
       {
-        onSuccess: () => {
-          navigate("/admin");
-        },
+        onSuccess: () => navigate("/admin"),
       }
     );
   };

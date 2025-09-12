@@ -184,9 +184,7 @@ export function MigrationsPostPage() {
                     store$.master_migration_id.get() as string,
                 },
                 {
-                  onSuccess: () => {
-                    setPosting(true);
-                  },
+                  onSuccess: () => setPosting(true),
                 }
               );
             }}
