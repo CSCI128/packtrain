@@ -13,28 +13,22 @@ import { useQuery } from "@tanstack/react-query";
 export function useGetCredentials() {
   return useQuery<Credential[]>({
     queryKey: ["getCredentials"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_credentials())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    queryFn: async () => {
+      const client = await getApiClient();
+      const res = await client.get_credentials();
+      return res.data;
+    },
   });
 }
 
 export function useGetUsers() {
   return useQuery<User[]>({
     queryKey: ["getUsers"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_all_users())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    queryFn: async () => {
+      const client = await getApiClient();
+      const res = await client.get_all_users();
+      return res.data;
+    },
   });
 }
 
@@ -43,19 +37,14 @@ export function useGetCourse(
 ) {
   return useQuery<Course | null>({
     queryKey: ["getCourse"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_course({
-            course_id: store$.id.get() as string,
-            include: includes,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    queryFn: async () => {
+      const client = await getApiClient();
+      const res = await client.get_course({
+        course_id: store$.id.get() as string,
+        include: includes,
+      });
+      return res.data;
+    },
   });
 }
 
@@ -65,54 +54,40 @@ export function useGetMembers(
 ) {
   return useQuery<CourseMember[]>({
     queryKey: [queryKey],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.get_members({
-            course_id: store$.id.get() as string,
-            enrollments: enrollments,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return [];
-        }),
+    queryFn: async () => {
+      const client = await getApiClient();
+      const res = await client.get_members({
+        course_id: store$.id.get() as string,
+        enrollments: enrollments,
+      });
+      return res.data;
+    },
   });
 }
 
 export function useGetPolicies() {
   return useQuery<Policy[]>({
     queryKey: ["getPolicies"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.owner_get_all_policies({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    queryFn: async () => {
+      const client = await getApiClient();
+      const res = await client.owner_get_all_policies({
+        course_id: store$.id.get() as string,
+      });
+      return res.data;
+    },
   });
 }
 
-export function useGetPolcicy(policyId: string) {
+export function useGetPolicy(policyId: string) {
   return useQuery<PolicyWithCode>({
     queryKey: ["getPolicy"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_policy({
-          course_id: store$.id.get() as string,
-          policy_id: policyId,
-        })
-        )
-        .then(res => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        })
+    queryFn: async () => {
+      const client = await getApiClient();
+      const res = await client.get_policy({
+        course_id: store$.id.get() as string,
+        policy_id: policyId,
+      });
+      return res.data;
+    },
   });
 }

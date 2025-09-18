@@ -1,9 +1,9 @@
 import { getApiClient } from "@repo/api/index";
 import { store$ } from "@repo/api/store";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { PolicyPage } from "./Policy";
+import { useNavigate } from "react-router-dom";
+import { PolicyFormValues, PolicyPage } from "./Policy";
 
 export function CreatePolicy() {
   const navigate = useNavigate();
@@ -11,36 +11,40 @@ export function CreatePolicy() {
 
   const newPolicy = useMutation({
     mutationKey: ["newPolicy"],
-    mutationFn: ({ formData }: { formData: FormData }) =>
-      getApiClient()
-        .then((client) => {
-          setErrors([]);
-          return client.new_policy(
-            {
-              course_id: store$.id.get() as string,
+    mutationFn: async ({ formData }: { formData: FormData }) => {
+      const client = await getApiClient();
+      const name = formData.get("name");
+      const filePath = formData.get("file_path");
+      const fileData = formData.get("file_data");
+      const description = formData.get("description");
+      setErrors([]);
+
+      if (name && filePath && fileData && description) {
+        const res = await client.new_policy(
+          {
+            course_id: store$.id.get() as string,
+          },
+          {
+            name: name.toString(),
+            file_path: filePath.toString(),
+            file_data: fileData.toString(),
+            description: description.toString(),
+          },
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
             },
-            {
-              name: formData.get("name").toString(),
-              file_path: formData.get("file_path").toString(),
-              file_data: formData.get("file_data").toString(),
-              description: formData.get("description").toString(),
-            },
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
-        })
-        .then((res) => res.data)
-        .catch((err) => {
-          setErrors([String(err?.response?.data?.error_message)])
-          throw err;
-        }),
+          }
+        );
+        return res.data;
+      }
+    },
+    onError: (error) => {
+      setErrors([error.message]);
+    },
   });
 
-
-  const handleNewPolicy = (values) => {
+  const handleNewPolicy = (values: PolicyFormValues) => {
     const formData = new FormData();
     formData.append("name", values.policyName);
     formData.append("file_path", values.fileName);
@@ -52,22 +56,21 @@ export function CreatePolicy() {
         formData,
       },
       {
-        onSuccess: () => {
-          navigate("/admin/");
-        },
+        onSuccess: () => navigate("/admin/"),
       }
     );
   };
 
-  return <PolicyPage
-    title="Create a new Policy"
-    handleOnSubmit={handleNewPolicy}
-    button={"Create"}
-    errors={errors}
-    policyName=""
-    fileName=""
-    content=""
-    description=""
-  />
-
+  return (
+    <PolicyPage
+      title="Create a new Policy"
+      handleOnSubmit={handleNewPolicy}
+      button={"Create"}
+      errors={errors}
+      policyName=""
+      fileName=""
+      content=""
+      description=""
+    />
+  );
 }

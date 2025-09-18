@@ -72,7 +72,14 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
       <Center>
         <Stack>
           {data.length === 0 ? (
-            <Text>No enrollments found!</Text>
+            <>
+              <Text>No enrollments found!</Text>
+              {auth.user?.profile.is_admin && (
+                <Button color="green" onClick={handleCreateClass}>
+                  Create Class
+                </Button>
+              )}
+            </>
           ) : (
             <>
               {auth.user?.profile.is_admin ? (

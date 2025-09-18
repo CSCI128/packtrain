@@ -47,7 +47,12 @@ export function MembersPage() {
   if (isLoading || !data || instructorIsLoading || !instructorData)
     return <Loading />;
 
-  if (error || instructorError) return `An error occured: ${error}`;
+  if (error || instructorError)
+    return (
+      <Text>
+        An error occured: {error?.message} {instructorError?.message}
+      </Text>
+    );
 
   const rows = sortedData.map((row: CourseMember) => (
     <Table.Tr key={row.cwid}>

@@ -14,7 +14,7 @@ import {
 import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
 import { Assignment, LateRequest } from "@repo/api/openapi";
-import { store$ } from "@repo/api/store.js";
+import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
 import { Loading } from "@repo/ui/components/Loading";
 import { useMutation } from "@tanstack/react-query";
@@ -81,25 +81,23 @@ export function ExtensionForm() {
   });
 
   const getAssignmentDueDate = (assignmentId: string) => {
-    return courseData?.course.assignments
-      ?.filter((x: Assignment) => x.id === assignmentId)
-      .at(0)?.due_date;
+    return courseData?.course.assignments?.find(
+      (x: Assignment) => x.id === assignmentId
+    )?.due_date;
   };
 
   const postForm = useMutation({
     mutationKey: ["createExtensionRequest"],
-    mutationFn: ({ body }: { body: LateRequest }) =>
-      getApiClient()
-        .then((client) =>
-          client.create_extension_request(
-            {
-              course_id: store$.id.get() as string,
-            },
-            body
-          )
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({ body }: { body: LateRequest }) => {
+      const client = await getApiClient();
+      const res = await client.create_extension_request(
+        {
+          course_id: store$.id.get() as string,
+        },
+        body
+      );
+      return res.data;
+    },
   });
 
   const submitExtension = (values: typeof extensionForm.values) => {
@@ -119,9 +117,7 @@ export function ExtensionForm() {
         },
       },
       {
-        onSuccess: () => {
-          navigate("/requests");
-        },
+        onSuccess: () => navigate("/requests"),
       }
     );
   };
@@ -139,16 +135,19 @@ export function ExtensionForm() {
         },
       },
       {
-        onSuccess: () => {
-          navigate("/requests");
-        },
+        onSuccess: () => navigate("/requests"),
       }
     );
   };
 
   if (isLoading || !courseData || courseIsLoading || !data) return <Loading />;
 
-  if (error || courseError) return `An error occured: ${error}`;
+  if (error || courseError)
+    return (
+      <Text>
+        An error occured: {error?.message} {courseError?.message}
+      </Text>
+    );
 
   const LATE_PASSES_ALLOWED =
     courseData.course.late_request_config.total_late_passes_allowed;
