@@ -41,13 +41,13 @@ export function ApprovalPage() {
     useDisclosure(false);
   const [approveOpened, { open: openApprove, close: closeApprove }] =
     useDisclosure(false);
+  const [statusView, { open: openStatusView, close: closeStatusView }] = useDisclosure(false);
   const [selectedExtension, setSelectedExtension] =
     useState<LateRequest | null>(null);
   const [denialReason, setDenialReason] = useState<string>("");
   const [approvalReason, setApprovalReason] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [extensionsView, setExtensionsView] = useState<boolean>(true);
-  const [statusView, setStatusView] = useState<boolean>(false);
 
   const approveExtensionMutation = useMutation({
     mutationKey: ["approveExtension"],
@@ -160,9 +160,25 @@ export function ApprovalPage() {
     setSelectedExtension(request);
   };
 
+  const handleViewExtension = (request: LateRequest) => {
+    openStatusView()
+    setSelectedExtension(request);
+  }
+
   const ApproveRejectButtons = (row: LateRequestWithDueDate) => {
     return (
       <Center>
+        <Button
+          size="sm"
+          py={5}
+          px={10}
+          mr={5}
+          radius={10}
+          variant="outline"
+          onClick={() => handleViewExtension(row)}
+        >
+          View
+        </Button>
         {row.status !== "approved" && (
           <Button
             size="sm"
@@ -294,6 +310,33 @@ export function ApprovalPage() {
         </Center>
       </Modal>
 
+      <Modal
+        opened={statusView}
+        title="View Request"
+        onClose={closeStatusView}
+        centered
+      >
+        <Center>
+          <Stack>
+            <Text>{selectedExtension?.user_requester} requested an extension for <strong>{selectedExtension?.num_days_requested}</strong> day(s).</Text>
+            <Text>Status: {selectedExtension?.status}</Text>
+
+            <Textarea
+              label="Extension Reason"
+              value={selectedExtension?.extension?.comments}
+              disabled
+            />
+
+            {selectedExtension?.extension?.response_to_requester &&
+              <Textarea
+                label="Reviewer response"
+                value={selectedExtension.extension.response_to_requester}
+                disabled
+              />
+            }
+          </Stack>
+        </Center>
+      </Modal>
 
       <Container size="xxl">
         <Text size="xl" fw={700}>
