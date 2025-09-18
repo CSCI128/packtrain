@@ -48,8 +48,6 @@ interface AssignmentRowData {
 
 export function AssignmentsPage() {
   const { data, error, isLoading, refetch } = useGetCourse(["assignments"]);
-  const [value, setValue] = useState<Date>();
-  const [unlockDateValue, setUnlockDateValue] = useState<Date>();
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedAssignment, setSelectedAssignment] =
     useState<Assignment | null>(null);
@@ -61,8 +59,8 @@ export function AssignmentsPage() {
       category: "",
       canvas_id: -1,
       points: 0,
-      due_date: value,
-      unlock_date: unlockDateValue,
+      due_date: new Date(),
+      unlock_date: new Date(),
       external_service: "",
       external_points: 0,
       enabled: true,
@@ -122,9 +120,9 @@ export function AssignmentsPage() {
           id: selectedAssignment?.id,
           name: values.name,
           category: values.category,
-          due_date: values.due_date?.toISOString() as string,
+          due_date: values.due_date.toISOString(),
           points: values.points,
-          unlock_date: values.unlock_date?.toISOString() as string,
+          unlock_date: values.unlock_date.toISOString(),
           external_service: values.external_service,
           external_points: values.external_points,
           canvas_id: values.canvas_id,
@@ -137,8 +135,6 @@ export function AssignmentsPage() {
         onSuccess: () => {
           close();
           refetch();
-          setValue(values.due_date);
-          setUnlockDateValue(values.unlock_date);
         },
       }
     );
@@ -239,7 +235,6 @@ export function AssignmentsPage() {
               disabled
               label="Unlock Date"
               placeholder="Pick date"
-              value={unlockDateValue}
               {...form.getInputProps("unlock_date")}
             />
 
@@ -247,7 +242,6 @@ export function AssignmentsPage() {
               disabled
               label="Due Date"
               placeholder="Pick date"
-              value={value}
               {...form.getInputProps("due_date")}
             />
 
