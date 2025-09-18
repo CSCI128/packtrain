@@ -327,14 +327,12 @@ export function ApprovalPage() {
               disabled
             />
 
-            {selectedExtension?.extension?.response_to_requester ?
+            {selectedExtension?.extension?.response_to_requester &&
               <Textarea
                 label="Reviewer response"
                 value={selectedExtension.extension.response_to_requester}
                 disabled
               />
-              :
-              <></>
             }
           </Stack>
         </Center>
