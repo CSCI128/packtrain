@@ -83,8 +83,6 @@ export async function startMigration(
         return Promise.reject("Connection has not been established!");
     }
 
-    console.log(start);
-
     const policy = overridePolicy
         ? (Function("rawScore", overridePolicy) as ApplyPolicyFunctionSig)
         : await downloadAndVerifyPolicy(start.policyURI);
@@ -161,7 +159,6 @@ function onRawScoreReceive(
     rawScore.canvasMinScore = assignmentMetadata.canvasMinScore;
     rawScore.canvasMaxScore = assignmentMetadata.canvasMaxScore;
     rawScore.externalMaxScore = assignmentMetadata.externalMaxScore;
-    console.log(assignmentMetadata.initialDueDate);
     rawScore.initialDueDate = assignmentMetadata.initialDueDate.toString();
 
     try {
