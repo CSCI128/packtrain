@@ -47,6 +47,7 @@ export function ApprovalPage() {
   const [approvalReason, setApprovalReason] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [extensionsView, setExtensionsView] = useState<boolean>(true);
+  const [statusView, setStatusView] = useState<boolean>(false);
 
   const approveExtensionMutation = useMutation({
     mutationKey: ["approveExtension"],
@@ -292,6 +293,7 @@ export function ApprovalPage() {
           </Stack>
         </Center>
       </Modal>
+
 
       <Container size="xxl">
         <Text size="xl" fw={700}>
