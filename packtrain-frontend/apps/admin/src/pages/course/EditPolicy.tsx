@@ -22,25 +22,32 @@ export function UpdatePolicy() {
     mutationKey: ["updatePolicy"],
     mutationFn: async ({ formData }: { formData: FormData }) => {
       const client = await getApiClient();
+      const name = formData.get("name");
+      const filePath = formData.get("file_path");
+      const fileData = formData.get("file_data");
+      const description = formData.get("description");
       setErrors([]);
-      const res = await client.update_policy(
-        {
-          course_id: store$.id.get() as string,
-          policy_id: policyId as string,
-        },
-        {
-          name: formData.get("name")?.toString() ?? "",
-          file_path: formData.get("file_path")?.toString() ?? "",
-          file_data: formData.get("file_data")?.toString() ?? "",
-          description: formData.get("description")?.toString() ?? "",
-        },
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
+
+      if (name && filePath && fileData && description) {
+        const res = await client.update_policy(
+          {
+            course_id: store$.id.get() as string,
+            policy_id: policyId as string,
           },
-        }
-      );
-      return res.data;
+          {
+            name: name.toString(),
+            file_path: filePath.toString(),
+            file_data: fileData.toString(),
+            description: description.toString(),
+          },
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        return res.data;
+      }
     },
     onError: (error) => {
       setErrors([error.message]);
