@@ -37,6 +37,15 @@ export function ExtensionForm() {
   const [numDaysRequested, setNumDaysRequested] = useState<number>(1);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>("");
 
+
+  const getDaysInFuture = (days: number): Date => {
+    const d = new Date();
+
+    d.setDate(d.getDate() + days);
+
+    return d;
+  };
+
   const extensionForm = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -264,7 +273,7 @@ export function ExtensionForm() {
                             (d) => d.assignment_id === assignment.id
                           ) &&
                           // due now or in the future
-                          new Date(assignment.due_date) >= new Date()
+                          new Date(assignment.due_date) >= getDaysInFuture(3)
                       )
                       .map((assignment) => ({
                         label: assignment.name,
