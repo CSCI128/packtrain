@@ -1,4 +1,5 @@
 export enum ExtensionStatus {
+    APPLIED = "applied",
     IGNORED = "ignored",
     APPROVED = "approved",
     REJECTED = "rejected",

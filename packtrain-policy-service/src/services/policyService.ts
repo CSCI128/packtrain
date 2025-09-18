@@ -3,7 +3,6 @@ import RawScoreDTO from "../data/RawScoreDTO";
 import PolicyScoredDTO from "../data/PolicyScoredDTO";
 import { ExtensionStatus, SubmissionStatus } from "../data/common";
 import { agent } from "../config/https";
-import { raw } from "express";
 
 export type ApplyPolicyFunctionSig = (x: RawScoreDTO) => PolicyScoredDTO;
 
@@ -89,7 +88,7 @@ function validateScoredDTO(scored: PolicyScoredDTO): string[] {
         !Object.values(ExtensionStatus).includes(scored.extensionStatus)
     ) {
         errors.push(
-            `Invalid extensionStatus! Received: ${scored.extensionStatus}. Expected one of: ${Object.values(SubmissionStatus)}`,
+            `Invalid extensionStatus! Received: ${scored.extensionStatus}. Expected one of: ${Object.values(ExtensionStatus)}`,
         );
     }
 
