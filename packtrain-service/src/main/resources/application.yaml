@@ -47,8 +47,8 @@ grading-admin:
     from-name: "Packtrain No-Reply"
     from-email: ${FROM_EMAIL_ADDRESS:no-reply@localhost.dev}
     testing:
-      override-cc: ${EMAIL_TESTING_OVERRIDE_CC:null}
-      override-to: ${EMAIL_TESTING_OVERRIDE_TO:null}
+      override-cc: ${EMAIL_TESTING_OVERRIDE_CC:}
+      override-to: ${EMAIL_TESTING_OVERRIDE_TO:}
   external-services:
     canvas:
       enabled: true
