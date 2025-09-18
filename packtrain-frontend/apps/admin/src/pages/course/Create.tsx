@@ -219,8 +219,8 @@ export function CreatePage() {
       {
         onSuccess: (response) => {
           setCourseCreated(true);
-          store$.id.set(response?.id as string);
-          store$.name.set(response?.name);
+          store$.id.set(response.id);
+          store$.name.set(response.name);
           importCourse(values.canvasId);
         },
       }
