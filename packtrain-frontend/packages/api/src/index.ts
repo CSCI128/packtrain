@@ -44,7 +44,7 @@ export const getApiClient = async () => {
   client.interceptors.response.use(
     (response) => response,
     (error) => {
-      return Promise.reject(error); // ✅ critical
+      return Promise.reject(error);
     }
   );
 

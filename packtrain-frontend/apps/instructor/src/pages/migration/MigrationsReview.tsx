@@ -22,8 +22,8 @@ import {
   Score,
 } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { Loading } from "@repo/ui/Loading";
-import { TableHeader, useTableData } from "@repo/ui/table/Table";
+import { Loading } from "@repo/ui/components/Loading";
+import { TableHeader, useTableData } from "@repo/ui/components/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
@@ -64,21 +64,23 @@ export function MigrationsReviewPage() {
 
   const reviewMasterMigration = useMutation({
     mutationKey: ["reviewMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.review_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({
+      master_migration_id,
+    }: {
+      master_migration_id: string;
+    }) => {
+      const client = await getApiClient();
+      const res = await client.review_master_migration({
+        course_id: store$.id.get() as string,
+        master_migration_id: master_migration_id,
+      });
+      return res.data;
+    },
   });
 
   const updateStudentScore = useMutation({
     mutationKey: ["updateStudentScore"],
-    mutationFn: ({
+    mutationFn: async ({
       master_migration_id,
       migration_id,
       migration_score_change,
@@ -86,27 +88,25 @@ export function MigrationsReviewPage() {
       master_migration_id: string;
       migration_id: string;
       migration_score_change: MigrationScoreChange;
-    }) =>
-      getApiClient()
-        .then((client) =>
-          client.update_student_score(
-            {
-              course_id: store$.id.get() as string,
-              master_migration_id: master_migration_id,
-              migration_id: migration_id,
-            },
-            {
-              cwid: migration_score_change.cwid,
-              new_score: migration_score_change.new_score,
-              justification: migration_score_change.justification,
-              submission_status: migration_score_change.submission_status,
-              adjusted_submission_date:
-                migration_score_change.adjusted_submission_date,
-            }
-          )
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.update_student_score(
+        {
+          course_id: store$.id.get() as string,
+          master_migration_id: master_migration_id,
+          migration_id: migration_id,
+        },
+        {
+          cwid: migration_score_change.cwid,
+          new_score: migration_score_change.new_score,
+          justification: migration_score_change.justification,
+          submission_status: migration_score_change.submission_status,
+          adjusted_submission_date:
+            migration_score_change.adjusted_submission_date,
+        }
+      );
+      return res.data;
+    },
   });
 
   const [confirmOpened, { open: openConfirm, close: closeConfirm }] =
@@ -167,7 +167,12 @@ export function MigrationsReviewPage() {
     return <Loading />;
 
   if (masterMigrationError || courseError || migrationError)
-    return `An error occured: ${masterMigrationError}`;
+    return (
+      <Text>
+        An error occured: {courseError?.message} {masterMigrationError?.message}{" "}
+        {migrationError?.message}
+      </Text>
+    );
 
   const handleEditOpen = (row: Score) => {
     setSelectedScore(row);
@@ -178,9 +183,9 @@ export function MigrationsReviewPage() {
     updateStudentScore.mutate(
       {
         master_migration_id: store$.master_migration_id.get() as string,
-        migration_id: migrationData
-          ?.filter((x) => x.assignment?.id === selectedAssignment)
-          .at(0)?.migration_id as string,
+        migration_id: migrationData?.find(
+          (x) => x.assignment?.id === selectedAssignment
+        )?.migration_id as string,
         migration_score_change: {
           // TODO finish these fields
           cwid: selectedScore?.student?.cwid as string,
@@ -277,7 +282,9 @@ export function MigrationsReviewPage() {
       >
         <Center>
           <Stack>
-            <Text size="md">Are you sure you want to post grades?</Text>
+            <Text size="md">
+              Are you sure you want to continue? This action is irreversible!
+            </Text>
 
             <Button color="gray" variant="light" onClick={closeConfirm}>
               Cancel
@@ -292,15 +299,13 @@ export function MigrationsReviewPage() {
                       store$.master_migration_id.get() as string,
                   },
                   {
-                    onSuccess: () => {
-                      navigate("/instructor/migrate/post");
-                    },
+                    onSuccess: () => navigate("/instructor/migrate/post"),
                   }
                 );
               }}
               variant="filled"
             >
-              Post
+              Yes
             </Button>
           </Stack>
         </Center>

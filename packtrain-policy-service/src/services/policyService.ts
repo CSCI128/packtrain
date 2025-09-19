@@ -3,6 +3,7 @@ import RawScoreDTO from "../data/RawScoreDTO";
 import PolicyScoredDTO from "../data/PolicyScoredDTO";
 import { ExtensionStatus, SubmissionStatus } from "../data/common";
 import { agent } from "../config/https";
+import { raw } from "express";
 
 export type ApplyPolicyFunctionSig = (x: RawScoreDTO) => PolicyScoredDTO;
 
@@ -99,6 +100,7 @@ export function verifyPolicy(fun: ApplyPolicyFunctionSig): ValidationResults {
     const rawScore = new RawScoreDTO();
     rawScore.cwid = "10000";
     rawScore.extensionDate = new Date().toString();
+    rawScore.initialDueDate = new Date().toString();
     rawScore.submissionDate = new Date().toString();
     rawScore.extensionId = "1";
     rawScore.assignmentId = "1";

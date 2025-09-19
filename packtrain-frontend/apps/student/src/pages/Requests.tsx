@@ -16,8 +16,8 @@ import { getApiClient } from "@repo/api/index";
 import { LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
-import { Loading } from "@repo/ui/Loading";
-import { TableHeader, useTableData } from "@repo/ui/table/Table";
+import { Loading } from "@repo/ui/components/Loading";
+import { TableHeader, useTableData } from "@repo/ui/components/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
@@ -40,16 +40,14 @@ export function Requests() {
 
   const withdrawExtension = useMutation({
     mutationKey: ["withdrawExtension"],
-    mutationFn: ({ extension_id }: { extension_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.withdraw_extension({
-            course_id: store$.id.get() as string,
-            extension_id: extension_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({ extension_id }: { extension_id: string }) => {
+      const client = await getApiClient();
+      const res = await client.withdraw_extension({
+        course_id: store$.id.get() as string,
+        extension_id: extension_id,
+      });
+      return res.data;
+    },
   });
 
   const [selectedExtension, setSelectedExtension] =
@@ -79,11 +77,12 @@ export function Requests() {
 
   if (isLoading || !data) return <Loading />;
 
-  if (error) return `An error occured: ${error}`;
+  if (error) return <Text>An error occured: {error?.message}</Text>;
 
   if (studentIsLoading || !studentData) return <Loading />;
 
-  if (studentError) return `An error occured: ${studentError}`;
+  if (studentError)
+    return <Text>An error occured: {studentError?.message}</Text>;
 
   const LATE_PASSES_ALLOWED =
     studentData.course.late_request_config.total_late_passes_allowed;
@@ -317,7 +316,7 @@ export function Requests() {
                 >
                   Status
                 </TableHeader>
-                <TableHeader sorted={false} reversed={false} onSort={undefined}>
+                <TableHeader sorted={false} reversed={false}>
                   Actions
                 </TableHeader>
               </Table.Tr>

@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Checkbox,
   Container,
@@ -14,14 +15,17 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { getApiClient } from "@repo/api/index";
-import { Course, CourseSyncTask, Task } from "@repo/api/openapi";
+import { Course, CourseSyncTask } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { Loading } from "@repo/ui/Loading";
+import { Loading } from "@repo/ui/components/Loading";
+import { useWebSocketClient } from "@repo/ui/WebSocketHooks";
 import { useMutation } from "@tanstack/react-query";
-
-import { useCallback, useEffect, useState } from "react";
+import { User } from "oidc-client-ts";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { userManager } from "../../auth";
 import { useGetCourse } from "../../hooks";
+import { CourseSyncNotificationDTO } from "./Create";
 
 export function EditCourse() {
   const navigate = useNavigate();
@@ -33,21 +37,16 @@ export function EditCourse() {
 
   const mutation = useMutation({
     mutationKey: ["updateCourse"],
-    mutationFn: ({ body }: { body: Course }) =>
-      getApiClient()
-        .then((client) =>
-          client.update_course(
-            {
-              course_id: store$.id.get() as string,
-            },
-            body
-          )
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    mutationFn: async ({ body }: { body: Course }) => {
+      const client = await getApiClient();
+      const res = await client.update_course(
+        {
+          course_id: store$.id.get() as string,
+        },
+        body
+      );
+      return res.data;
+    },
   });
 
   const updateCourse = (values: typeof form.values) => {
@@ -69,9 +68,7 @@ export function EditCourse() {
         },
       },
       {
-        onSuccess: () => {
-          navigate("/admin");
-        },
+        onSuccess: () => navigate("/admin"),
       }
     );
   };
@@ -108,26 +105,73 @@ export function EditCourse() {
     },
   });
 
-  const [syncing, setSyncing] = useState(false);
-  const [outstandingTasks, setOutstandingTasks] = useState<Task[]>([]);
-  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
-  const [canvasId, setCanvasId] = useState("");
-
-  const { mutateAsync: fetchTask } = useMutation({
-    mutationKey: ["getTask"],
-    mutationFn: ({ task_id }: { task_id: number }) =>
-      getApiClient()
-        .then((client) =>
-          client.get_task({
-            task_id: task_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+  const [syncing, setSyncing] = useState<boolean>(false);
+  const [importErrorMessage, setErrorImportMessage] = useState<string>("");
+  const [allTasksCompleted, setAllTasksCompleted] = useState<boolean>(false);
+  const [canvasId, setCanvasId] = useState<string>("");
+  const [userData, setUserData] = useState<User>();
+  const [tasksFailed, setTasksFailed] = useState<boolean>(false);
+  const [completed, setCompleted] = useState({
+    course: false,
+    sections: false,
+    assignments: false,
+    members: false,
   });
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const u = await userManager.getUser();
+        if (!u) throw new Error("Failed to get user");
+        setUserData(u);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  useWebSocketClient({
+    authToken: userData?.access_token as string,
+    onConnect: (client) => {
+      client.subscribe("/courses/sync", (msg) => {
+        const payload: CourseSyncNotificationDTO = JSON.parse(msg.body);
+
+        if (payload.error) {
+          setErrorImportMessage(payload.error);
+          setTasksFailed(true);
+          setAllTasksCompleted(false);
+        }
+
+        if (payload.course_complete) {
+          setCompleted((prev) => ({ ...prev, course: true }));
+        }
+
+        if (payload.sections_complete) {
+          setCompleted((prev) => ({ ...prev, sections: true }));
+        }
+
+        if (payload.assignments_complete) {
+          setCompleted((prev) => ({ ...prev, assignments: true }));
+        }
+
+        if (payload.members_complete) {
+          setCompleted((prev) => ({ ...prev, members: true }));
+        }
+      });
+    },
+  });
+
+  useEffect(() => {
+    if (
+      completed.assignments &&
+      completed.course &&
+      completed.members &&
+      completed.sections
+    ) {
+      setAllTasksCompleted(true);
+    }
+  }, [completed]);
 
   useEffect(() => {
     if (data) {
@@ -150,101 +194,36 @@ export function EditCourse() {
     // eslint-disable-next-line
   }, [data]);
 
-  const pollTaskUntilComplete = useCallback(
-    async (taskId: number, delay = 5000) => {
-      let tries = 0;
-      while (true) {
-        try {
-          if (tries > 20) {
-            throw new Error("Maximum attempts (20) at polling exceeded..");
-          }
-
-          const response = await fetchTask({ task_id: taskId });
-
-          if (response.status === "COMPLETED") {
-            console.log(`Task ${taskId} is completed!`);
-            return response;
-          } else if (response.status === "FAILED") {
-            console.log(`Task ${taskId} failed`);
-            throw new Error("ERR");
-          } else {
-            console.log(
-              `Task ${taskId} is still in progress, retrying in ${delay}ms...`
-            );
-            tries++;
-            await new Promise((res) => setTimeout(res, delay));
-          }
-        } catch (error) {
-          console.error(`Error fetching task ${taskId}:`, error);
-          return;
-        }
-      }
-    },
-    [fetchTask]
-  );
-
-  useEffect(() => {
-    if (outstandingTasks.length === 0) return;
-
-    const pollTasks = async () => {
-      Promise.all(
-        outstandingTasks.map((task) => pollTaskUntilComplete(task.id))
-      )
-        .then((results) => {
-          console.log("All tasks are completed:", results);
-          setAllTasksCompleted(true);
-          setOutstandingTasks([]);
-        })
-        .catch((error) => {
-          console.error("Some tasks failed:", error);
-        });
-    };
-
-    pollTasks();
-  }, [syncing, outstandingTasks, pollTaskUntilComplete]);
-
   const syncAssignmentsMutation = useMutation({
     mutationKey: ["syncAssignments"],
-    mutationFn: ({ body }: { body: CourseSyncTask }) =>
-      getApiClient()
-        .then((client) =>
-          client.sync_course(
-            {
-              course_id: store$.id.get() as string,
-            },
-            body
-          )
-        )
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return null;
-        }),
+    mutationFn: async ({ body }: { body: CourseSyncTask }) => {
+      const client = await getApiClient();
+      const res = await client.sync_course(
+        {
+          course_id: store$.id.get() as string,
+        },
+        body
+      );
+      return res.data;
+    },
   });
 
   const syncAssignments = () => {
     setSyncing(true);
-    syncAssignmentsMutation.mutate(
-      {
-        body: {
-          canvas_id: Number(canvasId),
-          overwrite_name: false,
-          overwrite_code: false,
-          import_users: true,
-          import_assignments: true,
-        },
+    syncAssignmentsMutation.mutate({
+      body: {
+        canvas_id: Number(canvasId),
+        overwrite_name: false,
+        overwrite_code: false,
+        import_users: true,
+        import_assignments: true,
       },
-      {
-        onSuccess: (response) => {
-          setOutstandingTasks(response);
-        },
-      }
-    );
+    });
   };
 
   if (isLoading || !data) return <Loading />;
 
-  if (error) return `An error occurred: ${error}`;
+  if (error) return <Text>An error occurred: {error.message}</Text>;
 
   return (
     <Container size="md">
@@ -294,7 +273,6 @@ export function EditCourse() {
 
           <InputWrapper label="Course Enabled">
             <Checkbox
-              defaultChecked={form.getValues().enabled}
               key={form.key("enabled")}
               {...form.getInputProps("enabled", { type: "checkbox" })}
             />
@@ -356,6 +334,17 @@ export function EditCourse() {
             {...form.getInputProps("gradescopeId")}
           />
         </Fieldset>
+
+        {tasksFailed && (
+          <Box mt={20}>
+            <Text size="md" ta="center" c="red.9" fw={700}>
+              Import Failed
+            </Text>
+            <Text ta="center" c="gray.7">
+              {importErrorMessage}
+            </Text>
+          </Box>
+        )}
 
         <Group justify="flex-end" mt="md">
           {!allTasksCompleted ? (

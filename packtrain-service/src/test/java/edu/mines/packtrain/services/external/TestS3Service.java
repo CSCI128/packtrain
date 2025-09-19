@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -104,9 +103,8 @@ public class TestS3Service implements MinioTestContainer, PostgresTestContainer 
         String expectedContent = "// this is valid js";
 
         String filename = "file.js";
-        MockMultipartFile file = new MockMultipartFile(filename, expectedContent.getBytes());
 
-        Optional<String> resourceURI = s3Service.uploadNewPolicy(user, id, filename, file);
+        Optional<String> resourceURI = s3Service.uploadPolicy(user, id, filename, expectedContent);
 
         Assertions.assertTrue(resourceURI.isPresent());
 

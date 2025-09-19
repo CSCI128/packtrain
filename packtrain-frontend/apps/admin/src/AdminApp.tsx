@@ -17,11 +17,12 @@ import { CoursePage } from "./pages/course/Course.tsx";
 import { CreatePage } from "./pages/course/Create.tsx";
 import { CreatePolicy } from "./pages/course/CreatePolicy.tsx";
 import { EditCourse } from "./pages/course/Edit.tsx";
+import { UpdatePolicy } from "./pages/course/EditPolicy.tsx";
 import { MembersPage } from "./pages/Members.tsx";
 import { UsersPage } from "./pages/Users.tsx";
 import Root from "./templates/Root.tsx";
 
-configureApiClient({ userManager: userManager });
+configureApiClient({ userManager });
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
           {
             path: "/admin/policies/new",
             element: <CreatePolicy />,
+          },
+          {
+            path: "/admin/policies/edit/:policyId",
+            element: <UpdatePolicy />,
           },
           {
             path: "/admin/create",

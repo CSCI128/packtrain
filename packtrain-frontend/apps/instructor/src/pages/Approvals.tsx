@@ -17,8 +17,8 @@ import { getApiClient } from "@repo/api/index";
 import { LateRequest } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { calculateNewDueDate, formattedDate } from "@repo/ui/DateUtil";
-import { Loading } from "@repo/ui/Loading";
-import { TableHeader, useTableData } from "@repo/ui/table/Table";
+import { Loading } from "@repo/ui/components/Loading";
+import { TableHeader, useTableData } from "@repo/ui/components/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
@@ -41,6 +41,7 @@ export function ApprovalPage() {
     useDisclosure(false);
   const [approveOpened, { open: openApprove, close: closeApprove }] =
     useDisclosure(false);
+  const [statusView, { open: openStatusView, close: closeStatusView }] = useDisclosure(false);
   const [selectedExtension, setSelectedExtension] =
     useState<LateRequest | null>(null);
   const [denialReason, setDenialReason] = useState<string>("");
@@ -50,7 +51,7 @@ export function ApprovalPage() {
 
   const approveExtensionMutation = useMutation({
     mutationKey: ["approveExtension"],
-    mutationFn: ({
+    mutationFn: async ({
       extension_id,
       reason,
     }: {
@@ -58,22 +59,20 @@ export function ApprovalPage() {
       user_id: string;
       extension_id: string;
       reason: string;
-    }) =>
-      getApiClient()
-        .then((client) =>
-          client.approve_extension({
-            course_id: store$.id.get() as string,
-            extension_id: extension_id,
-            reason: reason,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.approve_extension({
+        course_id: store$.id.get() as string,
+        extension_id: extension_id,
+        reason: reason,
+      });
+      return res.data;
+    },
   });
 
   const denyExtensionMutation = useMutation({
     mutationKey: ["denyExtension"],
-    mutationFn: ({
+    mutationFn: async ({
       extension_id,
       reason,
     }: {
@@ -81,17 +80,15 @@ export function ApprovalPage() {
       user_id: string;
       extension_id: string;
       reason: string;
-    }) =>
-      getApiClient()
-        .then((client) =>
-          client.deny_extension({
-            course_id: store$.id.get() as string,
-            extension_id: extension_id,
-            reason: reason,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    }) => {
+      const client = await getApiClient();
+      const res = await client.deny_extension({
+        course_id: store$.id.get() as string,
+        extension_id: extension_id,
+        reason: reason,
+      });
+      return res.data;
+    },
   });
 
   const preprocessedData = (data ?? []).map((row) => ({
@@ -113,7 +110,12 @@ export function ApprovalPage() {
 
   if (isLoading || !data || courseIsLoading || !courseData) return <Loading />;
 
-  if (error || courseError) return `An error occured: ${error} ${courseError}`;
+  if (error || courseError)
+    return (
+      <Text>
+        An error occured: {error?.message} {courseError?.message}
+      </Text>
+    );
 
   const approveExtension = (request: LateRequest, reason: string) => {
     approveExtensionMutation.mutate(
@@ -159,9 +161,25 @@ export function ApprovalPage() {
     setSelectedExtension(request);
   };
 
+  const handleViewExtension = (request: LateRequest) => {
+    openStatusView()
+    setSelectedExtension(request);
+  }
+
   const ApproveRejectButtons = (row: LateRequestWithDueDate) => {
     return (
       <Center>
+        <Button
+          size="sm"
+          py={5}
+          px={10}
+          mr={5}
+          radius={10}
+          variant="outline"
+          onClick={() => handleViewExtension(row)}
+        >
+          View
+        </Button>
         {row.status !== "approved" && (
           <Button
             size="sm"
@@ -293,6 +311,34 @@ export function ApprovalPage() {
         </Center>
       </Modal>
 
+      <Modal
+        opened={statusView}
+        title="View Request"
+        onClose={closeStatusView}
+        centered
+      >
+        <Center>
+          <Stack>
+            <Text>{selectedExtension?.user_requester} requested an extension for <strong>{selectedExtension?.num_days_requested}</strong> day(s).</Text>
+            <Text>Status: {selectedExtension?.status}</Text>
+
+            <Textarea
+              label="Extension Reason"
+              value={selectedExtension?.extension?.comments}
+              disabled
+            />
+
+            {selectedExtension?.extension?.response_to_requester &&
+              <Textarea
+                label="Reviewer response"
+                value={selectedExtension.extension.response_to_requester}
+                disabled
+              />
+            }
+          </Stack>
+        </Center>
+      </Modal>
+
       <Container size="xxl">
         <Text size="xl" fw={700}>
           Manage Requests
@@ -389,7 +435,6 @@ export function ApprovalPage() {
                   <TableHeader
                     sorted={false}
                     reversed={reverseSortDirection}
-                    onSort={undefined}
                     filterOptions={[
                       { label: "All", value: "all" },
                       { label: "Approved", value: "approved" },
@@ -400,11 +445,7 @@ export function ApprovalPage() {
                   >
                     Status
                   </TableHeader>
-                  <TableHeader
-                    sorted={false}
-                    reversed={false}
-                    onSort={undefined}
-                  >
+                  <TableHeader sorted={false} reversed={false}>
                     Actions
                   </TableHeader>
                 </Table.Tr>

@@ -1,49 +1,49 @@
 {
-    "name": "packtrain-policy-service",
-    "version": "1.1.0",
-    "description": "Grading Policy Microservice",
-    "main": "src/main.ts",
-    "scripts": {
-        "test": "node --import=tsx  --test \"tests/**/*.test.ts\" --force-test-exit",
-        "bundle": "npx ncc build src/main.ts -o dist --source-map",
-        "lint": "prettier '**/*.ts' --write",
-        "start": "node ./dist/index.js"
-    },
-    "author": "",
-    "license": "ISC",
-    "dependencies": {
-        "@types/morgan": "^1.9.10",
-        "amqplib": "^0.10.7",
-        "axios": "^1.8.2",
-        "express": "^4.21.2",
-        "minio": "^8.0.4",
-        "morgan": "^1.10.1",
-        "multer": "^2.0.2",
-        "systemjs": "^6.15.1",
-        "uuid": "^11.1.0",
-        "yaml": "^2.7.0"
-    },
-    "devDependencies": {
-        "@eslint/js": "^9.21.0",
-        "@testcontainers/minio": "^10.18.0",
-        "@testcontainers/rabbitmq": "^10.18.0",
-        "@types/amqplib": "^0.10.6",
-        "@types/express": "^5.0.0",
-        "@types/multer": "^2.0.0",
-        "@types/node": "^22.13.4",
-        "@vercel/ncc": "^0.38.3",
-        "eslint": "^9.21.0",
-        "glob": "^11.0.1",
-        "globals": "^16.0.0",
-        "prettier": "^3.5.2",
-        "prettier-eslint": "^16.3.0",
-        "testcontainers": "^10.24.2",
-        "ts-node": "^10.9.2",
-        "tsx": "^4.19.3",
-        "typescript": "^5.7.3",
-        "typescript-eslint": "^8.25.0"
-    },
-    "prettier": {
-        "tabWidth": 4
-    }
+  "name": "packtrain-policy-service",
+  "version": "1.1.0",
+  "description": "Grading Policy Microservice",
+  "main": "src/main.ts",
+  "scripts": {
+    "test": "node --import=tsx  --test \"tests/**/*.test.ts\" --force-test-exit",
+    "bundle": "npx ncc build src/main.ts -o dist --source-map",
+    "lint": "prettier '**/*.ts' --write",
+    "start": "node ./dist/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/morgan": "^1.9.10",
+    "amqplib": "^0.10.7",
+    "axios": ">=1.12.0",
+    "express": "^4.21.2",
+    "minio": "^8.0.4",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "systemjs": "^6.15.1",
+    "uuid": "^11.1.0",
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "@testcontainers/minio": "^10.18.0",
+    "@testcontainers/rabbitmq": "^10.18.0",
+    "@types/amqplib": "^0.10.6",
+    "@types/express": "^5.0.0",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^22.13.4",
+    "@vercel/ncc": "^0.38.3",
+    "eslint": "^9.21.0",
+    "glob": "^11.0.1",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.2",
+    "prettier-eslint": "^16.3.0",
+    "testcontainers": "^10.24.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.25.0"
+  },
+  "prettier": {
+    "tabWidth": 4
+  }
 }

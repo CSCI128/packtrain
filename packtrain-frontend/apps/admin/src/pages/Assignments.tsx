@@ -21,8 +21,8 @@ import { getApiClient } from "@repo/api/index";
 import { Assignment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
-import { Loading } from "@repo/ui/Loading";
-import { TableHeader, useTableData } from "@repo/ui/table/Table";
+import { Loading } from "@repo/ui/components/Loading";
+import { TableHeader, useTableData } from "@repo/ui/components/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
@@ -48,8 +48,6 @@ interface AssignmentRowData {
 
 export function AssignmentsPage() {
   const { data, error, isLoading, refetch } = useGetCourse(["assignments"]);
-  const [value, setValue] = useState<Date>();
-  const [unlockDateValue, setUnlockDateValue] = useState<Date>();
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedAssignment, setSelectedAssignment] =
     useState<Assignment | null>(null);
@@ -61,8 +59,8 @@ export function AssignmentsPage() {
       category: "",
       canvas_id: -1,
       points: 0,
-      due_date: value,
-      unlock_date: unlockDateValue,
+      due_date: new Date(),
+      unlock_date: new Date(),
       external_service: "",
       external_points: 0,
       enabled: true,
@@ -103,18 +101,16 @@ export function AssignmentsPage() {
 
   const updateAssignment = useMutation({
     mutationKey: ["updateAssignment"],
-    mutationFn: ({ body }: { body: Assignment }) =>
-      getApiClient()
-        .then((client) =>
-          client.update_assignment(
-            {
-              course_id: store$.id.get() as string,
-            },
-            body
-          )
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({ body }: { body: Assignment }) => {
+      const client = await getApiClient();
+      const res = await client.update_assignment(
+        {
+          course_id: store$.id.get() as string,
+        },
+        body
+      );
+      return res.data;
+    },
   });
 
   const editAssignment = (values: typeof form.values) => {
@@ -139,8 +135,6 @@ export function AssignmentsPage() {
         onSuccess: () => {
           close();
           refetch();
-          setValue(values.due_date);
-          setUnlockDateValue(values.unlock_date);
         },
       }
     );
@@ -159,7 +153,7 @@ export function AssignmentsPage() {
 
   if (isLoading || !data) return <Loading />;
 
-  if (error) return `An error occurred: ${error}`;
+  if (error) return <Text>An error occured: {error?.message}</Text>;
 
   const rows = sortedData.map((element) => (
     <Table.Tr key={element.id}>
@@ -241,7 +235,6 @@ export function AssignmentsPage() {
               disabled
               label="Unlock Date"
               placeholder="Pick date"
-              value={unlockDateValue}
               {...form.getInputProps("unlock_date")}
             />
 
@@ -249,7 +242,6 @@ export function AssignmentsPage() {
               disabled
               label="Due Date"
               placeholder="Pick date"
-              value={value}
               {...form.getInputProps("due_date")}
             />
 
@@ -363,14 +355,10 @@ export function AssignmentsPage() {
                 >
                   Enabled
                 </TableHeader>
-                <TableHeader
-                  sorted={undefined}
-                  reversed={reverseSortDirection}
-                  onSort={undefined}
-                >
+                <TableHeader reversed={reverseSortDirection}>
                   Status
                 </TableHeader>
-                <TableHeader sorted={false} reversed={false} onSort={undefined}>
+                <TableHeader sorted={false} reversed={false}>
                   Actions
                 </TableHeader>
               </Table.Tr>

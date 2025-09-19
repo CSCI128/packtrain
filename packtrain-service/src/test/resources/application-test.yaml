@@ -22,6 +22,14 @@ logging:
     edu.mines.gradingadmin: trace
 
 grading-admin:
+  email:
+    enabled: false
+    smtp-server: smtp.localhost.dev
+    smtp-port: 502
+    smtp-username: test
+    smtp-password: test
+    from-name: "Packtrain Test No-Reply"
+    from-email: "packtrain@localhost.dev"
   external-services:
     canvas:
       enabled: false

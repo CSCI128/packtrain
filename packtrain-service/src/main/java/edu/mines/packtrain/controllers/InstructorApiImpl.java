@@ -1,7 +1,6 @@
 package edu.mines.packtrain.controllers;
 
 import static java.util.stream.Collectors.toList;
-
 import edu.mines.packtrain.api.InstructorApiDelegate;
 import edu.mines.packtrain.data.AssignmentDTO;
 import edu.mines.packtrain.data.CourseDTO;

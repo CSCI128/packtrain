@@ -1,28 +1,7 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-
-    /* Linting */
-    // "strict": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    // "noFallthroughCasesInSwitch": true
-
-    "paths": {
-      "react": ["./node_modules/@types/react"]
-    }
-  },
-  "include": ["src", "../student/src/pages/ExtensionForm.tsx", "../student/src/pages/Requests.tsx", "../../packages/ui/src/pages/Select.tsx", "../instructor/src/migration", "../instructor/src/pages/Members.tsx", "../instructor/src/Migrations.tsx", "../../packages/ui/src/DateUtil.ts", "../../packages/ui/src/table", "src/templates", "../../packages/ui/src/navbar/Navbar.tsx"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }

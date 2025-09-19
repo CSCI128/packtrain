@@ -795,7 +795,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/NewPolicy"
+                "$ref": "#/components/schemas/PolicyWithCode"
               },
               "encoding": {
                 "file_data": {
@@ -889,6 +889,70 @@
       }
     },
     "/owner/course/{course_id}/policies/{policy_id}": {
+      "get": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "get_policy",
+        "summary": "Get a Policy",
+        "description": "Get a complete policy for a user\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CoursePathParameters"
+          },
+          {
+            "$ref": "#/components/parameters/PolicyPathParameters"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyWithCode"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "owner"
+        ],
+        "operationId": "update_policy",
+        "summary": "Update a policy",
+        "description": "Updates a policy\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CoursePathParameters"
+          },
+          {
+            "$ref": "#/components/parameters/PolicyPathParameters"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PolicyWithCode"
+              },
+              "encoding": {
+                "file_data": {
+                  "contentType": "text/javascript"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          }
+        }
+      },
       "delete": {
         "tags": [
           "owner"
@@ -2466,79 +2530,6 @@
         }
       }
     },
-    "/tasks": {
-      "get": {
-        "tags": [
-          "tasks"
-        ],
-        "operationId": "get_all_tasks_for_user",
-        "summary": "Get all tasks for current user",
-        "description": "This endpoint gets all the tasks for the currently signed in user\n",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Task"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tasks/{task_id}": {
-      "get": {
-        "tags": [
-          "tasks"
-        ],
-        "operationId": "get_task",
-        "summary": "Get task by id",
-        "description": "This endpoint returns the requested task if the user has access to it.\n",
-        "parameters": [
-          {
-            "name": "task_id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "integer",
-              "format": "int64",
-              "example": 219
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Task"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error_source": "get_task",
-                  "error_message": "Requested task was not found"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/student/courses/{course_id}": {
       "get": {
         "tags": [
@@ -2725,6 +2716,42 @@
           }
         }
       }
+    },
+    "/extension-response/{extension_response_id}/approve": {
+      "post": {
+        "tags": [
+          "instructor"
+        ],
+        "operationId": "email_extension_response_approve",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ExtensionResponsePathParameters"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          }
+        }
+      }
+    },
+    "/extension-response/{extension_response_id}/deny": {
+      "post": {
+        "tags": [
+          "instructor"
+        ],
+        "operationId": "email_extension_response_deny",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ExtensionResponsePathParameters"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2741,12 +2768,13 @@
           }
         }
       },
-      "NewPolicy": {
-        "description": "Create a new policy file",
+      "PolicyWithCode": {
+        "description": "A complete policy with the actual code",
         "type": "object",
         "required": [
           "name",
           "file_path",
+          "description",
           "file_data"
         ],
         "properties": {
@@ -2764,7 +2792,6 @@
           },
           "file_data": {
             "type": "string",
-            "format": "binary",
             "example": "// valid javascript code\n"
           }
         }
@@ -2805,7 +2832,7 @@
             "format": "double",
             "example": 19
           },
-          "canvsasMinScore": {
+          "canvasMinScore": {
             "type": "number",
             "format": "double",
             "example": 0
@@ -2815,7 +2842,7 @@
             "format": "double",
             "example": 10
           },
-          "externalServiceMaxScore": {
+          "externalMaxScore": {
             "type": "number",
             "format": "double",
             "example": 10
@@ -3829,6 +3856,16 @@
       },
       "ExtensionPathParameters": {
         "name": "extension_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid",
+          "example": "452E7EC3-29BD-4B3B-94FD-5AE9901257AA"
+        }
+      },
+      "ExtensionResponsePathParameters": {
+        "name": "extension_response_id",
         "in": "path",
         "required": true,
         "schema": {

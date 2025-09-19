@@ -7,8 +7,8 @@ import {
   TextInput,
 } from "@mantine/core";
 import { CourseMember } from "@repo/api/openapi";
-import { Loading } from "@repo/ui/Loading";
-import { TableHeader, useTableData } from "@repo/ui/table/Table";
+import { Loading } from "@repo/ui/components/Loading";
+import { TableHeader, useTableData } from "@repo/ui/components/table/Table";
 import { IconSearch } from "@tabler/icons-react";
 import { useGetMembersInstructor } from "../hooks";
 
@@ -47,7 +47,12 @@ export function MembersPage() {
   if (isLoading || !data || instructorIsLoading || !instructorData)
     return <Loading />;
 
-  if (error || instructorError) return `An error occured: ${error}`;
+  if (error || instructorError)
+    return (
+      <Text>
+        An error occured: {error?.message} {instructorError?.message}
+      </Text>
+    );
 
   const rows = sortedData.map((row: CourseMember) => (
     <Table.Tr key={row.cwid}>

@@ -4,6 +4,7 @@
   "private": true,
   "exports": {
     "./DateUtil": "./src/DateUtil.ts",
+    "./WebSocketHooks": "./src/websocketHooks.ts",
     "./*": "./src/*.tsx"
   },
   "scripts": {

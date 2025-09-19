@@ -28,11 +28,27 @@ server:
       enabled: false
 
 grading-admin:
+  frontend-url: ${FRONTEND_URL:https://localhost.dev}
   websocket:
     allowed-origins: https://localhost.dev,https://packtrain.mines.edu
   # needs to be 16, 32, or 64 bytes long - this should also be randomly generated.
   secret-key: ${SECRET_KEY:password91023451}
   time-zone: "America/Denver"
+  email:
+    templates:
+      template-directory: /templates/emails
+      extension-created-student: extension-created-student.ftl
+      extension-created-instructor: extension-created-instructor.ftl
+    enabled: true
+    smtp-server: ${SMTP_SERVER:localhost.dev}
+    smtp-port: ${SMTP_PORT:25}
+    smtp-username: ${SMTP_USERNAME:admin}
+    smtp-password: ${SMTP_PASSWORD:password}
+    from-name: "Packtrain No-Reply"
+    from-email: ${FROM_EMAIL_ADDRESS:no-reply@localhost.dev}
+    testing:
+      override-cc: ${EMAIL_TESTING_OVERRIDE_CC:}
+      override-to: ${EMAIL_TESTING_OVERRIDE_TO:}
   external-services:
     canvas:
       enabled: true

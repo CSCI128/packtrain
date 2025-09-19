@@ -7,43 +7,44 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { getApiClient } from "@repo/api/index";
 import { Enrollment } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
-import { Loading } from "@repo/ui/Loading";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
+import { Loading } from "../components/Loading";
+import { useGetEnrollments } from "../hooks";
+
+function ClassButton({
+  enrollment,
+  switchCourse,
+}: {
+  enrollment: Enrollment;
+  switchCourse: (id: string, name: string) => void;
+}) {
+  return (
+    <Button
+      onClick={() => switchCourse(enrollment.id as string, enrollment.name)}
+    >
+      {enrollment.name} ({enrollment.term}){" "}
+      {store$.id.get() === enrollment.id && <>(selected)</>}
+      {!enrollment.enabled && <>(inactive)</>}
+    </Button>
+  );
+}
 
 export const SelectClass = ({ close }: { close?: () => void }) => {
   const auth = useAuth();
-  const [checked, setChecked] = useState(true);
-
-  const { data, error, isLoading, refetch } = useQuery<
-    Enrollment[],
-    Error,
-    Enrollment[]
-  >({
-    queryKey: ["getEnrollments"],
-    queryFn: () =>
-      getApiClient()
-        .then((client) => client.get_enrollments())
-        .then((res) => res.data)
-        .catch((err) => {
-          console.log(err);
-          return [];
-        }),
-    enabled: !!auth.isAuthenticated,
-  });
+  const [checked, setChecked] = useState(false);
+  const { data, error, isLoading } = useGetEnrollments(!!auth.isAuthenticated);
 
   const switchCourse = (id: string, name: string) => {
     store$.id.set(id);
     store$.name.set(name);
-    if (close) {
-      close();
-    }
+    close?.();
 
-    const enrollment = data?.filter((c) => c.id === store$.id.get()).at(0);
+    const enrollment = data?.find(
+      (enrollment: Enrollment) => enrollment.id === store$.id.get()
+    );
     if (enrollment !== undefined) {
       if (enrollment.course_role === "owner") {
         window.location.href = "/admin/";
@@ -62,65 +63,69 @@ export const SelectClass = ({ close }: { close?: () => void }) => {
     close?.();
   };
 
-  function ClassButton(enrollment: Enrollment) {
-    return (
-      <Button
-        onClick={() => switchCourse(enrollment.id as string, enrollment.name)}
-      >
-        {enrollment.name} ({enrollment.term}){" "}
-        {store$.id.get() == enrollment.id && <>(selected)</>}
-      </Button>
-    );
-  }
-
   if (!data || isLoading) return <Loading />;
 
-  if (error) return `An error occured: ${error}`;
+  if (error) return <Text>An error occured: {error.message}</Text>;
 
   return (
     <Container size="sm">
       <Center>
         <Stack>
-          {/* students can only see enabled courses, admin sees all */}
-          {auth.user?.profile.is_admin ? (
+          {data.length === 0 ? (
             <>
-              {data.length === 0 ? (
-                <Center>
-                  <Text>No enrollments found!</Text>
-                </Center>
-              ) : (
-                data.map((enrollment: Enrollment) => (
-                  <ClassButton key={enrollment.id} {...enrollment} />
-                ))
+              <Text>No enrollments found!</Text>
+              {auth.user?.profile.is_admin && (
+                <Button color="green" onClick={handleCreateClass}>
+                  Create Class
+                </Button>
               )}
-              <Button color="green" onClick={handleCreateClass}>
-                Create Class
-              </Button>
-              <Center>
-                <Group>
-                  <Checkbox
-                    checked={checked}
-                    onChange={(event) => {
-                      setChecked(event.currentTarget.checked);
-                      refetch();
-                    }}
-                  />
-                  <Text c="gray">Show only active courses</Text>
-                </Group>
-              </Center>
             </>
           ) : (
             <>
-              {data.length === 0 ? (
-                <Center>
-                  <Text>No enrollments found!</Text>
-                </Center>
+              {auth.user?.profile.is_admin ? (
+                // admin sees all courses, filterable by active
+                <>
+                  {data
+                    .filter(
+                      (enrollment: Enrollment) =>
+                        checked ||
+                        enrollment.enabled ||
+                        // state where course could be selected but disabled
+                        store$.id.get() === enrollment.id
+                    )
+                    .map((enrollment: Enrollment) => (
+                      <ClassButton
+                        key={enrollment.id}
+                        enrollment={enrollment}
+                        switchCourse={switchCourse}
+                      />
+                    ))}
+                  <Button color="green" onClick={handleCreateClass}>
+                    Create Class
+                  </Button>
+                  <Group>
+                    <Checkbox
+                      checked={checked}
+                      onChange={(event) => {
+                        setChecked(event.currentTarget.checked);
+                      }}
+                    />
+                    <Text c="gray">Show inactive courses</Text>
+                  </Group>
+                </>
               ) : (
-                data
-                  .filter((enrollment: Enrollment) => enrollment.enabled)
-                  .map((enrollment: Enrollment) => (
-                    <ClassButton key={enrollment.id} {...enrollment} />
-                  ))
+                // students only see enabled courses
+                <>
+                  {data
+                    .filter((enrollment: Enrollment) => enrollment.enabled)
+                    .map((enrollment: Enrollment) => (
+                      <ClassButton
+                        key={enrollment.id}
+                        enrollment={enrollment}
+                        switchCourse={switchCourse}
+                      />
+                    ))}
+                </>
               )}
             </>
           )}

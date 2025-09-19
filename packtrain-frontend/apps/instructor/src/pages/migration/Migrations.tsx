@@ -11,7 +11,7 @@ import { getApiClient } from "@repo/api/index";
 import { MasterMigration, Migration } from "@repo/api/openapi";
 import { store$ } from "@repo/api/store";
 import { formattedDate } from "@repo/ui/DateUtil";
-import { Loading } from "@repo/ui/Loading";
+import { Loading } from "@repo/ui/components/Loading";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useGetMasterMigration, useGetMasterMigrations } from "../../hooks";
@@ -23,34 +23,34 @@ export function MigrationsPage() {
 
   const createMasterMigration = useMutation({
     mutationKey: ["createMasterMigration"],
-    mutationFn: () =>
-      getApiClient()
-        .then((client) =>
-          client.create_master_migration({
-            course_id: store$.id.get() as string,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async () => {
+      const client = await getApiClient();
+      const res = await client.create_master_migration({
+        course_id: store$.id.get() as string,
+      });
+      return res.data;
+    },
   });
 
   const deleteMasterMigration = useMutation({
     mutationKey: ["deleteMasterMigration"],
-    mutationFn: ({ master_migration_id }: { master_migration_id: string }) =>
-      getApiClient()
-        .then((client) =>
-          client.delete_master_migration({
-            course_id: store$.id.get() as string,
-            master_migration_id: master_migration_id,
-          })
-        )
-        .then((res) => res.data)
-        .catch((err) => console.log(err)),
+    mutationFn: async ({
+      master_migration_id,
+    }: {
+      master_migration_id: string;
+    }) => {
+      const client = await getApiClient();
+      const res = await client.delete_master_migration({
+        course_id: store$.id.get() as string,
+        master_migration_id: master_migration_id,
+      });
+      return res.data;
+    },
   });
 
   if (isLoading || !data) return <Loading />;
 
-  if (error) return `An error occured: ${error}`;
+  if (error) return <Text>An error occured: {error?.message}</Text>;
 
   return (
     <>

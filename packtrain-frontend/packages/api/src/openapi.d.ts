@@ -40,6 +40,11 @@ declare namespace Components {
         export type ExtensionPathParameters = string; // uuid
         /**
          * example:
+         * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+         */
+        export type ExtensionResponsePathParameters = string; // uuid
+        /**
+         * example:
          * 49D2FB6A-598A-4618-A467-C71D6542D14F
          */
         export type MasterMigrationPathParameters = string; // uuid
@@ -85,6 +90,11 @@ declare namespace Components {
          * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
          */
         Parameters.ExtensionPathParameters /* uuid */;
+        ExtensionResponsePathParameters?: /**
+         * example:
+         * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+         */
+        Parameters.ExtensionResponsePathParameters /* uuid */;
         MasterMigrationPathParameters?: /**
          * example:
          * 49D2FB6A-598A-4618-A467-C71D6542D14F
@@ -636,33 +646,6 @@ declare namespace Components {
             stats?: /* The statistics from a master migration, has the number of: extensions, late penalties, missing, no credit */ MasterMigrationStatistics;
         }
         /**
-         * Create a new policy file
-         */
-        export interface NewPolicy {
-            /**
-             * example:
-             * Default Policy
-             */
-            name: string;
-            /**
-             * example:
-             * default.js
-             */
-            file_path: string;
-            /**
-             * example:
-             * The default policy
-             *
-             */
-            description?: string;
-            /**
-             * example:
-             * // valid javascript code
-             *
-             */
-            file_data: string; // binary
-        }
-        /**
          * A grading policy
          */
         export interface Policy {
@@ -728,7 +711,7 @@ declare namespace Components {
              * example:
              * 0
              */
-            canvsasMinScore?: number; // double
+            canvasMinScore?: number; // double
             /**
              * example:
              * 10
@@ -738,7 +721,7 @@ declare namespace Components {
              * example:
              * 10
              */
-            externalServiceMaxScore?: number; // double
+            externalMaxScore?: number; // double
             initialDueDate?: string; // date-time
             submissionDate?: string; // date-time
             submissionStatus?: "missing" | "excused" | "late" | "extended" | "on_time";
@@ -756,6 +739,33 @@ declare namespace Components {
             extensionStatus?: "ignored" | "approved" | "rejected" | "pending" | "no_extension" | "applied";
             extensionMessage?: string;
             submissionMessage?: string;
+        }
+        /**
+         * A complete policy with the actual code
+         */
+        export interface PolicyWithCode {
+            /**
+             * example:
+             * Default Policy
+             */
+            name: string;
+            /**
+             * example:
+             * default.js
+             */
+            file_path: string;
+            /**
+             * example:
+             * The default policy
+             *
+             */
+            description: string;
+            /**
+             * example:
+             * // valid javascript code
+             *
+             */
+            file_data: string;
         }
         /**
          * A score for a student
@@ -1326,6 +1336,46 @@ declare namespace Paths {
             export type $200 = Components.Schemas.PolicyDryRunResults;
         }
     }
+    namespace EmailExtensionResponseApprove {
+        namespace Parameters {
+            /**
+             * example:
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+             */
+            export type ExtensionResponseId = string; // uuid
+        }
+        export interface PathParameters {
+            extension_response_id: /**
+             * example:
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+             */
+            Parameters.ExtensionResponseId /* uuid */;
+        }
+        namespace Responses {
+            export interface $202 {
+            }
+        }
+    }
+    namespace EmailExtensionResponseDeny {
+        namespace Parameters {
+            /**
+             * example:
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+             */
+            export type ExtensionResponseId = string; // uuid
+        }
+        export interface PathParameters {
+            extension_response_id: /**
+             * example:
+             * 452E7EC3-29BD-4B3B-94FD-5AE9901257AA
+             */
+            Parameters.ExtensionResponseId /* uuid */;
+        }
+        namespace Responses {
+            export interface $202 {
+            }
+        }
+    }
     namespace EnableAssignment {
         namespace Parameters {
             /**
@@ -1622,11 +1672,6 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* A grading policy */ Components.Schemas.Policy[];
-        }
-    }
-    namespace GetAllTasksForUser {
-        namespace Responses {
-            export type $200 = /* An async task on the server */ Components.Schemas.Task[];
         }
     }
     namespace GetAllUsers {
@@ -1950,24 +1995,33 @@ declare namespace Paths {
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
         }
     }
-    namespace GetTask {
+    namespace GetPolicy {
         namespace Parameters {
             /**
              * example:
-             * 219
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            export type TaskId = number; // int64
+            export type CourseId = string; // uuid
+            /**
+             * example:
+             * 55AAD0CC-9C92-47E9-9293-05CBED73A4AB
+             */
+            export type PolicyId = string; // uuid
         }
         export interface PathParameters {
-            task_id: /**
+            course_id: /**
              * example:
-             * 219
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
              */
-            Parameters.TaskId /* int64 */;
+            Parameters.CourseId /* uuid */;
+            policy_id: /**
+             * example:
+             * 55AAD0CC-9C92-47E9-9293-05CBED73A4AB
+             */
+            Parameters.PolicyId /* uuid */;
         }
         namespace Responses {
-            export type $200 = /* An async task on the server */ Components.Schemas.Task;
-            export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
+            export type $200 = /* A complete policy with the actual code */ Components.Schemas.PolicyWithCode;
         }
     }
     namespace GetUser {
@@ -2174,7 +2228,7 @@ declare namespace Paths {
              */
             Parameters.CourseId /* uuid */;
         }
-        export type RequestBody = /* Create a new policy file */ Components.Schemas.NewPolicy;
+        export type RequestBody = /* A complete policy with the actual code */ Components.Schemas.PolicyWithCode;
         namespace Responses {
             export type $201 = /* A grading policy */ Components.Schemas.Policy;
         }
@@ -2378,6 +2432,37 @@ declare namespace Paths {
             export interface $204 {
             }
             export type $404 = /* An error occurred while processing that query */ Components.Schemas.ErrorResponse;
+        }
+    }
+    namespace UpdatePolicy {
+        namespace Parameters {
+            /**
+             * example:
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+             */
+            export type CourseId = string; // uuid
+            /**
+             * example:
+             * 55AAD0CC-9C92-47E9-9293-05CBED73A4AB
+             */
+            export type PolicyId = string; // uuid
+        }
+        export interface PathParameters {
+            course_id: /**
+             * example:
+             * 9DEB34FC-C15A-4B31-8374-91EC1C8E9E66
+             */
+            Parameters.CourseId /* uuid */;
+            policy_id: /**
+             * example:
+             * 55AAD0CC-9C92-47E9-9293-05CBED73A4AB
+             */
+            Parameters.PolicyId /* uuid */;
+        }
+        export type RequestBody = /* A complete policy with the actual code */ Components.Schemas.PolicyWithCode;
+        namespace Responses {
+            export interface $202 {
+            }
         }
     }
     namespace UpdateStudentScore {
@@ -2722,6 +2807,28 @@ export interface OperationMethods {
     data?: Paths.DryRunPolicy.RequestBody,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.DryRunPolicy.Responses.$200>
+  /**
+   * get_policy - Get a Policy
+   * 
+   * Get a complete policy for a user
+   * 
+   */
+  'get_policy'(
+    parameters?: Parameters<Paths.GetPolicy.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetPolicy.Responses.$200>
+  /**
+   * update_policy - Update a policy
+   * 
+   * Updates a policy
+   * 
+   */
+  'update_policy'(
+    parameters?: Parameters<Paths.UpdatePolicy.PathParameters> | null,
+    data?: Paths.UpdatePolicy.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.UpdatePolicy.Responses.$202>
   /**
    * delete_policy - Delete a policy
    * 
@@ -3116,28 +3223,6 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.FinalizeMasterMigration.Responses.$202>
   /**
-   * get_all_tasks_for_user - Get all tasks for current user
-   * 
-   * This endpoint gets all the tasks for the currently signed in user
-   * 
-   */
-  'get_all_tasks_for_user'(
-    parameters?: Parameters<UnknownParamsObject> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetAllTasksForUser.Responses.$200>
-  /**
-   * get_task - Get task by id
-   * 
-   * This endpoint returns the requested task if the user has access to it.
-   * 
-   */
-  'get_task'(
-    parameters?: Parameters<Paths.GetTask.PathParameters> | null,
-    data?: any,
-    config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.GetTask.Responses.$200>
-  /**
    * get_course_information_student - Get information for a course
    * 
    * Get information from a course from
@@ -3199,6 +3284,22 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.WithdrawExtension.Responses.$204>
+  /**
+   * email_extension_response_approve
+   */
+  'email_extension_response_approve'(
+    parameters?: Parameters<Paths.EmailExtensionResponseApprove.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.EmailExtensionResponseApprove.Responses.$202>
+  /**
+   * email_extension_response_deny
+   */
+  'email_extension_response_deny'(
+    parameters?: Parameters<Paths.EmailExtensionResponseDeny.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.EmailExtensionResponseDeny.Responses.$202>
 }
 
 export interface PathsDictionary {
@@ -3449,6 +3550,28 @@ export interface PathsDictionary {
     ): OperationResponse<Paths.DryRunPolicy.Responses.$200>
   }
   ['/owner/course/{course_id}/policies/{policy_id}']: {
+    /**
+     * get_policy - Get a Policy
+     * 
+     * Get a complete policy for a user
+     * 
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetPolicy.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetPolicy.Responses.$200>
+    /**
+     * update_policy - Update a policy
+     * 
+     * Updates a policy
+     * 
+     */
+    'put'(
+      parameters?: Parameters<Paths.UpdatePolicy.PathParameters> | null,
+      data?: Paths.UpdatePolicy.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.UpdatePolicy.Responses.$202>
     /**
      * delete_policy - Delete a policy
      * 
@@ -3903,32 +4026,6 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.FinalizeMasterMigration.Responses.$202>
   }
-  ['/tasks']: {
-    /**
-     * get_all_tasks_for_user - Get all tasks for current user
-     * 
-     * This endpoint gets all the tasks for the currently signed in user
-     * 
-     */
-    'get'(
-      parameters?: Parameters<UnknownParamsObject> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetAllTasksForUser.Responses.$200>
-  }
-  ['/tasks/{task_id}']: {
-    /**
-     * get_task - Get task by id
-     * 
-     * This endpoint returns the requested task if the user has access to it.
-     * 
-     */
-    'get'(
-      parameters?: Parameters<Paths.GetTask.PathParameters> | null,
-      data?: any,
-      config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.GetTask.Responses.$200>
-  }
   ['/student/courses/{course_id}']: {
     /**
      * get_course_information_student - Get information for a course
@@ -3999,6 +4096,26 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.WithdrawExtension.Responses.$204>
   }
+  ['/extension-response/{extension_response_id}/approve']: {
+    /**
+     * email_extension_response_approve
+     */
+    'post'(
+      parameters?: Parameters<Paths.EmailExtensionResponseApprove.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.EmailExtensionResponseApprove.Responses.$202>
+  }
+  ['/extension-response/{extension_response_id}/deny']: {
+    /**
+     * email_extension_response_deny
+     */
+    'post'(
+      parameters?: Parameters<Paths.EmailExtensionResponseDeny.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.EmailExtensionResponseDeny.Responses.$202>
+  }
 }
 
 export type Client = OpenAPIClient<OperationMethods, PathsDictionary>
@@ -4020,12 +4137,12 @@ export type MasterMigrationStatistics = Components.Schemas.MasterMigrationStatis
 export type Migration = Components.Schemas.Migration;
 export type MigrationScoreChange = Components.Schemas.MigrationScoreChange;
 export type MigrationWithScores = Components.Schemas.MigrationWithScores;
-export type NewPolicy = Components.Schemas.NewPolicy;
 export type Policy = Components.Schemas.Policy;
 export type PolicyDryRun = Components.Schemas.PolicyDryRun;
 export type PolicyDryRunResults = Components.Schemas.PolicyDryRunResults;
 export type PolicyRawScore = Components.Schemas.PolicyRawScore;
 export type PolicyScored = Components.Schemas.PolicyScored;
+export type PolicyWithCode = Components.Schemas.PolicyWithCode;
 export type Score = Components.Schemas.Score;
 export type StudentInformation = Components.Schemas.StudentInformation;
 export type Task = Components.Schemas.Task;

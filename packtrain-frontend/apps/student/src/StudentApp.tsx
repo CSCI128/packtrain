@@ -18,7 +18,7 @@ import { LandingPage } from "./pages/landing/Landing";
 import { Requests } from "./pages/Requests";
 import Root from "./templates/Root";
 
-configureApiClient({ userManager: userManager });
+configureApiClient({ userManager });
 
 const queryClient = new QueryClient({
   defaultOptions: {
