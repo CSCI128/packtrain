@@ -195,11 +195,6 @@ public class ExtensionService {
 
     public void processExtensionApplied(UUID extensionId, boolean extensionApplied, int extensionDays) {
         LateRequest lateRequest = lateRequestRepo.getLateRequestById(extensionId);
-        // TODO finish writing this function
-        // if (lateRequest != null) {
-            // assume extension exists
-            // actually process the extension by marking extension as applied or ignored
-        // }
         LateRequestStatus status;
         status = LateRequestStatus.IGNORED;
         if (extensionApplied) {
