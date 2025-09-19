@@ -202,10 +202,10 @@ public class ExtensionService {
         // }
         LateRequestStatus status;
         status = LateRequestStatus.IGNORED;
-        if(extensionApplied){
+        if (extensionApplied) {
             status = LateRequestStatus.APPLIED;
         }
-        if (lateRequest != null){
+        if (lateRequest != null) {
             lateRequest.setStatus(status);
             lateRequest.setDaysRequested(extensionDays);
         }
