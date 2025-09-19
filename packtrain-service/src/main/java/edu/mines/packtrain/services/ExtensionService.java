@@ -205,6 +205,8 @@ public class ExtensionService {
             lateRequest.setDaysRequested(extensionDays);
         }
 
+        lateRequestRepo.save(lateRequest); //is this correct?
+
     }
 
 }
