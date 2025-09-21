@@ -54,7 +54,7 @@ public class TestExtensionService implements PostgresTestContainer {
 
     @Test
     void verifyProcessExtensionApplied(){
-        Mockito.when(lateRequestRepo.getLateRequestById(any(UUID.class))).thenReturn(null);
+        Mockito.when(lateRequestRepo.getLateRequestById(Mockito.any(UUID.class))).thenReturn(null);
 
         extensionService.processExtensionApplied(UUID.randomUUID(), true, 2);
         ArgumentCaptor<LateRequest> requestCaptor = ArgumentCaptor.forClass(LateRequest.class);
