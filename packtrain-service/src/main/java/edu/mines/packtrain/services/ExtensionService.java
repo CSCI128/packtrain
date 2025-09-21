@@ -203,9 +203,10 @@ public class ExtensionService {
         if (lateRequest != null) {
             lateRequest.setStatus(status);
             lateRequest.setDaysRequested(extensionDays);
+            lateRequestRepo.save(lateRequest);
         }
 
-        lateRequestRepo.save(lateRequest); //is this correct?
+         //is this correct?
 
     }
 
