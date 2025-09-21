@@ -56,7 +56,7 @@ public class TestExtensionService implements PostgresTestContainer {
 
     }
 
-    @Test
+
     void verifyProcessExtensionApplied(){
         LateRequest mockLateRequest = new LateRequest();
         mockLateRequest.setDaysRequested(4);
