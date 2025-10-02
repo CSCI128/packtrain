@@ -33,7 +33,7 @@ public class TestExtensionService implements PostgresTestContainer {
     private ExtensionRepo extensionRepo;
     @Autowired
     private CourseSeeders courseSeeders;
-    @Mock
+    @Autowired
     private LateRequestRepo lateRequestRepo;
 
     @BeforeAll
