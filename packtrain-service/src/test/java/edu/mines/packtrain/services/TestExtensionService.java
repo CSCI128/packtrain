@@ -26,8 +26,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class TestExtensionService implements PostgresTestContainer {
 
     @Autowired
-    @InjectMocks
-    ExtensionService extensionService;
+    private ExtensionService extensionService;
 
     @Autowired
     private ExtensionRepo extensionRepo;
