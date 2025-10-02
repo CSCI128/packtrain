@@ -138,6 +138,8 @@ Your policy must return an object with these properties set:
 
     **submissionMessage** *(nullable string)*
         An optional message for the overall submission.
+    
+    .. update this with what had in scored dto
 
 An example for format is below:
 

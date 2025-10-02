@@ -276,6 +276,7 @@ public class MigrationService {
         entry.setSubmissionStatus(dto.getSubmissionStatus());
         entry.setScore(dto.getFinalScore());
         entry.setSubmissionTime(dto.getAdjustedSubmissionTime());
+        entry.setExtensionDays(dto.getNumberExtensionDaysApplied());
 
         StringBuilder msg = new StringBuilder();
         Optional<LateRequest> lateRequest = extensionService.getLateRequest(entry.getExtensionId());
@@ -728,7 +729,7 @@ public class MigrationService {
                 .prepCanvasSubmissionsForPublish(String.valueOf(taskDef.getCanvasCourseId()),
                         taskDef.getCanvasAssignmentId());
 
-        List<MigrationTransactionLog> entries = transactionLogRepo.getAllByMigrationIdSorted(
+        List<MigrationTransactionLog> entries = transactionLogRepo.getLatestByMigrationId(
                 taskDef.getMigrationId());
 
         log.info("Processing {} migration log entries for posting to canvas for migration '{}'",
@@ -737,6 +738,10 @@ public class MigrationService {
         for (MigrationTransactionLog entry : entries) {
             submissions.addSubmission(entry.getCanvasId(), entry.getMessage(), entry.getScore(),
                     entry.getSubmissionStatus().equals(SubmissionStatus.EXCUSED));
+            if (entry.getExtensionId() != null) {
+                extensionService.processExtensionApplied(entry.getExtensionId(), 
+                        entry.isExtensionApplied(), entry.getExtensionDays());
+            }
         }
 
         Optional<Progress> progress = canvasService.asUser(provider)
@@ -745,7 +750,7 @@ public class MigrationService {
         if (progress.isEmpty()) {
             throw new RuntimeException("Failed to post scores to Canvas!");
         }
-
+        
         // We will probably want to periodically check in on this and then only flag this
         // as completed once this is done
     }

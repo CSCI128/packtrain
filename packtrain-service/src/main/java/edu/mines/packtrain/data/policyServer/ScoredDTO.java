@@ -18,4 +18,5 @@ public class ScoredDTO {
     private LateRequestStatus extensionStatus;
     private String extensionMessage;
     private String submissionMessage;
+    private int numberExtensionDaysApplied;
 }

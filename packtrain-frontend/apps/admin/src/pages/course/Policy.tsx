@@ -353,6 +353,13 @@ export function PolicyPage({
                             value={dryRunRes.policyResults.adjustedDaysLate}
                             disabled
                           />
+                           <NumberInput
+                            pb={8}
+                            label="Number extension days applied"
+                            value={dryRunRes.policyResults.numberExtensionDaysApplied} 
+                            // make sure this is the same as open api
+                            disabled
+                          />
                         </Group>
                         <Group grow>
                           <TextInput

@@ -16,4 +16,5 @@ Packtrain is software for grading and student extension management.
    src/Authentication
    src/GradingPolicy
    src/Migrations
+   src/DeveloperGuide
    src/Assignments
