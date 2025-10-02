@@ -201,7 +201,7 @@ public class ExtensionService {
             status = LateRequestStatus.APPLIED;
         }
         if (lateRequest == null) {
-            return ;
+            return;
         }
 
         lateRequest.setStatus(status);

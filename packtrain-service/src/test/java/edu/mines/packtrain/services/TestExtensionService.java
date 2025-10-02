@@ -7,18 +7,13 @@ import edu.mines.packtrain.repositories.ExtensionRepo;
 import edu.mines.packtrain.repositories.LateRequestRepo;
 import edu.mines.packtrain.seeders.CourseSeeders;
 
-import static org.mockito.ArgumentMatchers.any;
-
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
