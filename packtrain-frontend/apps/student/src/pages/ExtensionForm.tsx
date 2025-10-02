@@ -38,14 +38,6 @@ export function ExtensionForm() {
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>("");
 
 
-  const getDaysInFuture = (days: number): Date => {
-    const d = new Date();
-
-    d.setDate(d.getDate() + days);
-
-    return d;
-  };
-
   const extensionForm = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -230,18 +222,18 @@ export function ExtensionForm() {
           }}
           data={
             courseData.course.late_request_config &&
-            courseData.course.late_request_config.late_passes_enabled
+              courseData.course.late_request_config.late_passes_enabled
               ? [
-                  courseData.course.late_request_config.late_pass_name,
-                  "Extension",
-                ]
+                courseData.course.late_request_config.late_pass_name,
+                "Extension",
+              ]
               : ["Extension"]
           }
         />
       </InputWrapper>
 
       {courseData.course.late_request_config.late_passes_enabled &&
-      latePassView ? (
+        latePassView ? (
         <form onSubmit={latePassForm.onSubmit(submitLatePass)}>
           <Stack gap="xs">
             {(courseData.late_passes_used ?? 0) >= LATE_PASSES_ALLOWED ? (
@@ -268,11 +260,15 @@ export function ExtensionForm() {
                     courseData.course.assignments
                       .filter(
                         (assignment) =>
-                          !data.some(
-                            (d) => d.assignment_id === assignment.id
-                          ) &&
-                          // due now or in the future
-                          new Date(assignment.due_date) >= getDaysInFuture(3)
+                          !data.some((d) => d.assignment_id === assignment.id) &&
+                          // due within the last 3 days (and in the future)
+                          (() => {
+                            const due = new Date(assignment.due_date);
+                            const now = new Date();
+                            const threeDaysAgo = new Date();
+                            threeDaysAgo.setDate(now.getDate() - 3);
+                            return due >= threeDaysAgo || due >= now;
+                          })()
                       )
                       .map((assignment) => ({
                         label: assignment.name,
@@ -439,16 +435,16 @@ export function ExtensionForm() {
                 placeholder="Pick value"
                 data={
                   courseData.course.late_request_config &&
-                  courseData.course.late_request_config
-                    .enabled_extension_reasons
+                    courseData.course.late_request_config
+                      .enabled_extension_reasons
                     ? courseData.course.late_request_config
-                        .enabled_extension_reasons
+                      .enabled_extension_reasons
                     : [
-                        { label: "Tech Issues", value: "TECH" },
-                        { label: "Health-Related", value: "HEALTH" },
-                        { label: "Family Emergency", value: "FAMILY" },
-                        { label: "Personal", value: "PERSONAL" },
-                      ]
+                      { label: "Tech Issues", value: "TECH" },
+                      { label: "Health-Related", value: "HEALTH" },
+                      { label: "Family Emergency", value: "FAMILY" },
+                      { label: "Personal", value: "PERSONAL" },
+                    ]
                 }
                 key={extensionForm.key("extensionReason")}
                 {...extensionForm.getInputProps("extensionReason")}
