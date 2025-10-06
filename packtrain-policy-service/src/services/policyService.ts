@@ -92,7 +92,10 @@ function validateScoredDTO(scored: PolicyScoredDTO): string[] {
             `Invalid extensionStatus! Received: ${scored.extensionStatus}. Expected one of: ${Object.values(SubmissionStatus)}`,
         );
     }
-// add error for number days extension days
+
+    if (scored.numberExtensionDaysApplied == null){
+        errors.push("the number of extension days applied was not set by policy!")
+    }
     return errors;
 }
 

@@ -139,7 +139,8 @@ Your policy must return an object with these properties set:
     **submissionMessage** *(nullable string)*
         An optional message for the overall submission.
     
-    .. update this with what had in scored dto
+    **numberExtensionDaysApplied** *(number)*
+        the number of extension days applied
 
 An example for format is below:
 

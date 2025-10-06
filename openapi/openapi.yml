@@ -2010,6 +2010,9 @@ components:
           type: string
         submissionMessage:
           type: string
+        numberExtensionDaysApplied:
+          type: integer
+          format: int32
 # add number extension days applied to match above.
     PolicyDryRunResults:
       properties:
