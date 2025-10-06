@@ -53,7 +53,7 @@ public class EmailService {
                 .withSubject(subject)
                 .withHTMLText(html);
 
-        (overrideCC != null ? List.of(overrideCC) : cc).forEach(s -> builder.cc(s));
+        // (overrideCC != null ? List.of(overrideCC) : cc).forEach(s -> builder.cc(s));
 
         log.debug("Sending email '{}' to '{}'", subject, to);
 
