@@ -24,6 +24,7 @@ import edu.mines.packtrain.models.enums.LateRequestStatus;
 import edu.mines.packtrain.models.enums.LateRequestType;
 import edu.mines.packtrain.repositories.ExtensionRepo;
 import edu.mines.packtrain.repositories.LateRequestRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,6 +63,7 @@ public class ExtensionService {
         return List.of();
     }
 
+    @Transactional
     public LateRequest approveExtension(UUID extensionId, String reason) {
         Optional<LateRequest> lateRequest = getLateRequest(extensionId);
         String userId = securityManager.getUser().getCwid();
@@ -78,9 +80,12 @@ public class ExtensionService {
 
         extensionRepo.save(lateRequest.get().getExtension());
 
+        extensionEmailService.handleExtensionApproved(lateRequest.get(), lateRequest.get().getAssignment().getCourse(), lateRequest.get().getRequestingUser(), securityManager.getUser());
+
         return lateRequestRepo.save(lateRequest.get());
     }
 
+    @Transactional
     public LateRequest denyExtension(UUID extensionId, String reason) {
         Optional<LateRequest> lateRequest = getLateRequest(extensionId);
         String userId = securityManager.getUser().getCwid();
@@ -96,6 +101,9 @@ public class ExtensionService {
         lateRequest.get().setStatus(LateRequestStatus.REJECTED);
 
         extensionRepo.save(lateRequest.get().getExtension());
+
+        extensionEmailService.handleExtensionDenied(lateRequest.get(), lateRequest.get().getAssignment().getCourse(), lateRequest.get().getRequestingUser(), securityManager.getUser());
+
         return lateRequestRepo.save(lateRequest.get());
     }
 

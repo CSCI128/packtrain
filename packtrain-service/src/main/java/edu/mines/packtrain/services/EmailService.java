@@ -46,14 +46,14 @@ public class EmailService {
         if (!enabled) {
             return;
         }
-
+        
         EmailPopulatingBuilder builder = EmailBuilder.startingBlank()
                 .from(fromName, fromEmail)
-                .to(overrideTo != null ? overrideTo : to)
+                .to(!overrideTo.isEmpty() ? overrideTo : to)
                 .withSubject(subject)
                 .withHTMLText(html);
 
-        // (overrideCC != null ? List.of(overrideCC) : cc).forEach(s -> builder.cc(s));
+        (!overrideCC.isEmpty() ? List.of(overrideCC) : cc).forEach(s -> builder.cc(s));
 
         log.debug("Sending email '{}' to '{}'", subject, to);
 
