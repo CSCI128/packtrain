@@ -17,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 public class FreeMarkerConfiguration {
     private final TemplateLoader templateLoader;
     private final Template extensionCreatedStudentEmailTemplate;
+    private final Template extensionApprovedStudentEmailTemplate;
+    private final Template extensionDeniedStudentEmailTemplate;
     private final Template extensionCreatedInstructorEmailTemplate;
 
     public FreeMarkerConfiguration(
@@ -24,8 +26,13 @@ public class FreeMarkerConfiguration {
             String templatePath,
             @Value("${grading-admin.email.templates.extension-created-student}") 
             String extensionCreatedStudentTemplateName,
+            @Value("${grading-admin.email.templates.extension-approved-student}") 
+            String extensionApprovedStudentTemplateName, 
+            @Value("${grading-admin.email.templates.extension-denied-student}") 
+            String extensionDeniedStudentTemplateName, 
             @Value("${grading-admin.email.templates.extension-created-instructor}") 
-            String extensionCreatedInstructorTemplateName) {
+            String extensionCreatedInstructorTemplateName
+            ) {
         templateLoader = new ClassTemplateLoader(this.getClass(), templatePath);
 
         freemarker.template.Configuration configuration = new freemarker.template.Configuration(
@@ -34,6 +41,8 @@ public class FreeMarkerConfiguration {
         configuration.setTemplateLoader(templateLoader);
 
         extensionCreatedStudentEmailTemplate = readTemplates(configuration, extensionCreatedStudentTemplateName);
+        extensionApprovedStudentEmailTemplate = readTemplates(configuration, extensionApprovedStudentTemplateName);
+        extensionDeniedStudentEmailTemplate = readTemplates(configuration, extensionDeniedStudentTemplateName);
         extensionCreatedInstructorEmailTemplate = readTemplates(configuration, extensionCreatedInstructorTemplateName);
 
     }
@@ -62,6 +71,16 @@ public class FreeMarkerConfiguration {
     @Bean(name = "extensionCreatedStudentEmailTemplate")
     public Template getExtensionCreatedStudentEmailTemplate() {
         return extensionCreatedStudentEmailTemplate;
+    }
+
+    @Bean(name = "extensionApprovedStudentEmailTemplate")
+    public Template getExtensionApprovedStudentEmailTemplate() {
+        return extensionApprovedStudentEmailTemplate;
+    }
+
+    @Bean(name = "extensionDeniedStudentEmailTemplate")
+    public Template extensionDeniedStudentEmailTemplate() {
+        return extensionDeniedStudentEmailTemplate;
     }
 
     @Bean(name = "extensionCreatedInstructorEmailTemplate")

@@ -321,12 +321,14 @@ public class InstructorApiImpl implements InstructorApiDelegate {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<LateRequestDTO> approveExtension(UUID courseId, UUID extensionId, String reason) {
         LateRequest lateRequest = extensionService.approveExtension(extensionId, reason);
         return ResponseEntity.accepted().body(DTOFactory.toDto(lateRequest));
     }
 
     @Override
+    @Transactional
     public ResponseEntity<LateRequestDTO> denyExtension(UUID courseId, UUID extensionId, String reason) {
         LateRequest lateRequest = extensionService.denyExtension(extensionId, reason);
         return ResponseEntity.accepted().body(DTOFactory.toDto(lateRequest));

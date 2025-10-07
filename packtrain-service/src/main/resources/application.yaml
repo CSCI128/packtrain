@@ -38,6 +38,8 @@ grading-admin:
     templates:
       template-directory: /templates/emails
       extension-created-student: extension-created-student.ftl
+      extension-approved-student: extension-approved-student.ftl
+      extension-denied-student: extension-denied-student.ftl
       extension-created-instructor: extension-created-instructor.ftl
     enabled: true
     smtp-server: ${SMTP_SERVER:localhost.dev}
