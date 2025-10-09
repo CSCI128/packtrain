@@ -200,13 +200,13 @@ public class ExtensionService {
         if (extensionApplied) {
             status = LateRequestStatus.APPLIED;
         }
-        if (lateRequest != null) {
-            lateRequest.setStatus(status);
-            lateRequest.setDaysRequested(extensionDays);
-            lateRequestRepo.save(lateRequest);
+        if (lateRequest == null) {
+            return;
         }
 
-         //is this correct?
+        lateRequest.setStatus(status);
+        lateRequest.setDaysRequested(extensionDays);
+        lateRequestRepo.save(lateRequest);
 
     }
 

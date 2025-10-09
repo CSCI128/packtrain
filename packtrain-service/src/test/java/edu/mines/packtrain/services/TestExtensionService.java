@@ -7,18 +7,13 @@ import edu.mines.packtrain.repositories.ExtensionRepo;
 import edu.mines.packtrain.repositories.LateRequestRepo;
 import edu.mines.packtrain.seeders.CourseSeeders;
 
-import static org.mockito.ArgumentMatchers.any;
-
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -55,20 +50,17 @@ public class TestExtensionService implements PostgresTestContainer {
 
     }
 
-
+    @Test
     void verifyProcessExtensionApplied(){
         LateRequest mockLateRequest = new LateRequest();
         mockLateRequest.setDaysRequested(4);
         mockLateRequest.setStatus(LateRequestStatus.IGNORED);
         
-        Mockito.when(lateRequestRepo.getLateRequestById(any(UUID.class))).thenReturn(mockLateRequest);
-        Mockito.when(lateRequestRepo.save(any())).thenReturn(null);
-
+        mockLateRequest = lateRequestRepo.save(mockLateRequest);
+        
         extensionService.processExtensionApplied(UUID.randomUUID(), true, 2);
-        ArgumentCaptor<LateRequest> requestCaptor = ArgumentCaptor.forClass(LateRequest.class);
-        Mockito.verify(lateRequestRepo).save(requestCaptor.capture());
-
-        LateRequest capturedRequest = requestCaptor.getValue();
+        LateRequest capturedRequest = lateRequestRepo.getLateRequestById(mockLateRequest.getId());
+       
         Assertions.assertEquals(capturedRequest.getStatus(), LateRequestStatus.APPLIED);
         Assertions.assertEquals(capturedRequest.getDaysRequested(), 2);
 
