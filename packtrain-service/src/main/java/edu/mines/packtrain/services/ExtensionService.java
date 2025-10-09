@@ -192,4 +192,22 @@ public class ExtensionService {
                 .collect(Collectors.toUnmodifiableMap(
                         l -> l.getRequestingUser().getCwid(), l -> l));
     }
+
+    public void processExtensionApplied(UUID extensionId, boolean extensionApplied, int extensionDays) {
+        LateRequest lateRequest = lateRequestRepo.getLateRequestById(extensionId);
+        LateRequestStatus status;
+        status = LateRequestStatus.IGNORED;
+        if (extensionApplied) {
+            status = LateRequestStatus.APPLIED;
+        }
+        if (lateRequest == null) {
+            return;
+        }
+
+        lateRequest.setStatus(status);
+        lateRequest.setDaysRequested(extensionDays);
+        lateRequestRepo.save(lateRequest);
+
+    }
+
 }

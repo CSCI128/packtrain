@@ -8,4 +8,5 @@ export default class PolicyScoredDTO {
     extensionStatus!: ExtensionStatus;
     extensionMessage?: string;
     submissionMessage?: string;
+    numberExtensionDaysApplied?: number;
 }

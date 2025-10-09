@@ -12,4 +12,5 @@ export default class ScoredDTO {
     extensionStatus!: ExtensionStatus;
     extensionMessage!: string;
     submissionMessage!: string;
+    numberExtensionDaysApplied!: number;
 }

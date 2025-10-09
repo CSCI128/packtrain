@@ -93,6 +93,9 @@ function validateScoredDTO(scored: PolicyScoredDTO): string[] {
         );
     }
 
+    if (scored.numberExtensionDaysApplied == null){
+        errors.push("the number of extension days applied was not set by policy!")
+    }
     return errors;
 }
 

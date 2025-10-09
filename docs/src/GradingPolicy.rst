@@ -138,6 +138,9 @@ Your policy must return an object with these properties set:
 
     **submissionMessage** *(nullable string)*
         An optional message for the overall submission.
+    
+    **numberExtensionDaysApplied** *(number)*
+        the number of extension days applied
 
 An example for format is below:
 

@@ -60,4 +60,7 @@ public class MigrationTransactionLog {
 
     @Column(name = "message", length = 1000)
     private String message;
+
+    @Column(name = "number_extension_days")
+    private int extensionDays = 0;
 }
