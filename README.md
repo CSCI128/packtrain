@@ -1,5 +1,7 @@
 # 🐴📦 packtrain
 
+> Packtrain has been deprecated and use will not continue after Fall 2025.
+
 > packtrain: a line or succession of pack animals, as mules or burros, used to transport food and supplies over terrain unsuitable for wagons or other vehicles.
 
 Packtrain is software for grading and student extension management. It
